@@ -27,7 +27,8 @@ from typing import Any
 
 import numpy as np
 
-from .llm_http_cancel import raise_if_llm_cancel_requested
+from .llm_backends import _http_response_json_dict
+from .llm_http_cancel import LLMHttpCancelledError, raise_if_llm_cancel_requested
 
 
 @dataclass
@@ -172,44 +173,18 @@ def http_fetch_ollama_embedding(
 ) -> np.ndarray | None:
     """
     POST Ollama embeddings JSON; return unit L2 vector or ``None``.
+
+    Applies retries, backoff, and circuit breaker via :func:`http_fetch_ollama_embedding_with_policy`.
     """
     return http_fetch_ollama_embedding_with_policy(url, model, prompt, timeout_s=timeout_s)
 
-async def ahttp_fetch_ollama_embedding(
-    url: str,
-    model: str,
-    prompt: str,
-    *,
-    timeout_s: float | None = None,
-    aclient: httpx.AsyncClient | None = None,
-) -> np.ndarray | None:
-    """
-    Async POST Ollama embeddings JSON; return unit L2 vector or ``None``.
-    """
-    return await ahttp_fetch_ollama_embedding_with_policy(
-        url, model, prompt, timeout_s=timeout_s, aclient=aclient
-    )
-
 
 def _post_once(client: Any, url: str, payload: dict[str, Any]) -> list[float] | None:
+    """Sync single POST; JSON via :func:`_http_response_json_dict` (Block 0.1.1)."""
+    raise_if_llm_cancel_requested()
     r = client.post(url, json=payload)
     r.raise_for_status()
-    data = r.json()
-    emb = data.get("embedding")
-    if not emb or not isinstance(emb, list):
-        return None
-    arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
-    if arr.size == 0 or not np.all(np.isfinite(arr)):
-        return None
-    n = float(np.linalg.norm(arr))
-    if n < 1e-12:
-        return None
-    return (arr / n).tolist()
-
-async def _apost_once(client: httpx.AsyncClient, url: str, payload: dict[str, Any]) -> list[float] | None:
-    r = await client.post(url, json=payload)
-    r.raise_for_status()
-    data = r.json()
+    data = _http_response_json_dict(r, context="ollama_embeddings_sync_transport")
     emb = data.get("embedding")
     if not emb or not isinstance(emb, list):
         return None
@@ -229,10 +204,6 @@ def http_fetch_ollama_embedding_with_policy(
     *,
     timeout_s: float | None = None,
 ) -> np.ndarray | None:
-    """
-    Synchronous embeddings fetch (``httpx.Client``). Prefer :func:`ahttp_fetch_ollama_embedding_with_policy`
-    from asyncio code paths for cooperative cancellation (Module 0.1).
-    """
     import httpx
 
     t = (
@@ -261,6 +232,10 @@ def http_fetch_ollama_embedding_with_policy(
             latency_ms = (time.perf_counter() - t0) * 1000.0
             _record_success(latency_ms)
             return np.asarray(vec_list, dtype=np.float64)
+        except LLMHttpCancelledError:
+            raise
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except Exception as e:
             last_err = repr(e)
             if attempt < retries and backoff > 0:
@@ -269,16 +244,20 @@ def http_fetch_ollama_embedding_with_policy(
         _record_failure(last_err)
     return None
 
+
 async def ahttp_fetch_ollama_embedding_with_policy(
     url: str,
     model: str,
     prompt: str,
     *,
     timeout_s: float | None = None,
-    aclient: httpx.AsyncClient | None = None,
 ) -> np.ndarray | None:
-    """Async variant of embedding fetch with cooperative backoff and circuit breaker."""
+    """
+    Async POST to Ollama ``/api/embeddings`` with the same retry/circuit policy as
+    :func:`http_fetch_ollama_embedding_with_policy`.
+    """
     import asyncio
+
     import httpx
 
     t = (
@@ -295,36 +274,33 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     payload = {"model": model, "prompt": prompt}
     last_err = ""
     for attempt in range(retries + 1):
+        raise_if_llm_cancel_requested()
         if _circuit_blocks():
             break
         t0 = time.perf_counter()
         try:
-            timeout = httpx.Timeout(t)
-            if aclient is not None:
-                response = await aclient.post(url, json=payload, timeout=timeout)
-                response.raise_for_status()
-                data = response.json()
-            else:
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(url, json=payload)
-                    response.raise_for_status()
-                    data = response.json()
-            emb = data.get("embedding")
-            if not emb or not isinstance(emb, list):
-                raise ValueError("missing or invalid embedding array")
-            
-            arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
-            if arr.size == 0 or not np.all(np.isfinite(arr)):
-                raise ValueError("invalid embedding content")
-            
-            n = float(np.linalg.norm(arr))
-            if n < 1e-12:
-                raise ValueError("zero-norm embedding")
-            
-            vec = arr / n
+            async with httpx.AsyncClient(timeout=t) as client:
+                raise_if_llm_cancel_requested()
+                r = await client.post(url, json=payload)
+                r.raise_for_status()
+                data = _http_response_json_dict(r, context="ollama_embeddings_async_transport")
+                emb = data.get("embedding")
+                if not emb or not isinstance(emb, list):
+                    raise ValueError("missing or invalid embedding array")
+                arr = np.asarray([float(x) for x in emb], dtype=np.float64).reshape(-1)
+                if arr.size == 0 or not np.all(np.isfinite(arr)):
+                    raise ValueError("invalid embedding values")
+                n = float(np.linalg.norm(arr))
+                if n < 1e-12:
+                    raise ValueError("zero embedding")
+                vec_list = (arr / n).tolist()
             latency_ms = (time.perf_counter() - t0) * 1000.0
             _record_success(latency_ms)
-            return vec
+            return np.asarray(vec_list, dtype=np.float64)
+        except LLMHttpCancelledError:
+            raise
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except Exception as e:
             last_err = repr(e)
             if attempt < retries and backoff > 0:
@@ -337,6 +313,7 @@ async def ahttp_fetch_ollama_embedding_with_policy(
 def maybe_hash_fallback_embedding(text: str) -> np.ndarray | None:
     """If policy allows (hash_fallback), return hash-scoped vector; else ``None``."""
     from .llm_touchpoint_policies import resolve_embedding_backend_policy
+
     policy = resolve_embedding_backend_policy()
     if policy == "hash_fallback":
         return hash_scoped_unit_embedding(text)

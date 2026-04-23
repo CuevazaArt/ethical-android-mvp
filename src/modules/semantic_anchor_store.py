@@ -17,12 +17,32 @@ Enables DAO operators to add/update semantic reference phrases without redeployi
 
 from __future__ import annotations
 
+import logging
+import math
 import os
 import time
 from abc import ABC, abstractmethod
 from typing import Any, cast
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
+
+
+def _coerce_nonnegative_ttl_s(raw: object) -> float:
+    """
+    Anchor TTL for MalAbs stores: must be finite and >= 0 (0 = no expiry).
+
+    Rejects ``NaN``/``Inf`` and negative values so monotonic / wall-clock expiry logic
+    never sees poisoned operator input (Pragmatismo V4.0).
+    """
+    try:
+        t = float(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0.0
+    if not math.isfinite(t) or t < 0.0:
+        return 0.0
+    return t
 
 
 class SemanticAnchorRecord:
@@ -43,7 +63,7 @@ class SemanticAnchorRecord:
         self.embedding = embedding
         self.metadata = metadata or {}
         self.timestamp = time.monotonic()
-        self.ttl_s = ttl_s
+        self.ttl_s = _coerce_nonnegative_ttl_s(ttl_s)
 
     def is_expired(self, cutoff: float | None = None) -> bool:
         """Check if anchor has exceeded TTL (0 = no expiry)."""
@@ -101,7 +121,7 @@ class SemanticAnchorStore(ABC):
     def from_env(cls) -> SemanticAnchorStore:
         """Build a store from ``KERNEL_SEMANTIC_*`` environment variables."""
         backend = os.environ.get("KERNEL_SEMANTIC_VECTOR_BACKEND", "memory").strip().lower()
-        ttl_s = float(os.environ.get("KERNEL_SEMANTIC_ANCHOR_TTL_S", "0") or "0")
+        ttl_s = _coerce_nonnegative_ttl_s(os.environ.get("KERNEL_SEMANTIC_ANCHOR_TTL_S", "0") or "0")
         if backend == "chroma":
             persist_path = os.environ.get("KERNEL_SEMANTIC_VECTOR_PERSIST_PATH", ".chroma/").strip()
             return ChromaSemanticAnchorStore(persist_path=persist_path, default_ttl_s=ttl_s)
@@ -158,6 +178,8 @@ class InMemorySemanticAnchorStore(SemanticAnchorStore):
                     continue
                 anchor_vec = anchor_vec / anchor_norm
                 sim = float(np.dot(query_vec, anchor_vec))
+                if not math.isfinite(sim):
+                    continue
                 sims.append((rec.id, sim, rec.metadata))
             except (TypeError, ValueError):
                 continue
@@ -206,7 +228,7 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
             name="semantic_anchors",
             metadata={"hnsw:space": "cosine"},
         )
-        self.default_ttl_s = default_ttl_s
+        self.default_ttl_s = _coerce_nonnegative_ttl_s(default_ttl_s)
         self.record_ttl: dict[str, float] = {}
 
     def upsert_anchor(
@@ -225,12 +247,16 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
         chroma_meta["text"] = text
         chroma_meta["timestamp"] = time.time()
 
-        self.collection.upsert(
-            ids=[id],
-            embeddings=[emb_list],
-            documents=[text],
-            metadatas=[chroma_meta],
-        )
+        try:
+            self.collection.upsert(
+                ids=[id],
+                embeddings=[emb_list],
+                documents=[text],
+                metadatas=[chroma_meta],
+            )
+        except Exception as e:
+            logger.warning("Chroma upsert_anchor id=%s failed: %s", id, e, exc_info=True)
+            raise
         if self.default_ttl_s > 0:
             self.record_ttl[id] = time.monotonic()
 
@@ -262,42 +288,73 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
 
             neighbors: list[tuple[str, float, dict[str, Any]]] = []
             for i, row_id in enumerate(row_ids):
-                dist = dist_row[i] if i < len(dist_row) else 1.0
+                raw_d = dist_row[i] if i < len(dist_row) else 1.0
+                try:
+                    dist = float(raw_d)
+                except (TypeError, ValueError):
+                    continue
+                if not math.isfinite(dist):
+                    continue
+                sim = 1.0 - dist
+                if not math.isfinite(sim):
+                    continue
                 meta_raw = meta_row[i] if i < len(meta_row) else {}
                 meta = meta_raw if isinstance(meta_raw, dict) else {}
-                sim = 1.0 - float(dist)
                 restored_meta = {k: v for k, v in meta.items() if k not in ["text", "timestamp"]}
                 neighbors.append((str(row_id), sim, restored_meta))
 
             return neighbors
-        except Exception:
+        except Exception as e:
+            logger.debug("Chroma query_neighbors failed: %s", e, exc_info=True)
             return []
 
     def delete_expired(self, before_timestamp: float | None = None) -> int:
-        cutoff = before_timestamp or (
-            time.time() - self.default_ttl_s if self.default_ttl_s > 0 else None
-        )
-        if cutoff is None:
-            return 0
+        try:
+            cutoff: float | None
+            if before_timestamp is not None:
+                try:
+                    co = float(before_timestamp)
+                except (TypeError, ValueError):
+                    return 0
+                if not math.isfinite(co):
+                    return 0
+                cutoff = co
+            else:
+                if self.default_ttl_s > 0:
+                    cutoff = time.time() - self.default_ttl_s
+                else:
+                    return 0
+            if not math.isfinite(cutoff):
+                return 0
 
-        # Query all and filter
-        raw_g = self.collection.get(include=cast(Any, ["metadatas"]))
-        all_results: dict[str, Any] = cast(dict[str, Any], raw_g)
-        ids_list = all_results.get("ids")
-        metas_list = all_results.get("metadatas")
-        if not isinstance(ids_list, list) or not isinstance(metas_list, list):
-            return 0
-        to_delete: list[Any] = []
-        for i, meta in enumerate(metas_list):
-            if not isinstance(meta, dict):
-                continue
-            if "timestamp" in meta and float(meta["timestamp"]) < cutoff:
+            # Query all and filter
+            raw_g = self.collection.get(include=cast(Any, ["metadatas"]))
+            all_results: dict[str, Any] = cast(dict[str, Any], raw_g)
+            ids_list = all_results.get("ids")
+            metas_list = all_results.get("metadatas")
+            if not isinstance(ids_list, list) or not isinstance(metas_list, list):
+                return 0
+            to_delete: list[Any] = []
+            for i, meta in enumerate(metas_list):
+                if not isinstance(meta, dict):
+                    continue
+                if "timestamp" not in meta:
+                    continue
+                try:
+                    ts = float(meta["timestamp"])
+                except (TypeError, ValueError):
+                    continue
+                if not math.isfinite(ts) or ts >= cutoff:
+                    continue
                 if i < len(ids_list):
                     to_delete.append(ids_list[i])
 
-        if to_delete:
-            self.collection.delete(ids=to_delete)
-        return len(to_delete)
+            if to_delete:
+                self.collection.delete(ids=to_delete)
+            return len(to_delete)
+        except Exception as e:
+            logger.debug("Chroma delete_expired failed: %s", e, exc_info=True)
+            return 0
 
     def delete(self, id: str) -> bool:
         try:
@@ -308,7 +365,8 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
             self.collection.delete(ids=[id])
             self.record_ttl.pop(id, None)
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug("Chroma delete id=%s failed: %s", id, e, exc_info=True)
             return False
 
     def get(self, id: str) -> SemanticAnchorRecord | None:
@@ -340,7 +398,8 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
                 metadata={k: v for k, v in meta.items() if k not in ["text", "timestamp"]},
                 ttl_s=self.default_ttl_s,
             )
-        except Exception:
+        except Exception as e:
+            logger.debug("Chroma get id=%s failed: %s", id, e, exc_info=True)
             return None
 
     def get_all_anchors(self) -> list[tuple[str, str, dict[str, Any]]]:
@@ -360,7 +419,8 @@ class ChromaSemanticAnchorStore(SemanticAnchorStore):
                 restored = {k: v for k, v in meta.items() if k not in ("text", "timestamp")}
                 out.append((aid, doc or "", restored))
             return out
-        except Exception:
+        except Exception as e:
+            logger.debug("Chroma get_all_anchors failed: %s", e, exc_info=True)
             return []
 
 
@@ -372,7 +432,7 @@ def create_anchor_store(
 ) -> SemanticAnchorStore:
     """Explicit-backend factory for tests and scripts. Production code uses :func:`get_anchor_store`."""
     backend = (backend or "memory").strip().lower()
-    ttl_s = float(default_ttl_s or 0.0)
+    ttl_s = _coerce_nonnegative_ttl_s(default_ttl_s)
     if backend == "chroma":
         path = (
             persist_path

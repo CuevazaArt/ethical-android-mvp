@@ -99,8 +99,6 @@ class DAOOrchestrator:
         
         _log.info(msg)
         return txn_hash
-        _log.info(msg)
-        return txn_hash
 
     def submit_appeal(self, context: dict[str, Any]) -> dict[str, Any]:
         """

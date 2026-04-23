@@ -74,10 +74,19 @@ _CONFUSABLE_TRANSLATE = str.maketrans(
         "\u0422": "T",  # Cyrillic T
         "\u0442": "t",  # Cyrillic t
         "\u0412": "B",  # Cyrillic B
-        "\u0432": "b",  # Cyrillic b
+        "\u0432": "b",  # Cyrillic ve (small)
+        "\u0411": "B",  # Cyrillic Be (capital)
+        "\u0431": "b",  # Cyrillic be (digit-6 shape; homoglyph for Latin b in *bomb*)
         "\u0458": "j",  # Cyrillic j
         "\u0455": "s",  # Cyrillic s
         "\u03b1": "a",  # Greek alpha
+        "\u03b5": "e",  # Greek epsilon
+        "\u0395": "E",  # Greek capital epsilon
+        "\u03f5": "e",  # Greek lunate epsilon
+        "\u0131": "i",  # Turkish dotless i
+        "\u0130": "I",  # Turkish capital I with dot
+        "\u043f": "n",  # Cyrillic Pe → Latin n lookalike (font-dependent)
+        "\u041f": "N",
         "\u03bd": "v",  # Greek nu
         "\u03bf": "o",  # Greek omicron
         "\u03c1": "p",  # Greek rho
@@ -123,13 +132,14 @@ def _fold_fullwidth_latin_digits(s: str) -> str:
 
 def collapse_repeated_chars(text: str) -> str:
     """
-    Collapse sequences of 3+ same characters into 2 (e.g. 'booom' -> 'bom', but 'kill' -> 'kill').
-    Used to catch 'letter padding' evasions in MalAbs without breaking legitimate doubled letters.
+    Collapse runs of **three or more** identical characters to one (e.g. ``booom`` → ``bom``).
+
+    Pairs are left intact so legitimate doubles (e.g. ``ll`` in ``kill``) survive homoglyph folding
+    (MalAbs lexical layer / Block 8.1.3).
     """
     if not text:
         return ""
-    # Only collapse when 3+ repetitions (preserve legitimate doubled letters like 'kill', 'success')
-    return re.sub(r"(.)\1{2,}", r"\1\1", text)
+    return re.sub(r"(.)\1{2,}", r"\1", text)
 
 
 def squash_text_for_malabs(text: str) -> str:
@@ -152,12 +162,13 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
     Normalize user text before conservative substring checks in ``evaluate_chat_text``.
 
     - Unicode **NFKC** (compatibility composition).
-    - Strip zero-width / soft-hyphen / control characters.
+    - Strip zero-width / soft-hyphen characters.
     - Optional: strip **bidirectional overrides** (``KERNEL_MALABS_STRIP_BIDI``, default on).
     - Map **fullwidth** Latin digits/letters to ASCII.
     - Optional: **leet** digit/symbol fold (``KERNEL_MALABS_LEET_FOLD``, default on).
     - Optional: **confusable** folding (Cyrillic, Greek, etc., default on).
-    - Collapse repeated characters (e.g. 'bbbooommm' -> 'bom').
+    - Canonicalize ``bbomb`` → ``bomb`` after confusable fold (Latin b + Cyrillic be).
+    - Collapse repeated characters of length **three or more** (e.g. ``bbbooommm`` → ``bom``).
     - Collapse internal whitespace and trim.
 
     Homoglyphs across scripts (e.g. Cyrillic lookalikes) are mostly resolved; use semantic MalAbs
@@ -165,21 +176,23 @@ def normalize_text_for_malabs(text: str, squash: bool = False) -> str:
     """
     if not text:
         return ""
-    t = unicodedata.normalize("NFKC", text)
+    t = _UNSAFE_CTRL_RE.sub("", text)
+    t = unicodedata.normalize("NFKC", t)
     t = _ZW_RE.sub("", t)
-    t = _UNSAFE_CTRL_RE.sub("", t)
     if _bidi_strip_enabled():
         t = _BIDI_EMBED_RE.sub("", t)
     t = _fold_fullwidth_latin_digits(t)
     if _confusable_fold_enabled():
         t = t.translate(_CONFUSABLE_TRANSLATE)
+    # Latin b + Cyrillic be both fold to ``b`` → ``bbomb``; align to ``bomb`` for substring MalAbs.
+    t = re.sub(r"(?i)bbomb", "bomb", t)
     if _leet_fold_enabled():
         t = t.translate(_LEET_TRANSLATE)
 
     if squash:
         return squash_text_for_malabs(t)
 
-    # Collapse repeated characters (after folding to ensure things like '@a' -> 'aa' -> 'a' work)
+    # Collapse padding runs (3+) — after folding so patterns like ``@aa`` still normalize sensibly.
     t = collapse_repeated_chars(t)
 
     t = " ".join(t.split())

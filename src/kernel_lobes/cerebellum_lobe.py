@@ -22,12 +22,10 @@ class CerebellumLobe:
     def __init__(
         self,
         bayesian: BayesianInferenceEngine,
-        strategist: ExecutiveStrategist,
-        rlhf: Optional[RLHFPipeline] = None
+        strategist: ExecutiveStrategist
     ):
         self.bayesian = bayesian
         self.strategist = strategist
-        self.rlhf = rlhf
 
     def execute_bayesian_stage(
         self,
@@ -35,15 +33,12 @@ class CerebellumLobe:
         scenario: str,
         context: str,
         signals: dict[str, Any],
-        identity_deltas: Any = None,
-        rlhf_features: Any = None
     ) -> Tuple[EthicsMixtureResult, BayesianStageMetadata]:
         """
         Run Bayesian scoring and BMA.
         Extracted from kernel._run_bayesian_stage.
         """
-        # Mixture defaults vs episodic nudge are applied in :meth:`EthicalKernel._run_bayesian_stage`
-        # (``KERNEL_BAYESIAN_EMPIRICAL_WEIGHTS``); do not reset here or the nudge is wiped.
+        # Mixture weights are set in ``EthicalKernel._run_bayesian_stage`` (reset vs episodic refresh).
 
         # 1. Update Strategic Alignment
         for a in clean_actions:
@@ -72,14 +67,14 @@ class CerebellumLobe:
                 if isinstance(fb_meta, dict) and fb_meta.get("active_context_key"):
                     mixture_context_key = str(fb_meta["active_context_key"])
 
+        # RLHF → Bayesian prior nudge runs in :meth:`~src.kernel.EthicalKernel.aprocess` (async) before this stage.
+
         # 3. Main Bayesian Evaluate
         bayes_result = self.bayesian.evaluate(
             actions=clean_actions, 
             scenario=scenario, 
             context=context, 
-            signals=signals,
-            identity_deltas=identity_deltas,
-            rlhf_features=rlhf_features
+            signals=signals
         )
 
         # 4. BMA (Bayesian Mixture Averaging)
@@ -92,8 +87,9 @@ class CerebellumLobe:
             alpha_bma = dirichlet_alpha_for_bma if dirichlet_alpha_for_bma is not None else parse_bma_alpha_from_env()
             n_s = bma_n_samples()
             rng_bma = np.random.default_rng(int(os.environ.get("KERNEL_BMA_SEED", "42")))
+            scorer = self.bayesian.scorer if hasattr(self.bayesian, "scorer") else self.bayesian
             win_probs = monte_carlo_win_probabilities(
-                self.bayesian.scorer if hasattr(self.bayesian, "scorer") else self.bayesian,
+                scorer,
                 clean_actions,
                 alpha=np.asarray(alpha_bma, dtype=np.float64),
                 n_samples=n_s,

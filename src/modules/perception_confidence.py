@@ -42,12 +42,17 @@ def build_perception_confidence_envelope(
     epistemic_active: bool,
     vitality_critical: bool,
     thermal_critical: bool = False,
+    thermal_elevated: bool = False,
 ) -> PerceptionConfidenceEnvelope:
     """
     Build confidence envelope in [0, 1] where higher is better confidence.
 
     Base score derives from coercion uncertainty, then applies bounded penalties
     for cross-modal mismatch and runtime risk overlays.
+
+    ``thermal_elevated`` is the advisory band below ``thermal_critical`` (e.g. Nomad handset
+    temperature between warn and critical). When ``thermal_critical`` is true, only the critical
+    penalty is applied.
     """
     report = perception_report_from_dict(coercion_report)
     uncertainty = float(report.uncertainty())
@@ -69,6 +74,9 @@ def build_perception_confidence_envelope(
     if vitality_critical:
         score -= 0.06
         reasons.append("vitality_critical")
+    if thermal_elevated and not thermal_critical:
+        score -= 0.05
+        reasons.append("thermal_elevated")
     if thermal_critical:
         score -= 0.15
         reasons.append("thermal_critical")

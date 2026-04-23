@@ -48,6 +48,9 @@ ENV_GLOBAL_POLICY = "KERNEL_LLM_GLOBAL_POLICY"
 ENV_LLM_GLOBAL_DEFAULT_POLICY = "KERNEL_LLM_GLOBAL_DEFAULT_POLICY"
 
 DEFAULT_MONOLOGUE_BACKEND_POLICY = "passthrough"
+MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
+
+GLOBAL_POLICY_SAFE = "safe"
 
 MONOLOGUE_POLICIES = frozenset({"passthrough", "annotate_degraded"})
 

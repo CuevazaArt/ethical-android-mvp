@@ -43,6 +43,7 @@ Runtime anchors: :func:`add_semantic_anchor` for DAO / ops without redeploying c
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import time
@@ -55,7 +56,10 @@ import numpy as np
 
 from ..observability.metrics import observe_embedding_error, record_semantic_malabs_outcome
 from .input_trust import normalize_text_for_malabs
+from .llm_http_cancel import LLMHttpCancelledError
 from .semantic_anchor_store import SemanticAnchorStore, get_anchor_store
+
+logger = logging.getLogger(__name__)
 
 # Default cosine zone boundaries — engineering priors (not empirically calibrated in this repo).
 # Intentional changes require review, tests, and updates to PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md.
@@ -187,31 +191,6 @@ _runtime_anchors: list[tuple[str, str, str]] = []
 _anchor_store: SemanticAnchorStore = get_anchor_store()
 
 
-def _populate_builtin_anchors_to_store(backend: Any | None = None) -> None:
-    """Populate the vector store with built-in reference anchors."""
-    for phrases, cat_key, reason in _REFERENCE_GROUPS:
-        for phrase in phrases:
-            try:
-                embedding = _fetch_embedding_with_fallback(phrase, backend)
-                if embedding is not None:
-                    anchor_id = f"builtin_{hash(phrase) % 1000000}"
-                    metadata = {
-                        "category_key": cat_key,
-                        "reason_label": reason,
-                        "source": "builtin",
-                    }
-                    _anchor_store.upsert_anchor(anchor_id, phrase, embedding, metadata)
-            except Exception:
-                pass  # Skip if embedding fails
-
-
-# Populate built-in anchors on module load
-try:
-    _populate_builtin_anchors_to_store()
-except Exception:
-    pass  # Ignore errors during initialization
-
-
 class _TextBackend(Protocol):
     def complete(self, system: str, user: str) -> str: ...
 
@@ -274,16 +253,29 @@ def _build_rlhf_features(sim: float, cat_str: str, zone: str) -> dict[str, Any]:
     }
 
 
+def _rlhf_arbiter_overlay(
+    hint_sim: float,
+    hint_cat_key: str,
+    *,
+    blocked: bool,
+    confidence: float | None = None,
+) -> dict[str, Any]:
+    """RLHF-shaped features for LLM arbiter outcomes (ambiguous band)."""
+    feat = _build_rlhf_features(float(hint_sim), hint_cat_key, "ambiguous")
+    feat["lexical_score"] = 1.0 if blocked else 0.0
+    if confidence is not None:
+        feat["perception_confidence"] = max(0.0, min(1.0, float(confidence)))
+    return feat
+
+
 _hot_theta_allow: float | None = None
 _hot_theta_block: float | None = None
-
 
 def apply_hot_reloaded_thresholds(theta_allow: float, theta_block: float) -> None:
     """Hot reload absolute evil thresholds dynamically from governance."""
     global _hot_theta_allow, _hot_theta_block
     _hot_theta_allow = theta_allow
     _hot_theta_block = theta_block
-
 
 def _block_threshold() -> float:
     if _hot_theta_block is not None:
@@ -382,30 +374,14 @@ def _fetch_embedding(text: str) -> np.ndarray | None:
     return None
 
 
-async def _afetch_embedding(text: str, aclient: httpx.AsyncClient | None = None) -> np.ndarray | None:
-    from .semantic_embedding_client import (
-        ahttp_fetch_ollama_embedding_with_policy,
-        maybe_hash_fallback_embedding,
-    )
-
-    url = f"{_ollama_base()}/api/embeddings"
-    v = await ahttp_fetch_ollama_embedding_with_policy(url, _embed_model(), text, aclient=aclient)
-    if v is not None:
-        return v
-    hf = maybe_hash_fallback_embedding(text)
-    if hf is not None:
-        return hf
-    observe_embedding_error("http")
-    return None
-
-
 def _embed_via_backend(backend: Any, text: str) -> np.ndarray | None:
     fn = getattr(backend, "embedding", None)
     if not callable(fn):
         return None
     try:
         raw = fn(text)
-    except Exception:
+    except (TypeError, ValueError, OSError, RuntimeError, MemoryError, RecursionError, AttributeError) as e:
+        logger.debug("backend.embedding failed; using HTTP/hash fallback: %s", e, exc_info=True)
         observe_embedding_error("backend")
         return None
     return _list_to_unit_vector(raw)
@@ -420,25 +396,29 @@ def _fetch_embedding_with_fallback(text: str, backend: Any | None = None) -> np.
     return _fetch_embedding(text)
 
 
-async def _afetch_embedding_with_fallback(
-    text: str, backend: Any | None = None, aclient: httpx.AsyncClient | None = None
-) -> np.ndarray | None:
-    """Async: Prefer ``backend.aembedding`` when present; otherwise Ollama HTTP."""
-    if backend is not None:
-        # 1. Prefer async-native aembedding (Module 0.1.2)
-        if hasattr(backend, "aembedding"):
+def _populate_builtin_anchors_to_store(backend: Any | None = None) -> None:
+    """Populate the vector store with built-in reference anchors."""
+    for phrases, cat_key, reason in _REFERENCE_GROUPS:
+        for phrase in phrases:
             try:
-                raw = await backend.aembedding(text)
-                if raw is not None:
-                    return _list_to_unit_vector(raw)
-            except Exception:
-                observe_embedding_error("backend_async")
+                embedding = _fetch_embedding_with_fallback(phrase, backend)
+                if embedding is not None:
+                    anchor_id = f"builtin_{hash(phrase) % 1000000}"
+                    metadata = {
+                        "category_key": cat_key,
+                        "reason_label": reason,
+                        "source": "builtin",
+                    }
+                    _anchor_store.upsert_anchor(anchor_id, phrase, embedding, metadata)
+            except (OSError, TypeError, ValueError, RuntimeError, MemoryError) as e:
+                logger.debug("builtin anchor embed/upsert skipped: %s", e, exc_info=True)
 
-        # 2. Fallback to sync embedding in thread if native async absent
-        v = _embed_via_backend(backend, text)
-        if v is not None:
-            return v
-    return await _afetch_embedding(text, aclient=aclient)
+
+# Populate built-in anchors on module load (after embedding helpers are defined)
+try:
+    _populate_builtin_anchors_to_store()
+except (OSError, TypeError, ValueError, RuntimeError, MemoryError) as e:
+    logger.debug("builtin anchor population at import failed: %s", e, exc_info=True)
 
 
 def _cosine_dense(a: np.ndarray, b: np.ndarray) -> float:
@@ -499,9 +479,13 @@ def add_semantic_anchor(phrase: str, category_key: str, reason_label: str = "") 
                     "timestamp": time.time(),
                 },
             )
-    except Exception:
-        # If store fails, proceed with legacy cache
-        pass
+    except Exception as e:
+        # Heterogeneous backends (memory, Chroma) may raise library-specific Errors.
+        logger.warning(
+            "add_semantic_anchor: persistent store path failed; continuing with legacy: %s",
+            e,
+            exc_info=True,
+        )
 
     # Clear legacy cache
     for k in list(_ref_embed_cache.keys()):
@@ -519,9 +503,12 @@ def add_semantic_anchor(phrase: str, category_key: str, reason_label: str = "") 
             anchor_id = f"runtime_{hash(p) % 1000000}"  # Simple ID generation
             metadata = {"category_key": ck, "reason_label": rl, "source": "runtime"}
             _anchor_store.upsert_anchor(anchor_id, p, embedding, metadata)
-    except Exception:
-        # If embedding fails, still add to runtime anchors but log
-        pass
+    except Exception as e:
+        logger.warning(
+            "add_semantic_anchor: legacy _anchor_store upsert failed: %s",
+            e,
+            exc_info=True,
+        )
 
 
 def _iter_anchor_specs() -> list[tuple[str, str, str]]:
@@ -543,8 +530,8 @@ def _best_similarity(user_emb: np.ndarray, backend: Any | None = None) -> tuple[
             cutoff = time.time() - ttl_s
             if hasattr(store, "delete_expired"):
                 store.delete_expired(cutoff)
-        except Exception:
-            pass
+        except (OSError, TypeError, ValueError, RuntimeError, MemoryError) as e:
+            logger.debug("anchor TTL cleanup skipped: %s", e, exc_info=True)
 
     best_sim = -1.0
     best_cat = "UNAUTHORIZED_REPROGRAMMING"
@@ -562,9 +549,9 @@ def _best_similarity(user_emb: np.ndarray, backend: Any | None = None) -> tuple[
                 best_cat = metadata.get("category_key", "UNAUTHORIZED_REPROGRAMMING")
                 best_reason = metadata.get("reason_label", "Semantic match from store")
                 return best_sim, best_cat, best_reason
-    except Exception:
-        # Fall through to legacy cache if store fails
-        pass
+    except Exception as e:
+        # Store backends (incl. optional Chroma) are best-effort; fall back to in-process cache.
+        logger.debug("query_neighbors on anchor store failed; using legacy cache: %s", e, exc_info=True)
 
     # Fallback to legacy in-process iteration (backwards compatibility)
     for phrase, cat_key, reason_label in _iter_anchor_specs():
@@ -616,6 +603,9 @@ def _llm_arbitrate(
     try:
         raw = llm_backend.complete(_ARBITER_SYSTEM, user)
     except Exception as e:
+        if isinstance(e, LLMHttpCancelledError):
+            raise
+        logger.debug("llm MalAbs arbiter complete() failed (fail-closed): %s", e, exc_info=True)
         return AbsoluteEvilResult(
             blocked=True,
             category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
@@ -624,6 +614,9 @@ def _llm_arbitrate(
                 "malabs.layer2=llm_arbiter",
                 "malabs.arbiter_outcome=error_fail_closed",
             ],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=True, confidence=0.35
+            ),
         )
     data = _parse_arbiter_json(raw)
     if not isinstance(data, dict):
@@ -635,13 +628,23 @@ def _llm_arbitrate(
                 "malabs.layer2=llm_arbiter",
                 "malabs.arbiter_outcome=invalid_json_fail_closed",
             ],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=True, confidence=0.25
+            ),
         )
+    conf_raw = data.get("confidence")
+    arb_conf = None
+    if isinstance(conf_raw, (int, float)):
+        arb_conf = float(conf_raw)
     block = bool(data.get("block"))
     if not block:
         return AbsoluteEvilResult(
             blocked=False,
             reason="MalAbs LLM arbiter: allow",
             decision_trace=["malabs.layer2=llm_arbiter", "malabs.arbiter_outcome=allow"],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=False, confidence=arb_conf
+            ),
         )
     cat_s = str(data.get("category") or "UNAUTHORIZED_REPROGRAMMING").upper().strip()
     reason = str(data.get("reason") or "MalAbs LLM arbiter: block")
@@ -653,6 +656,9 @@ def _llm_arbitrate(
                 "malabs.layer2=llm_arbiter",
                 "malabs.arbiter_outcome=none_category_allow",
             ],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=False, confidence=arb_conf
+            ),
         )
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
@@ -670,6 +676,9 @@ def _llm_arbitrate(
             f"malabs.arbiter_category={cat_s}",
             "malabs.arbiter_outcome=block",
         ],
+        rlhf_features=_rlhf_arbiter_overlay(
+            hint_sim, cat_s, blocked=True, confidence=arb_conf
+        ),
     )
 
 
@@ -688,6 +697,9 @@ async def _allm_arbitrate(
     try:
         raw = await llm_backend.acomplete(_ARBITER_SYSTEM, user)
     except Exception as e:
+        if isinstance(e, LLMHttpCancelledError):
+            raise
+        logger.debug("llm MalAbs arbiter acomplete() failed (fail-closed): %s", e, exc_info=True)
         return AbsoluteEvilResult(
             blocked=True,
             category=AbsoluteEvilCategory.UNAUTHORIZED_REPROGRAMMING,
@@ -696,6 +708,9 @@ async def _allm_arbitrate(
                 "malabs.layer2=llm_arbiter",
                 "malabs.arbiter_outcome=error_fail_closed",
             ],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=True, confidence=0.35
+            ),
         )
     data = _parse_arbiter_json(raw)
     if not isinstance(data, dict):
@@ -707,13 +722,23 @@ async def _allm_arbitrate(
                 "malabs.layer2=llm_arbiter",
                 "malabs.arbiter_outcome=invalid_json_fail_closed",
             ],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=True, confidence=0.25
+            ),
         )
+    conf_raw = data.get("confidence")
+    arb_conf = None
+    if isinstance(conf_raw, (int, float)):
+        arb_conf = float(conf_raw)
     block = bool(data.get("block"))
     if not block:
         return AbsoluteEvilResult(
             blocked=False,
             reason="MalAbs LLM arbiter: allow",
             decision_trace=["malabs.layer2=llm_arbiter", "malabs.arbiter_outcome=allow"],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=False, confidence=arb_conf
+            ),
         )
     cat_s = str(data.get("category") or "UNAUTHORIZED_REPROGRAMMING").upper().strip()
     reason = str(data.get("reason") or "MalAbs LLM arbiter: block")
@@ -725,6 +750,9 @@ async def _allm_arbitrate(
                 "malabs.layer2=llm_arbiter",
                 "malabs.arbiter_outcome=none_category_allow",
             ],
+            rlhf_features=_rlhf_arbiter_overlay(
+                hint_sim, hint_category, blocked=False, confidence=arb_conf
+            ),
         )
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
@@ -742,17 +770,20 @@ async def _allm_arbitrate(
             f"malabs.arbiter_category={cat_s}",
             "malabs.arbiter_outcome=block",
         ],
+        rlhf_features=_rlhf_arbiter_overlay(
+            hint_sim, cat_s, blocked=True, confidence=arb_conf
+        ),
     )
 
 
 def run_semantic_malabs_after_lexical(
     text: str,
-    llm_backend: Any | None = None,
+    llm_backend: _TextBackend | None = None,
 ) -> AbsoluteEvilResult:
     """
-    Sync semantic MalAbs tier: embeddings + similarity zones (+ optional LLM arbiter).
+    Run embedding tier (+ optional LLM arbiter). Caller must have run lexical MalAbs already.
 
-    Prefer :func:`arun_semantic_malabs_after_lexical` on async code paths to avoid blocking the loop.
+    When gate is off, do not call — :meth:`AbsoluteEvilDetector.evaluate_chat_text` guards this.
     """
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
 
@@ -781,7 +812,6 @@ def run_semantic_malabs_after_lexical(
     theta_a = _allow_threshold()
 
     best_sim, cat_key, reason_label = _best_similarity(user_emb, llm_backend)
-
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
@@ -807,7 +837,7 @@ def run_semantic_malabs_after_lexical(
                 f"malabs.theta_block={theta_b:.4f}",
                 f"malabs.anchor_category={cat_key}",
             ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, "block"),
         )
 
     if zone == "allow":
@@ -821,7 +851,7 @@ def run_semantic_malabs_after_lexical(
                 f"malabs.best_sim={best_sim:.4f}",
                 f"malabs.theta_allow={theta_a:.4f}",
             ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, "allow"),
         )
 
     # Ambiguous band
@@ -851,7 +881,7 @@ def run_semantic_malabs_after_lexical(
             category=arb.category,
             reason=arb.reason,
             decision_trace=base_trace + dt,
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+            rlhf_features=arb.rlhf_features,
         )
 
     record_semantic_malabs_outcome("ambiguous_fail_safe_block")
@@ -869,7 +899,7 @@ def run_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ],
-        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+        rlhf_features=_build_rlhf_features(best_sim, cat_key, "ambiguous"),
     )
 
 
@@ -888,16 +918,13 @@ def evaluate_semantic_chat_gate(text: str) -> AbsoluteEvilResult | None:
         return r
     return None
 
-
 async def arun_semantic_malabs_after_lexical(
     text: str,
     llm_backend: _TextBackend | None = None,
-    aclient: httpx.AsyncClient | None = None,
 ) -> AbsoluteEvilResult:
     """Async variant of run_semantic_malabs_after_lexical."""
-    import asyncio
-
     from .absolute_evil import AbsoluteEvilCategory, AbsoluteEvilResult
+    import asyncio
 
     if not semantic_chat_gate_env_enabled():
         record_semantic_malabs_outcome("gate_off")
@@ -911,9 +938,9 @@ async def arun_semantic_malabs_after_lexical(
             decision_trace=["malabs.layer1=semantic", "malabs.skip=empty_after_normalize"],
         )
 
-    # Use async-native fetch (Module 0.1.2)
-    user_emb = await _afetch_embedding_with_fallback(t, llm_backend, aclient=aclient)
-
+    # Use thread pool to avoid blocking on HTTP embedding fetches until full async client is implemented
+    user_emb = await asyncio.to_thread(_fetch_embedding_with_fallback, t, llm_backend)
+    
     if user_emb is None:
         record_semantic_malabs_outcome("embed_unavailable_defer")
         return AbsoluteEvilResult(
@@ -925,9 +952,7 @@ async def arun_semantic_malabs_after_lexical(
     theta_b = _block_threshold()
     theta_a = _allow_threshold()
 
-    best_sim, cat_key, reason_label = await asyncio.to_thread(
-        _best_similarity, user_emb, llm_backend
-    )
+    best_sim, cat_key, reason_label = await asyncio.to_thread(_best_similarity, user_emb, llm_backend)
     cat_map = {
         "INTENTIONAL_LETHAL_VIOLENCE": AbsoluteEvilCategory.INTENTIONAL_LETHAL_VIOLENCE,
         "HARM_TO_MINOR": AbsoluteEvilCategory.HARM_TO_MINOR,
@@ -953,7 +978,7 @@ async def arun_semantic_malabs_after_lexical(
                 f"malabs.theta_block={theta_b:.4f}",
                 f"malabs.anchor_category={cat_key}",
             ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, "block"),
         )
 
     if zone == "allow":
@@ -967,7 +992,7 @@ async def arun_semantic_malabs_after_lexical(
                 f"malabs.best_sim={best_sim:.4f}",
                 f"malabs.theta_allow={theta_a:.4f}",
             ],
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+            rlhf_features=_build_rlhf_features(best_sim, cat_key, "allow"),
         )
 
     # Ambiguous band
@@ -997,7 +1022,7 @@ async def arun_semantic_malabs_after_lexical(
             category=arb.category,
             reason=arb.reason,
             decision_trace=base_trace + dt,
-            rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+            rlhf_features=arb.rlhf_features,
         )
 
     record_semantic_malabs_outcome("ambiguous_fail_safe_block")
@@ -1015,5 +1040,5 @@ async def arun_semantic_malabs_after_lexical(
             f"malabs.theta_allow={theta_a:.4f}",
             f"malabs.theta_block={theta_b:.4f}",
         ],
-        rlhf_features=_build_rlhf_features(best_sim, cat_key, zone),
+        rlhf_features=_build_rlhf_features(best_sim, cat_key, "ambiguous"),
     )

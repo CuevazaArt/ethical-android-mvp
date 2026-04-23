@@ -24,6 +24,11 @@ EVENT_KERNEL_WEIGHTS_UPDATED = (
     "kernel.weights_updated"  # I2 — emitted when hypothesis_weights change
 )
 EVENT_GOVERNANCE_THRESHOLD_UPDATED = "kernel.governance_threshold_updated"
+# Tri-Lobe Block 26.0 — MemoryLobe ↔ SelectiveAmnesia (RTBF) via bus; tooling publishes this
+EVENT_KERNEL_AMNESIA_FORGET_EPISODE = "kernel.amnesia.forget_episode"
+EVENT_KERNEL_REQUEST_FORGET_EPISODE = EVENT_KERNEL_AMNESIA_FORGET_EPISODE
+# MotivationEngine autonomous tick (CorpusCallosum idle / EthicalKernel.seek_internal_purpose)
+EVENT_KERNEL_PROACTIVE_PULSE = "kernel.proactive_pulse"
 
 KernelEventHandler = Callable[[dict[str, Any]], None]
 
@@ -32,6 +37,9 @@ __all__ = [
     "EVENT_KERNEL_EPISODE_REGISTERED",
     "EVENT_KERNEL_WEIGHTS_UPDATED",
     "EVENT_GOVERNANCE_THRESHOLD_UPDATED",
+    "EVENT_KERNEL_AMNESIA_FORGET_EPISODE",
+    "EVENT_KERNEL_REQUEST_FORGET_EPISODE",
+    "EVENT_KERNEL_PROACTIVE_PULSE",
     "KernelEventBus",
     "KernelEventHandler",
     "kernel_event_bus_enabled",

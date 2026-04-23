@@ -1,13 +1,17 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Optional
-from src.kernel_lobes.models import LimbicStageResult
+
+from src.kernel_lobes.models import EthicalSentence, LimbicStageResult, SemanticState
+from src.kernel_lobes.signal_coercion import safe_signal_scalar
 
 if TYPE_CHECKING:
-    from src.modules.uchi_soto import UchiSotoModule
-    from src.modules.sympathetic import SympatheticModule
     from src.modules.locus import LocusModule
-    from src.modules.sensor_contracts import SensorSnapshot
     from src.modules.multimodal_trust import MultimodalAssessment
+    from src.modules.sensor_contracts import SensorSnapshot
+    from src.modules.sympathetic import SympatheticModule
+    from src.modules.uchi_soto import UchiSotoModule
+
 
 class LimbicEthicalLobe:
     """
@@ -18,21 +22,45 @@ class LimbicEthicalLobe:
     """
     def __init__(
         self,
-        uchi_soto: UchiSotoModule,
-        sympathetic: SympatheticModule,
-        locus: LocusModule,
-        swarm: Any = None
-    ):
+        uchi_soto: Optional["UchiSotoModule"] = None,
+        sympathetic: Optional["SympatheticModule"] = None,
+        locus: Optional["LocusModule"] = None,
+        swarm: Any = None,
+    ) -> None:
+        if uchi_soto is None:
+            from src.modules.uchi_soto import UchiSotoModule
+
+            uchi_soto = UchiSotoModule()
+        if sympathetic is None:
+            from src.modules.sympathetic import SympatheticModule
+
+            sympathetic = SympatheticModule()
+        if locus is None:
+            from src.modules.locus import LocusModule
+
+            locus = LocusModule()
         self.uchi_soto = uchi_soto
         self.sympathetic = sympathetic
         self.locus = locus
         self.swarm = swarm
-        self.situational_stress = 0.0  # Phase 9.2 Accumulator
 
-    def update_situational_stress(self, level: float) -> None:
-        """Accumulate or decay situational stress based on sensory alerts."""
-        # Persistent stress scales the baseline social tension
-        self.situational_stress = max(0.0, min(1.0, level))
+    def judge(self, state: SemanticState) -> EthicalSentence:
+        """V1.5 lab path: map timeout trauma into limbic tension (see ``tests/test_kernel_lobes_stack``)."""
+        if state.timeout_trauma is None:
+            return EthicalSentence(
+                is_safe=True,
+                social_tension_locus=0.0,
+                applied_trauma_weight=0.0,
+            )
+        t = state.timeout_trauma
+        sev = max(0.0, min(1.0, float(t.severity)))
+        tension = min(1.0, 0.5 + sev * 0.4)
+        trauma_w = min(1.0, 0.3 + sev * 0.5)
+        return EthicalSentence(
+            is_safe=True,
+            social_tension_locus=tension,
+            applied_trauma_weight=trauma_w,
+        )
 
     def execute_stage(
         self,
@@ -63,19 +91,23 @@ class LimbicEthicalLobe:
             multimodal_assessment=multimodal_assessment
         )
         
-        # 3. Swarm Nudge
+        # 3. Swarm Nudge (non-finite / non-numeric nudges are ignored; see signal_coercion)
         if self.swarm:
-            nudge = self.swarm.get_swarm_trust_nudge()
-            if nudge > 0:
+            try:
+                raw = self.swarm.get_swarm_trust_nudge()
+            except (TypeError, ValueError, AttributeError):
+                nudge = 0.0
+            else:
+                nudge = safe_signal_scalar(raw, 0.0)
+            if nudge > 0.0:
                 signals["trust"] = max(0.0, min(1.0, signals.get("trust", 0.5) + nudge))
                 
         # 4. Evaluations
         social_eval = self.uchi_soto.evaluate_interaction(signals, agent_id, message_content)
         
-        # Inject somatic and situational tension into social evaluation
-        total_stress_nudge = somatic_tension + (self.situational_stress * 0.5)
-        if hasattr(social_eval, "relational_tension") and total_stress_nudge > 0:
-            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + total_stress_nudge))
+        # Inject somatic tension into social evaluation
+        if hasattr(social_eval, "relational_tension"):
+            social_eval.relational_tension = max(0.0, min(1.0, social_eval.relational_tension + somatic_tension))
 
         state = self.sympathetic.evaluate_context(signals)
         
@@ -92,29 +124,9 @@ class LimbicEthicalLobe:
         return LimbicStageResult(
             social_evaluation=social_eval,
             internal_state=state,
-            locus_evaluation=locus_eval,
+            locus_evaluation=locus_eval
         )
 
-    async def execute_stage_async(
-        self,
-        agent_id: str,
-        signals: dict[str, float],
-        message_content: str,
-        turn_index: int,
-        sensor_snapshot: Optional[Any] = None,
-        multimodal_assessment: Optional[Any] = None,
-        somatic_state: Optional[dict[str, Any]] = None
-    ) -> LimbicStageResult:
-        """Async wrapper for Level 2 Limbic processing."""
-        import asyncio
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, 
-            self.execute_stage, 
-            agent_id, signals, message_content, turn_index, 
-            sensor_snapshot, multimodal_assessment, somatic_state
-        )
-
-
-# Stable name expected by ``kernel`` / ``kernel_lobes.__init__`` imports.
-LimbicLobe = LimbicEthicalLobe
+    async def execute_swarm_consensus_stage(self, **kwargs: object) -> None:
+        """Stub until LAN swarm consensus is wired to the limbic stack."""
+        return None

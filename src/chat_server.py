@@ -9,10 +9,9 @@ Or: python -m src.runtime  (same server; see docs/proposals/README.md)
 
 **Profiles:** set ``ETHOS_RUNTIME_PROFILE`` to a name in ``src/runtime_profiles.py`` to merge that bundle at import time (explicit env vars win per key). ``GET /health`` and ``GET /`` include ``runtime_profile`` when set; ``GET /health`` also returns ``llm_degradation`` (resolved perception / verbal / monologue policies — see ``PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md``) and ``nomad_bridge`` (queue depths + telemetry **key names** from ``NomadBridge.public_queue_stats()`` — Module S.1 / S.2.1 observability).
 
-**Inbound size cap:** ``KERNEL_CHAT_WS_MAX_MESSAGE_BYTES`` (default 2 MiB, cap 32 MiB) rejects oversize
-WebSocket text frames with ``error=message_too_large`` before ``json.loads`` (Module 0.2.1 hardening).
+**WebSocket hardening (0.2.1):** ``KERNEL_WS_MAX_MESSAGE_BYTES`` (default 524288) caps inbound text frame size in UTF-8 bytes before ``json.loads``; root JSON must be an object (not an array/primitive).
 
-**Chat async bridge:** WebSocket ``/ws/chat`` streams via ``RealTimeBridge.process_chat_stream`` → ``EthicalKernel.process_chat_turn_stream`` on the asyncio loop (see ``RealTimeBridge``). Non-WebSocket callers using ``RealTimeBridge.process_chat`` may run ``process_chat_turn`` in a worker thread unless ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` (or tri-lobe) selects ``process_chat_turn_async`` on the loop with async ``httpx``. The per-turn cancel ``Event`` binds cooperative LLM HTTP cancellation + ``llm_http_cancel`` scope for the thread that runs ``EthicalKernel.process`` when applicable (ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` dedicates a ``ThreadPoolExecutor`` for chat offload. ``KERNEL_CHAT_TURN_TIMEOUT`` bounds each **async** wait on the next stream chunk and returns JSON ``error=chat_turn_timeout`` when exceeded (cancel ``Event``, stream ``aclose``, then ``abandon_chat_turn``). ``KERNEL_CHAT_JSON_OFFLOAD`` builds WebSocket JSON in the offload path so the loop stays responsive. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
+**Chat async bridge:** By default each turn runs ``EthicalKernel.process_chat_turn`` in a worker thread (``RealTimeBridge``) so the asyncio loop can accept other WebSocket connections. Optional ``KERNEL_CHAT_ASYNC_LLM_HTTP=1`` runs ``process_chat_turn_async`` on the event loop with async ``httpx`` for Ollama/HTTP JSON; the same per-turn cancel ``Event`` applies to the thread that runs ``EthicalKernel.process`` (cooperative exit + ``llm_http_cancel`` scope; see ADR 0002). Optional ``KERNEL_CHAT_THREADPOOL_WORKERS`` (positive int) uses a dedicated ``ThreadPoolExecutor`` for chat; optional ``KERNEL_CHAT_TURN_TIMEOUT`` (seconds) bounds the **async** wait and returns JSON ``error=chat_turn_timeout`` when exceeded (``abandon_chat_turn`` skips late STM; cooperative cancel for further sync LLM HTTP; in-flight HTTP cancel when async LLM is on). By default ``KERNEL_CHAT_JSON_OFFLOAD`` is on: WebSocket JSON (including optional ``KERNEL_LLM_MONOLOGUE``) is built in the same offload path so the loop is not blocked after the turn. See ``src/real_time_bridge.py``, ADR 0002, and ``docs/proposals/README.md``.
 
 OpenAPI/Swagger: **off** by default; set KERNEL_API_DOCS=1 to expose ``/docs``, ``/redoc``, ``/openapi.json`` (see README).
 
@@ -32,9 +31,8 @@ Multimodal thresholds (optional): KERNEL_MULTIMODAL_AUDIO_STRONG, KERNEL_MULTIMO
 KERNEL_MULTIMODAL_SCENE_SUPPORT, KERNEL_MULTIMODAL_VISION_CONTRADICT, KERNEL_MULTIMODAL_SCENE_CONTRADICT
 — see README / multimodal_trust.thresholds_from_env.
 
-Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_VITALITY_CRITICAL_TEMP, KERNEL_VITALITY_WARNING_TEMP,
-KERNEL_VITALITY_THERMAL_HYSTERESIS, KERNEL_VITALITY_THERMAL_HYSTERESIS_C, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
-Nomad S.2.1: ``KERNEL_NOMAD_TELEMETRY_VITALITY`` (default on) merges last Nomad ``telemetry`` into the sensor snapshot before vitality when fields are missing — see ``vitality.merge_nomad_telemetry_into_snapshot`` / ``vitality.apply_nomad_telemetry_if_enabled``.
+Vitality (optional): KERNEL_VITALITY_CRITICAL_BATTERY, KERNEL_CHAT_INCLUDE_VITALITY — see vitality.py.
+Nomad S.2.1: ``KERNEL_NOMAD_TELEMETRY_VITALITY`` (default on) merges last Nomad ``telemetry`` into the sensor snapshot before vitality when fields are missing — see ``vitality.merge_nomad_telemetry_into_snapshot``.
 
 Guardian Angel (optional, opt-in): KERNEL_GUARDIAN_MODE=1 enables protective tone in LLM layer only;
 KERNEL_CHAT_INCLUDE_GUARDIAN — omit ``guardian_mode`` key from JSON if 0. KERNEL_GUARDIAN_ROUTINES,
@@ -123,8 +121,6 @@ Experience digest (pilar 3): KERNEL_CHAT_INCLUDE_EXPERIENCE_DIGEST — if 0, omi
 
 from __future__ import annotations
 
-__copyright_integrity__ = "cuevaza::arq.jvof"
-
 import asyncio
 import json
 import logging
@@ -139,7 +135,6 @@ from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse, Response
-from fastapi.staticfiles import StaticFiles
 
 from .kernel import ChatTurnResult, EthicalKernel, kernel_dao_as_mock
 from .modules.affective_homeostasis import homeostasis_telemetry
@@ -232,10 +227,10 @@ _PROCESS_START_MONOTONIC = time.monotonic()
 
 def _package_version() -> str:
     try:
-        from importlib.metadata import version
+        from importlib.metadata import PackageNotFoundError, version
 
         return version("ethos-kernel")
-    except Exception:
+    except PackageNotFoundError:
         return "dev"
 
 
@@ -269,78 +264,6 @@ app = FastAPI(
 
 app.add_middleware(RequestContextMiddleware)
 
-
-@app.get("/nomad/migration")
-def nomad_migration_meta() -> dict[str, Any]:
-    """Nomadic HAL simulation — WebSocket ``nomad_simulate_migration`` when KERNEL_NOMAD_SIMULATION=1."""
-    return {
-        "simulation_enabled": nomad_simulation_ws_enabled(),
-        "migration_audit_env": "KERNEL_NOMAD_MIGRATION_AUDIT",
-        "transport": "websocket",
-        "path": "/ws/chat",
-        "message": {
-            "nomad_simulate_migration": {
-                "profile": "mobile",
-                "destination_hardware_id": "device-id-or-empty",
-                "thought_line": "optional monologue bound",
-                "include_location": False,
-            }
-        },
-    }
-
-
-# Phase 10: Mount the Nomad PWA Client directly to bypass external web servers.
-nomad_pwa_path = os.path.join(os.path.dirname(__file__), "clients", "nomad_pwa")
-if os.path.exists(nomad_pwa_path):
-    app.mount("/nomad", StaticFiles(directory=nomad_pwa_path, html=True), name="nomad_pwa")
-    logger.info("Nomad PWA Interface mounted at /nomad/")
-else:
-    logger.warning("Nomad PWA Interface not found at %s. Skipping mount.", nomad_pwa_path)
-
-# Phase 12: Mount Prometheus Metrics if enabled
-try:
-    if os.environ.get("KERNEL_METRICS", "1").strip().lower() in ("1", "true", "on"):
-        from prometheus_client import make_asgi_app
-        metrics_app = make_asgi_app()
-        app.mount("/metrics", metrics_app)
-        logger.info("Prometheus metrics endpoint mounted at /metrics")
-except ImportError:
-    logger.warning("prometheus_client not installed, skipping /metrics")
-
-# Phase 10 (V2): Mount the L0 Visual Dashboard
-dashboard_path = os.path.join(os.path.dirname(__file__), "static", "dashboard")
-if os.path.exists(dashboard_path):
-    app.mount("/dashboard", StaticFiles(directory=dashboard_path, html=True), name="l0_dashboard")
-    logger.info("L0 Dashboard mounted at /dashboard/")
-else:
-    logger.warning("L0 Dashboard not found at %s. Skipping mount.", dashboard_path)
-
-
-@app.websocket("/ws/nomad")
-async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
-    """Nomad LAN bridge sensory endpoint (Module S)."""
-    from .modules.nomad_bridge import get_nomad_bridge
-
-    await get_nomad_bridge().handle_websocket(websocket)
-
-@app.websocket("/ws/dashboard")
-async def dashboard_ws_handler(websocket: WebSocket) -> None:
-    """L0 Dashboard telemetry stream."""
-    from .modules.nomad_bridge import get_nomad_bridge
-    
-    await websocket.accept()
-    q: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=30)
-    bridge = get_nomad_bridge()
-    bridge.dashboard_queues.append(q)
-    
-    try:
-        while True:
-            msg = await q.get()
-            await websocket.send_json(msg)
-    except Exception as e:
-        logger.error("Dashboard WS error: %s", e)
-    finally:
-        bridge.dashboard_queues.remove(q)
 
 def _chat_expose_monologue() -> bool:
     """If false, omit monologue from WebSocket JSON (privacy; skips LLM embellishment)."""
@@ -570,6 +493,19 @@ def _aggregated_frontier_witness_resolutions_from_lan_governance(
 
 DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_TTL_MS = 300_000
 DEFAULT_LAN_ENVELOPE_REPLAY_CACHE_MAX_ENTRIES = 256
+DEFAULT_WS_MAX_MESSAGE_BYTES = 524_288
+
+
+def _ws_text_exceeds_utf8_byte_limit(text: str, max_bytes: int) -> bool:
+    """True if UTF-8 encoding of ``text`` exceeds ``max_bytes`` (cheap bound when possible)."""
+    if max_bytes <= 0:
+        return False
+    n = len(text)
+    if n > max_bytes:
+        return True
+    if n * 4 <= max_bytes:
+        return False
+    return len(text.encode("utf-8")) > max_bytes
 
 
 def _prune_lan_envelope_replay_cache(
@@ -936,7 +872,6 @@ def health() -> dict[str, Any]:
             "kernel_chat_turn_timeout_seconds": st.kernel_chat_turn_timeout_seconds,
             "kernel_chat_threadpool_workers": st.kernel_chat_threadpool_workers,
             "kernel_chat_json_offload": st.kernel_chat_json_offload,
-            "kernel_chat_ws_max_message_bytes": st.kernel_chat_ws_max_message_bytes,
         },
         "safety_defaults": {
             "kernel_env_validation_mode": env_validation,
@@ -1000,6 +935,25 @@ def dao_governance_meta() -> dict[str, Any]:
             "dao_resolve": {"proposal_id": "PROP-0001"},
         },
         "note": "Governance runs on the per-connection kernel; use participants from MockDAO (e.g. community_01).",
+    }
+
+
+@app.get("/nomad/migration")
+def nomad_migration_meta() -> dict[str, Any]:
+    """Nomadic HAL simulation — WebSocket ``nomad_simulate_migration`` when KERNEL_NOMAD_SIMULATION=1."""
+    return {
+        "simulation_enabled": nomad_simulation_ws_enabled(),
+        "migration_audit_env": "KERNEL_NOMAD_MIGRATION_AUDIT",
+        "transport": "websocket",
+        "path": "/ws/chat",
+        "message": {
+            "nomad_simulate_migration": {
+                "profile": "mobile",
+                "destination_hardware_id": "device-id-or-empty",
+                "thought_line": "optional monologue bound",
+                "include_location": False,
+            }
+        },
     }
 
 
@@ -2226,11 +2180,36 @@ async def ws_chat(ws: WebSocket) -> None:
             non_negative=True,
         ),
     )
+    ws_max_message_bytes = _coerce_public_int(
+        os.environ.get("KERNEL_WS_MAX_MESSAGE_BYTES"),
+        default=DEFAULT_WS_MAX_MESSAGE_BYTES,
+        non_negative=True,
+    )
     if interval > 0:
         advisory_stop = asyncio.Event()
         advisory_task = asyncio.create_task(
             advisory_loop(kernel, interval_s=interval, stop=advisory_stop)
         )
+
+    proactive_pulse_task: asyncio.Task | None = None
+    try:
+        proactive_idle_s = float((os.environ.get("KERNEL_PROACTIVE_PULSE_IDLE_S") or "0").strip() or 0.0)
+    except ValueError:
+        proactive_idle_s = 0.0
+    if proactive_idle_s > 0.0:
+
+        async def _proactive_pulse_idle_loop() -> None:
+            poll = max(2.0, min(float(proactive_idle_s), 120.0))
+            while True:
+                await asyncio.sleep(poll)
+                try:
+                    await bridge.run_proactive_idle_pulse_tick()
+                except asyncio.CancelledError:
+                    raise
+                except Exception:
+                    logger.exception("proactive_idle_pulse_tick (MotivationEngine → bus)")
+
+        proactive_pulse_task = asyncio.create_task(_proactive_pulse_idle_loop())
 
     try:
         current_turn_task: asyncio.Task | None = None
@@ -2243,6 +2222,8 @@ async def ws_chat(ws: WebSocket) -> None:
             
             try:
                 text = (data_in.get("text") or "").strip()
+                if text:
+                    kernel.touch_external_chat_activity()
                 agent_id = data_in.get("agent_id") or "user"
                 include_narrative = bool(data_in.get("include_narrative", False))
                 escalate_to_dao = bool(data_in.get("escalate_to_dao", False))
@@ -2250,26 +2231,6 @@ async def ws_chat(ws: WebSocket) -> None:
                 # Situated v8 sensors
                 sensor_raw = data_in.get("sensor")
                 client = sensor_raw if isinstance(sensor_raw, dict) else None
-                
-                # Phase 10: Inject Nomad Bridge Live Data
-                from .modules.nomad_bridge import get_nomad_bridge
-                nb = get_nomad_bridge()
-                if client is None:
-                    client = {}
-                
-                # Drain telemetry_queue to get the LATEST entry (S.2.1 Calibration)
-                live_t = {}
-                while not nb.telemetry_queue.empty():
-                    try:
-                        live_t = nb.telemetry_queue.get_nowait()
-                    except asyncio.QueueEmpty:
-                        break
-                
-                if live_t:
-                    client.update(live_t)
-                
-                client["rms_audio"] = nb.last_rms
-
                 fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
                 preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
                 sensor_snapshot = snapshot_from_layers(
@@ -2279,7 +2240,7 @@ async def ws_chat(ws: WebSocket) -> None:
                 )
 
                 chat_to = st.kernel_chat_turn_timeout_seconds
-
+                
                 result: ChatTurnResult | None = None
                 gen = bridge.process_chat_stream(
                     text,
@@ -2291,91 +2252,62 @@ async def ws_chat(ws: WebSocket) -> None:
                     cancel_event=current_cancel_ev,
                     chat_turn_id=turn_id,
                 )
-                stream_closed = False
-
-                async def _ensure_stream_closed() -> None:
-                    """Close the async generator so in-flight asyncio work (e.g. httpx) is torn down."""
-                    nonlocal stream_closed
-                    if stream_closed:
-                        return
-                    try:
-                        await gen.aclose()
-                    except Exception:
-                        pass
-                    stream_closed = True
-
-                try:
-                    if chat_to is not None:
-                        # Timeout-aware stream consumption; on timeout, aclose cancels pending awaits.
-                        it = gen.__aiter__()
-                        while True:
-                            try:
-                                event = await asyncio.wait_for(it.__anext__(), timeout=chat_to)
-                                if event["event_type"] == "turn_finished":
-                                    result = event["payload"]["result"]
-                                    break
-                                await ws.send_json(event)
-                            except StopAsyncIteration:
-                                break
-                    else:
-                        async for event in gen:
+                
+                if chat_to is not None:
+                    # Timeout-aware stream consumption
+                    it = gen.__aiter__()
+                    while True:
+                        try:
+                            event = await asyncio.wait_for(it.__anext__(), timeout=chat_to)
                             if event["event_type"] == "turn_finished":
                                 result = event["payload"]["result"]
+                                break
                             else:
                                 await ws.send_json(event)
-
-                    if result:
-                        observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
-                        if result.path in ("safety_block", "kernel_block"):
-                            record_malabs_block(result.path)
-
-                        logger.info("chat_turn_finished id=%s path=%s", turn_id, result.path)
-
-                        if st.kernel_chat_json_offload:
-                            payload = await bridge.run_sync_in_chat_thread(
-                                _chat_turn_to_jsonable, result, kernel
-                            )
+                        except StopAsyncIteration:
+                            break
+                else:
+                    async for event in gen:
+                        if event["event_type"] == "turn_finished":
+                            result = event["payload"]["result"]
                         else:
-                            payload = _chat_turn_to_jsonable(result, kernel)
-
-                        await ws.send_json({
-                            "event_type": "turn_finished",
-                            "payload": payload
-                        })
-
-                        android_text = payload.get("response", {}).get("message", "")
-                        if android_text:
-                            await ws.send_json({
-                                "type": "kernel_voice",
-                                "text": android_text
-                            })
-
-                        haptic_plan = payload.get("limbic_profile", {}).get("haptic_plan", [])
-                        if haptic_plan:
-                            await ws.send_json({
-                                "type": "haptic_feedback",
-                                "payload": {"haptics": haptic_plan}
-                            })
-
-                        maybe_autosave_episodes(kernel, session_ckpt)
-
-                except TimeoutError:
-                    if current_cancel_ev is not None:
-                        current_cancel_ev.set()
-                        record_llm_cancel_scope_signaled()
-                    await _ensure_stream_closed()
-                    kernel.abandon_chat_turn(turn_id)
-                    observe_chat_turn("turn_timeout", time.perf_counter() - t_turn_start)
-                    record_chat_turn_async_timeout()
-
+                            await ws.send_json(event)
+                
+                if result:
+                    observe_chat_turn(result.path, time.perf_counter() - t_turn_start)
+                    if result.path in ("safety_block", "kernel_block"):
+                        record_malabs_block(result.path)
+                    
+                    logger.info("chat_turn_finished id=%s path=%s", turn_id, result.path)
+                    
+                    if st.kernel_chat_json_offload:
+                        payload = await bridge.run_sync_in_chat_thread(
+                            _chat_turn_to_jsonable, result, kernel
+                        )
+                    else:
+                        payload = _chat_turn_to_jsonable(result, kernel)
+                    
+                    # Wrap in event for consistency with stream
                     await ws.send_json({
-                        "error": "chat_turn_timeout",
-                        "timeout_seconds": chat_to,
-                        "path": "turn_timeout",
-                        "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
+                        "event_type": "turn_finished",
+                        "payload": payload
                     })
-                finally:
-                    await _ensure_stream_closed()
+                    maybe_autosave_episodes(kernel, session_ckpt)
+
+            except asyncio.TimeoutError:
+                kernel.abandon_chat_turn(turn_id)
+                observe_chat_turn("turn_timeout", time.perf_counter() - t_turn_start)
+                record_chat_turn_async_timeout()
+                if current_cancel_ev is not None:
+                    current_cancel_ev.set()
+                    record_llm_cancel_scope_signaled()
+                
+                await ws.send_json({
+                    "error": "chat_turn_timeout",
+                    "timeout_seconds": chat_to,
+                    "path": "turn_timeout",
+                    "response": {"message": "Turn exceeded server time limit.", "tone": "neutral"}
+                })
             except asyncio.CancelledError:
                 logger.info("chat_turn_cancelled id=%s", turn_id)
                 kernel.abandon_chat_turn(turn_id)
@@ -2385,24 +2317,26 @@ async def ws_chat(ws: WebSocket) -> None:
                 logger.exception("chat_turn_error id=%s: %s", turn_id, e)
                 try:
                     await ws.send_json({"error": "internal_error", "message": str(e)})
-                except Exception:
-                    pass
+                except (WebSocketDisconnect, OSError, RuntimeError, TypeError) as send_err:
+                    logger.debug("ws send internal_error after chat_turn_error failed: %s", send_err)
 
         while True:
             set_request_id()
             raw = await ws.receive_text()
-            if len(raw.encode("utf-8")) > st.kernel_chat_ws_max_message_bytes:
+            if ws_max_message_bytes > 0 and _ws_text_exceeds_utf8_byte_limit(
+                raw, ws_max_message_bytes
+            ):
                 await ws.send_json(
-                    {
-                        "error": "message_too_large",
-                        "max_bytes": st.kernel_chat_ws_max_message_bytes,
-                    }
+                    {"error": "message_too_large", "max_bytes": ws_max_message_bytes}
                 )
                 continue
             try:
                 data = json.loads(raw)
             except json.JSONDecodeError:
                 await ws.send_json({"error": "invalid_json"})
+                continue
+            if not isinstance(data, dict):
+                await ws.send_json({"error": "invalid_message_shape"})
                 continue
 
             # ══ Control Messages ══
@@ -2458,14 +2392,10 @@ async def ws_chat(ws: WebSocket) -> None:
 
             if (dao_payload or nomad_payload or integrity_payload or lan_governance_merged):
                 out_ws: dict[str, Any] = {}
-                if dao_payload:
-                    out_ws["dao"] = dao_payload
-                if nomad_payload:
-                    out_ws["nomad"] = nomad_payload
-                if integrity_payload:
-                    out_ws["integrity"] = integrity_payload
-                if lan_governance_merged:
-                    out_ws["lan_governance"] = lan_governance_merged
+                if dao_payload: out_ws["dao"] = dao_payload
+                if nomad_payload: out_ws["nomad"] = nomad_payload
+                if integrity_payload: out_ws["integrity"] = integrity_payload
+                if lan_governance_merged: out_ws["lan_governance"] = lan_governance_merged
                 await ws.send_json(out_ws)
                 if not text_preview:
                     maybe_autosave_episodes(kernel, session_ckpt)
@@ -2479,15 +2409,15 @@ async def ws_chat(ws: WebSocket) -> None:
                         kernel, int(cd.get("level", 1)), str(cd.get("title") or ""),
                         str(cd.get("body") or ""), str(cd.get("proposer") or data.get("agent_id") or "user")
                     )
-                except Exception:
-                    pass
+                except (TypeError, ValueError) as draft_err:
+                    logger.debug("constitution_draft ws handler skipped: %s", draft_err)
 
             sensor_raw = data.get("sensor")
             client = sensor_raw if isinstance(sensor_raw, dict) else None
             fixture = os.environ.get("KERNEL_SENSOR_FIXTURE", "").strip() or None
             preset = os.environ.get("KERNEL_SENSOR_PRESET", "").strip() or None
             try:
-                snapshot_from_layers(
+                sensor_snapshot = snapshot_from_layers(
                     fixture_path=fixture,
                     preset_name=preset,
                     client_dict=client,
@@ -2518,6 +2448,12 @@ async def ws_chat(ws: WebSocket) -> None:
             if current_cancel_ev:
                 current_cancel_ev.set()
         clear_request_context()
+        if proactive_pulse_task is not None:
+            proactive_pulse_task.cancel()
+            try:
+                await proactive_pulse_task
+            except asyncio.CancelledError:
+                pass
         if advisory_stop is not None and advisory_task is not None:
             advisory_stop.set()
             try:

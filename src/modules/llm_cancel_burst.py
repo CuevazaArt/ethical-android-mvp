@@ -9,6 +9,8 @@ delay loop + thread-local cancel scope).
 
 from __future__ import annotations
 
+import math
+import numbers
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -20,6 +22,44 @@ from .llm_http_cancel import (
     set_llm_cancel_scope,
 )
 
+# Smoke only (not load testing): cap worker count to keep thread pools and CI predictable.
+_MAX_BURST_SMOKE_WORKERS = 4096
+# Public alias for operator CLIs (``scripts/eval/run_burst_cancel_smoke.py``).
+MAX_BURST_SMOKE_WORKERS = _MAX_BURST_SMOKE_WORKERS
+
+
+def _validate_run_burst_params(
+    *,
+    n_workers: int,
+    completion_delay_s: float,
+    join_timeout_s: float,
+    cancel_after_s: float,
+) -> None:
+    """Reject non-ints, NaN/Inf, and wrong signs before any ``time.sleep`` in workers."""
+    if type(n_workers) is not int or n_workers < 1 or n_workers > _MAX_BURST_SMOKE_WORKERS:
+        raise ValueError(
+            f"n_workers must be int in [1, {_MAX_BURST_SMOKE_WORKERS}], got {n_workers!r}"
+        )
+    for name, raw in (
+        ("completion_delay_s", completion_delay_s),
+        ("join_timeout_s", join_timeout_s),
+        ("cancel_after_s", cancel_after_s),
+    ):
+        if not isinstance(raw, numbers.Real) or isinstance(raw, bool):
+            raise TypeError(
+                f"{name} must be a real number (int/float/np scalar; not bool), got {type(raw).__name__}"
+            )
+    for name, raw in (
+        ("completion_delay_s", completion_delay_s),
+        ("join_timeout_s", join_timeout_s),
+    ):
+        v = float(raw)
+        if not math.isfinite(v) or v <= 0.0:
+            raise ValueError(f"{name} must be positive and finite, got {raw!r}")
+    c = float(cancel_after_s)
+    if not math.isfinite(c) or c < 0.0:
+        raise ValueError(f"cancel_after_s must be finite and non-negative, got {cancel_after_s!r}")
+
 
 def run_burst_cancel_smoke(
     *,
@@ -29,11 +69,18 @@ def run_burst_cancel_smoke(
     cancel_after_s: float = 0.02,
 ) -> None:
     """
-    Run ``n_workers`` concurrent mock completions; each should end with
+    Run ``n_workers`` concurrent **MOCK** completions; each should end with
     :class:`LLMHttpCancelledError`. Raises ``RuntimeError`` on hang or wrong exception.
+
+    All delays are validated (finite, correct sign) before any worker runs; bool is not a
+    valid ``n_workers`` (avoids ``True`` counting as ``1``).
     """
-    if n_workers < 1:
-        raise ValueError("n_workers must be >= 1")
+    _validate_run_burst_params(
+        n_workers=n_workers,
+        completion_delay_s=completion_delay_s,
+        join_timeout_s=join_timeout_s,
+        cancel_after_s=cancel_after_s,
+    )
     backend = MockLLMBackend(completion_delay_s=completion_delay_s, completion_text="{}")
     failures: list[str] = []
     lock = threading.Lock()

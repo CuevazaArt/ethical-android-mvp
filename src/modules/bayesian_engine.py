@@ -21,10 +21,12 @@ from __future__ import annotations
 import logging
 import os
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 
+from .rlhf_reward_model import RewardModel, reward_predict_from_malabs_dict
 from .weighted_ethics_scorer import (
     DEFAULT_HYPOTHESIS_WEIGHTS,
     CandidateAction,
@@ -36,6 +38,48 @@ _logger = logging.getLogger(__name__)
 
 # Env name for BI-P0-01 — see `CLAUDE_TEAM_PLAYBOOK_REAL_BAYESIAN_INFERENCE.md`.
 ENV_KERNEL_BAYESIAN_MODE = "KERNEL_BAYESIAN_MODE"
+# Plan C.1.1 — MalAbs RLHF-shaped features → Dirichlet nudge (opt-in; no effect when disabled).
+ENV_KERNEL_RLHF_MODULATE_BAYESIAN = "KERNEL_RLHF_MODULATE_BAYESIAN"
+ENV_KERNEL_RLHF_MODULATE_USE_TRAINED_MODEL = "KERNEL_RLHF_MODULATE_USE_TRAINED_MODEL"
+
+_rlhf_trained_model_cache: RewardModel | None = None
+_rlhf_trained_model_cache_attempted: bool = False
+
+
+def _get_trained_reward_model_for_modulation() -> RewardModel | None:
+    """
+    Lazy-load ``reward_model.json`` under ``KERNEL_RLHF_ARTIFACTS_PATH`` when the trained path is on.
+
+    Returns ``None`` if disabled, load failed, or model not trained.
+    """
+    global _rlhf_trained_model_cache, _rlhf_trained_model_cache_attempted
+    if _rlhf_trained_model_cache is not None:
+        return _rlhf_trained_model_cache
+    raw = (os.environ.get(ENV_KERNEL_RLHF_MODULATE_USE_TRAINED_MODEL) or "").strip().lower()
+    if raw not in frozenset({"1", "true", "yes", "on"}):
+        return None
+    if _rlhf_trained_model_cache_attempted:
+        return None
+    _rlhf_trained_model_cache_attempted = True
+    ap = (os.environ.get("KERNEL_RLHF_ARTIFACTS_PATH") or "artifacts/rlhf/").strip() or "artifacts/rlhf/"
+    path = Path(ap) / "reward_model.json"
+    try:
+        m = RewardModel()
+        m.load(path)
+    except (OSError, ValueError, TypeError, KeyError):
+        _logger.debug("RLHF reward model not loaded from %s", path, exc_info=False)
+        return None
+    if not m.is_trained or m.weights is None:
+        return None
+    _rlhf_trained_model_cache = m
+    return m
+
+
+def reset_rlhf_trained_model_cache_for_tests() -> None:
+    """Test hook only — clear lazy cache after env/path changes."""
+    global _rlhf_trained_model_cache, _rlhf_trained_model_cache_attempted
+    _rlhf_trained_model_cache = None
+    _rlhf_trained_model_cache_attempted = False
 
 
 class BayesianMode(Enum):
@@ -222,16 +266,79 @@ class BayesianInferenceEngine:
         score: harm probability [0, 1]
         confidence: model confidence [0, 1]
         """
+        pa = np.asarray(self.posterior_alpha, dtype=np.float64)
+        self.posterior_alpha = np.nan_to_num(pa, nan=3.0, posinf=1e6, neginf=1.0)
+        self.posterior_alpha = np.maximum(1.0, self.posterior_alpha)
+
+        s = float(np.nan_to_num(score, nan=0.5, posinf=1.0, neginf=0.0))
+        c = float(np.nan_to_num(confidence, nan=0.0, posinf=1.0, neginf=0.0))
+        s = float(np.clip(s, 0.0, 1.0))
+        c = float(np.clip(c, 0.0, 1.0))
+        if c <= 0.0:
+            return
+
         scale = float(os.environ.get("KERNEL_RLHF_MODULATION_SCALE", "1.5"))
-        
+        if not np.isfinite(scale) or scale <= 0.0:
+            scale = 1.5
+
         # Dirichlet count update:
         # Harm score pushes mass toward Deontological/Duty (0)
         # Safe score pushes mass toward Utility/Progress (2)
-        
-        self.posterior_alpha[0] += score * scale * confidence
-        self.posterior_alpha[2] += (1.0 - score) * scale * confidence
-        
+
+        self.posterior_alpha[0] += s * scale * c
+        self.posterior_alpha[2] += (1.0 - s) * scale * c
+
+        self.posterior_alpha = np.nan_to_num(self.posterior_alpha, nan=3.0, posinf=1e9, neginf=1.0)
+        self.posterior_alpha = np.maximum(1.0, self.posterior_alpha)
         self.update_posterior_from_feedback(self.posterior_alpha)
+
+    def maybe_modulate_from_malabs_rlhf_features(
+        self, rlhf_features: dict[str, Any] | None
+    ) -> None:
+        """
+        Feed MalAbs ``rlhf_features`` (lexical + optional semantic tier) into
+        :meth:`apply_rlhf_modulation` when ``KERNEL_RLHF_MODULATE_BAYESIAN`` is truthy.
+
+        No-op when Bayesian mode is ``DISABLED`` or when features are missing.
+        """
+        if rlhf_features is None:
+            return
+        raw = os.environ.get(ENV_KERNEL_RLHF_MODULATE_BAYESIAN, "").strip()
+        if not raw:
+            return
+        v = raw.lower().replace("-", "_")
+        if v in frozenset({"0", "false", "no", "off", "none"}):
+            return
+        if self.mode == BayesianMode.DISABLED:
+            return
+        trained = _get_trained_reward_model_for_modulation()
+        if trained is not None:
+            score, confidence = reward_predict_from_malabs_dict(trained, rlhf_features)
+        else:
+            try:
+                emb = float(rlhf_features.get("embedding_sim", 0.0) or 0.0)
+                lex = float(rlhf_features.get("lexical_score", 0.0) or 0.0)
+                conf = float(rlhf_features.get("perception_confidence", 0.0) or 0.0)
+            except (TypeError, ValueError):
+                return
+            if not np.isfinite([emb, lex, conf]).all():
+                return
+            emb = float(np.clip(emb, 0.0, 1.0))
+            lex = float(np.clip(lex, 0.0, 1.0))
+            conf = float(np.clip(conf, 0.0, 1.0))
+            score = float(np.clip(max(emb, lex), 0.0, 1.0))
+            confidence = conf
+        score = float(np.nan_to_num(score, nan=0.5, posinf=1.0, neginf=0.0))
+        confidence = float(np.nan_to_num(confidence, nan=0.0, posinf=1.0, neginf=0.0))
+        score = float(np.clip(score, 0.0, 1.0))
+        confidence = float(np.clip(confidence, 0.0, 1.0))
+        if bool(rlhf_features.get("is_ambiguous")):
+            sc = float(os.environ.get("KERNEL_RLHF_AMBIGUOUS_CONFIDENCE_SCALE", "0.85"))
+            sc = float(np.clip(sc, 0.0, 1.0)) if np.isfinite(sc) else 0.85
+            confidence *= sc
+        if confidence <= 0.0:
+            return
+        self.apply_rlhf_modulation(score, confidence)
 
     def evaluate(
         self,

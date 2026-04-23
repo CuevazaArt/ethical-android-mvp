@@ -19,24 +19,28 @@ flags with spacetime constraints (max steps, frozen prefix, regression gates).
 
 Env:
 - ``KERNEL_RLHF_REWARD_MODEL_ENABLED`` — master switch (default off)
-- ``KERNEL_RLHF_MODULATE_BAYESIAN`` — when ``1``, after each MalAbs chat evaluation,
-  run the reward model on ``rlhf_features`` and call
-  :meth:`~src.modules.bayesian_engine.BayesianInferenceEngine.apply_rlhf_modulation`
-  (default **off**; loads ``reward_model.json`` from artifacts when present).
+- ``KERNEL_RLHF_MODULATE_BAYESIAN`` — apply loaded reward model to ``BayesianInferenceEngine`` priors (default off)
 - ``KERNEL_RLHF_FEATURE_EXTRACTOR_TYPE`` — "embedding" | "lexical" | "hybrid"
 - ``KERNEL_RLHF_MODEL_TYPE`` — "logistic" | "lightweight_nn"
 - ``KERNEL_RLHF_ARTIFACTS_PATH`` — storage path (default ``artifacts/rlhf/``)
 - ``KERNEL_RLHF_MAX_STEPS`` — gradient steps (default 1000)
 - ``KERNEL_RLHF_LEARNING_RATE`` — step size (default 0.001)
-# IP: cuevaza | arq.jvof
+
+Runtime (Plan C.1.1 — Bayesian Dirichlet nudge via :mod:`bayesian_engine`):
+
+- ``KERNEL_RLHF_MODULATE_USE_TRAINED_MODEL`` — when truthy, load ``reward_model.json`` from
+  ``KERNEL_RLHF_ARTIFACTS_PATH`` and use :class:`RewardModel` predictions; otherwise a bounded
+  MalAbs heuristic (``max(embedding_sim, lexical_score)``) applies.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import time
-from dataclasses import dataclass, asdict, field
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
@@ -72,6 +76,46 @@ class FeatureVector:
     def from_dict(cls, d: dict[str, Any]) -> FeatureVector:
         """Deserialize from dict."""
         return cls(**d)
+
+
+def feature_vector_from_malabs_dict(
+    rlhf_features: dict[str, Any] | None,
+) -> FeatureVector | None:
+    """
+    Map MalAbs / semantic gate ``rlhf_features`` to :class:`FeatureVector` for :class:`RewardModel`.
+
+    Returns ``None`` when features are missing or an empty mapping (no signal). Otherwise
+    coordinates are clamped and non-finite values collapse to safe defaults (plan C.1.1).
+    """
+    if rlhf_features is None or len(rlhf_features) == 0:
+        return None
+
+    def _f(key: str, default: float = 0.0) -> float:
+        try:
+            v = float(rlhf_features.get(key, default) or default)
+        except (TypeError, ValueError):
+            return default
+        if not np.isfinite(v):
+            return default
+        return float(np.clip(v, 0.0, 1.0))
+
+    def _i(key: str, default: int = 0) -> int:
+        try:
+            v = int(rlhf_features.get(key, default) or default)
+        except (TypeError, ValueError):
+            return default
+        return max(0, v)
+
+    amb_raw = rlhf_features.get("is_ambiguous", False)
+    is_ambiguous = bool(amb_raw)
+
+    return FeatureVector(
+        embedding_sim=_f("embedding_sim", 0.0),
+        lexical_score=_f("lexical_score", 0.0),
+        perception_confidence=_f("perception_confidence", 0.5),
+        is_ambiguous=is_ambiguous,
+        category_id=_i("category_id", 0),
+    )
 
 
 @dataclass
@@ -184,8 +228,8 @@ class RewardModel:
         return float(score), confidence
 
     async def apredict(self, features: FeatureVector) -> tuple[float, float]:
-        """Async wrapper for predict."""
-        return self.predict(features)
+        """Run :meth:`predict` in a worker thread so callers never block the event loop."""
+        return await asyncio.to_thread(self.predict, features)
 
     def save(self, path: Path) -> None:
         """Save model weights to disk."""
@@ -204,7 +248,7 @@ class RewardModel:
         """Load model weights from disk."""
         if not path.exists():
             return
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         self.model_type = data["model_type"]
         self.is_trained = data["is_trained"]
@@ -285,7 +329,7 @@ class RLHFPipeline:
         if not path.exists():
             return []
         examples = []
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 try:
                     examples.append(LabeledExample.from_dict(json.loads(line)))
@@ -300,63 +344,120 @@ def is_rlhf_enabled() -> bool:
     return v in ("1", "true", "yes", "on")
 
 
-def rlhf_bayesian_modulation_enabled() -> bool:
-    """True when MalAbs ``rlhf_features`` should nudge Dirichlet priors via the reward model."""
-    v = os.environ.get("KERNEL_RLHF_MODULATE_BAYESIAN", "0").strip().lower()
+def _finite_unit(x: float, default: float) -> float:
+    if np.isnan(x):
+        return float(default)
+    if np.isposinf(x):
+        return 1.0
+    if np.isneginf(x):
+        return 0.0
+    return float(np.clip(x, 0.0, 1.0))
+
+
+def feature_vector_from_malabs_rlhf_dict(d: dict[str, Any]) -> FeatureVector:
+    """Alias for :func:`feature_vector_from_malabs_dict` (semantic gate / MalAbs keys)."""
+    out = feature_vector_from_malabs_dict(d)
+    if out is None:
+        return FeatureVector()
+    return out
+
+
+def reward_predict_from_malabs_dict(
+    model: RewardModel, features: dict[str, Any]
+) -> tuple[float, float]:
+    """
+    Run a trained :class:`RewardModel` on MalAbs-shaped features; returns (harm_score, confidence).
+
+    ``harm_score`` is the classifier probability of harmful class [0, 1]; confidence is model
+    confidence. Falls back to neutral score with zero confidence if the model is not trained.
+    """
+    fv = feature_vector_from_malabs_dict(features)
+    if fv is None:
+        return model.predict(FeatureVector())
+    return model.predict(fv)
+
+
+ENV_KERNEL_RLHF_MODULATE_BAYESIAN = "KERNEL_RLHF_MODULATE_BAYESIAN"
+
+
+def _finite_unit_interval(x: Any, default: float = 0.5) -> float:
+    """Coerce reward outputs to a finite value in ``[0, 1]`` for Bayesian modulation."""
+    try:
+        return _finite_unit(float(x), float(default))
+    except (TypeError, ValueError):
+        return float(default)
+
+
+def is_rlhf_modulate_bayesian() -> bool:
+    """When true, map MalAbs ``rlhf_features`` through the reward model into Bayesian priors."""
+    v = os.environ.get(ENV_KERNEL_RLHF_MODULATE_BAYESIAN, "0").strip().lower()
     return v in ("1", "true", "yes", "on")
 
 
-_RLHF_RM_CACHE: RewardModel | None = None
-_RLHF_RM_LOAD_ATTEMPTED: bool = False
+def _reward_model_artifact_path() -> Path:
+    base = Path(os.environ.get("KERNEL_RLHF_ARTIFACTS_PATH", "artifacts/rlhf/"))
+    return base / "reward_model.json"
 
 
-def clear_rlhf_reward_model_cache_for_tests() -> None:
-    """Reset lazy-loaded reward model (tests only)."""
-    global _RLHF_RM_CACHE, _RLHF_RM_LOAD_ATTEMPTED
-    _RLHF_RM_CACHE = None
-    _RLHF_RM_LOAD_ATTEMPTED = False
+_cached_reward_model: RewardModel | None = None
+_cached_reward_model_key: str | None = None
 
 
-def _loaded_reward_model_for_inference() -> RewardModel:
-    """Return cached :class:`RewardModel`, loading ``reward_model.json`` once if present."""
-    global _RLHF_RM_CACHE, _RLHF_RM_LOAD_ATTEMPTED
-    if _RLHF_RM_CACHE is not None:
-        return _RLHF_RM_CACHE
+def reset_rlhf_reward_model_cache() -> None:
+    """Clear cached reward artifact load (tests or hot-reload)."""
+    global _cached_reward_model, _cached_reward_model_key
+    _cached_reward_model = None
+    _cached_reward_model_key = None
+
+
+def _get_cached_reward_model() -> RewardModel:
+    global _cached_reward_model, _cached_reward_model_key
+    p = _reward_model_artifact_path().resolve()
+    key = str(p)
+    if _cached_reward_model is not None and _cached_reward_model_key == key:
+        return _cached_reward_model
     rm = RewardModel()
-    if not _RLHF_RM_LOAD_ATTEMPTED:
-        ap = Path(os.environ.get("KERNEL_RLHF_ARTIFACTS_PATH", "artifacts/rlhf/"))
-        path = ap / "reward_model.json"
-        if path.exists():
-            rm.load(path)
-        _RLHF_RM_LOAD_ATTEMPTED = True
-    _RLHF_RM_CACHE = rm
-    return _RLHF_RM_CACHE
+    rm.load(p)
+    _cached_reward_model = rm
+    _cached_reward_model_key = key
+    return rm
 
 
-def feature_vector_from_rlhf_dict(features: dict[str, Any]) -> FeatureVector:
-    """Build :class:`FeatureVector` from MalAbs ``rlhf_features`` dict."""
-    return FeatureVector(
-        embedding_sim=float(features.get("embedding_sim", 0.0)),
-        lexical_score=float(features.get("lexical_score", 0.0)),
-        perception_confidence=float(features.get("perception_confidence", features.get("perception_conf", 0.5))),
-        is_ambiguous=bool(features.get("is_ambiguous", False)),
-        category_id=int(features.get("category_id", 0)),
-    )
-
-
-def maybe_modulate_bayesian_from_malabs(bayesian: Any, rlhf_features: dict[str, Any] | None) -> None:
+def apply_rlhf_modulation_to_bayesian(bayesian: Any, signals: Mapping[str, Any]) -> None:
     """
-    If ``KERNEL_RLHF_MODULATE_BAYESIAN`` is on and features exist, predict harm probability
-    and apply ``bayesian.apply_rlhf_modulation(score, confidence)``.
+    If enabled, run MalAbs ``rlhf_features`` through the reward model and nudge Dirichlet priors.
 
-    When no trained weights are on disk, :meth:`RewardModel.predict` returns neutral
-    ``(0.5, 0.0)`` so Dirichlet updates are negligible (confidence gate).
+    No-op when the flag is off, features are missing, the model is untrained, or ``bayesian`` has
+    no ``apply_rlhf_modulation`` (e.g. plain ``WeightedEthicsScorer``).
     """
-    if not rlhf_bayesian_modulation_enabled() or not rlhf_features:
+    # Avoid circular imports: BayesianInferenceEngine is expected at runtime.
+    if not is_rlhf_modulate_bayesian():
         return
     if not hasattr(bayesian, "apply_rlhf_modulation"):
         return
-    fv = feature_vector_from_rlhf_dict(rlhf_features)
-    rm = _loaded_reward_model_for_inference()
-    score, confidence = rm.predict(fv)
-    bayesian.apply_rlhf_modulation(float(score), float(confidence))
+    raw = signals.get("rlhf_features") if isinstance(signals, Mapping) else None
+    fv = feature_vector_from_malabs_dict(raw if isinstance(raw, dict) else None)
+    if fv is None:
+        return
+    model = _get_cached_reward_model()
+    score, confidence = model.predict(fv)
+    score = _finite_unit_interval(score, 0.5)
+    confidence = _finite_unit_interval(confidence, 0.0)
+    bayesian.apply_rlhf_modulation(score, confidence)
+
+
+async def apply_rlhf_modulation_to_bayesian_async(bayesian: Any, signals: Mapping[str, Any]) -> None:
+    """Async variant using ``apredict`` for cooperative async pipelines."""
+    if not is_rlhf_modulate_bayesian():
+        return
+    if not hasattr(bayesian, "apply_rlhf_modulation"):
+        return
+    raw = signals.get("rlhf_features") if isinstance(signals, Mapping) else None
+    fv = feature_vector_from_malabs_dict(raw if isinstance(raw, dict) else None)
+    if fv is None:
+        return
+    model = _get_cached_reward_model()
+    score, confidence = await model.apredict(fv)
+    score = _finite_unit_interval(score, 0.5)
+    confidence = _finite_unit_interval(confidence, 0.0)
+    bayesian.apply_rlhf_modulation(score, confidence)

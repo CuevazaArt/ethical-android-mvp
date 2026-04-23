@@ -29,7 +29,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from .input_trust import strip_unsafe_perception_text
 
@@ -459,7 +459,7 @@ def validate_perception_dict(
 
     try:
         p = _LLMPerceptionPayload.model_validate(coerced)
-    except Exception:
+    except ValidationError:
         if report is not None:
             report.pydantic_emergency_fallback = True
         p = _LLMPerceptionPayload.model_validate(

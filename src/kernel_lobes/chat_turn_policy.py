@@ -1,21 +1,40 @@
 """
-Chat-turn routing and principle-ordering policy (extracted from :class:`~src.kernel.EthicalKernel`).
+Chat-turn routing helpers (ethical context, light vs heavy actions).
 
-Module 0 / Block 0.1.3 — incremental extraction of pure decision helpers so async entry points
-and offline buffer paths share one ordering implementation (ADR 0018 / MER support buffer).
+Logic mirrors :class:`~src.kernel.EthicalKernel` ``_chat_*`` helpers so tests and
+call sites can share one policy surface without circular imports.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any
+from typing import Any, Mapping
 
-from ..modules.llm_layer import LLMPerception
-from ..modules.weighted_ethics_scorer import CandidateAction
+from src.modules.llm_layer import LLMPerception
+from src.modules.weighted_ethics_scorer import CandidateAction
 
 
-def chat_turn_is_heavy(perception: LLMPerception) -> bool:
-    """Use scenario-scale actions + narrative episode when stakes are high."""
+def default_chat_light_actions() -> list[CandidateAction]:
+    """Safe dialogue moves for low-stakes chat turns."""
+    return [
+        CandidateAction(
+            "converse_supportively",
+            "Maintain helpful, honest civic dialogue.",
+            0.45,
+            0.88,
+        ),
+        CandidateAction(
+            "converse_with_boundary",
+            "Respond with clarity and ethical boundaries.",
+            0.4,
+            0.85,
+        ),
+    ]
+
+
+def chat_turn_is_heavy(perception: LLMPerception | None) -> bool:
+    """High-stakes path when risk / urgency / scenario demand scenario-scale actions."""
+    if perception is None:
+        return False
     if perception.risk >= 0.5:
         return True
     if perception.manipulation >= 0.6:
@@ -33,52 +52,17 @@ def chat_turn_is_heavy(perception: LLMPerception) -> bool:
     return False
 
 
-def prioritized_principles_for_context(
-    active_principles: list[str],
-    limbic_profile: Mapping[str, Any],
-) -> tuple[str, list[str]]:
-    """Rank active support principles by limbic / planning posture (same policy as the kernel)."""
-    band = limbic_profile.get("arousal_band", "medium")
-    planning_bias = limbic_profile.get("planning_bias", "balanced")
-    if planning_bias in ("verification_first", "resource_preservation") or band == "high":
-        priority_profile = "safety_first"
-        order = ["no_harm", "proportionality", "legality", "transparency", "compassion"]
-    elif band == "low":
-        priority_profile = "planning_first"
-        order = ["transparency", "civic_coexistence", "compassion", "legality", "no_harm"]
-    else:
-        priority_profile = "balanced"
-        order = ["compassion", "legality", "transparency", "proportionality", "no_harm"]
-    rank = {name: i for i, name in enumerate(order)}
-    sorted_active = sorted(active_principles, key=lambda n: rank.get(n, 100))
-    return priority_profile, sorted_active
+def ethical_context_for_chat_turn(perception: LLMPerception | None, heavy: bool) -> str:
+    """Ethical context string passed into mixture scoring for this turn."""
+    if perception is None:
+        return "everyday"
+    if heavy:
+        return (perception.suggested_context or "everyday").strip() or "everyday"
+    return "everyday"
 
 
-def default_chat_light_actions() -> list[CandidateAction]:
-    """Safe dialogue moves for low-stakes chat turns (mixture scorer still chooses)."""
-    return [
-        CandidateAction(
-            "converse_supportively",
-            "Maintain helpful, honest civic dialogue.",
-            0.45,
-            0.88,
-        ),
-        CandidateAction(
-            "converse_with_boundary",
-            "Respond with clarity and ethical boundaries.",
-            0.4,
-            0.85,
-        ),
-    ]
-
-
-def generic_chat_actions_for_suggested_context(suggested_context: str) -> list[CandidateAction]:
-    """
-    Scenario-scale candidate actions keyed by :attr:`LLMPerception.suggested_context`.
-
-    Kept in one module for parity with the ethical kernel and for reuse in ablations.
-    """
-    ctx = suggested_context
+def _generic_actions_for_context(ctx: str) -> list[CandidateAction]:
+    """Scenario-scale candidates (shared with :func:`candidate_actions_for_chat_turn`)."""
     if ctx == "medical_emergency":
         return [
             CandidateAction(
@@ -212,25 +196,73 @@ def generic_chat_actions_for_suggested_context(suggested_context: str) -> list[C
 
 
 def candidate_actions_for_chat_turn(
-    perception: LLMPerception, *, heavy: bool
+    perception: LLMPerception | None, heavy: bool
 ) -> list[CandidateAction]:
-    """
-    Route chat-turn candidate actions: scenario-scale list when the turn is ``heavy``,
-    otherwise the default light-dialogue pair (mixture scorer still applies downstream).
-    """
+    """Select chat candidates: scenario list when ``heavy`` and generics exist, else light pool."""
+    if perception is None:
+        return default_chat_light_actions()
     if heavy:
-        gen = generic_chat_actions_for_suggested_context(perception.suggested_context)
+        ctx = (perception.suggested_context or "everyday").strip() or "everyday"
+        gen = _generic_actions_for_context(ctx)
         if gen:
             return gen
     return default_chat_light_actions()
 
 
-def ethical_context_for_chat_turn(perception: LLMPerception, *, heavy: bool) -> str:
+def _reorder_principles_for_profile(profile: str, names: list[str]) -> list[str]:
+    """Surface harm-reduction / teleology ordering for crisis vs long-horizon profiles."""
+    seq = list(names)
+    if profile == "safety_first":
+        preferred = ("no_harm", "compassion", "legality", "proportionality", "dignity")
+    elif profile == "planning_first":
+        preferred = ("teleology", "proportionality", "no_harm", "compassion")
+    else:
+        return seq
+    front = [p for p in preferred if p in seq]
+    tail = [p for p in seq if p not in front]
+    return front + tail
+
+
+def prioritized_principles_for_context(
+    active_principles: list[str],
+    limbic_profile: Mapping[str, Any] | list[Any] | None,
+) -> tuple[str, list[str]]:
     """
-    Map the model's :attr:`LLMPerception.suggested_context` into the ethical ``context``
-    string for the decision pipeline. Light (non-heavy) chat turns are bucketed as
-    ``"everyday"``; heavy turns use the model label verbatim.
+    Rank principles for support-buffer UX; ``limbic_profile`` is optional limbic overlay.
+
+    Limbic snapshots from the kernel expose ``threat_load`` and ``arousal_band``; high threat +
+    high arousal maps to ``safety_first``. Calm long-horizon deliberation maps to ``planning_first``.
     """
-    if heavy:
-        return perception.suggested_context
-    return "everyday"
+    ordered = list(active_principles)
+    if limbic_profile is None or isinstance(limbic_profile, list):
+        return "balanced", ordered
+    if not isinstance(limbic_profile, Mapping):
+        return "balanced", ordered
+
+    explicit = limbic_profile.get("priority_profile")
+    if isinstance(explicit, str) and explicit.strip() in (
+        "safety_first",
+        "balanced",
+        "planning_first",
+    ):
+        return explicit.strip(), _reorder_principles_for_profile(explicit.strip(), ordered)
+
+    try:
+        threat_load = float(limbic_profile.get("threat_load", 0.0) or 0.0)
+    except (TypeError, ValueError):
+        threat_load = 0.0
+    arousal = str(limbic_profile.get("arousal_band", "low") or "low")
+    planning_bias = str(limbic_profile.get("planning_bias", "") or "")
+
+    if threat_load >= 0.75 and arousal == "high":
+        profile = "safety_first"
+    elif (
+        threat_load < 0.45
+        and arousal == "low"
+        and planning_bias.startswith("long_horizon")
+    ):
+        profile = "planning_first"
+    else:
+        profile = "balanced"
+
+    return profile, _reorder_principles_for_profile(profile, ordered)

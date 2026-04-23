@@ -211,6 +211,13 @@ class RealTimeBridge:
         ):
             yield event
 
+    async def run_proactive_idle_pulse_tick(self) -> bool:
+        """
+        Tri-Lóbulo Block 26.0 — run :meth:`~src.kernel.EthicalKernel.emit_proactive_pulse_if_idle`
+        off the asyncio loop (thread pool) so MotivationEngine + bus publish stay non-blocking.
+        """
+        return await self.run_sync_in_chat_thread(self.kernel.emit_proactive_pulse_if_idle)
+
     async def run_execute_sleep(self) -> str:
         """
         Run :meth:`~src.kernel.EthicalKernel.execute_sleep` in the chat worker pool.

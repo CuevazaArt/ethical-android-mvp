@@ -5,6 +5,7 @@ Converts experiences into narrative cycles with morals.
 The android does not store data: it builds history.
 """
 
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +16,7 @@ import numpy as np
 from src.persistence.narrative_storage import NarrativePersistence
 
 from .identity_reflection import IdentityReflector
+from .llm_http_cancel import LLMHttpCancelledError
 from .narrative_identity import NarrativeIdentityTracker
 from .narrative_types import BodyState, NarrativeArc, NarrativeEpisode, NarrativeChronicle
 from .semantic_embedding_client import (
@@ -23,6 +25,21 @@ from .semantic_embedding_client import (
     maybe_hash_fallback_embedding
 )
 from .uchi_soto import RelationalTier
+
+_log = logging.getLogger(__name__)
+
+try:
+    import httpx
+
+    _NARRATIVE_EMBED_EXC: tuple[type[BaseException], ...] = (
+        OSError,
+        ValueError,
+        TypeError,
+        RuntimeError,
+        httpx.HTTPError,
+    )
+except ImportError:  # pragma: no cover
+    _NARRATIVE_EMBED_EXC = (OSError, ValueError, TypeError, RuntimeError)
 
 
 class NarrativeMemory:
@@ -257,9 +274,15 @@ class NarrativeMemory:
                 fallback = maybe_hash_fallback_embedding(combined_text)
                 if fallback is not None:
                     embedding = fallback.tolist()
-        except Exception:
-            # Silent fail for embeddings in MVP; persistence handles None
-            pass
+        except LLMHttpCancelledError:
+            raise
+        except _NARRATIVE_EMBED_EXC as exc:
+            # MVP: episode is still registered; vector optional (persistence allows None)
+            _log.debug(
+                "NarrativeMemory.register: embedding path failed (ep continuing without vector): %s",
+                exc,
+                exc_info=True,
+            )
 
         ep = NarrativeEpisode(
             id=f"EP-{self._counter:04d}",
@@ -353,8 +376,14 @@ class NarrativeMemory:
                 fallback = maybe_hash_fallback_embedding(combined_text)
                 if fallback is not None:
                     embedding = fallback.tolist()
-        except Exception:
-            pass
+        except LLMHttpCancelledError:
+            raise
+        except _NARRATIVE_EMBED_EXC as exc:
+            _log.debug(
+                "NarrativeMemory.aregister: embedding path failed (ep continuing without vector): %s",
+                exc,
+                exc_info=True,
+            )
 
         ep = NarrativeEpisode(
             id=f"EP-{self._counter:04d}",
@@ -434,7 +463,14 @@ class NarrativeMemory:
                     fb = maybe_hash_fallback_embedding(query_text)
                     if fb is not None:
                         query_embed = fb.tolist()
-            except Exception:
+            except LLMHttpCancelledError:
+                raise
+            except _NARRATIVE_EMBED_EXC as exc:
+                _log.debug(
+                    "NarrativeMemory.find_by_resonance: query embedding failed, trying hash fallback: %s",
+                    exc,
+                    exc_info=True,
+                )
                 fb = maybe_hash_fallback_embedding(query_text)
                 if fb is not None:
                     query_embed = fb.tolist()

@@ -50,6 +50,15 @@ from .kernel_lobes.limbic_profile_policy import (
     build_limbic_perception_profile,
 )
 from .kernel_lobes.memory_lobe import MemoryLobe
+from .kernel_utils import (
+    format_proactive_candidate_line as _format_proactive_candidate_line,
+    kernel_dao_as_mock,
+    kernel_env_float as _kernel_env_float,
+    kernel_env_int as _kernel_env_int,
+    kernel_env_truthy as _kernel_env_truthy,
+    kernel_mixture_scorer,
+    perception_parallel_workers as _perception_parallel_workers,
+)
 from .modules.charm_engine import CharmEngine
 from .modules.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector, AbsoluteEvilResult
 from .modules.audio_adapter import AudioInference
@@ -216,7 +225,7 @@ class CorpusCallosumOrchestrator:
                 "(motivation drives cooling)."
             )
         top = actions[0]
-        return f"ProactivePulse: {top.name} — {top.description}"
+        return f"ProactivePulse: {_format_proactive_candidate_line(top)}"
 
     async def async_process(self, raw_input: str, multimodal_payload: dict | None = None) -> str:
         """
@@ -262,75 +271,6 @@ class CorpusCallosumOrchestrator:
                 loop.run_until_complete(aclose())
             finally:
                 loop.close()
-
-
-def _kernel_env_truthy(name: str) -> bool:
-    v = os.environ.get(name, "").strip().lower()
-    return v in ("1", "true", "yes", "on")
-
-
-def _kernel_env_int(name: str, default: int) -> int:
-    raw = os.environ.get(name, "").strip()
-    if not raw:
-        return default
-    try:
-        return int(raw)
-    except ValueError:
-        return default
-
-
-def _kernel_env_float(name: str, default: float) -> float:
-    raw = os.environ.get(name, "").strip()
-    if not raw:
-        return default
-    try:
-        return float(raw)
-    except ValueError:
-        return default
-
-
-def _perception_parallel_workers() -> int:
-    """
-    Worker count for optional perception-side parallel enrichment.
-
-    Enabled only when ``KERNEL_PERCEPTION_PARALLEL`` is truthy. If enabled and
-    ``KERNEL_PERCEPTION_PARALLEL_WORKERS`` is unset/invalid, use a conservative
-    hardware-aware default.
-    """
-    if not _kernel_env_truthy("KERNEL_PERCEPTION_PARALLEL"):
-        return 0
-    configured = _kernel_env_int("KERNEL_PERCEPTION_PARALLEL_WORKERS", 0)
-    if configured > 0:
-        return configured
-    cpu_n = os.cpu_count() or 2
-    return max(2, min(cpu_n, 8))
-
-
-def _perception_coercion_u_value(raw: Any) -> float | None:
-    """Normalize optional perception coercion uncertainty to [0, 1] or None."""
-    if raw is None:
-        return None
-    try:
-        u = float(raw)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(u):
-        return None
-    return max(0.0, min(1.0, u))
-
-
-def kernel_dao_as_mock(dao: MockDAO | DAOOrchestrator) -> MockDAO:
-    """Return the in-process :class:`MockDAO` for APIs not wrapped by :class:`DAOOrchestrator`."""
-    if isinstance(dao, DAOOrchestrator):
-        return dao.local_dao
-    return dao
-
-
-def kernel_mixture_scorer(bayesian: BayesianEngine | WeightedEthicsScorer) -> WeightedEthicsScorer:
-    """Return the :class:`WeightedEthicsScorer` used for mixture / BMA operations."""
-    if isinstance(bayesian, BayesianEngine):
-        return bayesian.scorer
-    return bayesian
 
 
 @dataclass
@@ -982,25 +922,61 @@ class EthicalKernel:
         payload_actions = []
         for a in proactive:
             if isinstance(a, CandidateAction):
+                try:
+                    ei = float(a.estimated_impact)
+                except (TypeError, ValueError):
+                    ei = 0.0
+                if not math.isfinite(ei):
+                    ei = 0.0
+                ei = max(-1.0, min(1.0, ei))
+                try:
+                    cf = float(a.confidence)
+                except (TypeError, ValueError):
+                    cf = 0.5
+                if not math.isfinite(cf):
+                    cf = 0.5
+                cf = min(1.0, max(0.0, cf))
                 payload_actions.append(
                     {
                         "name": a.name,
                         "description": a.description,
-                        "estimated_impact": a.estimated_impact,
-                        "confidence": a.confidence,
+                        "estimated_impact": ei,
+                        "confidence": cf,
                         "source": getattr(a, "source", "proactive_drive"),
                         "proposal_id": getattr(a, "proposal_id", ""),
                     }
                 )
+        idle_sec = float(now - self._last_external_chat_mono)
+        if not math.isfinite(idle_sec) or idle_sec < 0.0:
+            idle_sec = 0.0
         self.event_bus.publish(
             EVENT_KERNEL_PROACTIVE_PULSE,
             {
-                "motive": self.motivation.get_motivation_report(),
+                "motive": self._sanitize_motivation_report_for_bus(),
                 "actions": payload_actions,
-                "idle_seconds": now - self._last_external_chat_mono,
+                "idle_seconds": min(idle_sec, 1.0e9),
             },
         )
         return True
+
+    def _sanitize_motivation_report_for_bus(self) -> dict[str, float]:
+        """Fase 15 — finite [0,1] drive levels for ``EVENT_KERNEL_PROACTIVE_PULSE`` listeners."""
+        out: dict[str, float] = {}
+        try:
+            raw = self.motivation.get_motivation_report()
+        except Exception:
+            _log.exception("get_motivation_report failed in pulse payload")
+            return out
+        for k, v in raw.items():
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                fv = 0.0
+            if not math.isfinite(fv):
+                fv = 0.0
+            fv = min(1.0, max(0.0, fv))
+            out[str(k)] = round(fv, 3)
+        return out
 
     def seek_internal_purpose(self) -> list[CandidateAction]:
         """
@@ -1015,7 +991,23 @@ class EthicalKernel:
         actions: list[CandidateAction] = []
         for raw in proactive:
             if isinstance(raw, CandidateAction):
-                actions.append(replace(raw, source="internal_motivation"))
+                try:
+                    ei = float(raw.estimated_impact)
+                except (TypeError, ValueError):
+                    ei = 0.0
+                if not math.isfinite(ei):
+                    ei = 0.0
+                ei = max(-1.0, min(1.0, ei))
+                try:
+                    cf = float(raw.confidence)
+                except (TypeError, ValueError):
+                    cf = 0.5
+                if not math.isfinite(cf):
+                    cf = 0.5
+                cf = min(1.0, max(0.0, cf))
+                actions.append(
+                    replace(raw, source="internal_motivation", estimated_impact=ei, confidence=cf)
+                )
                 continue
             if isinstance(raw, dict):
                 name = str(raw.get("name") or "internal_drive").strip() or "internal_drive"
@@ -1024,10 +1016,16 @@ class EthicalKernel:
                     impact = float(raw.get("estimated_impact", raw.get("impact", 0.0)))
                 except (TypeError, ValueError):
                     impact = 0.0
+                if not math.isfinite(impact):
+                    impact = 0.0
+                impact = max(-1.0, min(1.0, impact))
                 try:
                     conf = float(raw.get("confidence", 0.8))
                 except (TypeError, ValueError):
                     conf = 0.8
+                if not math.isfinite(conf):
+                    conf = 0.8
+                conf = min(1.0, max(0.0, conf))
                 actions.append(
                     CandidateAction(
                         name=name,
@@ -1262,13 +1260,13 @@ class EthicalKernel:
         else:
             self._last_registered_episode_id = None
 
-            d = KernelDecision(
-                scenario=scenario,
-                place=place,
+        d = KernelDecision(
+            scenario=scenario,
+            place=place,
             absolute_evil=AbsoluteEvilResult(blocked=False),
-                sympathetic_state=state,
-                social_evaluation=social_eval,
-                locus_evaluation=locus_eval,
+            sympathetic_state=state,
+            social_evaluation=social_eval,
+            locus_evaluation=locus_eval,
             bayesian_result=bayes_result,
             moral=moral,
             final_action=final_action,
@@ -2040,7 +2038,6 @@ class EthicalKernel:
             user_input,
             llm_backend=self._malabs_text_backend(),
         )
-        _log.info("DEBUG: after malabs")
         self._last_chat_malabs = mal
         if mal.blocked:
             vitality_blk, mm_blk, ed_blk = self._chat_assess_sensor_stack(sensor_snapshot)

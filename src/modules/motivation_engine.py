@@ -5,6 +5,8 @@ Implements internal drives that fluctuate over time, generating proactive intent
 that steer the android toward long-term goals and social stability.
 """
 
+import asyncio
+import math
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -12,6 +14,16 @@ from typing import Any
 
 
 from .weighted_ethics_scorer import CandidateAction
+
+
+@dataclass(frozen=True)
+class ProactivePulse:
+    """Structured outcome of an autonomous motivation tick (Tri-lobe Block 26.0 / ``aproactive_pulse``)."""
+
+    reason: str
+    primary_action_name: str
+    drive_snapshot: dict[str, float]
+
 
 class DriveType(Enum):
     CURIOSITY = "curiosity"  # Explore unknown/uncertain contexts
@@ -27,6 +39,17 @@ class InternalDrive:
     value: float = 0.5  # [0, 1] Current level
     growth_rate: float = 0.01  # Rate at which drive increases per "tick" (idle cycle)
     threshold: float = 0.7  # When to trigger proactive action
+
+
+def _float_kernel_state(key: str, default: float, kernel_state: dict[str, Any]) -> float:
+    """Coerce a finite float from ``kernel_state``; non-finite or invalid → ``default``."""
+    try:
+        v = float(kernel_state.get(key, default))
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(v):
+        return default
+    return v
 
 
 class MotivationEngine:
@@ -51,28 +74,39 @@ class MotivationEngine:
         }
         self.last_update = time.time()
 
-    def update_drives(self, kernel_state: dict[str, Any]):
+    async def aupdate_drives(self, kernel_state: dict[str, Any]) -> None:
+        """Async entry point (Tri-lobe 26.0): yields once then runs the same logic as ``update_drives``."""
+        await asyncio.sleep(0)
+        self.update_drives(kernel_state)
+
+    def update_drives(self, kernel_state: dict[str, Any]) -> None:
         """
         Dynamically adjusts drives based on kernel state.
         """
         # 1. Update based on social tension
-        tension = kernel_state.get("social_tension", 0.0)
+        tension = _float_kernel_state("social_tension", 0.0, kernel_state)
+        tension = min(1.0, max(0.0, tension))
         if tension > 0.6:
             self.drives[DriveType.SOCIAL_REPAIR].value += tension * 0.1
 
         # 2. Update based on uncertainty
-        uncertainty = kernel_state.get("uncertainty", 0.0)
+        uncertainty = _float_kernel_state("uncertainty", 0.0, kernel_state)
+        uncertainty = min(1.0, max(0.0, uncertainty))
         if uncertainty > 0.4:
             self.drives[DriveType.CURIOSITY].value += uncertainty * 0.05
 
         # 3. Update based on maintenance (energy)
-        energy = kernel_state.get("energy", 1.0)
+        energy = _float_kernel_state("energy", 1.0, kernel_state)
+        energy = min(1.0, max(0.0, energy))
         if energy < 0.3:
             self.drives[DriveType.MAINTENANCE].value += (1.0 - energy) * 0.2
 
         # 4. Standard growth
         for drive in self.drives.values():
-            drive.value = min(1.0, drive.value + drive.growth_rate)
+            nv = drive.value + drive.growth_rate
+            if not math.isfinite(nv):
+                nv = drive.growth_rate
+            drive.value = min(1.0, max(0.0, nv))
 
         self.last_update = time.time()
 
@@ -81,7 +115,12 @@ class MotivationEngine:
         Generates candidate actions based on the strongest drive.
         """
         active_drives = sorted(
-            [d for d in self.drives.values() if d.value >= d.threshold], key=lambda x: -x.value
+            [
+                d
+                for d in self.drives.values()
+                if math.isfinite(d.value) and d.value >= d.threshold
+            ],
+            key=lambda x: -x.value,
         )
 
         if not active_drives:
@@ -135,8 +174,26 @@ class MotivationEngine:
                     source="proactive_drive", proposal_id=f"drive.{drive_name}"
                 )
             ]
+        elif top.type == DriveType.INTEGRITY:
+            return [
+                CandidateAction(
+                    name="proactive_integrity_check",
+                    description="Verify narrative identity consistency and immortality backup window.",
+                    estimated_impact=0.35,
+                    confidence=0.65,
+                    source="proactive_drive",
+                    proposal_id=f"drive.{drive_name}",
+                )
+            ]
 
         return []
 
     def get_motivation_report(self) -> dict[str, float]:
-        return {d.type.value: round(d.value, 3) for d in self.drives.values()}
+        out: dict[str, float] = {}
+        for d in self.drives.values():
+            v = d.value
+            if not math.isfinite(v):
+                v = 0.0
+            v = min(1.0, max(0.0, v))
+            out[d.type.value] = round(v, 3)
+        return out

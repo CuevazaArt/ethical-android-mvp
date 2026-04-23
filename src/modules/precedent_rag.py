@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
+import os
 import time
 from dataclasses import dataclass, field
-from typing import Any
+
+_log = logging.getLogger(__name__)
 
 @dataclass
 class Precedent:
@@ -75,19 +78,24 @@ class PrecedentRAG:
         """Backward compatibility for legacy kernel calls."""
         return self.biographic_flashback(current_scenario, {})[:limit]
 
-    def _save(self):
+    def _save(self) -> None:
         try:
-            import os
-            os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
-            with open(self.storage_path, "w") as f:
-                json.dump([p.__dict__ for p in self.index], f, indent=2)
-        except Exception:
-            pass
+            dirpath = os.path.dirname(self.storage_path) or "."
+            os.makedirs(dirpath, exist_ok=True)
+            with open(self.storage_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    [p.__dict__ for p in self.index],
+                    f,
+                    indent=2,
+                    ensure_ascii=False,
+                )
+        except (OSError, TypeError, ValueError) as exc:
+            _log.warning("PrecedentRAG: failed to persist %s: %s", self.storage_path, exc)
 
-    def _load(self):
+    def _load(self) -> None:
         try:
-            with open(self.storage_path, "r") as f:
+            with open(self.storage_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self.index = [Precedent(**d) for d in data]
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
             self.index = []

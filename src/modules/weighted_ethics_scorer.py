@@ -206,6 +206,11 @@ class CandidateAction:
     strategic_alignment: float = 0.0  # [0, 1] Boost based on collective missions
     epistemic_curiosity: float = 0.0  # [0, 1] Internal drive to explore unknown context
 
+    @property
+    def label(self) -> str:
+        """Alias for :attr:`name` (chat-turn routing / tests)."""
+        return self.name
+
 
 @dataclass
 class EthicsMixtureResult:
@@ -572,13 +577,16 @@ class WeightedEthicsScorer:
         This is **not** a Bayesian posterior; it is a bounded, auditable blend
         toward empirical outcomes. If there are no matching episodes, resets to
         ``DEFAULT_HYPOTHESIS_WEIGHTS``.
-        """
-        from .uchi_soto import RelationalTier
 
-        # For internal ethical deliberations, the kernel (as 'self') has OWNER_PRIMARY access to Tier 2 memory.
-        eps = memory.find_by_resonance(
-            context=context, limit=limit, requester_tier=RelationalTier.OWNER_PRIMARY
-        )
+        Prefer ``NarrativeMemory.find_similar`` (same-context slice of the live buffer).
+        Fall back to filtered ``load_all_episodes`` so persisted Tier-2 rows still nudge weights
+        when the in-memory ring has been trimmed or resynchronized.
+        """
+        eps = memory.find_similar(context, limit=limit)
+        if not eps:
+            all_eps = memory.persistence.load_all_episodes()
+            filtered = [ep for ep in all_eps if ep.context == context]
+            eps = filtered[-limit:] if filtered else []
         if not eps:
             self.reset_mixture_weights()
             return

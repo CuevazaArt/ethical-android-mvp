@@ -5,6 +5,16 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+__all__ = ["atomic_write_bytes"]
+
+
+def _try_unlink_tmp(p: Path) -> None:
+    """Best-effort remove of a temp segment file; ignore races (e.g. Windows)."""
+    try:
+        p.unlink(missing_ok=True)
+    except OSError:
+        pass
+
 
 def atomic_write_bytes(path: Path, data: bytes) -> None:
     """
@@ -18,9 +28,7 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
     try:
         tmp.write_bytes(data)
         os.replace(tmp, path)
-    except Exception:
-        try:
-            tmp.unlink(missing_ok=True)
-        except OSError:
-            pass
+    except (OSError, TypeError):
+        # Best-effort remove partial temp; re-raise so callers see the real I/O or type error.
+        _try_unlink_tmp(tmp)
         raise

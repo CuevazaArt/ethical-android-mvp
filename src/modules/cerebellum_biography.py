@@ -8,6 +8,7 @@ ethical self-model (:class:`NarrativeIdentityTracker` + digest), without closed 
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 from dataclasses import asdict, dataclass, field
@@ -16,6 +17,8 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .narrative import NarrativeMemory
+
+_log = logging.getLogger(__name__)
 
 
 def _env_enabled() -> bool:
@@ -98,8 +101,8 @@ class CerebellumBiographyMatrix:
             self._state.updated_ts = time.time()
             with open(self._path, "w", encoding="utf-8") as f:
                 json.dump(asdict(self._state), f, indent=2)
-        except OSError:
-            pass
+        except OSError as exc:
+            _log.warning("CerebellumBiographyMatrix: persist failed: %s", exc)
 
     def refresh_from_memory(self, memory: NarrativeMemory | None = None) -> None:
         """Pull identity line + digest from narrative memory into local state."""
@@ -108,15 +111,18 @@ class CerebellumBiographyMatrix:
             return
         try:
             line = mem.identity.ascription_line()
-        except Exception:
+        except (AttributeError, TypeError, ValueError) as exc:
+            _log.debug("CerebellumBiographyMatrix: ascription_line: %s", exc)
             line = ""
         try:
             digest = (mem.experience_digest or "").strip()
-        except Exception:
+        except (AttributeError, TypeError, ValueError) as exc:
+            _log.debug("CerebellumBiographyMatrix: experience_digest: %s", exc)
             digest = ""
         try:
             n_ep = int(mem.identity.state.episode_count)
-        except Exception:
+        except (AttributeError, TypeError, ValueError) as exc:
+            _log.debug("CerebellumBiographyMatrix: episode_count: %s", exc)
             n_ep = self._state.episode_anchor
 
         self._state.last_ascription = (line or "")[:2000]

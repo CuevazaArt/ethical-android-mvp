@@ -7,10 +7,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 from typing import Any
 
 from cryptography.fernet import Fernet
+
+_log = logging.getLogger(__name__)
 
 DEFAULT_EVIDENCE_KEY_ENV = "KERNEL_EVIDENCE_KEY"
 
@@ -30,10 +33,14 @@ class EvidenceSafe:
             self._is_transient = True
         else:
             try:
-                self._fernet = Fernet(key.encode())
+                self._fernet = Fernet(key.encode("utf-8"))
                 self._is_transient = False
-            except Exception:
-                # If key is invalid, fallback to transient but warn
+            except (TypeError, ValueError) as exc:
+                # Invalid key: operator-visible warning; do not fail closed (episodes still hash).
+                _log.warning(
+                    "KERNEL_EVIDENCE_KEY (or fernet_key) is invalid, using a transient key: %s",
+                    exc,
+                )
                 self._fernet = Fernet(Fernet.generate_key())
                 self._is_transient = True
 

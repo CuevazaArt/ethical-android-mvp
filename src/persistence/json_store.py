@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from pathlib import Path
+
+from cryptography.fernet import Fernet, InvalidToken
 
 from .atomic_io import atomic_write_bytes
 from .file_lock import advisory_file_lock
@@ -13,6 +16,8 @@ from .migrations import migrate_raw_to_current
 from .schema import KernelSnapshotV1
 from .snapshot_serde import kernel_snapshot_to_json_dict
 from .snapshot_validate import validate_snapshot_for_apply
+
+_log = logging.getLogger(__name__)
 
 
 def fernet_key_from_env() -> bytes | None:
@@ -56,8 +61,6 @@ class JsonFilePersistence:
         payload = text.encode("utf-8")
         key = fernet_key_from_env()
         if key:
-            from cryptography.fernet import Fernet
-
             payload = Fernet(key).encrypt(payload)
         with advisory_file_lock(lock):
             atomic_write_bytes(self.path, payload)
@@ -68,11 +71,15 @@ class JsonFilePersistence:
         blob = self.path.read_bytes()
         key = fernet_key_from_env()
         if key:
-            from cryptography.fernet import Fernet
-
             try:
                 text = Fernet(key).decrypt(blob).decode("utf-8")
-            except Exception:
+            except (InvalidToken, UnicodeDecodeError, ValueError) as exc:
+                # Wrong key, legacy plain JSON, or non-UTF8 decrypt output — last resort: UTF-8 file body.
+                _log.info(
+                    "Checkpoint %s: Fernet path unusable; loading as plain UTF-8 JSON (legacy/migration or key mismatch): %s",
+                    self.path,
+                    exc,
+                )
                 text = blob.decode("utf-8")
         else:
             text = blob.decode("utf-8")
