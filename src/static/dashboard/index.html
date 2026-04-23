@@ -18,8 +18,8 @@
         }
         .layout {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(3, 1fr); /* 4x3 = 12 Quadrants */
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(3, 1fr); /* 5x3 = 15 Quadrants */
             height: calc(100vh - 48px);
             gap: 6px;
             padding: 6px;
@@ -187,6 +187,33 @@
                     <button id="chat-send">EXEC</button>
                 </div>
             </div>
+        </section>
+        <!-- 13: COGNITIVE PARAMS -->
+        <section class="card">
+            <h2>13 Cognitive Params</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>LLM Mode</td><td id="llm-mode">--</td></tr>
+                    <tr><td>VAD State</td><td id="vad-state">--</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 14: SYSTEM RESOURCES -->
+        <section class="card">
+            <h2>14 System Resources</h2>
+            <table class="kv-table">
+                <tbody>
+                    <tr><td>CPU Usage</td><td id="cpu-usage">--</td></tr>
+                    <tr><td>RAM Usage</td><td id="ram-usage">--</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 15: GOVERNANCE HUB -->
+        <section class="card">
+            <h2>15 Governance Hub</h2>
+            <div class="mono" id="gov-status" style="font-size:0.55rem; color:var(--warn);">Awaiting sync...</div>
         </section>
     </main>
 

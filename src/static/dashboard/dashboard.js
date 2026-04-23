@@ -31,6 +31,11 @@ const EL = {
     socialPosture: document.getElementById('social-posture'),
     bayesConf: document.getElementById('bayes-conf'),
     bayesDelta: document.getElementById('bayes-delta'),
+    llmMode: document.getElementById('llm-mode'),
+    vadState: document.getElementById('vad-state'),
+    cpuUsage: document.getElementById('cpu-usage'),
+    ramUsage: document.getElementById('ram-usage'),
+    govStatus: document.getElementById('gov-status'),
 };
 
 const state = {
@@ -97,6 +102,12 @@ function updateTelemetry(payload) {
     if (payload.bayes_confidence !== undefined) EL.bayesConf.textContent = asFloat(payload.bayes_confidence).toFixed(3);
     if (payload.bayes_delta !== undefined) EL.bayesDelta.textContent = asFloat(payload.bayes_delta).toFixed(3);
     
+    if (payload.llm_mode !== undefined) EL.llmMode.textContent = payload.llm_mode;
+    if (payload.vad_state !== undefined) EL.vadState.textContent = payload.vad_state;
+    if (payload.cpu_usage !== undefined) EL.cpuUsage.textContent = asFloat(payload.cpu_usage).toFixed(1) + "%";
+    if (payload.ram_usage !== undefined) EL.ramUsage.textContent = asFloat(payload.ram_usage).toFixed(1) + "%";
+    if (payload.gov_status !== undefined) EL.govStatus.textContent = payload.gov_status;
+
     // Vessel latency
     if (payload.vessel_id) EL.vesselId.textContent = payload.vessel_id;
     EL.syncStatus.textContent = "active";

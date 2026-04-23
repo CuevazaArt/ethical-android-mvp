@@ -42,12 +42,11 @@ app = FastAPI(
 )
 
 # ══ Middleware ══
-app.add_middleware(RequestContextMiddleware)
+# app.add_middleware(RequestContextMiddleware)  # Disabled to resolve WebSocket handshake issues (Module S)
 
 # ══ Sub-App Mounting ══
-from src.modules.perception.nomad_bridge import get_nomad_bridge
-
-app.mount("/nomad_bridge", get_nomad_bridge().app)
+# from src.modules.perception.nomad_bridge import get_nomad_bridge
+# app.mount("/nomad_bridge", get_nomad_bridge().app) # redundant route causing collisions
 
 # ══ Route Inclusion ══
 app.include_router(health_http_router)

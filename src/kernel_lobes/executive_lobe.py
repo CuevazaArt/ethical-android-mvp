@@ -365,6 +365,9 @@ class ExecutiveLobe:
                 sympathetic_mode=sympathetic_state.mode if sympathetic_state else "neutral",
                 pad_state=affect.pad if affect else (0.0, 0.0, 0.0),
                 dominant_archetype=affect.dominant_archetype_id if affect else "neutral",
+                tension_level=sentence.social_tension_locus if sentence else 0.0,
+                social_circle=getattr(social_eval, "circle", None).value if (social_eval and hasattr(social_eval, "circle") and social_eval.circle) else "neutral_soto",
+                bayesian_confidence=float(getattr(moral, "total_score", 0.0)) if moral else 0.0,
             )
 
             # --- Vitality Context (Bloque 11.2) ---

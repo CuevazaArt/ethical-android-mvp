@@ -526,6 +526,7 @@ class LLMModule:
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
                     embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
+                    aclient=self._aclient_internal,
                 )
                 response_b = b2.completion(_perception_prompt(), user_block, temperature=t2)
             else:
@@ -570,6 +571,7 @@ class LLMModule:
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
                     embed_model=str(inf.get("embed_model") or "nomic-embed-text"),
+                    aclient=self._aclient_internal,
                 )
                 response_b = await b2.acompletion(_perception_prompt(), user_block, temperature=t2)
             else:
@@ -659,13 +661,15 @@ class LLMModule:
         return f"{structured_line} | {extra}"
 
     def _parse_json(self, text: str) -> dict:
-        """Parse JSON from the response, cleaning markdown if necessary."""
+        """Parse JSON from the response, cleaning markdown or conversational filler if necessary."""
         text = text.strip()
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
-            if text.endswith("```"):
-                text = text[:-3]
-            text = text.strip()
+        
+        # Aggressive JSON extraction
+        import re
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if match:
+            text = match.group(0)
+            
         try:
             return json.loads(text)
         except json.JSONDecodeError:
@@ -1167,7 +1171,9 @@ class LLMModule:
                     identity_context=identity_context,
                     guardian_mode_context=guardian_mode_context,
                 )
+            _log.info("LLM RAW RESPONSE: %s", response)
             data = self._parse_json(response)
+            _log.info("LLM PARSED JSON: %s", data)
             if data and str(data.get("message", "")).strip():
                 return VerbalResponse(
                     message=data.get("message", ""),

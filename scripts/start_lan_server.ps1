@@ -18,6 +18,9 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $root
 
+if ($env:CHAT_PORT -and (Test-Path env:CHAT_PORT)) {
+    $Port = [int]$env:CHAT_PORT
+}
 $env:CHAT_HOST = "0.0.0.0"
 $env:CHAT_PORT = "$Port"
 

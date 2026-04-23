@@ -635,6 +635,12 @@ class EthosKernel:
                 verdict=str(getattr(dispatch_result, "verdict", "Good"))
                 if not is_blocked
                 else "Blocked",
+                limbic_profile={
+                    "social_tension": getattr(snapshot, "tension_level", 0.0),
+                    "social_trust": 0.0,
+                } if snapshot else None,
+                perception_confidence=type('obj', (object,), {'confidence': getattr(snapshot, "bayesian_confidence", 0.0) or 0.0}) if snapshot else None,
+                perception=type('obj', (object,), {'social_context': type('obj2', (object,), {'circle': getattr(snapshot, "social_circle", "neutral_soto"), 'posture': 'neutral'})}) if snapshot else None,
             )
             self._snapshot_feedback_anchor(res.path)
             return res

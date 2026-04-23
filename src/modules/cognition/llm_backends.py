@@ -272,15 +272,17 @@ class OllamaLLMBackend(LLMBackend):
         *,
         embed_model: str | None = None,
         embed_timeout: float | None = None,
+        aclient: httpx.AsyncClient | None = None,
     ) -> None:
         self._base = base_url.rstrip("/")
         self._model = model
         self._timeout = float(timeout)
+        self._aclient = aclient
         self._embed_model = (
             embed_model
             if embed_model is not None
-            else os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", "nomic-embed-text").strip()
-            or "nomic-embed-text"
+            else os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", "").strip()
+            or self._model
         )
         self._embed_timeout = float(embed_timeout) if embed_timeout is not None else 10.0
 
@@ -299,6 +301,7 @@ class OllamaLLMBackend(LLMBackend):
                 {"role": "user", "content": user},
             ],
             "stream": bool(kwargs.get("stream", False)),
+            "format": "json",
         }
         options = {}
         t = kwargs.get("temperature")
@@ -332,10 +335,15 @@ class OllamaLLMBackend(LLMBackend):
         url = f"{self._base}/api/chat"
         payload = self._ollama_chat_payload(system, user, stream=False, **kwargs)
         timeout = httpx.Timeout(self._timeout)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            r = await client.post(url, json=payload)
+        if self._aclient is not None:
+            r = await self._aclient.post(url, json=payload, timeout=timeout)
             r.raise_for_status()
             data = r.json()
+        else:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                r = await client.post(url, json=payload)
+                r.raise_for_status()
+                data = r.json()
         return self._ollama_chat_response_text(data)
 
     async def acompletion_stream(
@@ -349,8 +357,8 @@ class OllamaLLMBackend(LLMBackend):
         import json
 
         timeout = httpx.Timeout(self._timeout)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            async with client.stream("POST", url, json=payload) as response:
+        if self._aclient is not None:
+            async with self._aclient.stream("POST", url, json=payload, timeout=timeout) as response:
                 response.raise_for_status()
                 async for line in response.aiter_lines():
                     if not line:
@@ -364,6 +372,22 @@ class OllamaLLMBackend(LLMBackend):
                             yield content
                     except json.JSONDecodeError:
                         continue
+        else:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                async with client.stream("POST", url, json=payload) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            chunk = json.loads(line)
+                            if chunk.get("done"):
+                                break
+                            content = chunk.get("message", {}).get("content", "")
+                            if content:
+                                yield content
+                        except json.JSONDecodeError:
+                            continue
 
     def embedding(self, text: str) -> list[float] | None:
         if not (text or "").strip():

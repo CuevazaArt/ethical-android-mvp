@@ -79,3 +79,22 @@ def nomad_clinical() -> dict[str, Any]:
         },
         "last_sensor_update_delta_s": round(time.time() - nb._last_sensor_update, 3),
     }
+
+
+@router.get("/discovery/nomad")
+def nomad_discovery() -> dict[str, Any]:
+    """Provides WebSocket endpoints for the Nomad PWA client."""
+    from src.chat_server import get_uvicorn_bind
+
+    host, port = get_uvicorn_bind()
+    # If host is 0.0.0.0, we can't give it back as a usable IP; client must use location.hostname
+    return {
+        "candidates": [
+            {
+                "host": "current",
+                "chat_ws": "/ws/chat",
+                "nomad_ws": "/ws/nomad",
+            }
+        ]
+    }
+

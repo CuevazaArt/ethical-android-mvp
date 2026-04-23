@@ -33,6 +33,9 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
     st = kernel_settings()
     nomad_timeout = st.kernel_nomad_chat_timeout_seconds
 
+    await websocket.accept()
+    logger.info("Nomad Bridge: Inbound WebSocket attempt from %s", websocket.client.host if websocket.client else "unknown")
+    
     nomad_kernel = EthicalKernel(
         variability=st.kernel_variability,
         llm_mode=st.llm_mode,
@@ -165,6 +168,49 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                             if result.epistemic_dissonance
                                             else False,
                                         },
+                                    }
+                                )
+
+                                # Enviar telemetría del Kernel
+                                tension_val = 0.0
+                                trust_val = 0.0
+                                if result.limbic_profile:
+                                    tension_val = result.limbic_profile.get("social_tension", 0.0)
+                                    trust_val = result.limbic_profile.get("social_trust", 0.0)
+                                
+                                bayes_conf = 0.0
+                                bayes_delta = 0.0
+                                if hasattr(result.perception_confidence, "confidence"):
+                                    bayes_conf = result.perception_confidence.confidence
+                                
+                                social_circle = "unknown"
+                                social_posture = "unknown"
+                                if result.perception and hasattr(result.perception, "social_context"):
+                                    social_circle = getattr(result.perception.social_context, "circle", "unknown")
+                                    social_posture = getattr(result.perception.social_context, "posture", "unknown")
+
+                                import psutil
+                                cpu_p = psutil.cpu_percent() if hasattr(psutil, "cpu_percent") else 0.0
+                                mem_p = psutil.virtual_memory().percent if hasattr(psutil, "virtual_memory") else 0.0
+                                
+                                await websocket.send_json(
+                                    {
+                                        "type": "telemetry",
+                                        "payload": {
+                                            "turn_index": _turn_seq,
+                                            "tension": tension_val,
+                                            "trust": trust_val,
+                                            "bayes_confidence": bayes_conf,
+                                            "bayes_delta": bayes_delta,
+                                            "social_circle": str(social_circle),
+                                            "social_posture": str(social_posture),
+                                            "vitality": result.weighted_score, # Mapping score to vitality as fallback
+                                            "llm_mode": kernel.llm.mode if hasattr(kernel, "llm") else st.llm_mode,
+                                            "vad_state": bridge.vad_speaking if hasattr(bridge, "vad_speaking") else False,
+                                            "cpu_usage": cpu_p,
+                                            "ram_usage": mem_p,
+                                            "gov_status": kernel.dao_status(),
+                                        }
                                     }
                                 )
 

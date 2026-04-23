@@ -253,8 +253,8 @@ class VisionContinuousDaemon:
                             try:
                                 import cv2
 
-                                rgb_frame = cv2.cvtColor(local_frame, cv2.COLOR_BGR2RGB)
-                                ret_enc, buffer = cv2.imencode(".jpg", rgb_frame)
+                                # cv2.imencode expects BGR input. Doing BGR2RGB before imencode causes a blue veil.
+                                ret_enc, buffer = cv2.imencode(".jpg", local_frame)
                                 if ret_enc:
                                     b64_img = base64.b64encode(buffer).decode("utf-8")
                                     frame_data = {

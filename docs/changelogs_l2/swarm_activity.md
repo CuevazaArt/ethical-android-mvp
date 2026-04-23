@@ -2223,3 +2223,25 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Files Modified:**
   - `CHANGELOG.md`
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### Execution (Swarm) | Date: 2026-04-22 23:23:00 | Author: Anonymous Agent
+- **Block:** `9.4`
+- **Message:** Fixed LLM JSON stream parsing, fixed dashboard telemetry mapping, and eradicated blue veil.
+- **Files Modified:**
+  - `scripts/start_lan_server.ps1`
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/kernel.py`
+  - `src/kernel_lobes/executive_lobe.py`
+  - `src/modules/cognition/llm_backends.py`
+  - `src/modules/cognition/llm_layer.py`
+  - `src/modules/cognition/metacognition.py`
+  - `src/modules/perception/nomad_bridge.py`
+  - `src/modules/perception/vision_capture.py`
+  - `src/modules/perception/vision_inference.py`
+  - `src/server/app.py`
+  - `src/server/routes_nomad.py`
+  - `src/server/ws_sidecar.py`
+  - `src/static/dashboard/dashboard.css`
+  - `src/static/dashboard/dashboard.js`
+  - `src/static/dashboard/index.html`

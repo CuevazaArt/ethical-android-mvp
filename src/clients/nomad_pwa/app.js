@@ -17,8 +17,7 @@ const UI = {
     identityStrip: document.getElementById('identity-strip'),
     btnUiMode: document.getElementById('btn-ui-mode'),
     btnInstall: document.getElementById('btn-install'),
-    chatInput: document.getElementById('chat-input'),
-    btnSend: document.getElementById('btn-send'),
+    transcript: document.getElementById('charm-transcript'),
     telBat: document.getElementById('tel-bat'),
     telTemp: document.getElementById('tel-temp'),
     telKin: document.getElementById('tel-kin'),
@@ -49,48 +48,50 @@ function _httpProtocol() {
 async function resolveKernelEndpointCandidates() {
     const candidates = [];
     const currentHost = window.location.hostname || '127.0.0.1';
-    const currentPort = window.location.port || '8765';
-    const wsProto = _wsProtocol();
-    const baseCurrent = `${wsProto}//${currentHost}:${currentPort}`;
+    const currentPort = window.location.port || '8000';
+    const wsProto = 'ws:'; // Force unsecure WS for LAN
+    const lanIp = currentHost;
+    const baseCurrent = `${wsProto}//${lanIp}:${currentPort}`;
+    
+    console.log("Nomad: Forcing direct LAN candidate:", baseCurrent);
 
     candidates.push({
-        host: currentHost,
+        host: lanIp,
         chat_ws: `${baseCurrent}/ws/chat`,
         nomad_ws: `${baseCurrent}/ws/nomad`,
     });
 
-    const cachedHost = localStorage.getItem(NOMAD_LAST_GOOD_HOST_KEY);
-    if (cachedHost && cachedHost !== currentHost) {
-        const baseCached = `${wsProto}//${cachedHost}:${currentPort}`;
-        candidates.push({
-            host: cachedHost,
-            chat_ws: `${baseCached}/ws/chat`,
-            nomad_ws: `${baseCached}/ws/nomad`,
-        });
-    }
+
+
+
 
     try {
-        const discoveryUrl = `${_httpProtocol()}//${currentHost}:${currentPort}/discovery/nomad`;
-        const resp = await fetch(discoveryUrl, { method: 'GET', cache: 'no-store' });
-        if (resp.ok) {
-            const payload = await resp.json();
-            const fromApi = Array.isArray(payload?.candidates) ? payload.candidates : [];
-            fromApi.forEach((row) => {
-                if (!row || typeof row !== 'object') return;
-                if (!row.chat_ws || !row.nomad_ws) return;
-                const already = candidates.some((c) => c.chat_ws === row.chat_ws);
-                if (!already) {
-                    candidates.push({
-                        host: row.host || currentHost,
-                        chat_ws: row.chat_ws,
-                        nomad_ws: row.nomad_ws,
-                    });
-                }
+        const cachedHost = localStorage.getItem(NOMAD_LAST_GOOD_HOST_KEY);
+        if (cachedHost && cachedHost !== currentHost) {
+            const baseCached = `${wsProto}//${cachedHost}:${currentPort}`;
+            candidates.push({
+                host: cachedHost,
+                chat_ws: `${baseCached}/ws/chat`,
+                nomad_ws: `${baseCached}/ws/nomad`,
             });
         }
+    } catch (e) {
+        console.warn("Nomad: Cannot access localStorage:", e);
+    }
+
+    /*
+    try {
+        const currentHost = window.location.hostname || '127.0.0.1';
+        const currentPort = window.location.port || '8765';
+        const discoveryUrl = `${_httpProtocol()}//${currentHost}:${currentPort}/discovery/nomad`;
+        const resp = await fetch(discoveryUrl, { method: 'GET', cache: 'no-store' });
+        // ... (discovery logic disabled for LAN stabilization)
     } catch (_) {
         // Keep local fallback candidates when discovery endpoint is unavailable.
     }
+    */
+
+
 
     return candidates;
 }
@@ -109,11 +110,15 @@ function connectPair(candidate) {
         // We create nomad first. If chat fails, we might still function via nomad relay.
         let nomad, chat;
         try {
+            console.log("Nomad: Attempting WebSocket connection to:", candidate.nomad_ws);
             nomad = new WebSocket(candidate.nomad_ws);
             chat = new WebSocket(candidate.chat_ws);
-        } catch (e) {
-            return cleanupAndReject(new Error(`Browser blocked WS creation: ${e.message}`));
+        } catch (wsErr) {
+            alert("Error crítico al crear WebSocket: " + wsErr.message);
+            reject(wsErr);
+            return;
         }
+
 
         const cleanupAndReject = (err) => {
             if (settled) return;
@@ -121,6 +126,7 @@ function connectPair(candidate) {
             clearTimeout(timeoutId);
             try { chat.close(); } catch (_) {}
             try { nomad.close(); } catch (_) {}
+            alert("Conexión fallida: " + err.message);
             reject(err);
         };
 
@@ -143,11 +149,11 @@ function connectPair(candidate) {
         
         chat.onerror = (e) => {
             console.error("Nomad: Chat WS Error", e);
-            cleanupAndReject(new Error('Chat WebSocket (ws/chat) failed. Check Firewall.'));
+            cleanupAndReject(new Error('Chat WebSocket (ws/chat) falló. Revisa el Firewall.'));
         };
         nomad.onerror = (e) => {
             console.error("Nomad: Sensor WS Error", e);
-            cleanupAndReject(new Error('Sensor WebSocket (ws/nomad) failed. Check Firewall.'));
+            cleanupAndReject(new Error('Sensor WebSocket (ws/nomad) falló. Revisa el Firewall.'));
         };
         
         chat.onclose = () => { if (!settled) cleanupAndReject(new Error('Chat WS closed by server/router.')); };
@@ -499,11 +505,11 @@ function appendChatMessage(text, roleClass) {
  * Handle initial Backend Connection
  */
 async function connectKernel() {
-    // Bloque 13.1 Security: Check for Secure Context (HTTPS or Localhost)
-    // Sensors (Camera/Mic) are blocked by modern browsers on insecure origins.
+    console.log("Nomad: Connect button pressed.");
+    if (UI.statusText) UI.statusText.innerText = "Connecting...";
+    
     if (!window.isSecureContext) {
         console.warn("Nomad: Not running in a Secure Context. Sensors may be blocked.");
-        // We show a one-time non-blocking warning (or log it)
         UI.statusText.innerText = "Insecure Context (Sensors Limited)";
     } else {
         UI.statusText.innerText = "Connecting...";
@@ -514,7 +520,14 @@ async function connectKernel() {
     try {
         teardownKernelSockets();
 
-        const candidates = await resolveKernelEndpointCandidates();
+        let candidates = [];
+        try {
+            candidates = await resolveKernelEndpointCandidates();
+        } catch (e) {
+            console.error("Nomad: resolveKernelEndpointCandidates failed:", e);
+            alert("Error in candidate resolution: " + e.message);
+            throw e;
+        }
         console.log("Nomad: Candidates identified:", candidates);
         
         let connected = null;
@@ -636,8 +649,9 @@ async function connectKernel() {
                         }
                         if ('speechSynthesis' in window) {
                             const utterance = new SpeechSynthesisUtterance(data.text);
+                            utterance.lang = 'es-ES'; // Forzar pronunciación en español
                             const voices = window.speechSynthesis.getVoices();
-                            const preferred = voices.find(v => v.name.includes("Male") || v.name.includes("UK English")) || voices[0];
+                            const preferred = voices.find(v => v.lang.startsWith("es")) || voices[0];
                             if (preferred) utterance.voice = preferred;
                             
                             utterance.onstart = () => {
@@ -661,7 +675,6 @@ async function connectKernel() {
                         UI.orb.style.animationDuration = `${v.pulse_s}s`;
                     }
                 }
-                }
             } catch (e) {
                 console.warn("Nomad: Chat message parse error", e);
             }
@@ -675,22 +688,9 @@ async function connectKernel() {
             UI.btnConnect.innerText = 'Reconnect';
             UI.btnStream.disabled = true;
             UI.btnStream.classList.add('inactive');
-<<<<<<< HEAD
             UI.chatInput.disabled = true;
             UI.btnSend.disabled = true;
-
-            // Trigger reconnection (Claude's backoff)
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts);
-                UI.statusText.innerText = `Retrying in ${delay / 1000}s...`;
-                setTimeout(() => {
-                    reconnectAttempts++;
-                    connectKernel();
-                }, delay);
-            }
-=======
             scheduleKernelReconnect('chat');
->>>>>>> origin/main
         };
 
         wsNomad.onclose = () => {
@@ -781,9 +781,12 @@ async function connectKernel() {
                             }
                             if ('speechSynthesis' in window) {
                                 const utterance = new SpeechSynthesisUtterance(text);
+                                utterance.lang = 'es-ES';
+                                const voices = window.speechSynthesis.getVoices();
+                                const preferred = voices.find(v => v.lang.startsWith("es")) || voices[0];
+                                if (preferred) utterance.voice = preferred;
                                 window.speechSynthesis.speak(utterance);
                             }
-                        }
                         }
                     }
                     if (payload.type === 'haptic_feedback' || payload.haptics) {
@@ -797,153 +800,91 @@ async function connectKernel() {
         };
 
         flushOutboundChatBuffer();
-
-    } catch (e) {
-        alert(`Connectivity Error: ${e.message || e}\n\nTroubleshoot:\n1. Ensure you are on the SAME Wi-Fi.\n2. Allow port 8765 in Windows Firewall (PC).\n3. Keep mobile browser 'Shields' off for this IP.`);
-        UI.statusText.innerText = "Error";
+    } catch (err) {
+        console.error("Nomad Bridge connection fatal:", err);
+        alert("Connection Error: " + err.message);
+        scheduleKernelReconnect('fatal');
     }
 }
 
-function initNomadUiModeFromQuery() {
-    try {
-        const q = new URLSearchParams(window.location.search);
-        if (q.get('fullui') === '1' || q.get('text') === '0' || q.get('solo_text') === '0') {
+
+window.addEventListener('DOMContentLoaded', () => {
+
+
+    function initNomadUiModeFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('ui') === 'full') {
             document.body.classList.remove('nomad-text-focus');
         }
-        if (q.get('mode') === 'text' || q.get('solo') === '1' || q.get('text') === '1' || q.get('solo_text') === '1') {
-            document.body.classList.add('nomad-text-focus');
-        }
-    } catch (_) { /* ignore */ }
-}
-
-function syncUiModeButtonLabel() {
-    if (!UI.btnUiMode) return;
-    UI.btnUiMode.textContent = document.body.classList.contains('nomad-text-focus')
-        ? 'Full UI'
-        : 'Text focus';
-}
-
-function sendUserMessage() {
-    if (!isConnected || !wsChat) return;
-    const text = UI.chatInput.value.trim();
-    if (!text) return;
-
-    // Echo directly locally
-    appendChatMessage(text, 'user');
-    
-    // As per server expectations, it may be a standard text or json.
-    // The chat server ws handler accepts JSON:
-    wsChat.send(JSON.stringify({
-        role: "user",
-        text: text
-    }));
-    
-    UI.chatInput.value = '';
-}
-
-UI.btnSend.addEventListener('click', sendUserMessage);
-UI.chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        sendUserMessage();
     }
-});
 
-// Expose a function to scale the orb based on audio volume
-window.updateOrbScale = function(volume) {
-    // Volume is typically between 0 and 1
-    const scale = 1 + (volume * 1.5);
-    UI.orb.style.transform = `scale(${scale})`;
-};
-
-initNomadUiModeFromQuery();
-syncUiModeButtonLabel();
-
-if (UI.btnUiMode) {
-    UI.btnUiMode.addEventListener('click', () => {
-        document.body.classList.toggle('nomad-text-focus');
-        syncUiModeButtonLabel();
-    });
-}
-
-// Application Installation (PWA Service Worker)
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-});
-
-if (UI.btnInstall) {
-    UI.btnInstall.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                UI.btnInstall.style.display = 'none';
+    function syncUiModeButtonLabel() {
+        if (UI.btnUiMode) {
+            if (document.body.classList.contains('nomad-text-focus')) {
+                UI.btnUiMode.innerText = "Full UI";
+            } else {
+                UI.btnUiMode.innerText = "Text Mode";
             }
-            deferredPrompt = null;
-        } else {
-            alert("Modo Manual:\n1. Toca los tres puntos (Menú) de tu navegador.\n2. Toca 'Instalar Aplicación' o 'Añadir a pantalla de inicio'.\n¡Esto evitará que el sistema cierre la cámara!");
         }
-    });
-}
+    }
 
-// ── Sensory HUD Updates ──────────────────────────────────────────────────
-function updateHud(type, val) {
     try {
-        const n = Number(val);
-        const ok = Number.isFinite(n);
-        if (type === 'bat' && UI.telBat) {
-            UI.telBat.innerText = ok ? `${Math.round(n * 100)}%` : '--';
-        }
-        if (type === 'temp' && UI.telTemp) {
-            UI.telTemp.innerText = ok ? `${Math.round(n)}°` : '--';
-        }
-        if (type === 'kin' && UI.telKin) {
-            UI.telKin.innerText = ok ? n.toFixed(1) : '0.0';
-        }
-        if (type === 'aud' && UI.telAud) {
-            UI.telAud.innerText = ok ? n.toFixed(2) : '0.00';
-        }
-    } catch (_) { /* ignore */ }
-}
+        initNomadUiModeFromQuery();
+        syncUiModeButtonLabel();
+    } catch (e) {
+        console.warn("Nomad UI init error", e);
+    }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
-if (UI.btnConnect) UI.btnConnect.addEventListener('click', connectKernel);
-if (UI.btnStream)  UI.btnStream.addEventListener('click', () => {
-    if (typeof startSensors === 'function') startSensors();
-    UI.btnStream.disabled = true;
-    UI.btnStream.innerText = "STREAMING";
-});
-if (UI.btnSend)    UI.btnSend.addEventListener('click', sendNomadChatMessage);
-if (UI.chatInput)  UI.chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendNomadChatMessage();
-});
+    if (UI.btnUiMode) {
+        UI.btnUiMode.addEventListener('click', () => {
+            document.body.classList.toggle('nomad-text-focus');
+            syncUiModeButtonLabel();
+        });
+    }
 
-// Update battery in real-time if available
-if ('getBattery' in navigator) {
-    navigator.getBattery().then(bat => {
-        const up = () => updateHud('bat', bat.level);
-        bat.addEventListener('levelchange', up);
-        up();
+    if (UI.btnInstall) {
+        UI.btnInstall.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    UI.btnInstall.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                alert("Modo Manual:\n1. Toca los tres puntos (Menú) de tu navegador.\n2. Toca 'Instalar Aplicación' o 'Añadir a pantalla de inicio'.\n¡Esto evitará que el sistema cierre la cámara!");
+            }
+        });
+    }
+
+    if (UI.btnConnect) UI.btnConnect.addEventListener('click', connectKernel);
+    if (UI.btnStream)  UI.btnStream.addEventListener('click', () => {
+        if (typeof startSensors === 'function') startSensors();
+        UI.btnStream.disabled = true;
+        UI.btnStream.innerText = "STREAMING";
     });
-}
+    if (UI.btnSend)    UI.btnSend.addEventListener('click', sendNomadChatMessage);
+    if (UI.chatInput)  UI.chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendNomadChatMessage();
+    });
 
-// Global Orb Scale
-window.updateOrbScale = function(volume) {
-    if (!UI.orb) return;
-    const s = 1 + (volume * 0.4);
-    UI.orb.style.transform = `scale(${s})`;
-    updateHud('aud', volume);
-};
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(bat => {
+            const up = () => updateHud('bat', bat.level);
+            bat.addEventListener('levelchange', up);
+            up();
+        });
+    }
 
-// ... existing SW registration ...
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=22.0.0')
+    // Service Worker disabled for LAN/Insecure context testing (avoids HTTPS upgrade loops)
+    /*
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js?v=22.0.2')
             .then(reg => console.log('Nomad Service Worker registered', reg))
             .catch(err => console.error('SW block:', err));
-    });
-}
+    }
+    */
 
-console.log("Nomad PWA V13.1.7 Initialized.");
+    console.log("Nomad PWA V13.1.9 Initialized (SW Disabled).");
+});
+

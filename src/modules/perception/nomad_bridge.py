@@ -286,8 +286,10 @@ class NomadBridge:
             session_ready_hook: Optional coroutine run once immediately after the
                 socket is accepted (Bloque 22.2 — e.g. emit ``SYNC_IDENTITY``).
         """
+        from starlette.websockets import WebSocketState
         try:
-            await websocket.accept()
+            if websocket.client_state == WebSocketState.CONNECTING:
+                await websocket.accept()
             self._is_vessel_healthy = True
             self._is_connected = True
             self._last_heartbeat = time.time()

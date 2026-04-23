@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .drive_arbiter import DriveIntent
+    from src.modules.drive_arbiter import DriveIntent
     from src.modules.memory.narrative import NarrativeMemory
 
 
@@ -74,8 +74,8 @@ class MetacognitiveEvaluator:
             consistent=dissonance < (1.0 - self.CONSISTENCY_THRESHOLD),
         )
 
-    def suggest_intents(self, report: MetacognitiveReport) -> list[DriveIntent]:
-        from .drive_arbiter import DriveIntent
+    def suggest_intents(self, report: MetacognitiveReport) -> list['DriveIntent']:
+        from src.modules.drive_arbiter import DriveIntent
 
         intents = []
 
