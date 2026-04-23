@@ -141,7 +141,6 @@ class EthosKernel:
         )
 
         # Lobe 2: Limbic (Affective/Ethical)
-        from src.modules.safety.locus import LocusModule
         from src.modules.somatic.sympathetic import SympatheticModule
         from src.modules.social.uchi_soto import UchiSotoModule
 
@@ -152,16 +151,7 @@ class EthosKernel:
             bus=self.bus,
         )
 
-        # Lobe 3: Cerebellum (Bayesian/Memory)
-        self.cerebellum = CerebellumLobe(
-            bayesian=BayesianEngine(),
-            strategist=self.strategist,
-            memory=NarrativeMemory(),
-            bus=self.bus,
-        )
-
         # Lobe 4: Executive (Prefrontal)
-        from src.modules.cognition.motivation_engine import MotivationEngine
 
         self.prefrontal_cortex = ExecutiveLobe(
             absolute_evil=evil_detector,

@@ -2359,3 +2359,34 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/modules/perception/audio_ouroboros.py`
   - `src/server/ws_chat.py`
   - `src/settings/kernel_settings.py`
+
+### Execution (Swarm) | Date: 2026-04-23 12:39:15 | Author: Anonymous Agent
+- **Block:** `14.4`
+- **Message:** PURGE: Rutina en piloto automatico. Removidos 23+ modulos no utilizados, mocks abandonados y redundancias de integracion swarm (e.g. ethical_lobe, basuras de sensores, llm_cancel_burst). Limpieza del Lobe Cerebellum duplicado en kernel.py.
+- **Files Modified:**
+  - `src/kernel.py`
+  - `src/kernel_lobes/__init__.py`
+  - `src/kernel_lobes/ethical_lobe.py`
+  - `src/modules/cognition/llm_cancel_burst.py`
+  - `src/modules/cognition/turn_prefetcher.py`
+  - `src/modules/ethics/weight_authority.py`
+  - `src/modules/governance/external_audit_framework.py`
+  - `src/modules/memory/precedent_rag.py`
+  - `src/modules/perception/action_narrator.py`
+  - `src/modules/perception/audio_signal_mapper.py`
+  - `src/modules/perception/nomad_chat_adapter.py`
+  - `src/modules/perception/nomad_session_sync.py`
+  - `src/modules/perception/perception_async_handler.py`
+  - `src/modules/perception/sensor_baseline_calibrator.py`
+  - `src/modules/perception/vision_multiprocess.py`
+  - `src/modules/perception/zeroconf_discovery.py`
+  - `src/modules/safety/async_task_canceller.py`
+  - `src/modules/safety/help_request_protocol.py`
+  - `src/modules/safety/privacy_shield.py`
+  - `src/modules/social/gray_zone_diplomacy.py`
+  - `src/modules/social/swarm_oracle.py`
+  - `src/modules/social/swarm_peer_stub.py`
+  - `src/modules/somatic/comfort_monitor.py`
+  - `src/modules/somatic/soft_robotics.py`
+  - `src/modules/somatic/somatic_signal_mapper.py`
+  - `src/server/ws_chat.py`

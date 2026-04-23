@@ -3,7 +3,6 @@
 
 from .cerebellum_lobe import CerebellumLobe
 from .cerebellum_node import CerebellumNode
-from .ethical_lobe import EthicalLobe
 from .executive_lobe import ExecutiveLobe
 from .limbic_lobe import LimbicEthicalLobe, LimbicLobe
 from .memory_lobe import MemoryLobe
@@ -18,7 +17,6 @@ __all__ = [
     "PerceptiveLobe",
     "LimbicEthicalLobe",
     "LimbicLobe",
-    "EthicalLobe",
     "ExecutiveLobe",
     "CerebellumLobe",
     "MemoryLobe",

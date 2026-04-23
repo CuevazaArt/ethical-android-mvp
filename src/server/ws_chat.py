@@ -662,9 +662,7 @@ async def ws_chat(ws: WebSocket) -> None:
 
                         await ws.send_json({"event_type": "turn_finished", "payload": payload})
 
-                        android_text = payload.get("response", {}).get("message", "")
-                        if android_text:
-                            await ws.send_json({"type": "kernel_voice", "text": android_text})
+                        # NOTE: kernel_voice removed — turn_finished already triggers TTS in the PWA client.
 
                         haptic_plan = payload.get("limbic_profile", {}).get("haptic_plan", [])
                         if haptic_plan:
