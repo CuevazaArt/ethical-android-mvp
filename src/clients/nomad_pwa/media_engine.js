@@ -125,6 +125,20 @@ async function startSensors() {
         videoInterval = setInterval(() => {
             if (wsNomad && wsNomad.readyState === WebSocket.OPEN) {
                 ctx.drawImage(UI.videoElement, 0, 0, canvas.width, canvas.height);
+
+                // ── BGR→RGB fix (Android rear camera delivers BGR) ──────────
+                try {
+                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const d = imgData.data;
+                    for (let i = 0; i < d.length; i += 4) {
+                        const r = d[i];       // was B on Android
+                        d[i]     = d[i + 2]; // R ← B
+                        d[i + 2] = r;         // B ← R
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                } catch (_) { /* cross-origin guard: skip if tainted */ }
+                // ────────────────────────────────────────────────────────────
+
                 const base64Img = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
                 wsNomad.send(JSON.stringify({ type: "vision_frame", payload: { image_b64: base64Img } }));
             }

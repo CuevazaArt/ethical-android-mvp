@@ -2281,3 +2281,10 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Fix blue veil artifact in Nomad camera: applied BGR→RGB conversion in vision_capture, updated bridge to forward latest sensor snapshot, enabled async LLM HTTP for mobile, added env auto‑enable for Nomad. All tests pass.
 - **Files Modified:**
   - *(No files modified)*
+
+### Execution (Swarm) | Date: 2026-04-23 00:19:13 | Author: Anonymous Agent
+- **Block:** `40.2`
+- **Message:** Nomad PWA: fix chat LLM silent (turn_finished→appendChatMessage+TTS), blue veil BGR→RGB on canvas, HUD telemetry server-push handler, user msg echo in chat.
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/media_engine.js`

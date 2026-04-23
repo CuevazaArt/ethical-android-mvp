@@ -275,10 +275,12 @@ function sendNomadChatMessage() {
     if (!text) return;
 
     if (trySendChatWsJSON({ text })) {
+        appendChatMessage(text, 'user');
         nomadApplySendingUi(true);
         return;
     }
     if (trySendNomadChatRelay(text)) {
+        appendChatMessage(text, 'user');
         nomadApplySendingUi(true);
         return;
     }
@@ -635,10 +637,27 @@ async function connectKernel() {
                 }
 
                 if (data.event_type === "turn_finished") {
-                    const msg = data.payload?.response?.message || "";
-                    if (msg && UI.transcript) {
-                        UI.transcript.innerText = msg;
-                        UI.transcript.classList.remove('placeholder');
+                    const reply = (data.payload && data.payload.response && data.payload.response.message) || "";
+                    if (reply) {
+                        // Show in chat history
+                        appendChatMessage(reply, "kernel");
+                        // Mirror in transcript strip
+                        if (UI.transcript) {
+                            UI.transcript.innerText = reply;
+                            UI.transcript.classList.remove('placeholder');
+                        }
+                        // TTS
+                        if ('speechSynthesis' in window) {
+                            window.speechSynthesis.cancel();
+                            const utter = new SpeechSynthesisUtterance(reply.replace(/[*_~`#>\-]/g, '').trim());
+                            utter.lang = 'es-ES';
+                            const voices = window.speechSynthesis.getVoices();
+                            const preferred = voices.find(v => v.lang.startsWith('es')) || voices[0];
+                            if (preferred) utter.voice = preferred;
+                            utter.onstart = () => { if (UI.orb) UI.orb.classList.add('speaking'); };
+                            utter.onend   = () => { if (UI.orb) UI.orb.classList.remove('speaking'); };
+                            window.speechSynthesis.speak(utter);
+                        }
                     }
                     return;
                 }
@@ -795,6 +814,31 @@ async function connectKernel() {
                     if (payload.type === 'haptic_feedback' || payload.haptics) {
                         const pattern = payload.haptics || [200, 100, 200];
                         if (navigator.vibrate) navigator.vibrate(pattern);
+                    }
+                }
+
+                // ── Server-pushed telemetry updates (HUD spans) ──────────────
+                if (msg.type === 'telemetry' && msg.payload) {
+                    const p = msg.payload;
+                    if (p.battery !== undefined && UI.telBat) {
+                        UI.telBat.textContent = Math.round(p.battery * 100) + '%';
+                    }
+                    if (p.temp !== undefined && UI.telTemp) {
+                        UI.telTemp.textContent = Number(p.temp).toFixed(1) + '°';
+                    }
+                    if (p.kinetics !== undefined && UI.telKin) {
+                        UI.telKin.textContent = Number(p.kinetics).toFixed(1);
+                    }
+                    if (p.cpu_usage !== undefined) {
+                        const cpuEl = document.getElementById('tel-cpu');
+                        if (cpuEl) cpuEl.textContent = Number(p.cpu_usage).toFixed(0) + '%';
+                    }
+                    if (p.ram_usage !== undefined) {
+                        const ramEl = document.getElementById('tel-ram');
+                        if (ramEl) ramEl.textContent = Number(p.ram_usage).toFixed(0) + '%';
+                    }
+                    if (p.rtt_ms !== undefined && UI.nomadRtt) {
+                        UI.nomadRtt.textContent = Math.round(p.rtt_ms) + ' ms';
                     }
                 }
             } catch (e) {
