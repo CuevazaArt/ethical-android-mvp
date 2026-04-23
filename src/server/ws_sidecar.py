@@ -127,6 +127,10 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
         llm_mode=st.llm_mode,
         aclient=getattr(websocket.app.state, "aclient", None),
     )
+    try:
+        await kernel.start()
+    except Exception as exc:
+        logger.warning("Dashboard kernel.start() failed: %s", exc)
     rt_bridge = RealTimeBridge(kernel)
     _turn_seq = 0
 
@@ -297,7 +301,10 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                             "episode_count": ep_count,
                         },
                     }
-                    await websocket.send_json(heartbeat_payload)
+                    try:
+                        q.put_nowait(heartbeat_payload)
+                    except asyncio.QueueFull:
+                        pass  # Skip heartbeat if queue is congested
                 except Exception as hb_err:
                     logger.debug("Dashboard heartbeat error: %s", hb_err)
         except asyncio.CancelledError:

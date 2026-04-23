@@ -146,6 +146,9 @@ async function startSensors() {
 
             window.requestAnimationFrame(() => {
                 if (window.updateOrbScale) window.updateOrbScale(normalizedVolume);
+                // Update Nomad telemetry display
+                const telAud = document.getElementById('tel-aud');
+                if (telAud) telAud.textContent = rms.toFixed(3);
             });
 
             if (isSpeech && wsNomad && wsNomad.readyState === WebSocket.OPEN) {

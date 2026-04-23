@@ -2257,3 +2257,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/server/ws_sidecar.py`
   - `src/static/dashboard/dashboard.js`
   - `src/static/dashboard/index.html`
+
+### Execution (Swarm) | Date: 2026-04-22 23:50:08 | Author: Anonymous Agent
+- **Block:** `9.6`
+- **Message:** Fixed dashboard crash: (1) Added kernel.start() to dashboard handler, (2) Fixed race condition heartbeat writing directly to WS instead of queue, (3) Fixed Nomad PWA telemetry display: tel-bat/tel-temp/tel-kin/tel-aud now update locally, (4) Added RTT display to Nomad
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/clients/nomad_pwa/media_engine.js`
+  - `src/server/ws_sidecar.py`

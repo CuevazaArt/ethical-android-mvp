@@ -314,6 +314,8 @@ if ('getBattery' in navigator) {
                             temp: tempProxy // Simulated thermal state based on drain
                         } 
                     }));
+                    if (UI.telTemp) UI.telTemp.textContent = tempProxy.toFixed(1) + '°';
+                    if (UI.telBat) UI.telBat.textContent = `${level}%`;
                 }
             } catch (e) {
                 console.warn("Nomad: Battery telemetry error", e);
@@ -373,6 +375,7 @@ window.addEventListener('devicemotion', (event) => {
                 if(magnitude > 1.1) { 
                     wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: magnitude } }));
                     lastKineticPulse = now;
+                    if (UI.telKin) UI.telKin.textContent = magnitude.toFixed(1);
                 } else if(now - lastKineticPulse > 2000) {
                     // Send idle heartbeat with 0 kinetics to settle the dashboard lóbulo
                     wsNomad.send(JSON.stringify({ type: "telemetry", payload: { kinetics: 0, heartbeat: true } }));
