@@ -345,7 +345,10 @@ class KernelSettings(BaseModel):
             _parsed_turn = _env_optional_positive_float("KERNEL_CHAT_TURN_TIMEOUT")
             _chat_turn_default = _parsed_turn if _parsed_turn is not None else None
         elif nomad_m:
-            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_NOMAD_S
+            # NOMAD_MODE always implies local Ollama inference → use the LOCAL_LLM default (180 s).
+            # The old 60 s NOMAD_S constant was below Ollama's actual generation window on CPU,
+            # causing premature ws_chat TimeoutError before kernel.py (120 s) was even reached.
+            _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S
         elif _env_local_ollama_stack_active():
             _chat_turn_default = _DEFAULT_CHAT_TURN_TIMEOUT_LOCAL_LLM_S
         else:
