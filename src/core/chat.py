@@ -30,6 +30,7 @@ import math
 from dataclasses import dataclass
 
 from src.core.ethics import Action, EthicalEvaluator, EvalResult, Signals
+from src.core.identity import Identity
 from src.core.llm import OllamaClient
 from src.core.memory import Memory
 from src.core.safety import is_dangerous, sanitize
@@ -142,6 +143,7 @@ class ChatEngine:
         self.llm = llm if llm is not None else OllamaClient()
         self.ethics = ethics if ethics is not None else EthicalEvaluator()
         self.memory = memory if memory is not None else Memory()
+        self.identity = Identity()  # V2.15: evolves with each episode
         self._conversation: list[dict[str, str]] = []  # STM
 
     async def start(self) -> bool:
@@ -208,7 +210,7 @@ class ChatEngine:
         Build the full system prompt: ethics + history + memory + vision.
         Single source of truth — used by both respond() and respond_stream().
         """
-        system = RESPONSE_PROMPT
+        system = f"{RESPONSE_PROMPT}\n\nIdentidad central moldeada por la experiencia:\n{self.memory.identity}"
 
         # Ethical context
         if evaluation:
@@ -248,6 +250,11 @@ class ChatEngine:
                 parts.append(f"{faces} persona(s) visible(s) en cámara")
             if parts:
                 system += "\n\nEntorno físico del usuario: " + ", ".join(parts) + "."
+
+        # V2.15: Identity narrative — who the kernel IS, based on experience
+        narrative = self.identity.narrative()
+        if narrative:
+            system += f"\n\n{narrative}"
 
         return system
 
@@ -345,6 +352,10 @@ class ChatEngine:
             context=signals.context,
         )
 
+        if len(self.memory) % 5 == 0:
+            import asyncio
+            asyncio.create_task(self.memory.evolve_identity(self.llm))
+
         # 5. Update STM
         self._conversation.append({"user": user_message, "assistant": message})
         if len(self._conversation) > 10:
@@ -414,10 +425,17 @@ class ChatEngine:
             score=score, context=signals.context,
         )
 
+        if len(self.memory) % 5 == 0:
+            import asyncio
+            asyncio.create_task(self.memory.evolve_identity(self.llm))
+
         # 5. STM
         self._conversation.append({"user": user_message, "assistant": message})
         if len(self._conversation) > 10:
             self._conversation = self._conversation[-10:]
+
+        # V2.15: Update identity after every episode
+        self.identity.update(self.memory)
 
         # Final event
         yield {"type": "done", "message": message, "context": signals.context, "blocked": False}

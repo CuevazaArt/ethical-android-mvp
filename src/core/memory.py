@@ -56,26 +56,36 @@ class Memory:
             "ETHOS_MEMORY_PATH",
             str(Path.home() / ".ethos" / "memory.json"),
         )
+        self.identity: str = "Soy una IA ética cívica, dispuesta a ayudar y aprender."
         self.episodes: list[Episode] = []
         self._load()
 
     def _load(self) -> None:
-        """Load episodes from disk if file exists."""
+        """Load episodes and identity from disk if file exists."""
         try:
             path = Path(self._storage_path)
             if path.exists():
                 with open(path, encoding="utf-8") as f:
                     data = json.load(f)
-                self.episodes = [Episode(**ep) for ep in data]
+                if isinstance(data, list):
+                    # Legacy migration: V1/V2.14 flat list
+                    self.episodes = [Episode(**ep) for ep in data]
+                elif isinstance(data, dict):
+                    self.identity = data.get("identity", self.identity)
+                    self.episodes = [Episode(**ep) for ep in data.get("episodes", [])]
         except Exception:
             self.episodes = []
 
     def save(self) -> None:
-        """Persist episodes to disk."""
+        """Persist episodes and identity to disk."""
         path = Path(self._storage_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
-            json.dump([asdict(ep) for ep in self.episodes], f, indent=2, ensure_ascii=False)
+            data = {
+                "identity": self.identity,
+                "episodes": [asdict(ep) for ep in self.episodes]
+            }
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
     def add(
         self,
@@ -112,6 +122,34 @@ class Memory:
     def recent(self, n: int = 5) -> list[Episode]:
         """Get the N most recent episodes."""
         return list(reversed(self.episodes[-n:]))
+
+    async def evolve_identity(self, llm_client) -> str:
+        """Dynamically evolve identity based on recent episodes."""
+        recent_eps = self.recent(5)
+        if not recent_eps:
+            return self.identity
+            
+        context_lines = [f"- {ep.summary} (contexto: {ep.context})" for ep in recent_eps]
+        context_str = "\n".join(context_lines)
+        
+        prompt = (
+            "Eres el núcleo metacognitivo. Evalúa tus memorias recientes y actualiza tu identidad.\n"
+            f"Identidad actual: {self.identity}\n\n"
+            f"Memorias recientes:\n{context_str}\n\n"
+            "Escribe SOLO la nueva identidad en primera persona, máximo 2 frases. "
+            "No agregues 'Claro, aquí tienes' ni uses markdown."
+        )
+        
+        try:
+            new_identity = await llm_client.chat(prompt, "Eres un sistema de metacognición.", temperature=0.7)
+            new_identity = new_identity.strip()
+            if new_identity:
+                self.identity = new_identity
+                self.save()
+        except Exception as e:
+            pass
+            
+        return self.identity
 
     def reflection(self) -> str:
         """

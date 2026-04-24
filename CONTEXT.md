@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.15 — Identity Neuroplasticity**: Expandir `Memory` con evolución dinámica de identidad basada en experiencias acumuladas.
+**V2.16 — Dashboard Identity Telemetry**: Exponer el perfil de identidad en `/api/status` y visualizarlo en el dashboard.
 
 ## Closed blocks
 
@@ -39,7 +39,8 @@
 | V2.12 | Vision frame processing | ✅ CLOSED | V2.11 closed |
 | V2.13 | Vision → Kernel context | ✅ CLOSED | V2.12 closed |
 | V2.14 | Nomad PWA HTTPS | ✅ CLOSED | V2.13 closed |
-| V2.15 | Identity Neuroplasticity | 🔨 IN PROGRESS | V2.14 closed |
+| V2.15 | Identity Neuroplasticity | ✅ CLOSED | V2.14 closed |
+| V2.16 | Dashboard Identity Telemetry | 🔨 IN PROGRESS | V2.15 closed |
 
 ## Key files
 
@@ -48,7 +49,7 @@
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
 | Server | `src/server/app.py` |
 | Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
-| Tests | `tests/core/` (68 tests) |
+| Tests | `tests/core/` (77 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
@@ -65,3 +66,4 @@
 - **2026-04-24 V2.12 CLOSED:** `src/core/vision.py` — VisionEngine procesa JPEG base64, extrae brillo/movimiento/rostros con latencia perf_counter y Anti-NaN. Handler `vision_frame` en /ws/nomad → envía `vision_signals` al cliente. 11 tests en test_vision.py. 68 passed.
 - **2026-04-24 V2.13 CLOSED:** `chat.py` refactorizado con `_build_system()` — Single Source of Truth para system prompt. `turn_stream(vision_context=dict|None)` inyecta entorno físico (luz, movimiento, rostros) al prompt. `app.py`: `_last_vision` cacheado por conexión, pasado en los 3 handlers (chat_text, user_speech, audio_pcm). 68 passed.
 - **2026-04-24 V2.14 CLOSED:** `scripts/gen_cert.py` — cert RSA-2048 auto-firmado con SAN (Python-puro, `cryptography`), idempotente. `README_HTTPS.md` con 5 pasos (Android/iOS). Demo: SHA256 verificado, SSL context OK, 68 passed.
+- **2026-04-24 V2.15 CLOSED:** `src/core/identity.py` — clase `Identity` con `update(memory)` + `narrative()`. Perfil persiste en `~/.ethos/identity.json`. Detecta tendencia ética (mejorando/estable/deteriorando), contextos y acciones dominantes, ratio de safety blocks. Anti-NaN en todos los cálculos. Integrado en `_build_system()` de `chat.py`. 77 passed (9 tests nuevos).
