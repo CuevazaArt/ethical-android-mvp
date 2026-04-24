@@ -234,3 +234,34 @@ def test_reflection_contains_experience_summary(engine):
     assert "2" in r
     assert "medical" in r or "everyday" in r
 
+
+@pytest.mark.asyncio
+async def test_chat_pipeline_latency_metrics(engine):
+    """V2.18: 'done' event must carry a 'latency' dict with finite float metrics."""
+    import math
+    done_event = None
+    with (
+        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(engine.llm, "chat", new_callable=AsyncMock, return_value="Hola"),
+        patch.object(engine.llm, "chat_stream", return_value=_async_gen(["Hola", " mundo"])),
+    ):
+        async for event in engine.turn_stream("hola"):
+            if event.get("type") == "done":
+                done_event = event
+
+    assert done_event is not None, "No 'done' event received"
+    lat = done_event.get("latency")
+    assert lat is not None, "'done' event missing 'latency' key"
+    for key in ("safety", "perceive", "evaluate", "ttft", "total"):
+        val = lat.get(key)
+        assert val is not None, f"Missing latency key: {key}"
+        assert isinstance(val, (int, float)), f"latency[{key}] is not numeric"
+        assert math.isfinite(float(val)), f"latency[{key}] is not finite: {val}"
+
+
+async def _async_gen(items):
+    """Helper: async generator yielding items."""
+    for item in items:
+        yield item
+
+
