@@ -14,7 +14,8 @@
 
 ## Active block
 
-**V2.32 CLOSED — Final src/ legacy prune.**
+**HARDWARE MIGRATION — Waiting for GPU host deployment.**
+MVP V2 stabilization is 100% complete.
 
 ## Closed blocks
 
@@ -48,6 +49,12 @@
 | V2.24 | Delete bridge, adversarial_suite V2 direct | ✅ |
 | V2.25 | README V2, docs aligned, Phase 16 closed | ✅ |
 | V2.32 | Final src/ legacy prune (removed 14 dead dirs) | ✅ |
+| V2.33 | Servidor WebSocket V2 (Nomad Bridge) | ✅ |
+| V2.34 | Telemetría de latencia en REPL | ✅ |
+| V2.35 | Restauración PWA (Poda rollback) | ✅ |
+| V2.36 | Clean legacy tests (verificado vacío) | ✅ |
+| V2.37 | FastAPI Static Routing Fix (/nomad/) | ✅ |
+| V2.38 | Fase γ: Auditoría Nomad PWA Sync | ✅ |
 
 ## Key files
 
