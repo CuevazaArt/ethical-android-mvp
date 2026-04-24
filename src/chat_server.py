@@ -9,6 +9,11 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
+from pathlib import Path
+
+# Fix PYTHONPATH for direct execution
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.server.app import app
 
