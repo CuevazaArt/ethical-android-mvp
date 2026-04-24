@@ -520,16 +520,18 @@ class ChatEngine:
             # Show response
             print(f"\nEthos > {result.message}")
 
-            # Show debug info in gray
+            # Show debug info and latency in gray
             ctx = result.signals.context
+            latency = result.latency_ms.get("total", 0) / 1000.0  # convert ms to seconds
+            
             if result.evaluation:
                 ev = result.evaluation
                 print(
                     f"  [{ctx} | {ev.mode} | {ev.verdict} | "
-                    f"score={ev.score} | action={ev.chosen.name}]"
+                    f"score={ev.score:.4f} | action={ev.chosen.name} | {latency:.2f}s]"
                 )
             else:
-                print(f"  [{ctx} | casual chat]")
+                print(f"  [{ctx} | casual chat | {latency:.2f}s]")
             print()
 
     async def close(self) -> None:
