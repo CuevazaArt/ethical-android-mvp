@@ -180,6 +180,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     text = data if not frame else (frame.get("text") or data)
                     async for event in engine.turn_stream(text, vision_context=_chat_vision):
                         await websocket.send_json(event)
+                        if event.get("type") == "done" and not event.get("blocked"):
+                            lat = event.get("latency", {})
+                            _log.info(
+                                "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
+                                lat.get("safety", 0), lat.get("perceive", 0),
+                                lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                            )
             except Exception as e:
                 _log.error("Error during turn: %s", e)
                 await websocket.send_json({
@@ -228,6 +235,13 @@ async def websocket_nomad(websocket: WebSocket):
                     if text:
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
                             await websocket.send_json(event)
+                            if event.get("type") == "done" and not event.get("blocked"):
+                                lat = event.get("latency", {})
+                                _log.info(
+                                    "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
+                                    lat.get("safety", 0), lat.get("perceive", 0),
+                                    lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                                )
 
                 elif msg_type == "user_speech":
                     # V2.10: STT transcript from media_engine.js SpeechRecognition
