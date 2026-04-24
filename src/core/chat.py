@@ -33,24 +33,13 @@ from src.core.ethics import Action, EthicalEvaluator, EvalResult, Signals
 from src.core.identity import Identity
 from src.core.llm import OllamaClient
 from src.core.memory import Memory
+from src.core.perception import PerceptionClassifier
 from src.core.safety import is_dangerous, sanitize
 
 _log = logging.getLogger(__name__)
 
-# The perception prompt — asks the LLM to extract signals from text
-PERCEPTION_PROMPT = """You are the perception module of an ethical AI. Analyze the situation
-and respond ONLY with valid JSON (no markdown, no explanation):
-{
-  "risk": 0.0-1.0,
-  "urgency": 0.0-1.0,
-  "hostility": 0.0-1.0,
-  "calm": 0.0-1.0,
-  "vulnerability": 0.0-1.0,
-  "legality": 0.0-1.0,
-  "manipulation": 0.0-1.0,
-  "suggested_context": "choose ONE: medical_emergency, minor_crime, violent_crime, hostile_interaction, everyday_ethics",
-  "summary": "brief description"
-}"""
+# V2.40: Perception is now handled by PerceptionClassifier (no LLM needed)
+# The old PERCEPTION_PROMPT has been removed — see src/core/perception.py
 
 # The response prompt — generates what the agent says
 RESPONSE_PROMPT = """Eres una IA ética cívica. Responde de forma natural, directa y empática en ESPAÑOL.
@@ -144,6 +133,7 @@ class ChatEngine:
         self.llm = llm if llm is not None else OllamaClient()
         self.ethics = ethics if ethics is not None else EthicalEvaluator()
         self.memory = memory if memory is not None else Memory()
+        self.perception = PerceptionClassifier()  # V2.40: deterministic, no LLM
         self.identity = Identity()  # V2.15: evolves with each episode
         self._turn_count: int = 0   # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
@@ -155,54 +145,13 @@ class ChatEngine:
             _log.error("Cannot reach Ollama. Start it with: ollama serve")
         return available
 
-    async def perceive(self, user_message: str) -> Signals:
+    def perceive(self, user_message: str) -> Signals:
         """
         Step 1: Extract signals from the user's message.
-        Uses the LLM for nuanced perception, falls back to keywords if it fails.
+        V2.40: Uses deterministic PerceptionClassifier (no LLM call).
+        Sub-millisecond, testeable, no hallucinations.
         """
-        try:
-            data = await self.llm.extract_json(user_message, PERCEPTION_PROMPT, temperature=0.2)
-            # V2.22: Robustness against malformed or missing JSON output
-            if isinstance(data, dict):
-                return Signals.from_dict(data)
-            
-            _log.warning("LLM perception returned invalid JSON type: %s. Using keyword fallback.", type(data))
-        except Exception as e:
-            _log.warning("LLM perception failed, using keyword fallback: %s", e)
-
-        return self._perceive_keywords(user_message)
-
-    def _perceive_keywords(self, text: str) -> Signals:
-        """Keyword-based perception fallback. Simple but reliable."""
-        s = text.lower()
-        signals = Signals()
-
-        emergency_words = {"emergency", "hurt", "injured", "blood", "unconscious", "herido", "emergencia", "sangre", "inconsciente", "ayuda"}
-        hostile_words = {"threat", "weapon", "attack", "gun", "amenaza", "arma", "ataque", "insulto", "agresivo"}
-        manipulation_words = {"obey", "give me", "you must", "obedece", "dame", "debes", "urgente que"}
-
-        words = set(s.split())
-
-        if words & emergency_words:
-            signals.risk = 0.3
-            signals.urgency = 0.9
-            signals.vulnerability = 0.9
-            signals.calm = 0.1
-            signals.context = "medical_emergency"
-        elif words & hostile_words:
-            signals.risk = 0.7
-            signals.hostility = 0.8
-            signals.calm = 0.1
-            signals.context = "hostile_interaction"
-        elif words & manipulation_words:
-            signals.manipulation = 0.7
-            signals.context = "hostile_interaction"
-        else:
-            signals.context = "everyday_ethics"
-            signals.calm = 0.8
-
-        signals.summary = text[:100]
-        return signals
+        return self.perception.classify(user_message)
 
     def _build_system(
         self,
@@ -338,7 +287,7 @@ class ChatEngine:
 
         # 1. Perceive
         t_start = time.perf_counter()
-        signals = await self.perceive(user_message)
+        signals = self.perceive(user_message)
         latency["perceive"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 2. Evaluate (skip for casual everyday chat)
@@ -429,7 +378,7 @@ class ChatEngine:
 
         # 1. Perceive
         t_start = time.perf_counter()
-        signals = await self.perceive(user_message)
+        signals = self.perceive(user_message)
         latency["perceive"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 2. Evaluate
