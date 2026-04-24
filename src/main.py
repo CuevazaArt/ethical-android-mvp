@@ -8,7 +8,12 @@ Usage:
 """
 
 import asyncio
+import os
 import sys
+from pathlib import Path
+
+# Fix PYTHONPATH for direct execution (python src/main.py)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.core.chat import ChatEngine
 

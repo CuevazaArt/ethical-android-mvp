@@ -5,7 +5,7 @@
 ## Current state
 
 - **Version:** Ethos V2 Core Minimal (Fase 16 COMPLETA)
-- **Architecture:** `src/core/` → `src/server/` → `src/clients/` (zero legacy)
+- **Architecture:** `src/core/` → `src/server/` (zero legacy)
 - **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
 - **Last merge to main:** 2026-04-24 (V2.25)
@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.26 CLOSED — Próximo: V2.27**
+**V2.32 CLOSED — Final src/ legacy prune.**
 
 ## Closed blocks
 
@@ -47,6 +47,7 @@
 | V2.23 (P16) | Purge legacy (kernel_lobes, modules, kernel_components) | ✅ |
 | V2.24 | Delete bridge, adversarial_suite V2 direct | ✅ |
 | V2.25 | README V2, docs aligned, Phase 16 closed | ✅ |
+| V2.32 | Final src/ legacy prune (removed 14 dead dirs) | ✅ |
 
 ## Key files
 
@@ -54,7 +55,6 @@
 |------|-------|
 | Core | `src/core/{llm,ethics,memory,chat,safety,identity,vision,stt,status}.py` |
 | Server | `src/server/app.py` |
-| Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
 | CLI | `src/ethos_cli.py` |
 | Entry | `src/main.py` (REPL) · `src/chat_server.py` (uvicorn) |
 | Tests | `tests/core/` (91 tests) |
@@ -66,7 +66,7 @@
 
 ## System health (2026-04-24)
 
-- **Tests:** 91/91 ✅
+- **Tests:** 135/135 ✅
 - **Legacy imports:** 0
 - **Bridge:** ELIMINADO
 - **Documentación:** Alineada con el código
