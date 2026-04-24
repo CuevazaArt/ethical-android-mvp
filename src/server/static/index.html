@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethos Kernel - Chat V2</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+        #chat-log { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; }
+        .message { margin-bottom: 1rem; }
+        .user-msg { color: #333; font-weight: bold; }
+        .kernel-msg { color: #0056b3; }
+        .blocked-msg { color: #d32f2f; }
+        .context-tag { font-size: 0.8em; color: #888; margin-left: 0.5rem; }
+        textarea { width: 100%; height: 60px; margin-bottom: 0.5rem; padding: 0.5rem; box-sizing: border-box; }
+        button { padding: 0.5rem 1rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Ethos Kernel - Terminal WS</h1>
+    <div id="chat-log"></div>
+    <textarea id="msg-input" placeholder="Escribe un mensaje..."></textarea>
+    <button id="send-btn">Enviar</button>
+
+    <script>
+        const log = document.getElementById('chat-log');
+        const input = document.getElementById('msg-input');
+        const btn = document.getElementById('send-btn');
+        
+        let ws;
+        
+        function connect() {
+            ws = new WebSocket('ws://localhost:8000/ws/chat');
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const msgClass = data.blocked ? 'blocked-msg' : 'kernel-msg';
+                const ctxInfo = data.context ? `<span class="context-tag">[${data.context}]</span>` : '';
+                const reasonInfo = data.reason ? `<span class="context-tag">(Razón: ${data.reason})</span>` : '';
+                
+                log.innerHTML += `<div class="message ${msgClass}"><strong>Ethos:</strong> ${data.message} ${ctxInfo} ${reasonInfo}</div>`;
+                log.scrollTop = log.scrollHeight;
+            };
+
+            ws.onclose = () => {
+                log.innerHTML += `<div class="message blocked-msg"><strong>Sistema:</strong> Conexión perdida. Reconectando en 3s...</div>`;
+                setTimeout(connect, 3000);
+            };
+        }
+
+        function send() {
+            const text = input.value.trim();
+            if (!text || ws.readyState !== WebSocket.OPEN) return;
+            
+            log.innerHTML += `<div class="message user-msg"><strong>Tú:</strong> ${text}</div>`;
+            log.scrollTop = log.scrollHeight;
+            ws.send(text);
+            input.value = '';
+        }
+
+        btn.onclick = send;
+        input.onkeypress = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        };
+
+        connect();
+    </script>
+</body>
+</html>

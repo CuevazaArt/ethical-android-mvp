@@ -31,7 +31,7 @@ All core modules functional and tested.
 
 | Block | Name | Status | Depends on |
 |-------|------|--------|------------|
-| V2.5 | WebSocket Chat | ⏳ Waiting | Fase α complete |
+| V2.5 | WebSocket Chat | ✅ CLOSED | Fase α complete |
 | V2.6 | Streaming | ⏳ Waiting | V2.5 closed |
 | V2.7 | Dashboard Minimal | ⏳ Waiting | V2.6 closed |
 
@@ -50,3 +50,4 @@ All core modules functional and tested.
 - **2026-04-23 V2.3 CLOSED:** 3 tests de integración de memoria añadidos en `test_memory.py`: acumulación por turno, recall por contexto, scores finitos. + 3 tests V2.3 en `test_chat.py`: cross-session persistence, recall injection into LLM prompt, reflection. Fix empty-Memory falsy bug. Tests: 34 passed.
 - **2026-04-24 V2.4 CLOSED:** Safety gate verificada — `safety.py` + integración en `chat.py` (Safety→Perceive→Evaluate→Respond→Remember) + 19 tests en `test_safety.py`. `python -m src.core.status` → 🟢 Fase α complete. Tests: 53 passed.
 - **2026-04-24 V2.4 CLOSED:** Safety gate — 7 danger categories, Unicode sanitization, evasion resistance. 19 safety tests. Fase α COMPLETE.
+- **2026-04-24 V2.5 CLOSED:** WebSocket chat server (FastAPI) and single-file HTML frontend. 53 tests passing.
