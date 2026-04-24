@@ -38,7 +38,7 @@
 | V2.11 | Whisper STT server-side | ✅ CLOSED | V2.10 closed |
 | V2.12 | Vision frame processing | ✅ CLOSED | V2.11 closed |
 | V2.13 | Vision → Kernel context | ✅ CLOSED | V2.12 closed |
-| V2.14 | Nomad PWA HTTPS | 🔨 IN PROGRESS | V2.13 closed |
+| V2.14 | Nomad PWA HTTPS | ✅ CLOSED | V2.13 closed |
 
 ## Key files
 
@@ -63,3 +63,4 @@
 - **2026-04-24 PODA MAYOR:** Eliminados 232 tests V1 + 10 directorios src/ V1 (modules, nervous_system, persistence, runtime, sandbox, observability, settings, validators, simulations, utils) + 10 archivos src/server/ V1. Ninguno era importado por app.py. Órgano V2 puro.
 - **2026-04-24 V2.12 CLOSED:** `src/core/vision.py` — VisionEngine procesa JPEG base64, extrae brillo/movimiento/rostros con latencia perf_counter y Anti-NaN. Handler `vision_frame` en /ws/nomad → envía `vision_signals` al cliente. 11 tests en test_vision.py. 68 passed.
 - **2026-04-24 V2.13 CLOSED:** `chat.py` refactorizado con `_build_system()` — Single Source of Truth para system prompt. `turn_stream(vision_context=dict|None)` inyecta entorno físico (luz, movimiento, rostros) al prompt. `app.py`: `_last_vision` cacheado por conexión, pasado en los 3 handlers (chat_text, user_speech, audio_pcm). 68 passed.
+- **2026-04-24 V2.14 CLOSED:** Soporte de HTTPS local en LAN usando certificados dinámicos generados con `trustme` (`scripts/gen_certs.py`) servidos por `scripts/serve_https.py` en el puerto 8443. Modificado `app.js` para honrar `wss:` sobre HTTPS. Permite a los navegadores móviles usar `SpeechRecognition` y micrófono/cámara. 68 passed.
