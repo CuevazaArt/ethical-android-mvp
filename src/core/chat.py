@@ -138,9 +138,9 @@ class ChatEngine:
         ethics: EthicalEvaluator | None = None,
         memory: Memory | None = None,
     ):
-        self.llm = llm or OllamaClient()
-        self.ethics = ethics or EthicalEvaluator()
-        self.memory = memory or Memory()
+        self.llm = llm if llm is not None else OllamaClient()
+        self.ethics = ethics if ethics is not None else EthicalEvaluator()
+        self.memory = memory if memory is not None else Memory()
         self._conversation: list[dict[str, str]] = []  # STM
 
     async def start(self) -> bool:

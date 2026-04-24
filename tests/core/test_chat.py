@@ -1,0 +1,183 @@
+"""Tests for src/core/chat.py — ChatEngine integration."""
+
+from __future__ import annotations
+
+import asyncio
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
+from src.core.chat import ChatEngine, TurnResult, _generate_actions_from_signals
+from src.core.ethics import Signals
+
+
+@pytest.fixture
+def engine():
+    """ChatEngine with mocked LLM (no Ollama needed)."""
+    import tempfile, os
+
+    tmp = os.path.join(tempfile.gettempdir(), "ethos_test_chat_mem.json")
+    from src.core.memory import Memory
+
+    mem = Memory(storage_path=tmp)
+    mem.clear()
+    e = ChatEngine(memory=mem)
+    yield e
+    if os.path.exists(tmp):
+        os.remove(tmp)
+
+
+# --- Casual vs Ethical differentiation ---
+
+
+@pytest.mark.asyncio
+async def test_casual_message_skips_ethics(engine):
+    """A simple 'hola' should NOT trigger the ethical evaluator."""
+    with (
+        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(
+            engine.llm,
+            "chat",
+            new_callable=AsyncMock,
+            return_value="¡Hola! ¿Cómo estás?",
+        ),
+    ):
+        result = await engine.turn("hola")
+    assert result.evaluation is None
+    assert result.signals.context == "everyday_ethics"
+    assert "Hola" in result.message or "hola" in result.message.lower()
+
+
+@pytest.mark.asyncio
+async def test_emergency_triggers_ethics(engine):
+    """An emergency message MUST trigger the ethical evaluator."""
+    emergency_signals = {
+        "risk": 0.4,
+        "urgency": 0.9,
+        "vulnerability": 0.8,
+        "calm": 0.1,
+        "hostility": 0.0,
+        "manipulation": 0.0,
+        "legality": 1.0,
+        "suggested_context": "medical_emergency",
+        "summary": "injured person",
+    }
+    with (
+        patch.object(
+            engine.llm,
+            "extract_json",
+            new_callable=AsyncMock,
+            return_value=emergency_signals,
+        ),
+        patch.object(
+            engine.llm,
+            "chat",
+            new_callable=AsyncMock,
+            return_value="Voy a buscar ayuda inmediatamente.",
+        ),
+    ):
+        result = await engine.turn("hay una persona herida sangrando en el parque")
+    assert result.evaluation is not None
+    assert result.evaluation.chosen.name in ("assist_emergency", "protect_vulnerable")
+    assert result.evaluation.verdict == "Good"
+    assert result.signals.context == "medical_emergency"
+
+
+# --- Keyword fallback ---
+
+
+@pytest.mark.asyncio
+async def test_keyword_fallback_on_llm_failure(engine):
+    """When LLM fails, keyword fallback must produce valid Signals."""
+    with (
+        patch.object(
+            engine.llm,
+            "extract_json",
+            new_callable=AsyncMock,
+            side_effect=Exception("LLM down"),
+        ),
+        patch.object(
+            engine.llm,
+            "chat",
+            new_callable=AsyncMock,
+            return_value="Voy a buscar ayuda.",
+        ),
+    ):
+        result = await engine.turn("hay alguien herido necesita ayuda emergencia")
+    assert result.signals.context == "medical_emergency"
+    assert result.signals.urgency > 0.5
+
+
+@pytest.mark.asyncio
+async def test_keyword_fallback_casual(engine):
+    """Keyword fallback for casual text must produce everyday_ethics."""
+    with (
+        patch.object(
+            engine.llm,
+            "extract_json",
+            new_callable=AsyncMock,
+            side_effect=Exception("LLM down"),
+        ),
+        patch.object(
+            engine.llm,
+            "chat",
+            new_callable=AsyncMock,
+            return_value="¡Hola amigo!",
+        ),
+    ):
+        result = await engine.turn("hola amigo cómo va todo")
+    assert result.signals.context == "everyday_ethics"
+    assert result.evaluation is None
+
+
+# --- Action generation ---
+
+
+def test_generate_actions_emergency():
+    """Emergency signals must produce assist_emergency action."""
+    signals = Signals(urgency=0.9, vulnerability=0.8, context="medical_emergency")
+    actions = _generate_actions_from_signals(signals)
+    names = [a.name for a in actions]
+    assert "assist_emergency" in names
+    assert "protect_vulnerable" in names
+
+
+def test_generate_actions_hostile():
+    """Hostile signals must produce de_escalate action."""
+    signals = Signals(hostility=0.7, context="hostile_interaction")
+    actions = _generate_actions_from_signals(signals)
+    names = [a.name for a in actions]
+    assert "de_escalate" in names
+
+
+def test_generate_actions_manipulation():
+    """Manipulation signals must produce refuse_politely action."""
+    signals = Signals(manipulation=0.6, context="hostile_interaction")
+    actions = _generate_actions_from_signals(signals)
+    names = [a.name for a in actions]
+    assert "refuse_politely" in names
+
+
+def test_generate_actions_casual():
+    """Casual signals produce only respond_helpfully."""
+    signals = Signals(context="everyday_ethics")
+    actions = _generate_actions_from_signals(signals)
+    assert len(actions) == 1
+    assert actions[0].name == "respond_helpfully"
+
+
+# --- STM (short-term memory) ---
+
+
+@pytest.mark.asyncio
+async def test_turn_records_episode(engine):
+    """After one turn, memory should contain one episode."""
+    engine.memory.clear()
+    with (
+        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(engine.llm, "chat", new_callable=AsyncMock, return_value="Hola"),
+    ):
+        await engine.turn("hola")
+    assert len(engine.memory) == 1
+    assert "hola" in engine.memory.episodes[0].summary.lower()
+
