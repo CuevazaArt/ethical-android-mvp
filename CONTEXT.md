@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.12 — Vision frame processing**: Procesar frames JPEG del Nomad en el servidor.
+**V2.13 — Vision → Kernel context injection**: Inyectar señales visuales (brillo, movimiento, rostros) en el prompt del LLM para que el kernel pueda reaccionar al entorno físico del usuario.
 
 ## Closed blocks
 
@@ -36,7 +36,8 @@
 |-------|------|--------|------------|
 | V2.10 | STT→Chat pipeline | ✅ CLOSED | V2.9 closed |
 | V2.11 | Whisper STT server-side | ✅ CLOSED | V2.10 closed |
-| V2.12 | Vision frame processing | 🔨 IN PROGRESS | V2.11 closed |
+| V2.12 | Vision frame processing | ✅ CLOSED | V2.11 closed |
+| V2.13 | Vision → Kernel context | 🔨 IN PROGRESS | V2.12 closed |
 
 ## Key files
 
@@ -45,7 +46,7 @@
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
 | Server | `src/server/app.py` |
 | Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
-| Tests | `tests/core/` (57 tests) |
+| Tests | `tests/core/` (68 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
@@ -59,3 +60,4 @@
 - **2026-04-24 V2.10 CLOSED:** STT to Chat pipeline. Full-duplex voice loop con preemption (`speechSynthesis.cancel()` en interim) y feedback visual explícito de cruce de red. Tests: 53 passed.
 - **2026-04-24 V2.11 CLOSED:** `src/core/stt.py` — WhisperSTT con faster-whisper opcional, fallback graceful, Anti-NaN, latencia log. `app.py`: handler `audio_pcm` en /ws/nomad + `stt_available` en /api/status. Tests: 57 passed.
 - **2026-04-24 PODA MAYOR:** Eliminados 232 tests V1 + 10 directorios src/ V1 (modules, nervous_system, persistence, runtime, sandbox, observability, settings, validators, simulations, utils) + 10 archivos src/server/ V1. Ninguno era importado por app.py. Órgano V2 puro.
+- **2026-04-24 V2.12 CLOSED:** `src/core/vision.py` — VisionEngine procesa JPEG base64, extrae brillo/movimiento/rostros con latencia perf_counter y Anti-NaN. Handler `vision_frame` en /ws/nomad → envía `vision_signals` al cliente. 11 tests en test_vision.py. 68 passed.
