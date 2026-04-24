@@ -47,7 +47,7 @@
 | V2.20 | Server Integration Tests + SyntaxError fix | ✅ CLOSED | V2.19 closed |
 | V2.21 | Identity Throttle (every 5 turns) | ✅ CLOSED | V2.20 closed |
 | V2.22 | Perception Hardening | ✅ CLOSED | V2.21 closed |
-| V2.23 | Nomad Latency Visualizer | 🔨 IN PROGRESS | V2.22 closed |
+| V2.23 | Nomad Latency Visualizer | ✅ CLOSED | V2.22 closed |
 
 ## Key files
 
@@ -81,3 +81,4 @@
 - **2026-04-24 V2.20 CLOSED:** Consolidación de integration tests; fix doble `global _last_latency` removido de bloques `if` anidados, movido a scope de función. 91 passed.
 - **2026-04-24 V2.21 CLOSED:** `chat.py` — throttle `identity.update()` basado en `self._turn_count` (coherente con turnos de ChatEngine, no con episodios de Memory). Elimina `asyncio.create_task(evolve_identity)` (código muerto). +2 tests: `test_turn_count_increments`, `test_identity_throttled_every_5_turns`. I/O a disco reducido 80%. 94 passed.
 - **2026-04-24 V2.22 CLOSED:** `ChatEngine.perceive()` robustecido contra JSON malformado o `None` del LLM. Fallback a palabras clave y valores por defecto seguros. Test `test_perceive_malformed_json_fallback` añadido. 92 passed.
+- **2026-04-24 V2.23 CLOSED:** Nomad PWA Latency Visualizer. Se añadió un badge de latencia TTFT en `app.js` (`_latClass` helper, inyección dinámica en burbuja AI) y estilos en `style.css` (`.lat-badge`, `fast/mid/slow`). Graceful degradation si `ttft` no existe. 94 passed.

@@ -542,6 +542,13 @@ function appendChatMessage(text, roleClass) {
     msgDiv.innerText = text;
     UI.chatHistory.appendChild(msgDiv);
     UI.chatHistory.scrollTop = UI.chatHistory.scrollHeight;
+    return msgDiv;
+}
+
+function _latClass(ttft) {
+    if (ttft < 800) return 'fast';
+    if (ttft < 2000) return 'mid';
+    return 'slow';
 }
 
 /**
@@ -648,15 +655,24 @@ async function connectKernel() {
                 if (data.type === 'done') {
                     const streamDiv = UI.chatHistory.querySelector('.streaming-bubble');
                     const msg = data.message || '';
+                    let finalDiv = streamDiv;
                     if (data.blocked) {
                         if (streamDiv) streamDiv.remove();
-                        appendChatMessage('\uD83D\uDEAB ' + msg, 'kernel');
+                        finalDiv = appendChatMessage('\uD83D\uDEAB ' + msg, 'kernel');
                     } else if (streamDiv) {
                         streamDiv.classList.remove('streaming-bubble');
                         if (msg && !streamDiv.textContent.trim()) streamDiv.textContent = msg;
                     } else if (msg) {
-                        appendChatMessage(msg, 'kernel');
+                        finalDiv = appendChatMessage(msg, 'kernel');
                     }
+                    
+                    if (finalDiv && data.latency && data.latency.ttft && !data.blocked) {
+                        const badge = document.createElement('span');
+                        badge.className = `lat-badge ${_latClass(data.latency.ttft)}`;
+                        badge.textContent = `⚡ ${data.latency.ttft.toFixed(0)}ms`;
+                        finalDiv.appendChild(badge);
+                    }
+
                     if (msg && UI.transcript) {
                         UI.transcript.innerText = msg;
                         UI.transcript.classList.remove('placeholder');

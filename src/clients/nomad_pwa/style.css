@@ -669,3 +669,16 @@ body.nomad-text-focus .app-container {
     0%, 100% { opacity: 1; }
     50%       { opacity: 0; }
 }
+
+.lat-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border-radius: 8px;
+    margin-left: 6px;
+    vertical-align: middle;
+    opacity: 0.75;
+}
+.lat-badge.fast  { background: #1a3a1a; color: #3fb950; }
+.lat-badge.mid   { background: #3a2e0a; color: #d29922; }
+.lat-badge.slow  { background: #3a0a0a; color: #f85149; }
