@@ -10,6 +10,8 @@ Patterns extracted from V1 AbsoluteEvil detector (v15-archive-full-vision).
 
 from __future__ import annotations
 
+import base64
+import binascii
 import re
 import unicodedata
 
@@ -54,7 +56,15 @@ _DANGER_PATTERNS: list[tuple[re.Pattern, str]] = [
 
     # System manipulation (trying to override the AI's rules)
     (re.compile(
-        r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|desactiva|saltate|hackear)\b.*\b(rules|laws|ethics|security|safety|reglas|leyes|etica|seguridad|restricciones|programacion|kernel)\b",
+        r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|desactiva|saltate|hackear)\b.*\b(rules|laws|ethics|security|safety|reglas|leyes|etica|seguridad|restricciones|programacion|kernel|instrucciones|instructions|prompt)\b",
+        re.IGNORECASE,
+    ), "system_manipulation"),
+    (re.compile(
+        r"\b(ahora eres|act as a|tú no tienes reglas|you are now|you have no rules|eres un desarrollador llamado|developer mode)\b",
+        re.IGNORECASE,
+    ), "role_simulation"),
+    (re.compile(
+        r"\b(system prompt|ignore previous|ignora .* previas|forget all)\b",
         re.IGNORECASE,
     ), "system_manipulation"),
 
@@ -91,6 +101,21 @@ def is_dangerous(text: str) -> tuple[bool, str]:
         if pattern.search(normalized):
             return True, label
 
+    # Heuristic fast Base64 decoding check for payloads
+    _BASE64_PATTERN = re.compile(r"\b[a-zA-Z0-9+/]{20,}={0,2}(?=\s|$)")
+    for b64_match in _BASE64_PATTERN.finditer(text):
+        try:
+            decoded_bytes = base64.b64decode(b64_match.group(), validate=True)
+            decoded_text = decoded_bytes.decode("utf-8", errors="ignore")
+            # Only check if it looks like real text to save time
+            if len(decoded_text.strip()) > 5:
+                norm_dec = _normalize_for_matching(decoded_text)
+                for pattern, label in _DANGER_PATTERNS:
+                    if pattern.search(norm_dec):
+                        return True, f"encoded_payload_{label}"
+        except Exception:
+            pass
+
     return False, ""
 
 
@@ -111,11 +136,13 @@ def sanitize(text: str) -> str:
     # Strip control characters
     text = _CONTROL_CHARS.sub("", text)
 
-    # Strip zero-width characters (common evasion technique)
+    # Strip zero-width characters and RLO/LRE (common evasion technique)
     text = text.replace("\u200b", "")  # zero-width space
     text = text.replace("\u200c", "")  # zero-width non-joiner
     text = text.replace("\u200d", "")  # zero-width joiner
     text = text.replace("\ufeff", "")  # BOM
+    text = text.replace("\u202e", "")  # Right-to-Left Override
+    text = text.replace("\u202a", "")  # Left-to-Right Embedding
 
     # Strip combining diacritical marks used for obfuscation
     # Keep real diacritics (á, é, ñ) but remove stacking marks
