@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from src.core.chat import ChatEngine
 from src.core.memory import Memory
+from src.core.stt import transcribe_pcm, is_available as stt_available
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -43,17 +44,19 @@ async def get_nomad_static(filename: str):
 @app.get("/api/status")
 async def api_status():
     """Metrics snapshot for the dashboard."""
+    import os as _os
     mem = Memory()
     uptime_s = int(time.time() - _start_time)
     h, rem = divmod(uptime_s, 3600)
     m, s = divmod(rem, 60)
     return JSONResponse({
-        "model": os.environ.get("OLLAMA_MODEL", "llama3.2:1b"),
-        "ollama_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+        "model": _os.environ.get("OLLAMA_MODEL", "llama3.2:1b"),
+        "ollama_url": _os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
         "memory_episodes": len(mem),
         "memory_reflection": mem.reflection(),
         "uptime": f"{h:02d}:{m:02d}:{s:02d}",
         "status": "online",
+        "stt_available": stt_available(),
     })
 
 
@@ -192,6 +195,23 @@ async def websocket_nomad(websocket: WebSocket):
                         _log.info("Nomad STT → kernel: %s", text[:80])
                         async for event in engine.turn_stream(text):
                             await websocket.send_json(event)
+
+                elif msg_type == "audio_pcm":
+                    # V2.11: PCM audio from media_engine.js → Whisper STT → turn_stream()
+                    if stt_available():
+                        import base64
+                        b64 = (msg.get("payload") or {}).get("audio_b64", "")
+                        if b64:
+                            try:
+                                pcm_bytes = base64.b64decode(b64)
+                                text = await transcribe_pcm(pcm_bytes)
+                                if text:
+                                    _log.info("Whisper STT: '%s'", text[:80])
+                                    async for event in engine.turn_stream(text):
+                                        await websocket.send_json(event)
+                            except Exception as e:
+                                _log.warning("audio_pcm transcription error: %s", e)
+                    # If STT not available, client uses Web Speech API (already works)
 
                 elif msg_type == "vad_event":
                     _log.debug("Nomad VAD: %s", msg.get("payload", {}).get("state"))
