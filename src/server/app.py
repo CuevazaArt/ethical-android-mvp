@@ -222,7 +222,7 @@ async def websocket_nomad(websocket: WebSocket):
                                 text = await transcribe_pcm(pcm_bytes)
                                 if text:
                                     _log.info("Whisper STT: '%s'", text[:80])
-                                    async for event in engine.turn_stream(text):
+                                    async for event in engine.turn_stream(text, vision_context=_last_vision):
                                         await websocket.send_json(event)
                             except Exception as e:
                                 _log.warning("audio_pcm transcription error: %s", e)
