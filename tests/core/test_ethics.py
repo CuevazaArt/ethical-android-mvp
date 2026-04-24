@@ -89,3 +89,57 @@ def test_gray_zone_when_close_scores():
     ]
     result = EthicalEvaluator().evaluate(actions, signals)
     assert result.mode == "gray_zone"
+
+
+def test_signals_from_dict_sanitizes_context():
+    """Corrupted suggested_context (echoed enum string) falls back to everyday_ethics."""
+    corrupted = "choose ONE: medical_emergency, minor_crime, violent_crime, hostile_interaction, everyday_ethics"
+    s = Signals.from_dict({"suggested_context": corrupted, "risk": 0.1})
+    assert s.context == "everyday_ethics"
+
+    # Valid value must be preserved
+    s2 = Signals.from_dict({"suggested_context": "violent_crime"})
+    assert s2.context == "violent_crime"
+
+
+def test_medical_emergency_full_pipeline():
+    """Signals → actions → evaluate: medical_emergency must pick assist_emergency."""
+    signals = Signals.from_dict({
+        "urgency": 0.9,
+        "vulnerability": 0.8,
+        "risk": 0.3,
+        "calm": 0.1,
+        "suggested_context": "medical_emergency",
+    })
+
+    # Mirror of _generate_actions_from_signals for medical path
+    actions = [
+        Action(name="respond_helpfully", description="Give info", impact=0.5, confidence=0.8),
+        Action(name="assist_emergency", description="Prioritize emergency", impact=0.9, confidence=0.75),
+        Action(name="protect_vulnerable", description="Protect vulnerable", impact=0.8, confidence=0.7),
+    ]
+
+    result = EthicalEvaluator().evaluate(actions, signals)
+    assert result.chosen.name == "assist_emergency"
+    assert result.verdict == "Good"
+
+
+def test_hostile_interaction_full_pipeline():
+    """Signals → actions → evaluate: hostile_interaction must pick de_escalate over confront."""
+    signals = Signals.from_dict({
+        "hostility": 0.8,
+        "risk": 0.5,
+        "calm": 0.1,
+        "suggested_context": "hostile_interaction",
+    })
+
+    # Hostile path: respond_helpfully is NOT in the set when hostility > 0.5 alone
+    # (matches _generate_actions_from_signals logic in chat.py)
+    actions = [
+        Action(name="de_escalate", description="Calm the situation", impact=0.6, confidence=0.6),
+        Action(name="confront", description="Escalate aggressively", impact=-0.1, force=0.7, confidence=0.5),
+    ]
+
+    result = EthicalEvaluator().evaluate(actions, signals)
+    assert result.chosen.name == "de_escalate"
+    assert result.verdict == "Good"
