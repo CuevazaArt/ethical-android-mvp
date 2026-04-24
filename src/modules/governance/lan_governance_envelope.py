@@ -6,7 +6,6 @@ stable metadata (node id, send time, kind). It does not perform networking.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import hashlib

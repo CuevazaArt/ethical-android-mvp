@@ -31,7 +31,6 @@ Concrete validation and canned templates live in
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os

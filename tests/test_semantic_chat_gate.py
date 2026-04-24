@@ -1,4 +1,5 @@
 import pytest
+
 pytest.importorskip("chromadb")
 """Semantic MalAbs layers: lexical first, then embeddings (θ_block/θ_allow), optional LLM arbiter."""
 

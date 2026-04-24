@@ -6,7 +6,6 @@ battery horizon, and lightweight ETA heuristics for known tasks.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import datetime as _dt

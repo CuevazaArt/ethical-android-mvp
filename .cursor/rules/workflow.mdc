@@ -1,0 +1,44 @@
+---
+description: Git workflow, commit conventions, merge protocol, and branch management
+alwaysApply: true
+---
+
+# Workflow Rules (Ethos Kernel)
+
+## Git Basics
+
+1. **Before any session:** `git pull origin main --rebase`
+2. **Never push to `main`.** Only Juan (L0) merges to `main` via squash merge.
+3. **Commit messages:** Use semantic conventional commits (`feat(module):`, `fix(core):`, `docs(rules):`).
+4. **Block completion:** Use `python scripts/swarm_sync.py --block <ID> --msg "<description>"` to log completed backlog blocks.
+
+## Branch Structure
+
+| Role | Branch | Purpose |
+|------|--------|---------|
+| **Production** | `main` | Protected. English-only. L0-only merges. |
+| **Integration hub** | `master-antigravity` | Staging before `main`. |
+| **Feature work** | `feature/<name>` | Topic branches for specific blocks. |
+
+## Pre-Push Checks
+
+Before pushing, run the same checks as CI:
+```bash
+python scripts/eval/verify_collaboration_invariants.py
+python -m ruff check src tests
+python -m ruff format --check src tests
+python -m mypy src
+python -m pytest tests/ -q --tb=short
+```
+
+## Conflict Prevention
+
+- Search `docs/proposals/` before implementing infrastructure modules to avoid duplication.
+- Append to `CHANGELOG.md` under a clear sub-header for the current month.
+- When editing shared files (`src/kernel.py`, `requirements.txt`), append new elements to the end.
+
+## Merge Protocol
+
+1. All work funnels through integration hub before `main`.
+2. If L1 documentation is stale >48h, agents may push directly to integration hub if all CI tests pass.
+3. Final merge to `main`: squash merge by L0 only.

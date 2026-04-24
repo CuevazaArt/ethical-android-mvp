@@ -6,7 +6,6 @@ nearby peers in the LAN to mitigate individual perception noise or adversarial s
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import time

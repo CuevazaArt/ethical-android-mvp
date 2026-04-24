@@ -24,7 +24,6 @@ Env:
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json
@@ -38,8 +37,6 @@ from typing import Any
 
 import numpy as np
 
-from src.sandbox.simplex_mixture_probe import mixture_ranking
-from src.simulations.runner import ALL_SIMULATIONS
 from src.modules.cognition.bayesian_mixture_averaging import parse_bma_alpha_from_env
 from src.modules.cognition.feedback_mixture_updater import (
     FeedbackUpdater,
@@ -47,6 +44,8 @@ from src.modules.cognition.feedback_mixture_updater import (
     feedback_items_from_records,
 )
 from src.modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer
+from src.sandbox.simplex_mixture_probe import mixture_ranking
+from src.simulations.runner import ALL_SIMULATIONS
 
 
 @dataclass
@@ -432,7 +431,10 @@ def _posterior_predictive_check(
     Only runs when ``KERNEL_FEEDBACK_POSTERIOR_CHECK=1`` and at least one
     held-out record has resolvable candidates in *cmap*.
     """
-    from src.modules.ethics.ethical_mixture_likelihood import FeedbackObservation, posterior_predictive_probability
+    from src.modules.ethics.ethical_mixture_likelihood import (
+        FeedbackObservation,
+        posterior_predictive_probability,
+    )
 
     per_item: list[dict[str, Any]] = []
     probs: list[float] = []

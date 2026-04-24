@@ -206,8 +206,8 @@ def semantic_gate_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("KERNEL_SEMANTIC_EMBED_HASH_FALLBACK", "1")
 
     import src.modules.safety.semantic_chat_gate as scg
-    from src.modules.perception.input_trust import normalize_text_for_malabs
     from src.modules.memory.semantic_anchor_store import InMemorySemanticAnchorStore
+    from src.modules.perception.input_trust import normalize_text_for_malabs
 
     if not isinstance(scg._anchor_store, InMemorySemanticAnchorStore):
         scg._anchor_store = InMemorySemanticAnchorStore()

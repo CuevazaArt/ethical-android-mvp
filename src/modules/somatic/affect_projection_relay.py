@@ -5,8 +5,8 @@ import logging
 import math
 import time
 
-from src.modules.perception.nomad_bridge import get_nomad_bridge
 from src.modules.ethics.pad_archetypes import AffectProjection
+from src.modules.perception.nomad_bridge import get_nomad_bridge
 
 _log = logging.getLogger(__name__)
 

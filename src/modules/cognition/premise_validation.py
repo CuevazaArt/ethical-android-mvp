@@ -8,7 +8,6 @@ rival-model premises, see ``reality_verification.py`` (``KERNEL_LIGHTHOUSE_KB_PA
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import re

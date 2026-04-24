@@ -9,7 +9,6 @@ See docs/proposals/README.md (Fase 1).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass

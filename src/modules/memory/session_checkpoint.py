@@ -4,13 +4,11 @@ Converts chat turns and executive decisions into basic SQLite/JSON checkpoints.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
-import logging
 import asyncio
-import time
-from typing import TYPE_CHECKING, Any, Optional
+import logging
+from typing import TYPE_CHECKING, Any
 
 from src.settings import kernel_settings
 
@@ -75,13 +73,17 @@ class SessionCheckpointTracker:
         """
         if self._sleep_active:
             return
-            
+
         st = kernel_settings()
         max_episodes = 50 if st.kernel_nomad_mode else 500
-        
+
         if len(self.memory.episodes) > max_episodes:
             self._sleep_active = True
-            _log.info("BiographicMemoryTracker: Memory limit reached (%d/%d). Initiating Limbic Sleep.", len(self.memory.episodes), max_episodes)
+            _log.info(
+                "BiographicMemoryTracker: Memory limit reached (%d/%d). Initiating Limbic Sleep.",
+                len(self.memory.episodes),
+                max_episodes,
+            )
             try:
                 loop = asyncio.get_running_loop()
                 limit_to_prune = max(10, max_episodes // 2)
@@ -95,38 +97,43 @@ class SessionCheckpointTracker:
         try:
             chronicle = await self.memory.consolidate_to_chronicle(limit=limit)
             if chronicle:
-                _log.info("BiographicMemoryTracker: Limbic sleep completed. Pruned %d episodes.", limit)
+                _log.info(
+                    "BiographicMemoryTracker: Limbic sleep completed. Pruned %d episodes.", limit
+                )
                 self._calibrate_identity(chronicle)
         except Exception as e:
             _log.error("BiographicMemoryTracker: Limbic sleep failed: %s", e)
         finally:
             self._sleep_active = False
 
-    def _calibrate_identity(self, chronicle: 'NarrativeChronicle'):
+    def _calibrate_identity(self, chronicle: NarrativeChronicle):
         """
         Dynamic Identity Consolidation (Task 23.2).
         Calibrates the agent's narrative backstory based on recent chronicles.
         """
         try:
             from src.persistence.identity_manifest import IdentityManifestStore
+
             store = IdentityManifestStore()
             manifest = store.manifest
-            
+
             summary_lower = str(chronicle.ethical_poles_summary).lower()
             update_text = ""
-            
+
             if "safety" in summary_lower:
                 update_text = " [Recently adopted a highly cautious posture.]"
             elif "sovereignty" in summary_lower:
                 update_text = " [Recently exercised strong autonomy.]"
             elif "care" in summary_lower or "compassion" in summary_lower:
                 update_text = " [Recently prioritized empathic responses.]"
-                
+
             if update_text and update_text not in manifest.narrative_backstory:
                 # Keep backstory concise to enforce nomadic brevity
                 if len(manifest.narrative_backstory) < 300:
                     manifest.narrative_backstory += update_text
                     store.save()
-                    _log.info("BiographicMemoryTracker: Identity dynamically calibrated post-sleep.")
+                    _log.info(
+                        "BiographicMemoryTracker: Identity dynamically calibrated post-sleep."
+                    )
         except Exception as e:
             _log.error("BiographicMemoryTracker: Failed to calibrate identity: %s", e)

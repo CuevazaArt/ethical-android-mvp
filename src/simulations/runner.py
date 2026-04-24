@@ -19,8 +19,9 @@ margin — for boundary calibration (see ``docs/proposals/README.md``).
 
 from dataclasses import dataclass
 
-from ..kernel import EthicalKernel
 from src.modules.ethics.weighted_ethics_scorer import CandidateAction
+
+from ..kernel import EthicalKernel
 
 
 @dataclass

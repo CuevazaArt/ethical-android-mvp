@@ -11,7 +11,6 @@ Streak resets on any non-stressed turn; metacognitive doubt clears when the stre
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os

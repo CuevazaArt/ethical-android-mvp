@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .modules.cognition.bayesian_engine import BayesianEngine
+    from .modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer
     from .modules.governance.dao_orchestrator import DAOOrchestrator
     from .modules.governance.mock_dao import MockDAO
-    from .modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer
 
 
 def kernel_env_truthy(name: str) -> bool:

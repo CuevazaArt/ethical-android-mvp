@@ -9,7 +9,6 @@ Enrichment (cognitive pattern, risk band, judicial snapshot for tone):
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field

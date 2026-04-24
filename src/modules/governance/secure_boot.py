@@ -13,7 +13,6 @@ Secure Boot Service (Block 5.2: G2) — **Hardened Cryptographic Integrity**.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import hashlib

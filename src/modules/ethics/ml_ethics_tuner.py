@@ -7,7 +7,6 @@ traceable for future human review.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import hashlib

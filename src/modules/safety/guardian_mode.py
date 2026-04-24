@@ -5,7 +5,6 @@ Consolidated module for managing the KERNEL_GUARDIAN_MODE and its routines.
 """
 # Status: REAL
 
-
 from __future__ import annotations
 
 import json

@@ -13,15 +13,7 @@ from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from ..kernel import ChatTurnResult, EthicalKernel
-from ..kernel_utils import kernel_dao_as_mock
-from src.modules.somatic.affective_homeostasis import homeostasis_telemetry
 from src.modules.cognition.consequence_projection import qualitative_temporal_branches
-from src.modules.safety.guardian_mode import (
-    is_guardian_mode_active,
-    public_routines_snapshot,
-)
-from ..modules.internal_monologue import compose_monologue_line
 from src.modules.ethics.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
 from src.modules.governance.moral_hub import (
     add_constitution_draft,
@@ -33,6 +25,15 @@ from src.modules.governance.nomad_identity import nomad_identity_public
 from src.modules.perception.perception_schema import perception_report_from_dict
 from src.modules.perception.perceptual_abstraction import snapshot_from_layers
 from src.modules.perception.sensor_contracts import SensorPayloadValidationError
+from src.modules.safety.guardian_mode import (
+    is_guardian_mode_active,
+    public_routines_snapshot,
+)
+from src.modules.somatic.affective_homeostasis import homeostasis_telemetry
+
+from ..kernel import ChatTurnResult, EthicalKernel
+from ..kernel_utils import kernel_dao_as_mock
+from ..modules.internal_monologue import compose_monologue_line
 from ..observability.context import clear_request_context, set_request_id
 from ..observability.metrics import (
     observe_chat_turn,
@@ -872,5 +873,3 @@ async def ws_chat(ws: WebSocket) -> None:
             await kernel.stop()
         except Exception:
             pass
-
-

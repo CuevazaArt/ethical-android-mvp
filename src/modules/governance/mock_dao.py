@@ -18,7 +18,6 @@ This module is a **MOCK/SIMULATION**. It holds NO real world authority or tokens
 """
 # Status: SCAFFOLD
 
-
 GOVERNANCE_STATUS_MOCK = "[GOVERNANCE_MOCK_SIMULATION]"
 
 import hashlib

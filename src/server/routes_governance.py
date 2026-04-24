@@ -7,7 +7,6 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from ..chat_settings import chat_server_settings
 from src.modules.ethics.buffer import PreloadedBuffer
 from src.modules.governance.moral_hub import (
     constitution_snapshot,
@@ -19,6 +18,8 @@ from src.modules.perception.nomad_discovery import (
     nomad_discovery_service_name,
     nomad_discovery_service_type,
 )
+
+from ..chat_settings import chat_server_settings
 
 router = APIRouter(tags=["governance"])
 

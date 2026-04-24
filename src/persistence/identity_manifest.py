@@ -70,6 +70,7 @@ class IdentityManifestStore:
     def save(self) -> None:
         """Persists the manifest to disk with latency tracking."""
         import time
+
         t0 = time.perf_counter()
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)

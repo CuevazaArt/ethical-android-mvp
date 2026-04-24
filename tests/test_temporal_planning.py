@@ -6,8 +6,8 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.modules.perception.sensor_contracts import SensorSnapshot
 from src.modules.cognition.temporal_planning import build_temporal_context
+from src.modules.perception.sensor_contracts import SensorSnapshot
 from src.modules.somatic.vitality import VitalityAssessment, critical_temperature_threshold
 
 

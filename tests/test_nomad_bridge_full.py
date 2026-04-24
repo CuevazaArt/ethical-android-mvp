@@ -74,7 +74,10 @@ async def test_nomad_vision_flow_injects_into_next_turn(monkeypatch):
 
     import numpy as np
     import src.modules.perception.vision_adapter as vision_adapter
-    from src.modules.perception.vision_adapter import VisionInference, start_nomad_vision_consumer_from_env
+    from src.modules.perception.vision_adapter import (
+        VisionInference,
+        start_nomad_vision_consumer_from_env,
+    )
 
     os.environ["KERNEL_NOMAD_VISION_CONSUMER"] = "1"
 

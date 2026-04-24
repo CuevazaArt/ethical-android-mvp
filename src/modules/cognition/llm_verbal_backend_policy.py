@@ -26,7 +26,6 @@ Degradation events are logged on :class:`LLMModule` for WebSocket observability 
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os

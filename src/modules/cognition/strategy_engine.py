@@ -6,7 +6,6 @@ Supports Self-generated missions (identity-driven) and External missions (owner-
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import uuid

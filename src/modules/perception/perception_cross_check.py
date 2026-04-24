@@ -10,14 +10,13 @@ See ``docs/proposals/README.md`` Fase 1.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os
 from typing import Any
 
-from src.modules.safety.light_risk_classifier import LightRiskTier, light_risk_classifier_enabled
 from src.modules.perception.perception_schema import perception_report_from_dict
+from src.modules.safety.light_risk_classifier import LightRiskTier, light_risk_classifier_enabled
 
 
 def perception_cross_check_enabled() -> bool:

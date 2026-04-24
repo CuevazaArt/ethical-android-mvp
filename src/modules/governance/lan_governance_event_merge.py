@@ -11,7 +11,6 @@ with ``temporal_sync_v1``). Events without ``id_key`` are **skipped** (caller mu
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence

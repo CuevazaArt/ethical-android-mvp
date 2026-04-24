@@ -20,11 +20,7 @@ from .validators.env_policy import validate_kernel_env
 
 
 def banner() -> str:
-    from .utils.terminal_colors import Term
-
-    b_color = Term.B_CYAN + Term.BOLD
-    v_color = Term.B_WHITE
-    return f"""
+    return """
 +--------------------------------------------------------------+
 |        ETHICAL ANDROID — MVP PROTOTYPE v5                    |
 |        Artificial Conscience Kernel + LLM Layer              |
@@ -99,12 +95,13 @@ async def final_summary(kernel: EthicalKernel) -> None:
 
 def main():
     apply_named_runtime_profile_to_environ()
-    
+
     import asyncio
+
     asyncio.run(_async_main())
 
+
 async def _async_main():
-    
     # 1. Environment validation
     validate_kernel_env()
 
@@ -123,9 +120,7 @@ async def _async_main():
 
     if sim_idx is not None:
         if sim_idx not in ALL_SIMULATIONS:
-            print(
-                f"Simulation {sim_idx} does not exist. Available: {sorted(ALL_SIMULATIONS)}."
-            )
+            print(f"Simulation {sim_idx} does not exist. Available: {sorted(ALL_SIMULATIONS)}.")
             sys.exit(1)
         result = await run_simulation(kernel, sim_idx)
         print(result)

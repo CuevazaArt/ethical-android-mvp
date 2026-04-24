@@ -5,15 +5,14 @@ Consolidates Selective Amnesia (Right to be Forgotten) and Biographic Pruning.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.modules.governance.dao_orchestrator import DAOOrchestrator
     from src.modules.cognition.llm_layer import LLMModule
+    from src.modules.governance.dao_orchestrator import DAOOrchestrator
     from src.modules.memory.narrative import NarrativeMemory
 
 _log = logging.getLogger(__name__)

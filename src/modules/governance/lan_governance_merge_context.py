@@ -14,7 +14,6 @@ aggregates them deterministically (dedupe by claimant, max turn, sort) and echoe
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import math

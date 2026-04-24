@@ -1,0 +1,38 @@
+---
+description: Tri-Lobe implementation invariants, architectural boundaries, and bounded autonomy for kernel modifications
+globs: src/kernel.py, src/kernel_lobes/*.py, src/modules/**/*.py
+---
+
+# Architecture Rules (Ethos Kernel — Tri-Lobe Standard)
+
+## Core Invariants
+
+1. **Async Separation:** `PerceptiveLobe` must remain non-blocking. I/O-bound sensor ingestion uses enqueued async buffer pattern.
+2. **Type Safety:** All lobe methods (`observe`, `judge`, `execute`) must include type hints for `SemanticState`, `LimbicProfile`, and models in `src/kernel_lobes/models.py`.
+3. **Graceful Degradation:** Every lobe entry point must support `TimeoutTrauma` fallback. If a lobe exceeds `KERNEL_LIMBIC_PERCEPTION_TIMEOUT`, return low-confidence state — don't crash.
+4. **Somatic Integrity:** `CerebellumLobe` (daemon thread) is the only component allowed to poll hardware at 100Hz. All other lobes consume summarized signals.
+5. **Zero-API Chat:** Conversational processing routes through `mode="ollama"` (local LLM). No new cloud API dependencies for chat turns.
+
+## Bounded Autonomy
+
+| Action | Permission |
+|--------|-----------|
+| Internal module improvements, bug fixes, optimizations | ✅ No approval needed |
+| Modifying inter-lobe interfaces (`models.py`) | ❌ Requires `PROPOSAL_*.md` |
+| Adding major external dependencies | ❌ Requires `PROPOSAL_*.md` |
+| Changing `CorpusCallosumOrchestrator` or `EthicalLobe` gating | ❌ Requires `PROPOSAL_*.md` |
+
+## Implementation Checklist
+
+When modifying kernel architecture:
+- [ ] Update `CorpusCallosumOrchestrator` if lobe signatures changed
+- [ ] Update Mermaid diagram in `docs/architecture/TRI_LOBE_CORE.md`
+- [ ] Run `python scripts/eval/adversarial_suite.py` after any Limbic/Ethical change
+- [ ] Verify module is instantiated in `src/kernel.py` and subscribed to CorpusCallosum (anti-orphan check)
+- [ ] Ensure async listeners actually trigger downstream logic
+
+## Task Execution
+
+1. Pick highest-priority `[PENDING]` task from `PLAN_WORK_DISTRIBUTION_TREE.md`.
+2. Execute with Boy Scout rules (see `code-quality.mdc`).
+3. Commit via `python scripts/swarm_sync.py --block <ID> --msg "<description>"`.

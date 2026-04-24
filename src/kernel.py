@@ -78,33 +78,32 @@ class EthosKernel:
         self.reactions = ReactionTable()
 
         # Shared infrastructure (Centralized initialization for lobes)
-        from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
         from src.modules.cognition.bayesian_engine import BayesianEngine
+        from src.modules.cognition.feedback_calibration_ledger import FeedbackCalibrationLedger
+        from src.modules.cognition.llm_layer import LLMModule
+        from src.modules.cognition.metacognition import MetacognitiveEvaluator
+        from src.modules.cognition.metaplan_registry import MetaplanRegistry
+        from src.modules.cognition.motivation_engine import MotivationEngine
+        from src.modules.cognition.salience_map import SalienceMap
+        from src.modules.cognition.sigmoid_will import SigmoidWill
+        from src.modules.cognition.strategy_engine import ExecutiveStrategist
+        from src.modules.cognition.subjective_time import SubjectiveClock
+        from src.modules.drive_arbiter import DriveArbiter
+        from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
         from src.modules.ethics.buffer import PreloadedBuffer
         from src.modules.ethics.ethical_poles import EthicalPoles
         from src.modules.ethics.ethical_reflection import EthicalReflection
-        from src.modules.cognition.llm_layer import LLMModule
-        from src.modules.memory.narrative import NarrativeMemory
         from src.modules.ethics.pad_archetypes import PADArchetypeEngine
-        from src.modules.safety.safety_interlock import SafetyInterlock
-        from src.modules.cognition.salience_map import SalienceMap
-        from src.modules.cognition.sigmoid_will import SigmoidWill
-        from src.modules.somatic.somatic_markers import SomaticMarkerStore
-        from src.modules.cognition.strategy_engine import ExecutiveStrategist
-        from src.modules.cognition.motivation_engine import MotivationEngine
-        from src.modules.governance.dao_orchestrator import DAOOrchestrator
-        from src.modules.memory.migratory_identity import MigrationHub
-        from src.modules.memory.memory_hygiene import MemoryHygieneService
-        from src.modules.memory.immortality import ImmortalityProtocol
-        from src.kernel_lobes.memory_lobe import MemoryLobe
-        from src.modules.cognition.subjective_time import SubjectiveClock
-        from src.modules.drive_arbiter import DriveArbiter
-        from src.modules.cognition.metaplan_registry import MetaplanRegistry
-        from src.modules.cognition.metacognition import MetacognitiveEvaluator
-        from src.modules.memory.forgiveness import AlgorithmicForgiveness
-        from src.modules.safety.locus import LocusModule
         from src.modules.ethics.weakness_pole import WeaknessPole
-        from src.modules.cognition.feedback_calibration_ledger import FeedbackCalibrationLedger
+        from src.modules.governance.dao_orchestrator import DAOOrchestrator
+        from src.modules.memory.forgiveness import AlgorithmicForgiveness
+        from src.modules.memory.immortality import ImmortalityProtocol
+        from src.modules.memory.memory_hygiene import MemoryHygieneService
+        from src.modules.memory.migratory_identity import MigrationHub
+        from src.modules.memory.narrative import NarrativeMemory
+        from src.modules.safety.locus import LocusModule
+        from src.modules.safety.safety_interlock import SafetyInterlock
+        from src.modules.somatic.somatic_markers import SomaticMarkerStore
 
         evil_detector = AbsoluteEvilDetector()
         self.llm = LLMModule()
@@ -117,7 +116,7 @@ class EthosKernel:
         self.forgiveness = AlgorithmicForgiveness()
         self.locus = LocusModule()
         self.weakness = WeaknessPole()
-        
+
         self.narrative = NarrativeMemory()
         self.dao = DAOOrchestrator()
         self.migration = MigrationHub()
@@ -141,8 +140,9 @@ class EthosKernel:
         )
 
         # Lobe 2: Limbic (Affective/Ethical)
-        from src.modules.somatic.sympathetic import SympatheticModule
+        from src.modules.safety.locus import LocusModule
         from src.modules.social.uchi_soto import UchiSotoModule
+        from src.modules.somatic.sympathetic import SympatheticModule
 
         self.limbic_system = LimbicEthicalLobe(
             uchi_soto=UchiSotoModule(),
@@ -171,7 +171,7 @@ class EthosKernel:
             bayesian=BayesianEngine(),
             strategist=self.strategist,
             memory=self.narrative,
-            bus=self.bus
+            bus=self.bus,
         )
 
         # Lobe 0: Thalamus Gateway
@@ -243,11 +243,11 @@ class EthosKernel:
     async def execute_sleep(self) -> str:
         """Runs daily maintenance: biographic pruning, counterfactual audit, and narrative distillation."""
         _log.info("EthosKernel: Initializing Psi Sleep cycle (Limbic Sleep).")
-        
+
         # 1. Run the new PsiSleep audit (Block 37)
         # This triggers counterfactuals, narrative distillation, and parameter recalibration
         sleep_result = await self.sleep.execute(self.memory)
-        
+
         # 2. Update Evolving Identity Manifest with the sleep summary
         # This ensures the narrative identity reflects the retrospective audit
         if hasattr(self.prefrontal_cortex, "identity_manifest_store"):
@@ -257,11 +257,11 @@ class EthosKernel:
 
         # 3. Run legacy pruning and maintenance via Hygiene service
         prune_res = self.hygiene.run_maintenance_cycle()
-        
+
         # 4. Trigger Immortality backup (Soul Snapshot)
         # Tarea 37.3: Persistencia del Alma Narrative
         snapshot = self.immortality.backup(self)
-        
+
         return (
             f"Psi Sleep Complete. Ethical Health: {sleep_result.ethical_health:.2f}. "
             f"Pruned {prune_res['deleted_episodes']} episodes. "
@@ -410,10 +410,14 @@ class EthosKernel:
                     description=scenario,
                     action=str(getattr(dispatch_result, "action_id", "Cognitive silence.")),
                     morals={},
-                    verdict=str(getattr(dispatch_result, "verdict", "Good")) if not is_blocked else "Blocked",
-                    score=float(getattr(dispatch_result, "weighted_score", 0.0)) if not is_blocked else -1.0,
+                    verdict=str(getattr(dispatch_result, "verdict", "Good"))
+                    if not is_blocked
+                    else "Blocked",
+                    score=float(getattr(dispatch_result, "weighted_score", 0.0))
+                    if not is_blocked
+                    else -1.0,
                     mode=getattr(dispatch_result, "decision_mode", "D_delib"),
-                    sigma=0.5, # Default for bridge
+                    sigma=0.5,  # Default for bridge
                     context=context,
                 )
 
@@ -493,18 +497,23 @@ class EthosKernel:
     async def _proactive_daemon_loop(self):
         """Block 26.2: Emits an internal proactive pulse to trigger MotivationEngine intent."""
         from src.kernel_lobes.models import SensorySpike
+
         while True:
             await asyncio.sleep(45.0)  # Check idle drives every 45s
             if self.prefrontal_cortex.motivation:
                 # Update drives based on simulated internal state (using last sensory latency or tension as proxy)
-                self.prefrontal_cortex.motivation.update_drives({"social_tension": 0.0}) # Baseline
+                self.prefrontal_cortex.motivation.update_drives({"social_tension": 0.0})  # Baseline
                 actions = self.prefrontal_cortex.motivation.get_proactive_actions()
                 if actions:
                     _log.info("EthosKernel: Proactive intent bubbling up from MotivationEngine.")
                     # Inject a simulated SensorySpike representing internal deliberation
                     pulse = SensorySpike(
-                        payload={"text": "[INTERNAL_PROACTIVE_PULSE]", "agent_id": "kernel", "proactive": True},
-                        priority=2
+                        payload={
+                            "text": "[INTERNAL_PROACTIVE_PULSE]",
+                            "agent_id": "kernel",
+                            "proactive": True,
+                        },
+                        priority=2,
                     )
                     await self.bus.publish(pulse)
 
@@ -621,42 +630,48 @@ class EthosKernel:
 
             # Build a proper perception shim with ALL fields _chat_turn_to_jsonable expects
             _tension = getattr(snapshot, "tension_level", 0.0) or 0.0
-            _circle  = getattr(snapshot, "social_circle", "neutral_soto") or "neutral_soto"
-            _bayes   = getattr(snapshot, "bayesian_confidence", 0.5) or 0.5
+            _circle = getattr(snapshot, "social_circle", "neutral_soto") or "neutral_soto"
+            _bayes = getattr(snapshot, "bayesian_confidence", 0.5) or 0.5
 
             class _ConfShim:
                 def __init__(self, conf: float) -> None:
                     self.confidence = conf
+
                 def to_public_dict(self) -> dict:
-                    return {"score": self.confidence, "band": "nominal" if self.confidence > 0.5 else "low"}
+                    return {
+                        "score": self.confidence,
+                        "band": "nominal" if self.confidence > 0.5 else "low",
+                    }
 
             class _SocCtx:
                 def __init__(self, circle: str) -> None:
-                    self.circle  = circle
+                    self.circle = circle
                     self.posture = "neutral"
 
             class _PercShim:
                 """Minimal perception shim satisfying ws_chat._chat_turn_to_jsonable."""
+
                 def __init__(self, circle: str, tension: float) -> None:
-                    self.risk              = min(1.0, max(0.0, tension))
-                    self.urgency           = 0.0
-                    self.hostility         = 0.0
-                    self.calm              = max(0.0, 1.0 - tension)
-                    self.manipulation      = 0.0
+                    self.risk = min(1.0, max(0.0, tension))
+                    self.urgency = 0.0
+                    self.hostility = 0.0
+                    self.calm = max(0.0, 1.0 - tension)
+                    self.manipulation = 0.0
                     self.suggested_context = "conversational"
-                    self.summary           = ""
-                    self.social_context    = _SocCtx(circle)
-                    self.coercion_report   = None
+                    self.summary = ""
+                    self.social_context = _SocCtx(circle)
+                    self.coercion_report = None
+
                 def to_public_dict(self) -> dict:
                     return {
-                        "risk":              self.risk,
-                        "urgency":           self.urgency,
-                        "hostility":         self.hostility,
-                        "calm":              self.calm,
-                        "manipulation":      self.manipulation,
+                        "risk": self.risk,
+                        "urgency": self.urgency,
+                        "hostility": self.hostility,
+                        "calm": self.calm,
+                        "manipulation": self.manipulation,
                         "suggested_context": self.suggested_context,
-                        "social_circle":     self.social_context.circle,
-                        "social_posture":    self.social_context.posture,
+                        "social_circle": self.social_context.circle,
+                        "social_posture": self.social_context.posture,
                     }
 
             res = ChatTurnResult(
@@ -675,8 +690,10 @@ class EthosKernel:
                 else "Blocked",
                 limbic_profile={
                     "social_tension": _tension,
-                    "social_trust":   0.0,
-                } if snapshot else None,
+                    "social_trust": 0.0,
+                }
+                if snapshot
+                else None,
                 perception_confidence=_ConfShim(_bayes) if snapshot else None,
                 perception=_PercShim(_circle, _tension) if snapshot else None,
                 gestalt_snapshot=snapshot,

@@ -1,8 +1,8 @@
 """
 Streaming communication hooks for :meth:`~src.kernel.EthosKernel.process_chat_turn_stream`.
-"""
 
 MER / bridge-phrase expansion can replace these no-op defaults in full deployments.
+"""
 
 from __future__ import annotations
 

@@ -6,7 +6,6 @@ Generates 'Doubt' and 'Curiosity' signals for the Drive Arbiter.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -74,7 +73,7 @@ class MetacognitiveEvaluator:
             consistent=dissonance < (1.0 - self.CONSISTENCY_THRESHOLD),
         )
 
-    def suggest_intents(self, report: MetacognitiveReport) -> list['DriveIntent']:
+    def suggest_intents(self, report: MetacognitiveReport) -> list[DriveIntent]:
         from src.modules.drive_arbiter import DriveIntent
 
         intents = []

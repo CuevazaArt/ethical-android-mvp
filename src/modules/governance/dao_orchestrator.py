@@ -6,7 +6,6 @@ Handles evidence anchoring and ethical appeals.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json
@@ -16,9 +15,9 @@ import time
 import uuid
 from typing import Any
 
-from src.utils.db_locks import sqlite_safe_write
 from src.modules.governance.evidence_safe import EvidenceSafe
 from src.modules.governance.mock_dao import MockDAO
+from src.utils.db_locks import sqlite_safe_write
 
 _log = logging.getLogger(__name__)
 

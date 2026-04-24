@@ -10,7 +10,6 @@ See ``docs/proposals/PROPOSAL_LAN_GOVERNANCE_REPLAY_SIDECAR.md`` (DJ-BL-15).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import hashlib

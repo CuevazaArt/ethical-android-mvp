@@ -6,8 +6,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.governance.hub_audit import record_dao_integrity_alert, register_hub_calibration
 from src.modules.ethics.ml_ethics_tuner import maybe_log_gray_zone_tuning_opportunity
+from src.modules.governance.hub_audit import record_dao_integrity_alert, register_hub_calibration
 from src.modules.governance.mock_dao import MockDAO
 from src.modules.governance.nomad_identity import nomad_identity_public
 from src.modules.memory.reparation_vault import (

@@ -6,35 +6,41 @@ The android does not store data: it builds history.
 """
 # Status: PENDING-LLM
 
-
 import os
 from datetime import datetime
 from pathlib import Path
-
-import numpy as np
 from typing import Any
 
-from src.persistence.narrative_storage import NarrativePersistence
+import numpy as np
 
 from src.modules.governance.identity_reflection import IdentityReflector
 from src.modules.memory.narrative_identity import NarrativeIdentityTracker
-from src.modules.memory.narrative_types import BodyState, NarrativeArc, NarrativeChronicle, NarrativeEpisode
-from src.persistence.identity_manifest import IdentityManifestStore
+from src.modules.memory.narrative_types import (
+    BodyState,
+    NarrativeArc,
+    NarrativeChronicle,
+    NarrativeEpisode,
+)
 from src.modules.memory.semantic_embedding_client import (
     ahttp_fetch_ollama_embedding,
     http_fetch_ollama_embedding,
     maybe_hash_fallback_embedding,
 )
 from src.modules.social.uchi_soto import RelationalTier
+from src.persistence.identity_manifest import IdentityManifestStore
+from src.persistence.narrative_storage import NarrativePersistence
 
 # Status: REAL
+
 
 class NarrativeEpisodicSummarizer:
     """
     Cognitive component for distilling episodic memories into chronicles.
     """
+
     def __init__(self, llm=None):
         from src.modules.cognition.llm_layer import LLMModule
+
         self.llm = llm or LLMModule()
 
     async def distill(self, episodes: list[NarrativeEpisode]) -> dict[str, Any]:
@@ -42,14 +48,20 @@ class NarrativeEpisodicSummarizer:
         Uses the LLM to summarize a list of episodes into a single thematic digest.
         """
         if not episodes:
-            return {"summary": "No history to distill.", "predominant_themes": [], "identity_drift": "none"}
-            
+            return {
+                "summary": "No history to distill.",
+                "predominant_themes": [],
+                "identity_drift": "none",
+            }
+
         # 1. Prepare text for the LLM
-        episodes_text = "\n".join([
-            f"[{ep.timestamp}] {ep.event_description} -> {ep.action_taken} (Moral: {ep.morals.get('synthesis', 'n/a')})"
-            for ep in episodes
-        ])
-        
+        episodes_text = "\n".join(
+            [
+                f"[{ep.timestamp}] {ep.event_description} -> {ep.action_taken} (Moral: {ep.morals.get('synthesis', 'n/a')})"
+                for ep in episodes
+            ]
+        )
+
         # 2. Call the chronicler LLM
         return await self.llm.asummarize(episodes_text)
 
@@ -201,12 +213,13 @@ class NarrativeMemory:
             digest = digest[-500:]  # Truncate old digest to prevent explosion
         digest += f"\n- {start_ts}: {summary_text}"
         self.experience_digest = digest
-        
+
         # 5.2 Identity Manifest Update (Birth Context + Evolving Context)
         try:
             self.identity_manifest_store.update_evolving_identity(summary_text)
         except Exception as e:
             import logging
+
             logging.getLogger(__name__).error("Failed to update evolving identity manifest: %s", e)
 
         # 6. Final audit log

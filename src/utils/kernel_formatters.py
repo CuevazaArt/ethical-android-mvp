@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any
 from src.utils.terminal_colors import Term
 
 if TYPE_CHECKING:
-    from src.kernel import KernelDecision
     from src.modules.cognition.llm_layer import RichNarrative, VerbalResponse
 
 
@@ -175,9 +174,7 @@ def format_decision(d: Any) -> str:
         return f"[Formatter Error] Failed to present decision: {e}"
 
 
-def format_natural(
-    decision: Any, response: VerbalResponse, narrative: RichNarrative = None
-) -> str:
+def format_natural(decision: Any, response: VerbalResponse, narrative: RichNarrative = None) -> str:
     """Formats complete result of natural language processing."""
     lines = [format_decision(decision)]
 

@@ -17,7 +17,6 @@ Env:
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import asyncio
@@ -321,15 +320,12 @@ async def ahttp_fetch_ollama_embedding_with_policy(
     if url.endswith("/api/embeddings"):
         # Primary = legacy endpoint (payload key: 'prompt')
         payload = {"model": model, "prompt": prompt}
-        alt_url = url.replace("/api/embeddings", "/api/embed")
-        # alt uses new API key 'input'
     elif url.endswith("/api/embed"):
         # Primary = new endpoint (payload key: 'input')
         payload = {"model": model, "input": prompt}
-        alt_url = url.replace("/api/embed", "/api/embeddings")
     else:
-        # Unknown path; keep payload as-is, no alt
-        alt_url = None
+        # Unknown path; keep payload as-is
+        payload = {"model": model, "prompt": prompt}  # Default fallback payload
     last_err = ""
     for attempt in range(retries + 1):
         if _circuit_blocks():

@@ -6,7 +6,6 @@ epistemic dissonance, and vitality constraints into a compact confidence score.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass

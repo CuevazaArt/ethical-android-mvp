@@ -24,16 +24,10 @@ def _decision(blocked: bool = False):
 
 
 def test_build_safe_monologue_emits_only_on_safe_path():
-    line = compose_monologue_line(
-        _decision(blocked=False),
-        episode_id="ep-1"
-    )
+    line = compose_monologue_line(_decision(blocked=False), episode_id="ep-1")
     assert line
 
 
 def test_build_safe_monologue_blocks_when_not_safe():
-    line = compose_monologue_line(
-        _decision(blocked=True),
-        episode_id="ep-1"
-    )
+    line = compose_monologue_line(_decision(blocked=True), episode_id="ep-1")
     assert "[MONO] blocked=1" in line

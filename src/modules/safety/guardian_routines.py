@@ -6,7 +6,6 @@ imports stay stable for tests and callers (``src.modules.guardian_routines``).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from src.modules.safety.guardian_mode import (

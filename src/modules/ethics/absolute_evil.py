@@ -7,7 +7,6 @@ something burns.
 """
 # Status: REAL
 
-
 from __future__ import annotations
 
 import asyncio
@@ -20,7 +19,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol
 
-from src.modules.perception.input_trust import normalize_text_for_malabs, strip_bidi_marks, strip_diacritics
+from src.modules.perception.input_trust import (
+    normalize_text_for_malabs,
+    strip_bidi_marks,
+    strip_diacritics,
+)
 from src.modules.safety.semantic_chat_gate import semantic_chat_gate_env_enabled
 
 _log = logging.getLogger(__name__)

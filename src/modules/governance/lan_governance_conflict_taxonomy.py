@@ -20,7 +20,6 @@ See ``docs/proposals/PROPOSAL_LAN_GOVERNANCE_CONFLICT_TAXONOMY.md``.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import hashlib

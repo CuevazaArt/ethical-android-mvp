@@ -9,7 +9,6 @@ Used for auditing, debugging, and transparency.
 """
 # Status: SCAFFOLD
 
-
 import logging
 import time
 from dataclasses import dataclass, field

@@ -6,7 +6,6 @@ that steer the android toward long-term goals and social stability.
 """
 # Status: SCAFFOLD
 
-
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -28,7 +27,7 @@ class InternalDrive:
     type: DriveType
     value: float = 0.5  # [0, 1] Current level
     growth_rate: float = 0.01  # Rate at which drive increases per "tick" (idle cycle)
-    decay_rate: float = 0.002 # Baseline reduction per tick if not stimulated
+    decay_rate: float = 0.002  # Baseline reduction per tick if not stimulated
     threshold: float = 0.7  # When to trigger proactive action
 
 
@@ -61,14 +60,14 @@ class MotivationEngine:
         # 1. Adapt growth rates based on stress/vitality
         tension = float(kernel_state.get("social_tension", 0.0))
         energy = float(kernel_state.get("energy", 1.0))
-        
+
         # In high tension, SOCIAL_REPAIR grows faster, CURIOSITY slows down
         if tension > 0.5:
-             self.drives[DriveType.SOCIAL_REPAIR].growth_rate = 0.02 + (tension * 0.05)
-             self.drives[DriveType.CURIOSITY].growth_rate = max(0.001, 0.02 - (tension * 0.02))
+            self.drives[DriveType.SOCIAL_REPAIR].growth_rate = 0.02 + (tension * 0.05)
+            self.drives[DriveType.CURIOSITY].growth_rate = max(0.001, 0.02 - (tension * 0.02))
         else:
-             self.drives[DriveType.SOCIAL_REPAIR].growth_rate = 0.001
-             self.drives[DriveType.CURIOSITY].growth_rate = 0.02
+            self.drives[DriveType.SOCIAL_REPAIR].growth_rate = 0.001
+            self.drives[DriveType.CURIOSITY].growth_rate = 0.02
 
         # 2. Update values based on immediate state
         if tension > 0.6:

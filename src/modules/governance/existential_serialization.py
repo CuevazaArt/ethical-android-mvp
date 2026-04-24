@@ -12,7 +12,6 @@ produced by the holder of the private key and matches the loaded narrative state
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import base64

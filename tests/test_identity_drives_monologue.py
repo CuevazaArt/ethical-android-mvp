@@ -1,9 +1,9 @@
 """Fases 3–5: DriveArbiter, identidad narrativa, monólogo interno."""
 
 from src.kernel import EthicalKernel
+from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 from src.modules.internal_monologue import compose_monologue_line
 from src.modules.memory.narrative_identity import NarrativeIdentityTracker
-from src.modules.ethics.weighted_ethics_scorer import CandidateAction
 
 
 def test_identity_updates_on_register():

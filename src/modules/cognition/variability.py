@@ -10,7 +10,6 @@ different levels of urgency depending on how they feel that day.
 """
 # Status: SCAFFOLD
 
-
 from dataclasses import dataclass
 
 import numpy as np

@@ -7,7 +7,6 @@ See docs/proposals/README.md §1–2
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import asyncio

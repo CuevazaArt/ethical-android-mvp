@@ -8,7 +8,6 @@ Avoids numerical explosions and allows gradual transitions.
 """
 # Status: SCAFFOLD
 
-
 from dataclasses import dataclass
 
 # ADR 0016 C1 — Ethical tier classification

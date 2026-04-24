@@ -17,7 +17,6 @@ cancellable in-flight requests (ADR 0002).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import threading

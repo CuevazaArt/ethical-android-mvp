@@ -97,4 +97,3 @@ def nomad_discovery() -> dict[str, Any]:
             }
         ]
     }
-

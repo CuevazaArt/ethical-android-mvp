@@ -8,7 +8,6 @@ See docs/proposals/README.md (Fase 5).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any

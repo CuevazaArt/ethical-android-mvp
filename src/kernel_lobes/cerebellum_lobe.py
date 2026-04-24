@@ -12,10 +12,10 @@ _log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from src.modules.cognition.bayesian_engine import BayesianInferenceEngine
-    from src.modules.memory.narrative import NarrativeMemory
     from src.modules.cognition.rlhf_reward_model import RLHFPipeline
     from src.modules.cognition.strategy_engine import ExecutiveStrategist
     from src.modules.ethics.weighted_ethics_scorer import CandidateAction, EthicsMixtureResult
+    from src.modules.memory.narrative import NarrativeMemory
 
 
 from src.kernel_lobes.models import (

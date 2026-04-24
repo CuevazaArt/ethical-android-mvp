@@ -4,7 +4,6 @@ Translates visual inference results into ethical signals for the Ethos Kernel.
 """
 # Status: SCAFFOLD
 
-
 from src.modules.perception.vision_adapter import VisionInference
 
 

@@ -12,7 +12,6 @@ Env: ``KERNEL_CONDUCT_GUIDE_PATH`` — optional JSON **to load** on an edge runt
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json

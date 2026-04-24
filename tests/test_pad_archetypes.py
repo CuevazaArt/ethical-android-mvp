@@ -6,7 +6,6 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.safety.locus import LocusEvaluation
 from src.modules.ethics.pad_archetypes import (
     PADArchetypeEngine,
     activation_from_sigma,
@@ -14,6 +13,7 @@ from src.modules.ethics.pad_archetypes import (
     valence_from_moral_score,
 )
 from src.modules.ethics.weighted_ethics_scorer import CandidateAction
+from src.modules.safety.locus import LocusEvaluation
 
 
 def test_pad_components_clamped():

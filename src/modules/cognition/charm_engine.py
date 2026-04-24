@@ -10,7 +10,6 @@ on ``CharmVector`` warmth/mystery to reduce sociopathic parametric jumps (defaul
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import logging
@@ -20,7 +19,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from src.modules.cognition.llm_layer import LLMModule
-
 from src.modules.social.uchi_soto import InteractionProfile
 from src.modules.social.user_model import UserModelTracker
 

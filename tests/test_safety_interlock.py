@@ -1,6 +1,6 @@
 from src.kernel import EthicalKernel
-from src.modules.safety.safety_interlock import EStopSource
 from src.modules.ethics.weighted_ethics_scorer import CandidateAction
+from src.modules.safety.safety_interlock import EStopSource
 
 
 def test_kernel_respects_estop():

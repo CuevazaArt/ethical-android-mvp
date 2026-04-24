@@ -6,7 +6,6 @@ converting visual streams into ethical signals for the kernel.
 """
 # Status: SCAFFOLD
 
-
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field

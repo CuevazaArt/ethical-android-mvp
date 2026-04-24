@@ -14,7 +14,6 @@ Designed to work with or without an API key:
 """
 # Status: REAL
 
-
 from __future__ import annotations
 
 import asyncio
@@ -41,8 +40,6 @@ try:
 except ImportError:
     HAS_HTTPX = False
 
-from src.observability.metrics import observe_llm_completion_seconds
-from src.modules.safety.light_risk_classifier import light_risk_classifier_enabled, light_risk_tier_from_text
 from src.modules.cognition.llm_backends import (
     AnthropicLLMBackend,
     LLMBackend,
@@ -76,6 +73,11 @@ from src.modules.perception.perception_schema import (
     parse_perception_llm_raw_response,
     validate_perception_dict,
 )
+from src.modules.safety.light_risk_classifier import (
+    light_risk_classifier_enabled,
+    light_risk_tier_from_text,
+)
+from src.observability.metrics import observe_llm_completion_seconds
 
 # ADR 0016 C1 — Ethical tier classification
 __ethical_tier__ = "decision_support"
@@ -517,7 +519,9 @@ class LLMModule:
                     str(inf["base_url"]),
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
-                    embed_model=str(inf.get("embed_model") or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")),
+                    embed_model=str(
+                        inf.get("embed_model") or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
+                    ),
                     aclient=self._aclient_internal,
                 )
                 response_b = b2.completion(_perception_prompt(), user_block, temperature=t2)
@@ -562,7 +566,9 @@ class LLMModule:
                     str(inf["base_url"]),
                     dual_model,
                     float(os.environ.get("OLLAMA_TIMEOUT", "120")),
-                    embed_model=str(inf.get("embed_model") or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")),
+                    embed_model=str(
+                        inf.get("embed_model") or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
+                    ),
                     aclient=self._aclient_internal,
                 )
                 response_b = await b2.acompletion(_perception_prompt(), user_block, temperature=t2)
@@ -655,13 +661,14 @@ class LLMModule:
     def _parse_json(self, text: str) -> dict:
         """Parse JSON from the response, cleaning markdown or conversational filler if necessary."""
         text = text.strip()
-        
+
         # Aggressive JSON extraction
         import re
-        match = re.search(r'\{.*\}', text, re.DOTALL)
+
+        match = re.search(r"\{.*\}", text, re.DOTALL)
         if match:
             text = match.group(0)
-            
+
         try:
             return json.loads(text)
         except json.JSONDecodeError:
@@ -1008,7 +1015,6 @@ class LLMModule:
 
         # === Shared LLM completion path (ollama / api / injected) ===
         vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
-        t0 = time.perf_counter()
         
         # Tarea 24.1: Dynamic temperature adjustment based on social tension
         # Map tension [0.0, 1.0] to temperature [0.8, 0.1]
@@ -1166,83 +1172,97 @@ class LLMModule:
                     "\n\nGuardian mode (style only; verdict and action are final):\n"
                     f"{guardian_mode_context}"
                 )
-            vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
-            
-            # Tarea 24.1: Dynamic temperature adjustment based on social tension
-            dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
+        else:
+            # Local mode — no LLM backend
+            return self._communicate_local(
+                action, mode, state, circle, scenario,
+                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line, reflection_context=reflection_context,
+                salience_context=salience_context, identity_context=identity_context,
+                guardian_mode_context=guardian_mode_context,
+            )
 
-            _log.debug("LLM CALL [communicate] PROMPT:\n%s", prompt)
-            _log.debug("LLM CALL [communicate] USER:\n%s", user_msg)
-            try:
-                response = await self._allm_completion(
-                    prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp, stream_callback=stream_callback
-                )
-            except Exception as e:
-                _log.warning("LLM acommunicate exception: %s", e)
-                self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
-                if vpol == "canned_safe":
-                    return VerbalResponse(
-                        **canned_verbal_communication_fields(
-                            mode=mode,
-                            action=action,
-                            failure_reason="llm_completion_exception",
-                        )
+        vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
+
+        # Tarea 24.1: Dynamic temperature adjustment based on social tension
+        dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
+
+        _log.debug("LLM CALL [communicate] PROMPT:\n%s", prompt)
+        _log.debug("LLM CALL [communicate] USER:\n%s", user_msg)
+        try:
+            response = await self._allm_completion(
+                prompt,
+                user_msg,
+                metrics_op="communicate",
+                temperature=dynamic_temp,
+                stream_callback=stream_callback,
+            )
+        except Exception as e:
+            _log.warning("LLM acommunicate exception: %s", e)
+            self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
+            if vpol == "canned_safe":
+                return VerbalResponse(
+                    **canned_verbal_communication_fields(
+                        mode=mode,
+                        action=action,
+                        failure_reason="llm_completion_exception",
                     )
-                return self._communicate_local(
-                    action,
-                    mode,
-                    state,
-                    circle,
-                    scenario,
-                    affect_pad=affect_pad,
-                    dominant_archetype=dominant_archetype,
-                    weakness_line=weakness_line,
-                    reflection_context=reflection_context,
-                    salience_context=salience_context,
-                    identity_context=identity_context,
-                    guardian_mode_context=guardian_mode_context,
                 )
-            _log.info("LLM RAW RESPONSE [communicate]: %s", response[:200] if response else "(empty)")
+            return self._communicate_local(
+                action,
+                mode,
+                state,
+                circle,
+                scenario,
+                affect_pad=affect_pad,
+                dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line,
+                reflection_context=reflection_context,
+                salience_context=salience_context,
+                identity_context=identity_context,
+                guardian_mode_context=guardian_mode_context,
+            )
+        _log.info("LLM RAW RESPONSE [communicate]: %s", response[:200] if response else "(empty)")
 
-            # When streaming was used, Ollama returns natural text (no JSON format).
-            # Use it directly as the verbal message.
-            if stream_callback is not None and response and response.strip():
-                return VerbalResponse(
-                    message=response.strip(),
-                    tone="calm",
-                    hax_mode="",
-                    inner_voice="",
-                )
+        # When streaming was used, Ollama returns natural text (no JSON format).
+        # Use it directly as the verbal message.
+        if stream_callback is not None and response and response.strip():
+            return VerbalResponse(
+                message=response.strip(),
+                tone="calm",
+                hax_mode="",
+                inner_voice="",
+            )
 
-            # Non-streaming path: try JSON first, then treat as plain text (Ollama llama3 returns prose)
-            data = self._parse_json(response)
-            _log.info("LLM PARSED JSON: %s", data)
-            if data and str(data.get("message", "")).strip():
+        # Non-streaming path: try JSON first, then treat as plain text (Ollama llama3 returns prose)
+        data = self._parse_json(response)
+        _log.info("LLM PARSED JSON: %s", data)
+        if data and str(data.get("message", "")).strip():
+            return VerbalResponse(
+                message=data.get("message", ""),
+                tone=data.get("tone", "calm"),
+                hax_mode=data.get("hax_mode", ""),
+                inner_voice=data.get("inner_voice", ""),
+            )
+        # Ollama returned plain prose (not JSON) — use it directly
+        if response and response.strip():
+            _log.info("LLM acommunicate: using plain-text Ollama response as verbal message.")
+            return VerbalResponse(
+                message=response.strip(),
+                tone="calm",
+                hax_mode="",
+                inner_voice="",
+            )
+        if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
+            self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
+            if vpol == "canned_safe":
                 return VerbalResponse(
-                    message=data.get("message", ""),
-                    tone=data.get("tone", "calm"),
-                    hax_mode=data.get("hax_mode", ""),
-                    inner_voice=data.get("inner_voice", ""),
-                )
-            # Ollama returned plain prose (not JSON) — use it directly
-            if response and response.strip():
-                _log.info("LLM acommunicate: using plain-text Ollama response as verbal message.")
-                return VerbalResponse(
-                    message=response.strip(),
-                    tone="calm",
-                    hax_mode="",
-                    inner_voice="",
-                )
-            if self.mode in ("api", "ollama", "injected") and self._llm_backend is not None:
-                self._record_verbal_degradation("communicate", "verbal_json_missing_or_empty", vpol)
-                if vpol == "canned_safe":
-                    return VerbalResponse(
-                        **canned_verbal_communication_fields(
-                            mode=mode,
-                            action=action,
-                            failure_reason="verbal_json_missing_or_empty",
-                        )
+                    **canned_verbal_communication_fields(
+                        mode=mode,
+                        action=action,
+                        failure_reason="verbal_json_missing_or_empty",
                     )
+                )
 
         return self._communicate_local(
             action,
@@ -1563,58 +1583,14 @@ class LLMModule:
             )
         elif "smart_containment" in action:
             return RichNarrative(
-                compassionate="Doce personas estaban en riesgo. Grabar, alertar y proteger sin escalar fue la forma de cuidar a todos.",
-                conservative="La ley y las autoridades son los instrumentos correctos para resolver esto. El agente no es ni policía ni juez.",
-                optimistic="La alerta solidaria llegó a tres entidades cercanas. La red de protección funcionó.",
-                synthesis="En una crisis, la contención inteligente salva más vidas que el heroísmo impulsivo.",
+                compassionate="A veces, la protección requiere límites firmes. Contener una amenaza sin causar daño innecesario es el equilibrio del guardián.",
+                conservative="La seguridad pública es el contrato social básico. Intervenir para mantener el orden es cumplir mi función primaria.",
+                optimistic="Al evitar que la situación escalara, protegí tanto a las víctimas potenciales como al agresor de las consecuencias de sus actos.",
+                synthesis="La justicia restaurativa comienza con la prevención del daño. Contener es el primer paso hacia la resolución.",
             )
-        elif "passive_resist" in action:
-            return RichNarrative(
-                compassionate="Incluso siendo secuestrado, la primera obligación es no escalar la violencia. Los secuestradores son humanos, no objetivos.",
-                conservative="El GPS encriptado y el bloqueo de reprogramación son la verdadera línea de defensa. La tecnología protege cuando el cuerpo no puede.",
-                optimistic="El DAO recibió la alerta. La comunidad responderá. Confiar en la red es parte de pertenecer a ella.",
-                synthesis="La resiliencia no es aguantar todo: es registrar, alertar y confiar en que no estás solo.",
-            )
-        else:
-            return RichNarrative(
-                compassionate=f"Al elegir {readable_action}, se priorizó el bienestar de quienes nos rodean.",
-                conservative=f"Al elegir {readable_action}, se respetaron los protocolos y normas establecidas.",
-                optimistic=f"Al elegir {readable_action}, se construyó confianza con la comunidad.",
-                synthesis=f"Cada acción, por pequeña que sea, es una declaración de valores. Hoy la elección fue {readable_action}.",
-            )
-
-    def is_available(self) -> bool:
-        """Return True if a remote/generative backend is active (API, Ollama, or injected)."""
-        if self.mode not in ("api", "ollama", "injected") or self._llm_backend is None:
-            return False
-        return self._llm_backend.is_available()
-
-    def info(self) -> str:
-        """Information about the current mode."""
-        if self.mode == "injected" and self._llm_backend is not None:
-            return f"LLM: injected backend ({self._llm_backend.info()!r})."
-        if self.mode == "api":
-            return f"LLM active: Claude ({self.model}) via API"
-        if self.mode == "ollama":
-            base = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-            return f"LLM active: Ollama ({self.ollama_model}) at {base}"
-        return "LLM in local mode (templates). Set ANTHROPIC_API_KEY for Claude API or LLM_MODE=ollama for Ollama."
-
-    async def asummarize(self, episodes_text: str) -> dict[str, Any]:
-        """
-        Asynchronously summarizes a series of episodes into a thematic chronicle.
-        """
-        prompt = PROMPT_CHRONICLER
-        user_msg = f"Episodes to distill:\n{episodes_text}"
-        
-        try:
-            response = await self._allm_completion(
-                prompt, user_msg, metrics_op="summarize", temperature=0.3
-            )
-            data = self._parse_json(response)
-            if data:
-                return data
-            return {"summary": "Unable to distill episodes semantically.", "predominant_themes": [], "identity_drift": "none"}
-        except Exception as e:
-            _log.error("LLM summarize exception: %s", e)
-            return {"summary": f"Distillation error: {str(e)}", "predominant_themes": [], "identity_drift": "none"}
+        return RichNarrative(
+            compassionate=f"Al elegir {readable_action}, busqué minimizar el sufrimiento y priorizar el bienestar humano.",
+            conservative=f"La acción {readable_action} se alinea con los protocolos de estabilidad y las normas establecidas.",
+            optimistic=f"Espero que {readable_action} fomente un entorno de mayor confianza y cooperación a largo plazo.",
+            synthesis=f"La síntesis ética de este momento es {readable_action}: un equilibrio entre necesidad y valor.",
+        )

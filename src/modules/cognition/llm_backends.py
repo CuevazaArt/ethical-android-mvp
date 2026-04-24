@@ -14,7 +14,6 @@ The kernel still routes only through ``LLMModule``; semantic MalAbs may use
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import asyncio
@@ -281,17 +280,16 @@ class OllamaLLMBackend(LLMBackend):
         self._embed_model = (
             embed_model
             if embed_model is not None
-            else os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", "").strip()
-            or self._model
+            else os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", "").strip() or self._model
         )
         self._embed_timeout = float(embed_timeout) if embed_timeout is not None else 10.0
 
     def is_available(self) -> bool:
         return bool(self._base)
 
-    def completion(self, system: str, user: str, **kwargs: Any) -> str:
-        raise_if_llm_cancel_requested()
-    def _ollama_chat_payload(self, system: str, user: str, stream: bool, **kwargs: Any) -> dict[str, Any]:
+    def _ollama_chat_payload(
+        self, system: str, user: str, stream: bool, **kwargs: Any
+    ) -> dict[str, Any]:
         if len(user) > 20000:
             user = user[:20000] + "... [TRUNCATED]"
         payload: dict[str, Any] = {
@@ -310,7 +308,7 @@ class OllamaLLMBackend(LLMBackend):
         t = kwargs.get("temperature")
         if t is not None:
             options["temperature"] = float(t)
-            
+
         # Tarea 24.2: Aggressive stop sequences to prevent LLMs from hallucinating user dialogue
         options["stop"] = ["\nUser:", "\n[USER]", "<|im_end|>", "\n<|im_start|>user", "User: "]
         payload["options"] = options

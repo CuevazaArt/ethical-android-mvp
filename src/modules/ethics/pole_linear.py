@@ -6,7 +6,6 @@ Nonlinear / sklearn evaluators can follow the same ``evaluate`` contract later.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json

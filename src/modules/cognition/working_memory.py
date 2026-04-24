@@ -5,7 +5,6 @@ Holds recent turns for coherence; does not replace NarrativeMemory (long-term ep
 """
 # Status: SCAFFOLD
 
-
 from dataclasses import dataclass, field
 from typing import Any
 

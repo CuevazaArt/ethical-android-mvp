@@ -7,7 +7,6 @@ prevent sociopathic transitions in the kernel's affective persona.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import logging

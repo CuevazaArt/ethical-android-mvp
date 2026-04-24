@@ -21,7 +21,6 @@ optional ``KERNEL_LLM_GLOBAL_DEFAULT_POLICY`` after legacy).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os
@@ -32,7 +31,10 @@ from src.modules.cognition.llm_touchpoint_policies import (
     raw_global_default_policy,
     raw_touchpoint_policy,
 )
-from src.modules.perception.perception_schema import PERCEPTION_FAILSAFE_NUMERIC, merge_parse_issues_into_perception
+from src.modules.perception.perception_schema import (
+    PERCEPTION_FAILSAFE_NUMERIC,
+    merge_parse_issues_into_perception,
+)
 
 if TYPE_CHECKING:
     from src.modules.cognition.llm_layer import LLMPerception

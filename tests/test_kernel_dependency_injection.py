@@ -7,8 +7,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
 from src.kernel_components import KernelComponentOverrides
-from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 from src.modules.cognition.llm_layer import LLMModule, resolve_llm_mode
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 from src.persistence.checkpoint import (
     checkpoint_persistence_from_env,
     should_load_checkpoint,

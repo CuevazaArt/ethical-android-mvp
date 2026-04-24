@@ -1,4 +1,5 @@
 import pytest
+
 pytest.importorskip("torch")
 """Module 9.1 — VisionContinuousDaemon and JPEG inference path."""
 
@@ -33,7 +34,10 @@ def test_analyze_jpeg_bytes_stub_env(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_vision_continuous_daemon_emits_episode(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("KERNEL_VISION_JPEG_STUB_LABEL", "knife")
     from src.modules.perception.nomad_bridge import get_nomad_bridge
-    from src.modules.perception.vision_inference import VisionContinuousDaemon, VisionInferenceEngine
+    from src.modules.perception.vision_inference import (
+        VisionContinuousDaemon,
+        VisionInferenceEngine,
+    )
 
     _drain_threadsafe_vision()
     absorbed: list = []

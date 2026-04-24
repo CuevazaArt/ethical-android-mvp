@@ -288,7 +288,9 @@ class WeightedEthicsScorer:
         The loaded weights are normalized to sum to 1.0.
         # Status: REAL
         """
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "config", "ethics_weights.yaml")
+        config_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "..", "config", "ethics_weights.yaml"
+        )
         try:
             with open(config_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
@@ -308,7 +310,9 @@ class WeightedEthicsScorer:
                 w = DEFAULT_HYPOTHESIS_WEIGHTS.copy()
             return w
         except Exception as e:
-            _log.warning("Failed to load ethics weights from %s: %s; using defaults", config_path, e)
+            _log.warning(
+                "Failed to load ethics weights from %s: %s; using defaults", config_path, e
+            )
             return DEFAULT_HYPOTHESIS_WEIGHTS.copy()
 
     def __init__(
@@ -322,7 +326,6 @@ class WeightedEthicsScorer:
         self.pre_argmax_pole_weights: dict[str, float] | None = None
         self.pre_argmax_context_modulators: PreArgmaxContextChannels | None = None
         self.metacognitive_curiosity: float = 0.0
-
 
     def calculate_expected_impact(
         self,

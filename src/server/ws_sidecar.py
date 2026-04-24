@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
-import psutil
 import os
+import time
 from typing import Any
 
+import psutil
 from fastapi import APIRouter, WebSocket
 
 from ..kernel import EthicalKernel
@@ -30,14 +30,18 @@ router = APIRouter()
 async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
     """Nomad LAN bridge sensory endpoint (Module S)."""
     from src.modules.perception.nomad_bridge import get_nomad_bridge
+
     from ..settings import kernel_settings
 
     st = kernel_settings()
     nomad_timeout = st.kernel_nomad_chat_timeout_seconds
 
     await websocket.accept()
-    logger.info("Nomad Bridge: Inbound WebSocket attempt from %s", websocket.client.host if websocket.client else "unknown")
-    
+    logger.info(
+        "Nomad Bridge: Inbound WebSocket attempt from %s",
+        websocket.client.host if websocket.client else "unknown",
+    )
+
     nomad_kernel = EthicalKernel(
         variability=st.kernel_variability,
         llm_mode=st.llm_mode,
@@ -116,6 +120,7 @@ async def nomad_bridge_ws_handler(websocket: WebSocket) -> None:
 async def dashboard_ws_handler(websocket: WebSocket) -> None:
     """L0 Dashboard telemetry stream and command receiver."""
     from src.modules.perception.nomad_bridge import get_nomad_bridge
+
     from ..settings import kernel_settings
 
     await websocket.accept()
@@ -133,7 +138,7 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
         await kernel.start()
     except Exception as exc:
         logger.warning("Dashboard kernel.start() failed: %s", exc)
-    
+
     # Sync identity at start (Handshake for UI initialization)
     try:
         q.put_nowait(build_sync_identity_ws_message(kernel))
@@ -190,34 +195,50 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                 if result.limbic_profile:
                                     tension_val = result.limbic_profile.get("social_tension", 0.0)
                                     trust_val = result.limbic_profile.get("social_trust", 0.0)
-                                
+
                                 bayes_conf = 0.0
                                 bayes_delta = 0.0
                                 if hasattr(result.perception_confidence, "confidence"):
                                     bayes_conf = result.perception_confidence.confidence
-                                
+
                                 social_circle = "unknown"
                                 social_posture = "unknown"
-                                if result.perception and hasattr(result.perception, "social_context"):
-                                    social_circle = getattr(result.perception.social_context, "circle", "unknown")
-                                    social_posture = getattr(result.perception.social_context, "posture", "unknown")
+                                if result.perception and hasattr(
+                                    result.perception, "social_context"
+                                ):
+                                    social_circle = getattr(
+                                        result.perception.social_context, "circle", "unknown"
+                                    )
+                                    social_posture = getattr(
+                                        result.perception.social_context, "posture", "unknown"
+                                    )
 
-                                cpu_p = psutil.cpu_percent() if hasattr(psutil, "cpu_percent") else 0.0
-                                mem_p = psutil.virtual_memory().percent if hasattr(psutil, "virtual_memory") else 0.0
-                                
+                                cpu_p = (
+                                    psutil.cpu_percent() if hasattr(psutil, "cpu_percent") else 0.0
+                                )
+                                mem_p = (
+                                    psutil.virtual_memory().percent
+                                    if hasattr(psutil, "virtual_memory")
+                                    else 0.0
+                                )
+
                                 # Extract GestaltSnapshot data for richer telemetry
                                 pad_state = ""
                                 dominant_archetype = ""
                                 try:
-                                    snap = getattr(result, "gestalt_snapshot", None) or getattr(result, "snapshot", None)
+                                    snap = getattr(result, "gestalt_snapshot", None) or getattr(
+                                        result, "snapshot", None
+                                    )
                                     if snap:
                                         pad = getattr(snap, "pad_state", None)
                                         if pad:
-                                            pad_state = f"P={pad[0]:.2f} A={pad[1]:.2f} D={pad[2]:.2f}"
+                                            pad_state = (
+                                                f"P={pad[0]:.2f} A={pad[1]:.2f} D={pad[2]:.2f}"
+                                            )
                                         dominant_archetype = getattr(snap, "dominant_archetype", "")
                                 except Exception:
                                     pass
-                                
+
                                 ep_count = 0
                                 identity_epoch = 0
                                 try:
@@ -249,7 +270,7 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                                             "dominant_archetype": dominant_archetype,
                                             "identity_epoch": identity_epoch,
                                             "episode_count": ep_count,
-                                        }
+                                        },
                                     }
                                 )
 
@@ -289,11 +310,17 @@ async def dashboard_ws_handler(websocket: WebSocket) -> None:
                     try:
                         ep_count = len(kernel.memory.episodes)
                         identity_epoch = ep_count // 50
-                        identity_digest = kernel.memory.get_reflection()[:80] if hasattr(kernel.memory, "get_reflection") else ""
+                        identity_digest = (
+                            kernel.memory.get_reflection()[:80]
+                            if hasattr(kernel.memory, "get_reflection")
+                            else ""
+                        )
                     except Exception:
                         pass
 
-                    llm_mode = kernel.llm.mode if hasattr(kernel, "llm") and kernel.llm else st.llm_mode
+                    llm_mode = (
+                        kernel.llm.mode if hasattr(kernel, "llm") and kernel.llm else st.llm_mode
+                    )
                     vad_active = bridge.vad_speaking if hasattr(bridge, "vad_speaking") else False
 
                     heartbeat_payload = {

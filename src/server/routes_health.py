@@ -8,7 +8,6 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
-from ..chat_settings import chat_server_settings
 from src.modules.cognition.llm_touchpoint_policies import (
     ENV_LLM_GLOBAL_DEFAULT_POLICY,
     raw_global_default_policy,
@@ -21,6 +20,8 @@ from src.modules.perception.nomad_discovery import (
     nomad_discovery_service_type,
 )
 from src.modules.perception.perception_backend_policy import resolve_perception_backend_policy
+
+from ..chat_settings import chat_server_settings
 from ..observability.decision_log import decision_log_enabled
 from ..observability.metrics import metrics_enabled
 from ..runtime.chat_feature_flags import env_truthy

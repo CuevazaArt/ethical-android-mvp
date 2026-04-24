@@ -7,7 +7,6 @@ No device drivers here — only typed profiles and apply hooks.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field

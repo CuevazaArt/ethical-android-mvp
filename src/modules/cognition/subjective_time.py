@@ -6,7 +6,6 @@ Does not replace wall-clock for auditing; does not change ethical scores.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import time

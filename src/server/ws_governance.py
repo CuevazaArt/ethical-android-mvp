@@ -9,8 +9,6 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from ..kernel import EthicalKernel
-from ..kernel_utils import kernel_dao_as_mock
 from src.modules.governance.existential_serialization import (
     nomad_simulation_ws_enabled,
     simulate_nomadic_migration,
@@ -42,6 +40,9 @@ from src.modules.governance.moral_hub import (
     submit_constitution_draft_for_vote,
 )
 from src.modules.memory.reparation_vault import maybe_register_reparation_after_mock_court
+
+from ..kernel import EthicalKernel
+from ..kernel_utils import kernel_dao_as_mock
 from ..observability.metrics import (
     record_dao_ws_operation,
     record_lan_envelope_replay_cache_event,

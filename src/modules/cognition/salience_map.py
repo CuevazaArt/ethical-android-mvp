@@ -8,14 +8,13 @@ See docs/proposals/README.md (Fase 2).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 from src.modules.ethics.ethical_reflection import ReflectionSnapshot
-from src.modules.somatic.sympathetic import InternalState
 from src.modules.social.uchi_soto import SocialEvaluation
+from src.modules.somatic.sympathetic import InternalState
 
 
 @dataclass(frozen=True)

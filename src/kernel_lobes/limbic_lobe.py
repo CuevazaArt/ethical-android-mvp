@@ -24,8 +24,8 @@ _log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from src.modules.safety.locus import LocusModule
-    from src.modules.somatic.sympathetic import SympatheticModule
     from src.modules.social.uchi_soto import UchiSotoModule
+    from src.modules.somatic.sympathetic import SympatheticModule
 
 
 class LimbicEthicalLobe:

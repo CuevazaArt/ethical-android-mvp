@@ -9,7 +9,6 @@ execution Phase 1 acceptance. See ``docs/proposals/PROPOSAL_DISTRIBUTED_JUSTICE_
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import hashlib

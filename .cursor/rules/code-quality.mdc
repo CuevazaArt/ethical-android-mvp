@@ -1,0 +1,41 @@
+---
+description: Boy Scout rules, security hardening, documentation standards, and code quality expectations
+alwaysApply: true
+---
+
+# Code Quality Rules (Ethos Kernel)
+
+## Boy Scout Rules (mandatory on every intervention)
+
+1. **Harden-In-Place (Zero Trust):** Fill empty `try/except` blocks, add type hints, sanitize inputs rigorously. Assume all inputs are hostile.
+2. **Anti-NaN:** If you touch math or latency logic, ensure results cannot be `NaN` or `Inf`. Add `math.isfinite()` guards.
+3. **Latency Metrics:** New loops or sensory paths must log latency in milliseconds (`time.perf_counter()`) for telemetry.
+4. **Zero Dead Code:** Remove obsolete mocks, legacy stubs, or replaced code. Keep the repo lightweight.
+
+## Security Gate
+
+- Run `python scripts/eval/adversarial_suite.py` every 3 completed blocks (or after any safety-critical change).
+- No new features until security tests pass with 0 failures.
+- Changes to `LimbicLobe` or `EthicalGating` logic require immediate adversarial audit.
+
+## Safety-Critical Fixes (Full Pattern)
+
+When addressing security thresholds, gates, or circuit limits, merge the **complete** solution:
+1. **Code:** Named constants (`DEFAULT_*`), pure helpers for shared zone logic.
+2. **Tests:** Assert those constants; add env-override checks so drift fails CI.
+3. **Docs:** English `docs/proposals/PROPOSAL_*` stating evidence posture. Don't imply calibration without data.
+4. **CHANGELOG:** Entry when behavior or operator expectations change.
+
+## Documentation Standards
+
+- `CHANGELOG.md` entries for user-visible or architecture-relevant changes.
+- All repository content in **English** (code comments, docstrings, docs, proposals).
+- Exception: Non-English test/security payloads (e.g., multilingual abuse strings) with brief comment.
+- Keep claims aligned with `docs/TRANSPARENCY_AND_LIMITS.md`. Don't over-claim.
+- Update Mermaid diagrams in `docs/architecture/` when modifying inter-lobe logic.
+
+## Efficient Workflow
+
+- **Fast loop:** Use targeted tests (`pytest tests/test_module.py`) during iteration.
+- **Pre-push:** Run full `pytest tests/` + `ruff` + `mypy` to match CI.
+- Canonical wording: [`CONTRIBUTING.md`](../../CONTRIBUTING.md).

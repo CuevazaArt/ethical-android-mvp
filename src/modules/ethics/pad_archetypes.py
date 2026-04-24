@@ -9,7 +9,6 @@ records tone for narrative / downstream presentation (see docs §7).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import math

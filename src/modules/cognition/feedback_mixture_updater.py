@@ -17,7 +17,6 @@ initial normalized prior per axis, then rescales to preserve total Dirichlet con
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json
@@ -256,7 +255,10 @@ class FeedbackUpdater:
         """ADR 0012 path: Plackett-Luce likelihood + iterated IS (see ``ethical_mixture_likelihood``)."""
         import numpy as np
 
-        from src.modules.ethics.ethical_mixture_likelihood import FeedbackObservation, sequential_posterior_update
+        from src.modules.ethics.ethical_mixture_likelihood import (
+            FeedbackObservation,
+            sequential_posterior_update,
+        )
 
         observations: list[FeedbackObservation] = []
         log: list[dict[str, Any]] = []

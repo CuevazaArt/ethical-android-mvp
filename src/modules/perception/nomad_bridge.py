@@ -31,7 +31,6 @@ drops oversized dicts before they hit the queue or ``peek_latest_telemetry``.
 """
 # Status: REAL
 
-
 import asyncio
 import base64
 import hashlib
@@ -47,8 +46,8 @@ from collections import deque
 from collections.abc import Callable, Coroutine
 from typing import Any
 
-from src.observability.metrics import record_nomad_bridge_connection
 from src.modules.somatic.hardware_abstraction import ComputeTier, HardwareContext
+from src.observability.metrics import record_nomad_bridge_connection
 
 try:
     from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect, status
@@ -287,6 +286,7 @@ class NomadBridge:
                 socket is accepted (Bloque 22.2 — e.g. emit ``SYNC_IDENTITY``).
         """
         from starlette.websockets import WebSocketState
+
         try:
             if websocket.client_state == WebSocketState.CONNECTING:
                 await websocket.accept()

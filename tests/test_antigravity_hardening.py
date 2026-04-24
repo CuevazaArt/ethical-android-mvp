@@ -1,8 +1,8 @@
 from src.modules.ethics.absolute_evil import AbsoluteEvilCategory, AbsoluteEvilDetector
 from src.modules.ethics.ethical_poles import EthicalPoles
+from src.modules.ethics.weakness_pole import WeaknessPole, WeaknessType
 from src.modules.memory.forgiveness import AlgorithmicForgiveness
 from src.modules.memory.narrative import NarrativeMemory
-from src.modules.ethics.weakness_pole import WeaknessPole, WeaknessType
 
 
 def test_new_absolute_evil_categories():

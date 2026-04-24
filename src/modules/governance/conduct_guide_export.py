@@ -16,7 +16,6 @@ See ``context_distillation.validate_conduct_guide_dict`` and ``docs/proposals/RE
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json

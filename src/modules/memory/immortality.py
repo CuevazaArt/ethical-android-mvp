@@ -17,7 +17,6 @@ the Reflexive Mirror and Broken-Mirror logic survive restores.
 """
 # Status: SCAFFOLD
 
-
 import hashlib
 import json
 import math

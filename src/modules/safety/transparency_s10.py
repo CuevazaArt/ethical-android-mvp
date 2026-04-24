@@ -6,7 +6,6 @@ Structured JSON for operators and LAN clients; no substitute for full narrative 
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 from typing import Any

@@ -9,7 +9,6 @@ future ``ethos-extensions``) from the core decision path without async or thread
 """
 # Status: REAL
 
-
 from __future__ import annotations
 
 import logging

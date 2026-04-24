@@ -6,7 +6,6 @@ for clients to adapt presentation (robustez pilar 4).
 """
 # Status: REAL
 
-
 from __future__ import annotations
 
 from typing import Any

@@ -13,9 +13,10 @@ import time
 from dataclasses import asdict
 from typing import Any
 
+from src.modules.governance.nomad_identity import nomad_identity_public
+
 from ..kernel import EthicalKernel
 from ..kernel_lobes.models import GestaltSnapshot
-from src.modules.governance.nomad_identity import nomad_identity_public
 from ..persistence.identity_manifest import IdentityManifestStore
 from ..runtime.chat_feature_flags import chat_include_nomad_identity
 

@@ -13,7 +13,6 @@ future decisions gradually decreases.
 """
 # Status: SCAFFOLD
 
-
 import logging
 import math
 from dataclasses import dataclass

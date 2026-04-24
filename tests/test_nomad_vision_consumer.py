@@ -1,4 +1,5 @@
 import pytest
+
 pytest.importorskip("torch")
 """Nomad vision pipeline (Module S.1 — consumer env gate)."""
 

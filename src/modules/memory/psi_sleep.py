@@ -27,7 +27,6 @@ and transparency.
 """
 # Status: REAL
 
-
 import hashlib
 from collections import Counter
 from dataclasses import dataclass
@@ -127,7 +126,7 @@ class PsiSleep:
         # This now triggers the Recursive Chronicling if necessary (Phase 13 / Block 37)
         if len(memory.episodes) > memory.max_episodes:
             await memory.consolidate_to_chronicle(limit=50)
-            
+
         memory.prune(max_age_days=60, min_significance=0.7)
 
         result = SleepResult(

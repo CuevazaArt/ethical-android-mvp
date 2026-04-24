@@ -4,7 +4,6 @@ Provides hashing and symmetric encryption for audit logs before off-chain storag
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import hashlib

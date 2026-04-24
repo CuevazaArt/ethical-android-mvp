@@ -21,7 +21,6 @@ the **current** user message only for local heuristics).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json

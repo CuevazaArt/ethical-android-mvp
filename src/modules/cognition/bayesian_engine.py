@@ -6,7 +6,6 @@ Employs formal conjugate prior updates on a low-dimensional state
 """
 # Status: REAL
 
-
 from __future__ import annotations
 
 import logging

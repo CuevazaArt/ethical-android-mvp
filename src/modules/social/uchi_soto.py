@@ -9,7 +9,6 @@ In soto contexts, defensive dialectical reasoning is activated.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import logging
@@ -22,8 +21,8 @@ from typing import Any
 
 _log = logging.getLogger(__name__)
 
-from src.modules.perception.multimodal_trust import MultimodalAssessment
 from src.modules.governance.nomad_identity import NomadicRegistry
+from src.modules.perception.multimodal_trust import MultimodalAssessment
 from src.modules.perception.sensor_contracts import SensorSnapshot
 
 

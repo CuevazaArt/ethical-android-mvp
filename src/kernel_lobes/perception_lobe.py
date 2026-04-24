@@ -4,7 +4,6 @@ import asyncio
 import logging
 import math
 import os
-import threading
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -78,7 +77,7 @@ class PerceptiveLobe:
         # Tarea 25.1: Low-frequency butterworth-lite smoothing for signals
         self._ema_signals = {}
         self._signal_alpha = 0.3
-        
+
         self._nomad_inertia_deadline: float | None = None
         if self.bus:
             self.bus.subscribe(SensorySpike, self._on_sensory_spike_received)
@@ -120,10 +119,13 @@ class PerceptiveLobe:
             state.conversation_context = conversation_context
 
             # Attach Vitality (Bloque 11.2)
-            from src.modules.somatic.vitality import assess_vitality
             # We don't have the full sensor snapshot here yet in the simplified V13 pulse,
             # but we can try to derive it from the bridge if enabled.
-            from src.modules.somatic.vitality import apply_nomad_telemetry_if_enabled
+            from src.modules.somatic.vitality import (
+                apply_nomad_telemetry_if_enabled,
+                assess_vitality,
+            )
+
             state.vitality = assess_vitality(apply_nomad_telemetry_if_enabled(None))
 
         except Exception as e:
@@ -145,11 +147,14 @@ class PerceptiveLobe:
         # Tarea 25.1: Apply EMA smoothing to signals to prevent rapid risk oscillation
         if getattr(state, "signals", None):
             for key, value in state.signals.items():
-                if not math.isfinite(value): value = 0.0
+                if not math.isfinite(value):
+                    value = 0.0
                 if key not in self._ema_signals:
                     self._ema_signals[key] = value
                 else:
-                    self._ema_signals[key] = (self._signal_alpha * value) + ((1.0 - self._signal_alpha) * self._ema_signals[key])
+                    self._ema_signals[key] = (self._signal_alpha * value) + (
+                        (1.0 - self._signal_alpha) * self._ema_signals[key]
+                    )
                     if not math.isfinite(self._ema_signals[key]):
                         self._ema_signals[key] = 0.0
                 state.signals[key] = self._ema_signals[key]
@@ -234,9 +239,11 @@ class PerceptiveLobe:
         """Full perception envelope for legacy chat + batch pipelines."""
 
         from src.modules.cognition.epistemic_dissonance import assess_epistemic_dissonance
-        from src.modules.perception.multimodal_trust import evaluate_multimodal_trust
-        from src.modules.perception.perception_confidence import build_perception_confidence_envelope
         from src.modules.cognition.temporal_planning import build_temporal_context
+        from src.modules.perception.multimodal_trust import evaluate_multimodal_trust
+        from src.modules.perception.perception_confidence import (
+            build_perception_confidence_envelope,
+        )
         from src.modules.somatic.vitality import assess_vitality
 
         vitality = assess_vitality(sensor_snapshot)

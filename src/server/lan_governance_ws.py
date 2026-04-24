@@ -13,6 +13,7 @@ from src.modules.governance.lan_governance_merge_context import (
     EVIDENCE_POSTURE_ADVISORY_AGGREGATE,
     LanMergeContextParsed,
 )
+
 from ..runtime.chat_feature_flags import coerce_public_int
 
 

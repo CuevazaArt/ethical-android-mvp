@@ -10,10 +10,10 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.kernel import EthicalKernel
-from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 from src.modules.cognition.premise_validation import PremiseAdvisory
-from src.modules.safety.reality_verification import ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 from src.modules.perception.sensor_contracts import SensorSnapshot
+from src.modules.safety.reality_verification import ASSESSMENT_NONE as REALITY_ASSESSMENT_NONE
 from src.modules.social.uchi_soto import InteractionProfile, TrustCircle
 from src.real_time_bridge import RealTimeBridge
 

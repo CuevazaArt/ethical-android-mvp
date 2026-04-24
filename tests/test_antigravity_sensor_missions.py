@@ -1,6 +1,6 @@
 from src.kernel import EthicalKernel
-from src.modules.perception.sensor_contracts import SensorSnapshot
 from src.modules.cognition.strategy_engine import MissionStatus
+from src.modules.perception.sensor_contracts import SensorSnapshot
 
 
 def test_external_mission_ingestion_via_sensors():

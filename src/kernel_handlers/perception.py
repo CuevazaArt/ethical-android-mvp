@@ -11,9 +11,10 @@ import math
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from src.modules.perception.sensor_contracts import SensorSnapshot
+
     from ..kernel import EthicalKernel
     from ..kernel_lobes.models import PerceptionStageResult
-    from src.modules.perception.sensor_contracts import SensorSnapshot
 
 _log = logging.getLogger(__name__)
 

@@ -5,11 +5,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.kernel import EthicalKernel
-from src.kernel import KernelDecision
-from src.modules.ethics.absolute_evil import AbsoluteEvilResult
+from src.kernel import EthicalKernel, KernelDecision
 from src.modules.cognition.bayesian_engine import CandidateAction
-from src.modules.somatic.sympathetic import InternalState
+from src.modules.ethics.absolute_evil import AbsoluteEvilResult
 from src.modules.safety.transparency_s10 import (
     build_transparency_s10_bundle,
     discomfort_assessment_s10_3,
@@ -17,6 +15,7 @@ from src.modules.safety.transparency_s10 import (
     withdrawal_protocol_s10_2,
 )
 from src.modules.social.uchi_soto import SocialEvaluation, TrustCircle
+from src.modules.somatic.sympathetic import InternalState
 
 
 def test_s10_bundle_safe_process():

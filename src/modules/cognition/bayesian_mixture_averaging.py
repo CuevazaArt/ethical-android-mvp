@@ -15,7 +15,6 @@ Env (see ADR 0012):
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os

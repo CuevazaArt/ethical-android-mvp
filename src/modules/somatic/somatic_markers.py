@@ -8,7 +8,6 @@ See docs/proposals/README.md
 """
 # Status: SCAFFOLD
 
-
 import logging
 import math
 import os

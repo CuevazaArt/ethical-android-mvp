@@ -5,7 +5,6 @@ Keeps a stable prefix so logs can be filtered without parsing free-form strings 
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json

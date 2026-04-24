@@ -11,8 +11,8 @@ other perception backends return hostile framing.
 """
 
 import pytest
-from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 from src.modules.cognition.llm_layer import perception_from_llm_json
+from src.modules.ethics.absolute_evil import AbsoluteEvilDetector
 from src.modules.perception.perception_schema import validate_perception_dict
 
 

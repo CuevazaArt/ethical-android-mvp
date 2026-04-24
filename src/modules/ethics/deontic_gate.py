@@ -9,7 +9,6 @@ plus phrase-level conflicts; not a theorem prover for ethics.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os

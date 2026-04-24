@@ -7,7 +7,6 @@ See ``docs/proposals/README.md`` (B1).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os
@@ -16,8 +15,11 @@ from typing import Literal
 
 import numpy as np
 
+from src.modules.ethics.weighted_ethics_scorer import (
+    DEFAULT_HYPOTHESIS_WEIGHTS,
+    WeightedEthicsScorer,
+)
 from src.modules.governance.identity_integrity import hypothesis_weights_allowed
-from src.modules.ethics.weighted_ethics_scorer import DEFAULT_HYPOTHESIS_WEIGHTS, WeightedEthicsScorer
 
 FeedbackLabel = Literal["approve", "dispute", "harm_report"]
 

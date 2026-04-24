@@ -41,7 +41,6 @@ Runtime anchors: :func:`add_semantic_anchor` for DAO / ops without redeploying c
 """
 # Status: REAL
 
-
 import asyncio
 import json
 import logging
@@ -62,9 +61,9 @@ if TYPE_CHECKING:
 
 import numpy as np
 
-from src.observability.metrics import observe_embedding_error, record_semantic_malabs_outcome
-from src.modules.perception.input_trust import normalize_text_for_malabs
 from src.modules.memory.semantic_anchor_store import SemanticAnchorStore, get_anchor_store
+from src.modules.perception.input_trust import normalize_text_for_malabs
+from src.observability.metrics import observe_embedding_error, record_semantic_malabs_outcome
 
 # Default cosine zone boundaries — engineering priors (not empirically calibrated in this repo).
 # Intentional changes require review, tests, and updates to PROPOSAL_MALABS_SEMANTIC_THRESHOLD_EVIDENCE.md.
@@ -546,8 +545,7 @@ def _embed_model() -> str:
     # Use dedicated embed model if provided, otherwise fallback to the general OLLAMA_MODEL
     default_model = os.environ.get("OLLAMA_MODEL", "llama3.2:1b").strip()
     return (
-        os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", default_model).strip()
-        or default_model
+        os.environ.get("KERNEL_SEMANTIC_CHAT_EMBED_MODEL", default_model).strip() or default_model
     )
 
 

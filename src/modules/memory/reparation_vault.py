@@ -10,7 +10,6 @@ Audit lines prefix ``ReparationVaultV1:`` + JSON for machine-readable parsing.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import json

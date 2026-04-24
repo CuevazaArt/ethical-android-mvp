@@ -12,7 +12,6 @@ and epistemic_dissonance.py (v9.1 telemetry).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import math
@@ -403,7 +402,10 @@ def merge_sensor_hints_into_signals(
     when state is **doubt**, stress-like nudges from audio/ambient/biometric channels are skipped.
     """
 
-    from src.modules.perception.multimodal_trust import suppress_stress_from_spoof_risk, thresholds_from_env
+    from src.modules.perception.multimodal_trust import (
+        suppress_stress_from_spoof_risk,
+        thresholds_from_env,
+    )
 
     if snapshot is None or snapshot.is_empty():
         return signals
@@ -415,7 +417,10 @@ def merge_sensor_hints_into_signals(
     out = dict(signals)
     gain = _get_sensory_gain()
 
-    from src.modules.somatic.vitality import critical_battery_threshold, critical_temperature_threshold
+    from src.modules.somatic.vitality import (
+        critical_battery_threshold,
+        critical_temperature_threshold,
+    )
 
     crit = critical_battery_threshold()
     if snapshot.battery_level is not None and snapshot.battery_level < crit:

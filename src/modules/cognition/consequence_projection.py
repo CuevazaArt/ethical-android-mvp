@@ -9,7 +9,6 @@ These strings remain advisory / UX and LLM tone only.
 """
 # Status: PENDING-LLM
 
-
 from __future__ import annotations
 
 

@@ -8,7 +8,6 @@ See docs/proposals/README.md (Fase 4).
 """
 # Status: PENDING-LLM
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field

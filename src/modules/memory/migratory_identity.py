@@ -4,7 +4,6 @@ Handles the transition between different hardware bodies while preserving narrat
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import logging

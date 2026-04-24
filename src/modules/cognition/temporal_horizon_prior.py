@@ -11,7 +11,6 @@ See ``docs/proposals/README.md``.
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import logging
@@ -24,8 +23,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from src.modules.memory.narrative import NarrativeEpisode, NarrativeMemory
     from src.modules.ethics.weighted_ethics_scorer import WeightedEthicsScorer
+    from src.modules.memory.narrative import NarrativeEpisode, NarrativeMemory
 
 _logger = logging.getLogger(__name__)
 

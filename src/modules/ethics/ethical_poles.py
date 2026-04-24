@@ -10,7 +10,6 @@ Per-pole scores use :class:`LinearPoleEvaluator` (JSON-configurable); see ADR 00
 """
 # Status: SCAFFOLD
 
-
 from dataclasses import dataclass
 from enum import Enum
 

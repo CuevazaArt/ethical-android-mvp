@@ -1,7 +1,10 @@
 """Perception JSON coercion diagnostics (production hardening surface)."""
 
 from src.modules.cognition.llm_layer import perception_from_llm_json
-from src.modules.perception.perception_schema import PerceptionCoercionReport, validate_perception_dict
+from src.modules.perception.perception_schema import (
+    PerceptionCoercionReport,
+    validate_perception_dict,
+)
 
 
 def test_validate_perception_clean_payload_low_uncertainty():

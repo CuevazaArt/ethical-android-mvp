@@ -4,7 +4,6 @@ Handles real-time video stream acquisition from local hardware.
 """
 # Status: SCAFFOLD
 
-
 import logging
 import threading
 import time

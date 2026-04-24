@@ -11,7 +11,6 @@ so the cadence loop stays non-blocking (async preprocessing vs the hot path).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import base64

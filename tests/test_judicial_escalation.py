@@ -6,6 +6,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modules.ethics.ethical_reflection import ReflectionSnapshot
+from src.modules.governance.mock_dao import MockDAO
 from src.modules.safety.judicial_escalation import (
     EscalationPhase,
     EscalationSessionTracker,
@@ -15,7 +16,6 @@ from src.modules.safety.judicial_escalation import (
     judicial_escalation_enabled,
     should_offer_escalation_advisory,
 )
-from src.modules.governance.mock_dao import MockDAO
 
 
 def test_judicial_escalation_disabled_by_default():

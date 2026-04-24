@@ -16,7 +16,6 @@ Enables DAO operators to add/update semantic reference phrases without redeployi
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os

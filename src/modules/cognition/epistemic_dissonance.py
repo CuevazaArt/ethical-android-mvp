@@ -9,7 +9,6 @@ See docs/proposals/README.md (pillar 1).
 """
 # Status: SCAFFOLD
 
-
 from __future__ import annotations
 
 import os

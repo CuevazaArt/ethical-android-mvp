@@ -3,22 +3,22 @@ from __future__ import annotations
 import logging
 import math
 import time
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
-from src.kernel_lobes.models import SemanticState, TimeoutTrauma, MotorCommandDispatch
+from src.kernel_lobes.models import MotorCommandDispatch
 from src.modules.memory.session_checkpoint import SessionCheckpointTracker
 
 if TYPE_CHECKING:
-    from src.nervous_system.corpus_callosum import CorpusCallosum
+    from src.modules.cognition.llm_layer import LLMModule
+    from src.modules.ethics.weighted_ethics_scorer import EthicsMixtureResult
     from src.modules.governance.dao_orchestrator import DAOOrchestrator
     from src.modules.memory.immortality import ImmortalityProtocol
-    from src.modules.cognition.llm_layer import LLMModule
     from src.modules.memory.memory_hygiene import MemoryHygieneService
     from src.modules.memory.migratory_identity import MigrationHub
     from src.modules.memory.narrative import NarrativeMemory
-    from src.modules.somatic.sympathetic import InternalState
     from src.modules.social.uchi_soto import SocialEvaluation
-    from src.modules.ethics.weighted_ethics_scorer import EthicsMixtureResult
+    from src.modules.somatic.sympathetic import InternalState
+    from src.nervous_system.corpus_callosum import CorpusCallosum
 
 _log = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class MemoryLobe:
         hygiene: MemoryHygieneService | None = None,
         immortality: ImmortalityProtocol | None = None,
         llm: LLMModule | None = None,
-        bus: 'CorpusCallosum' | None = None,
+        bus: CorpusCallosum | None = None,
     ):
         self.memory = memory
         self.dao = dao
@@ -58,12 +58,12 @@ class MemoryLobe:
         """Monitor final decisions and promote them to biographic memory via tracker."""
         meta = dispatch.metadata or {}
         self.tracker.register_dispatch(dispatch, context_data=meta)
-        
+
         # Trigger DAO Auditing asynchronously if needed (Task 26.1)
         action_desc = dispatch.action_id
         if getattr(dispatch, "is_vetoed", False):
             action_desc = "VETO"
-        
+
         try:
             # Generate pseudo-episode ID for logging in DAO
             ep_id = f"ep_{dispatch.pulse_id}"
