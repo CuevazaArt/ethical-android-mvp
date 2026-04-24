@@ -1,0 +1,19 @@
+[run]
+source = src
+omit =
+    src/main.py
+    src/chat_server.py
+    src/chat_settings.py
+    src/cli/*
+    src/dao/*
+    src/runtime_profiles.py
+    src/core/status.py
+    src/core/stt.py
+    src/server/app.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    \.\.\.
