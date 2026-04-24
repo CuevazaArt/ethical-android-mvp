@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from src.core.chat import ChatEngine
 from src.core.memory import Memory
 from src.core.stt import transcribe_pcm, is_available as stt_available
+from src.core.vision import VisionEngine
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -166,6 +167,7 @@ async def websocket_nomad(websocket: WebSocket):
 
     engine = ChatEngine()
     await engine.start()
+    vision = VisionEngine()  # V2.12: stateful per-connection vision processor
 
     try:
         while True:
@@ -195,6 +197,18 @@ async def websocket_nomad(websocket: WebSocket):
                         _log.info("Nomad STT → kernel: %s", text[:80])
                         async for event in engine.turn_stream(text):
                             await websocket.send_json(event)
+
+                elif msg_type == "vision_frame":
+                    # V2.12: process JPEG frame from media_engine.js
+                    b64 = (msg.get("payload") or {}).get("image_b64", "")
+                    if b64:
+                        sig = vision.process_b64(b64)
+                        if sig:
+                            # Send vision signals back so client can update telemetry display
+                            await websocket.send_json({
+                                "type": "vision_signals",
+                                "payload": sig.to_dict(),
+                            })
 
                 elif msg_type == "audio_pcm":
                     # V2.11: PCM audio from media_engine.js → Whisper STT → turn_stream()

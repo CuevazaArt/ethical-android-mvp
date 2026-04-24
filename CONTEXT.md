@@ -45,7 +45,7 @@
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
 | Server | `src/server/app.py` |
 | Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
-| Tests | `tests/core/` + `tests/core/test_stt.py` (54 tests) |
+| Tests | `tests/core/` (57 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
@@ -57,4 +57,5 @@
 - **2026-04-24 Fase β:** V2.5-V2.7. WebSocket chat, streaming, dashboard.
 - **2026-04-24 V2.9 CLOSED (Fase γ COMPLETA):** Audio VAD en Nomad PWA. `media_engine.js`: SpeechRecognition con `interimResults`, VAD gate (RMS+onset+hangover), plain-text send a `turn_stream()` (protocolo V2). `style.css`: `.mic-active` ring pulsante + `.streaming-bubble` cursor parpadeante. Tests: 53 passed.
 - **2026-04-24 V2.10 CLOSED:** STT to Chat pipeline. Full-duplex voice loop con preemption (`speechSynthesis.cancel()` en interim) y feedback visual explícito de cruce de red. Tests: 53 passed.
-- **2026-04-24 V2.11 CLOSED:** `src/core/stt.py` — WhisperSTT con faster-whisper opcional, fallback graceful, Anti-NaN, latencia log. `app.py`: handler `audio_pcm` en /ws/nomad + `stt_available` en /api/status. Poda: 232 tests V1 muertos eliminados. Tests: 54 passed.
+- **2026-04-24 V2.11 CLOSED:** `src/core/stt.py` — WhisperSTT con faster-whisper opcional, fallback graceful, Anti-NaN, latencia log. `app.py`: handler `audio_pcm` en /ws/nomad + `stt_available` en /api/status. Tests: 57 passed.
+- **2026-04-24 PODA MAYOR:** Eliminados 232 tests V1 + 10 directorios src/ V1 (modules, nervous_system, persistence, runtime, sandbox, observability, settings, validators, simulations, utils) + 10 archivos src/server/ V1. Ninguno era importado por app.py. Órgano V2 puro.
