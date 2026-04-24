@@ -185,6 +185,17 @@ async def websocket_nomad(websocket: WebSocket):
                         async for event in engine.turn_stream(text):
                             await websocket.send_json(event)
 
+                elif msg_type == "user_speech":
+                    # V2.10: STT transcript from media_engine.js SpeechRecognition
+                    text = msg.get("text", "").strip()
+                    if text:
+                        _log.info("Nomad STT → kernel: %s", text[:80])
+                        async for event in engine.turn_stream(text):
+                            await websocket.send_json(event)
+
+                elif msg_type == "vad_event":
+                    _log.debug("Nomad VAD: %s", msg.get("payload", {}).get("state"))
+
                 else:
                     _log.debug("Nomad unknown frame: %s", msg_type)
 

@@ -28,6 +28,44 @@ const UI = {
 let wsChat = null;
 let wsNomad = null;
 let isConnected = false;
+
+// ── TTS helper — español garantizado ──────────────────────────────────────
+// Los browsers cargan voces de forma asíncrona; llamar getVoices() en el
+// primer frame devuelve [] y el browser elige la voz por defecto (puede ser IT).
+// Esta función espera a que las voces estén listas antes de hablar.
+function _speak(text) {
+    if (!('speechSynthesis' in window) || !text.trim()) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text.replace(/[*_~`#>\-]/g, '').trim());
+    utter.lang = 'es-MX';
+    utter.onstart = () => { if (UI.orb) UI.orb.classList.add('speaking'); };
+    utter.onend   = () => { if (UI.orb) UI.orb.classList.remove('speaking'); };
+
+    function _pickVoiceAndSpeak() {
+        const voices = window.speechSynthesis.getVoices();
+        // Preferencia: es-MX → cualquier es-* (excluye it-, fr-, etc)
+        const esVoice = voices.find(v => v.lang === 'es-MX')
+                     || voices.find(v => v.lang === 'es-US')
+                     || voices.find(v => v.lang === 'es-ES')
+                     || voices.find(v => v.lang.startsWith('es'));
+        if (esVoice) utter.voice = esVoice;
+        // Si no hay ninguna voz española, al menos forzar lang y dejar que el
+        // browser sintetice sin asignar voice (mejor que italiano por defecto).
+        window.speechSynthesis.speak(utter);
+    }
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        _pickVoiceAndSpeak();
+    } else {
+        // Voces no cargadas aún — esperar el evento
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.onvoiceschanged = null;
+            _pickVoiceAndSpeak();
+        };
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 /** @type {number|null} performance.now() when last bridge ping was sent (S.1.1 RTT) */
 let nomadBridgePingT0 = null;
 /** @type {ReturnType<typeof setInterval>|null} */
@@ -623,17 +661,7 @@ async function connectKernel() {
                         UI.transcript.innerText = msg;
                         UI.transcript.classList.remove('placeholder');
                     }
-                    if (msg && !data.blocked && 'speechSynthesis' in window) {
-                        window.speechSynthesis.cancel();
-                        const utter = new SpeechSynthesisUtterance(msg.replace(/[*_~`#>\-]/g, '').trim());
-                        utter.lang = 'es-MX';
-                        const voices = window.speechSynthesis.getVoices();
-                        const pref = voices.find(v => v.lang === 'es-MX') || voices.find(v => v.lang.startsWith('es')) || voices[0];
-                        if (pref) utter.voice = pref;
-                        utter.onstart = () => { if (UI.orb) UI.orb.classList.add('speaking'); };
-                        utter.onend   = () => { if (UI.orb) UI.orb.classList.remove('speaking'); };
-                        window.speechSynthesis.speak(utter);
-                    }
+                    if (msg && !data.blocked) _speak(msg);
                     UI.chatHistory.scrollTop = UI.chatHistory.scrollHeight;
                     return;
                 }
@@ -691,17 +719,7 @@ async function connectKernel() {
                             UI.transcript.classList.remove('placeholder');
                         }
                         // TTS
-                        if ('speechSynthesis' in window) {
-                            window.speechSynthesis.cancel();
-                            const utter = new SpeechSynthesisUtterance(reply.replace(/[*_~`#>\-]/g, '').trim());
-                            utter.lang = 'es-MX';
-                            const voices = window.speechSynthesis.getVoices();
-                            const preferred = voices.find(v => v.lang === 'es-MX') || voices.find(v => v.lang.startsWith('es')) || voices[0];
-                            if (preferred) utter.voice = preferred;
-                            utter.onstart = () => { if (UI.orb) UI.orb.classList.add('speaking'); };
-                            utter.onend   = () => { if (UI.orb) UI.orb.classList.remove('speaking'); };
-                            window.speechSynthesis.speak(utter);
-                        }
+                        _speak(reply);
                     }
                     return;
                 }
@@ -713,21 +731,7 @@ async function connectKernel() {
                             UI.transcript.innerText = data.text;
                             UI.transcript.classList.remove('placeholder');
                         }
-                        if ('speechSynthesis' in window) {
-                            const utterance = new SpeechSynthesisUtterance(data.text);
-                            utterance.lang = 'es-MX'; // Forzar pronunciación en español latino
-                            const voices = window.speechSynthesis.getVoices();
-                            const preferred = voices.find(v => v.lang === 'es-MX') || voices.find(v => v.lang.startsWith("es")) || voices[0];
-                            if (preferred) utterance.voice = preferred;
-                            
-                            utterance.onstart = () => {
-                                UI.orb.classList.add('speaking');
-                            };
-                            utterance.onend = () => {
-                                UI.orb.classList.remove('speaking');
-                            };
-                            window.speechSynthesis.speak(utterance);
-                        }
+                        _speak(data.text);
                     }
                 }
 
