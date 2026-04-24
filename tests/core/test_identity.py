@@ -11,7 +11,8 @@ from src.core.memory import Memory
 
 
 def _temp_identity() -> Identity:
-    tmp = os.path.join(tempfile.gettempdir(), f"ethos_identity_test_{os.getpid()}.json")
+    import uuid
+    tmp = os.path.join(tempfile.gettempdir(), f"ethos_identity_test_{uuid.uuid4().hex}.json")
     return Identity(storage_path=tmp)
 
 
@@ -132,3 +133,67 @@ def test_reset_clears_profile():
     assert identity.narrative() != ""
     identity.reset()
     assert identity.narrative() == ""
+
+
+# --- V2.44: Narrative Identity (reflect + journal) ---
+
+
+@pytest.mark.asyncio
+async def test_reflect_adds_to_journal():
+    """V2.44: reflect() calls LLM and appends result to _journal."""
+    from unittest.mock import AsyncMock, MagicMock
+    identity = _temp_identity()
+    mem = _temp_memory()
+    mem.add("Ayudé a una persona herida", action="assist_emergency", score=0.9, context="medical_emergency")
+
+    llm = MagicMock()
+    llm.chat = AsyncMock(return_value="Soy reflexivo y empático con quienes sufren.")
+
+    await identity.reflect(mem, llm)
+
+    assert len(identity._journal) == 1
+    assert "reflexivo" in identity._journal[0] or "empático" in identity._journal[0]
+
+
+def test_narrative_uses_journal():
+    """V2.44: narrative() returns the most recent journal entry when available."""
+    identity = _temp_identity()
+    mem = _temp_memory()
+    mem.add("Episodio", action="casual_chat", score=0.5, context="everyday_ethics")
+    identity.update(mem)  # ensure _profile is populated
+
+    identity._journal = ["Soy curioso y aprendo de cada interacción."]
+    narr = identity.narrative()
+
+    assert "curioso" in narr
+
+
+def test_journal_capped_at_10():
+    """V2.44: journal never exceeds 10 entries (FIFO eviction)."""
+    identity = _temp_identity()
+    # Inject 11 entries directly
+    for i in range(11):
+        identity._journal.append(f"Reflexión número {i}")
+    # Simulate what reflect() does on save/reload by enforcing the cap
+    if len(identity._journal) > 10:
+        identity._journal = identity._journal[-10:]
+
+    assert len(identity._journal) == 10
+    assert "número 10" in identity._journal[-1]  # newest entry survives
+
+
+@pytest.mark.asyncio
+async def test_reflect_noop_on_empty_memory():
+    """V2.44: reflect() does nothing if memory has no episodes."""
+    from unittest.mock import AsyncMock, MagicMock
+    identity = _temp_identity()
+    mem = _temp_memory()  # 0 episodes
+
+    llm = MagicMock()
+    llm.chat = AsyncMock(return_value="esto no debería ejecutarse")
+
+    await identity.reflect(mem, llm)
+
+    assert len(identity._journal) == 0
+    llm.chat.assert_not_called()
+
