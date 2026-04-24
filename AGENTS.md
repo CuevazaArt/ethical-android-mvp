@@ -133,8 +133,27 @@ L0 uses minimal commands. L1 interprets and acts.
 | `conflicto en [file]` | Reads file, resolves conflict, explains what was kept/dropped |
 | `poda` | Identifies unused files in src/, proposes deletions |
 | `el agente falló en X` | Generates correction prompt for same block |
+| `se cortó en V2.X` | Evaluates partial work, generates continuation prompt (see below) |
 | `cambio de oficina` | Generates context handoff summary (see below) |
 | `roster: +Model-X, -Model-Y` | Updates model roster in AGENTS.md |
+
+### Agent interruption recovery ("se cortó")
+
+When an agent's quota runs out or execution stops mid-block:
+
+1. L0 says `se cortó en V2.X` to L1.
+2. L1 checks ground truth: `git status`, `git diff`, `python -m src.core.status`, `pytest tests/core/ -q`.
+3. L1 assesses:
+   - **What was done?** Files created/modified, tests added.
+   - **What still works?** Do existing tests still pass?
+   - **What remains?** Comparing against the original prompt deliverables.
+4. L1 generates a **continuation prompt** for a new agent session. This prompt:
+   - Starts with `[CONTINUACIÓN]` not `[BLOQUE]` so the agent knows it's picking up mid-work.
+   - Lists exactly what's already done (so the agent doesn't redo it).
+   - Lists only the remaining deliverables.
+   - Includes the same `[SI TE TRABAS]` and `[REGLAS]` as the original.
+5. If the partial work broke tests → L1 generates a fix prompt instead.
+6. If the partial work is complete but uncommitted → L0 says `merge` directly.
 
 ### Context transfer between IDEs ("cambio de oficina")
 
