@@ -265,3 +265,25 @@ async def _async_gen(items):
         yield item
 
 
+@pytest.mark.asyncio
+async def test_perceive_malformed_json_fallback(engine):
+    """V2.22: Verify perceive() fallbacks gracefully if LLM returns invalid JSON."""
+    # Scenario A: LLM returns None
+    with patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value=None):
+        signals = await engine.perceive("hola")
+        assert signals.context == "everyday_ethics"
+        assert signals.risk == 0.0
+
+    # Scenario B: LLM returns non-dict (e.g. string)
+    with patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value="not a dict"):
+        signals = await engine.perceive("hola")
+        assert signals.context == "everyday_ethics"
+
+    # Scenario C: LLM returns empty dict (should use Defaults in Signals.from_dict)
+    with patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}):
+        signals = await engine.perceive("hola")
+        assert signals.risk == 0.0
+        assert signals.context == "everyday_ethics"
+
+
+
