@@ -145,6 +145,7 @@ class ChatEngine:
         self.ethics = ethics if ethics is not None else EthicalEvaluator()
         self.memory = memory if memory is not None else Memory()
         self.identity = Identity()  # V2.15: evolves with each episode
+        self._turn_count: int = 0   # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
 
     async def start(self) -> bool:
@@ -161,8 +162,11 @@ class ChatEngine:
         """
         try:
             data = await self.llm.extract_json(user_message, PERCEPTION_PROMPT, temperature=0.2)
-            if data:
+            # V2.22: Robustness against malformed or missing JSON output
+            if isinstance(data, dict):
                 return Signals.from_dict(data)
+            
+            _log.warning("LLM perception returned invalid JSON type: %s. Using keyword fallback.", type(data))
         except Exception as e:
             _log.warning("LLM perception failed, using keyword fallback: %s", e)
 
@@ -369,11 +373,10 @@ class ChatEngine:
             context=signals.context,
         )
 
-        if len(self.memory) % 5 == 0:
-            # V2.20: Update identity (I/O heavy) every 5 episodes
+        self._turn_count += 1
+        if self._turn_count % 5 == 0:
+            # V2.21: Update identity (I/O heavy) every 5 turns, not every turn
             self.identity.update(self.memory)
-            import asyncio
-            asyncio.create_task(self.memory.evolve_identity(self.llm))
 
         # 5. Update STM
         self._conversation.append({"user": user_message, "assistant": message})
@@ -469,11 +472,10 @@ class ChatEngine:
             score=score, context=signals.context,
         )
 
-        if len(self.memory) % 5 == 0:
-            # V2.20: Update identity (I/O heavy) every 5 episodes
+        self._turn_count += 1
+        if self._turn_count % 5 == 0:
+            # V2.21: Update identity (I/O heavy) every 5 turns, not every turn
             self.identity.update(self.memory)
-            import asyncio
-            asyncio.create_task(self.memory.evolve_identity(self.llm))
 
         # 5. STM
         self._conversation.append({"user": user_message, "assistant": message})
