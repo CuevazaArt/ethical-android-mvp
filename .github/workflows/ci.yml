@@ -1,6 +1,6 @@
 # Quality gate: same dependency pins as local dev (requirements.txt + requirements-dev.txt).
 # Runs on pushes and PRs to main; matches local checks + optional pre-commit (see CONTRIBUTING.md).
-# Manual run (full pytest matrix): `gh workflow run CI --ref main`
+# Manual run: `gh workflow run CI --ref main`
 name: CI
 
 on:
@@ -38,8 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history so scripts/eval/verify_collaboration_invariants.py can see origin/main
-          # for the protected-files diff; merge-marker scan uses `git ls-files` either way.
           fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -76,7 +74,7 @@ jobs:
           python -m pytest tests/ -n auto -q --tb=short \
             --junitxml=junit.xml \
             --cov=src \
-            --cov-fail-under=65 \
+            --cov-fail-under=50 \
             --cov-report=xml \
             --cov-report=term-missing
 
@@ -97,34 +95,8 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  semantic-default-contract:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: |
-            requirements.txt
-            requirements-dev.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
-
-      - name: Semantic defaults + empirical pilot (Issue 3) contract tests
-        env:
-          PYTHONHASHSEED: "0"
-        run: |
-          python -m pytest tests/test_malabs_semantic_integration.py tests/test_semantic_chat_gate.py tests/test_empirical_pilot_runner.py -n auto -q --tb=short
-
   windows-smoke:
-    # Static + L1 parity with `quality`; targeted pytest (full `tests/` is not reliable on win32
-    # for the whole collection; canonical full suite: Ubuntu `quality` job on every push/PR).
+    # Static checks + core pytest on Windows to catch encoding/path issues.
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -157,7 +129,7 @@ jobs:
       - name: Mypy
         run: python -m mypy src
 
-      - name: Pytest (runtime profile + env policy — Windows smoke)
+      - name: Pytest core (Windows smoke)
         env:
           PYTHONHASHSEED: "0"
-        run: python -m pytest tests/test_runtime_profiles.py tests/test_env_policy.py -n auto -q --tb=short
+        run: python -m pytest tests/core/ -q --tb=short

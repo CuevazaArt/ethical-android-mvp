@@ -4,7 +4,8 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
-## [2026-04-24] V2 Stabilization Pulse (L1 Audit) - Antigravity (L1)
+## [2026-04-24] V2 Stabilization Pulse — L1 Audit
+### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
 - **Infraestructura:** Creado `src/kernel.py` (V2 Bridge) para restaurar compatibilidad con scripts legacy tras la consolidación V2 (src/core).
 - **Correcciones:** Reparado SyntaxError en `src/core/safety.py` (compatibilidad Python 3.11).
@@ -12,11 +13,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **Estado:** Fase 15 [CERRADA] -> Iniciando Fase 16 (Estabilización V2).
 
 
-## [2026-04-24] V2.25 — Fase 16 COMPLETA: Documentación y Cierre — Antigravity (L1)
+## [2026-04-24] V2.25 — Fase 16 COMPLETA
+### Antigravity (L1)
 - **Bloque 40.2 DONE:** `README.md` reescrito para reflejar V2 Core Minimal real.
 - **Fase 16 CERRADA:** Todos los bloques (40.0, 40.1, 40.2) completados. Cero imports legacy. Bridge eliminado. 91 tests ✅.
 - **Arquitectura V2:** `src/core/` es la única fuente de verdad. `ChatEngine` orquesta todo el pipeline Safety→Perceive→Evaluate→Respond→Memory.
-
 
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
