@@ -168,6 +168,7 @@ async def websocket_nomad(websocket: WebSocket):
     engine = ChatEngine()
     await engine.start()
     vision = VisionEngine()  # V2.12: stateful per-connection vision processor
+    _last_vision: dict | None = None   # V2.13: last vision signals for context injection
 
     try:
         while True:
@@ -187,27 +188,27 @@ async def websocket_nomad(websocket: WebSocket):
                 elif msg_type == "chat_text":
                     text = (msg.get("payload") or {}).get("text", "")
                     if text:
-                        async for event in engine.turn_stream(text):
+                        async for event in engine.turn_stream(text, vision_context=_last_vision):
                             await websocket.send_json(event)
 
                 elif msg_type == "user_speech":
                     # V2.10: STT transcript from media_engine.js SpeechRecognition
                     text = msg.get("text", "").strip()
                     if text:
-                        _log.info("Nomad STT → kernel: %s", text[:80])
-                        async for event in engine.turn_stream(text):
+                        _log.info("Nomad STT -> kernel: %s", text[:80])
+                        async for event in engine.turn_stream(text, vision_context=_last_vision):
                             await websocket.send_json(event)
 
                 elif msg_type == "vision_frame":
-                    # V2.12: process JPEG frame from media_engine.js
+                    # V2.12+V2.13: process JPEG frame, cache signals for next turn
                     b64 = (msg.get("payload") or {}).get("image_b64", "")
                     if b64:
                         sig = vision.process_b64(b64)
                         if sig:
-                            # Send vision signals back so client can update telemetry display
+                            _last_vision = sig.to_dict()
                             await websocket.send_json({
                                 "type": "vision_signals",
-                                "payload": sig.to_dict(),
+                                "payload": _last_vision,
                             })
 
                 elif msg_type == "audio_pcm":

@@ -197,25 +197,26 @@ class ChatEngine:
         signals.summary = text[:100]
         return signals
 
-    async def respond(
+    def _build_system(
         self,
         user_message: str,
         signals: Signals,
         evaluation: EvalResult | None = None,
+        vision_context: dict | None = None,
     ) -> str:
         """
-        Step 3: Generate the verbal response.
-        The LLM speaks; the ethics inform the tone, not the content.
+        Build the full system prompt: ethics + history + memory + vision.
+        Single source of truth — used by both respond() and respond_stream().
         """
-        # Build the system prompt with ethical context
         system = RESPONSE_PROMPT
+
+        # Ethical context
         if evaluation:
             system += f"\n\nContexto ético: Acción elegida='{evaluation.chosen.name}', veredicto='{evaluation.verdict}', modo='{evaluation.mode}'."
             if signals.context != "everyday_ethics":
                 system += f"\nSituación detectada: {signals.context}."
 
-        # Inject conversation history into system prompt (not user_block)
-        # This avoids confusing small models that repeat prior answers.
+        # Conversation history (STM)
         if self._conversation:
             history_lines = []
             for turn in self._conversation[-4:]:
@@ -223,18 +224,50 @@ class ChatEngine:
                 history_lines.append(f"Tú: {turn['assistant']}")
             system += "\n\nHistorial reciente:\n" + "\n".join(history_lines)
 
-        # Memory context
+        # Long-term memory recall
         relevant = self.memory.recall(user_message, limit=2)
         if relevant:
             mem_context = "\n".join(f"- {ep.summary}" for ep in relevant)
             system += f"\n\nRecuerdos relevantes:\n{mem_context}"
 
+        # V2.13: Physical environment from Nomad vision
+        if vision_context:
+            parts = []
+            brightness = vision_context.get("brightness")
+            motion = vision_context.get("motion")
+            faces = vision_context.get("faces_detected")
+            low_light = vision_context.get("low_light")
+            if brightness is not None:
+                if low_light:
+                    parts.append("el entorno tiene poca luz")
+                elif brightness > 0.8:
+                    parts.append("el entorno está muy iluminado")
+            if motion is not None and motion > 0.15:
+                parts.append(f"hay movimiento detectado (intensidad {motion:.2f})")
+            if faces is not None and faces > 0:
+                parts.append(f"{faces} persona(s) visible(s) en cámara")
+            if parts:
+                system += "\n\nEntorno físico del usuario: " + ", ".join(parts) + "."
+
+        return system
+
+    async def respond(
+        self,
+        user_message: str,
+        signals: Signals,
+        evaluation: EvalResult | None = None,
+        vision_context: dict | None = None,
+    ) -> str:
+        """
+        Step 3: Generate the verbal response.
+        The LLM speaks; the ethics inform the tone, not the content.
+        """
+        system = self._build_system(user_message, signals, evaluation, vision_context)
         try:
             response = await self.llm.chat(user_message, system, temperature=0.7)
             return response.strip()
         except Exception as e:
             _log.error("LLM response failed: %s", e)
-            # Fallback: at least say something
             if evaluation and evaluation.chosen.name == "assist_emergency":
                 return "Voy a buscar ayuda inmediatamente. No te muevas."
             return "Estoy aquí. ¿En qué puedo ayudarte?"
@@ -244,29 +277,13 @@ class ChatEngine:
         user_message: str,
         signals: Signals,
         evaluation: EvalResult | None = None,
+        vision_context: dict | None = None,
     ):
         """
         Streaming variant of respond(). Yields text tokens as they arrive.
-        Same system prompt logic — no duplication.
+        Uses _build_system() — no duplication.
         """
-        system = RESPONSE_PROMPT
-        if evaluation:
-            system += f"\n\nContexto ético: Acción elegida='{evaluation.chosen.name}', veredicto='{evaluation.verdict}', modo='{evaluation.mode}'."
-            if signals.context != "everyday_ethics":
-                system += f"\nSituación detectada: {signals.context}."
-
-        if self._conversation:
-            history_lines = []
-            for turn in self._conversation[-4:]:
-                history_lines.append(f"Usuario: {turn['user']}")
-                history_lines.append(f"Tú: {turn['assistant']}")
-            system += "\n\nHistorial reciente:\n" + "\n".join(history_lines)
-
-        relevant = self.memory.recall(user_message, limit=2)
-        if relevant:
-            mem_context = "\n".join(f"- {ep.summary}" for ep in relevant)
-            system += f"\n\nRecuerdos relevantes:\n{mem_context}"
-
+        system = self._build_system(user_message, signals, evaluation, vision_context)
         try:
             async for token in self.llm.chat_stream(user_message, system, temperature=0.7):
                 yield token
@@ -345,10 +362,11 @@ class ChatEngine:
             },
         )
 
-    async def turn_stream(self, user_message: str):
+    async def turn_stream(self, user_message: str, vision_context: dict | None = None):
         """
         Streaming variant of turn(). Same pipeline, but yields tokens as they arrive.
         Yields dicts: {"type": "token", "content": "..."} or {"type": "done", ...}
+        vision_context: optional VisionSignals dict to inject physical env into prompt.
         """
         # 0. Safety gate
         user_message = sanitize(user_message)
@@ -380,7 +398,7 @@ class ChatEngine:
 
         # 3. Stream response
         full_response = []
-        async for token in self.respond_stream(user_message, signals, evaluation):
+        async for token in self.respond_stream(user_message, signals, evaluation, vision_context):
             full_response.append(token)
             yield {"type": "token", "content": token}
 
