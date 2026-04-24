@@ -48,13 +48,9 @@ def cmd_diagnostics(args: argparse.Namespace) -> int:
 def cmd_config(args: argparse.Namespace) -> int:
     """Show active environment config."""
     import os
-    from src.validators.env_policy import validate_kernel_env
-    from src.runtime_profiles import apply_named_runtime_profile_to_environ
 
     if args.profiles:
-        from src.runtime_profiles import describe_profiles
-        for name, desc in sorted(describe_profiles().items()):
-            print(f"{name}: {desc}")
+        print("No runtime profiles configured (V2 Core Minimal).")
         return 0
 
     report = {
@@ -67,12 +63,12 @@ def cmd_config(args: argparse.Namespace) -> int:
     exit_code = 0
 
     if args.strict:
-        try:
-            validate_kernel_env(mode="strict")
-            report["strict_validation"] = {"ok": True}
-        except ValueError as e:
-            report["strict_validation"] = {"ok": False, "error": str(e)}
+        model = report["OLLAMA_MODEL"]
+        if not model:
+            report["strict_validation"] = {"ok": False, "error": "OLLAMA_MODEL is empty"}
             exit_code = 1
+        else:
+            report["strict_validation"] = {"ok": True}
 
     if args.json:
         print(json.dumps(report, indent=2))
@@ -82,6 +78,7 @@ def cmd_config(args: argparse.Namespace) -> int:
     for k, v in report.items():
         print(f"  {k}: {v}")
     return exit_code
+
 
 
 def _build_parser() -> argparse.ArgumentParser:
