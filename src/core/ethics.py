@@ -158,31 +158,58 @@ class EthicalEvaluator:
     def _find_similar_precedent(self, action: Action, signals: Signals) -> tuple[Precedent | None, float]:
         """
         Find the most similar precedent for the current action and signals.
-        Returns (Precedent, similarity_score).
+
+        Similarity factors (V2.46):
+          1. Action name match (0.40 weight) — exact string match.
+          2. Signal vector proximity (0.45 weight) — normalized L1 distance
+             over shared keys, clamped to [0,1].
+          3. Summary keyword overlap (0.15 weight) — common words between
+             signals.summary and precedent.reasoning.
+
+        Returns (Precedent, similarity_score in [0, 1]).
+        Anti-NaN: any non-finite intermediate → 0.0.
         """
         best_p = None
         best_sim = -1.0
 
+        summary_words = set(signals.summary.lower().split()) if signals.summary else set()
+
         for p in PRECEDENTS:
             if p.context != signals.context:
                 continue
-            
-            # Simple similarity: match action name + overlap in signals
-            sim = 0.5 if p.action_name == action.name else 0.0
-            
-            # Signal similarity (manhattan distance-ish)
+
+            # Factor 1: action name
+            action_match = 0.40 if p.action_name == action.name else 0.0
+
+            # Factor 2: signal vector proximity
             sig_sim = 0.0
             shared_keys = set(p.signals.keys()) & set(signals.__dict__.keys())
             if shared_keys:
-                diff = sum(abs(p.signals[k] - getattr(signals, k)) for k in shared_keys)
-                sig_sim = 1.0 - (diff / len(shared_keys))
-            
-            total_sim = sim + 0.5 * sig_sim
+                diffs = [abs(p.signals[k] - getattr(signals, k, 0.0)) for k in shared_keys]
+                raw_diff = sum(diffs) / len(shared_keys)
+                sig_sim = max(0.0, 1.0 - raw_diff)
+                if not math.isfinite(sig_sim):
+                    sig_sim = 0.0
+            signal_score = 0.45 * sig_sim
+
+            # Factor 3: reasoning/summary keyword overlap
+            reasoning_words = set(p.reasoning.lower().split())
+            if summary_words and reasoning_words:
+                overlap = len(summary_words & reasoning_words) / max(len(summary_words), 1)
+                text_score = 0.15 * min(1.0, overlap * 5)  # scale: 20% overlap → max
+            else:
+                text_score = 0.0
+
+            total_sim = action_match + signal_score + text_score
+            if not math.isfinite(total_sim):
+                total_sim = 0.0
+
             if total_sim > best_sim:
                 best_sim = total_sim
                 best_p = p
 
         return best_p, best_sim
+
 
     def evaluate(self, actions: list[Action], signals: Signals) -> EvalResult:
         """
