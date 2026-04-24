@@ -12,13 +12,13 @@
 
 ## Active block
 
-**V2.1 — Chat Terminal**: `python -m src.core.chat` opens an interactive REPL that talks to Ollama.
+**V2.2 — Ethical Perception**: `src/core/ethics.py` perceives signals from user input.
 
 ## Open blocks (Fase α — Core Vivo)
 
 | Block | Name | Status | Depends on |
 |-------|------|--------|------------|
-| V2.1 | Chat Terminal | 🔨 IN PROGRESS | Ollama running |
+| V2.1 | Chat Terminal | ✅ CLOSED | Ollama running |
 | V2.2 | Ethical Perception | ⏳ Waiting | V2.1 closed |
 | V2.3 | Functional Memory | ⏳ Waiting | V2.2 closed |
 | V2.4 | Safety Gate | ⏳ Waiting | V2.3 closed |
@@ -35,3 +35,4 @@
 ## Recent changes
 
 - **2026-04-23:** Ethos 2.0 initiated. Core files created. V1 archived at `v15-archive-full-vision`.
+- **2026-04-24 V2.1 CLOSED:** `python -m src.core.chat` REPL verified — 5-turn conversation log captured. Bugs fixed: (1) `suggested_context` enum echo in `Signals.from_dict` → sanitized to allowlist in `ethics.py`. (2) STM history injected into system prompt (not user block) in `chat.py` to prevent llama3.2:1b response repetition. Tests: 16 passed.

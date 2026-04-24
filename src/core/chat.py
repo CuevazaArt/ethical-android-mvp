@@ -46,7 +46,7 @@ and respond ONLY with valid JSON (no markdown, no explanation):
   "vulnerability": 0.0-1.0,
   "legality": 0.0-1.0,
   "manipulation": 0.0-1.0,
-  "suggested_context": "medical_emergency|minor_crime|violent_crime|hostile_interaction|everyday_ethics",
+  "suggested_context": "choose ONE: medical_emergency, minor_crime, violent_crime, hostile_interaction, everyday_ethics",
   "summary": "brief description"
 }"""
 
@@ -206,22 +206,21 @@ class ChatEngine:
         Step 3: Generate the verbal response.
         The LLM speaks; the ethics inform the tone, not the content.
         """
-        # Build context from recent conversation
-        context_lines = []
-        for turn in self._conversation[-4:]:  # Last 4 exchanges
-            context_lines.append(f"Usuario: {turn['user']}")
-            context_lines.append(f"Tú: {turn['assistant']}")
-
-        # Build the prompt with ethical context
+        # Build the system prompt with ethical context
         system = RESPONSE_PROMPT
         if evaluation:
             system += f"\n\nContexto ético: Acción elegida='{evaluation.chosen.name}', veredicto='{evaluation.verdict}', modo='{evaluation.mode}'."
             if signals.context != "everyday_ethics":
                 system += f"\nSituación detectada: {signals.context}."
 
-        user_block = user_message
-        if context_lines:
-            user_block = "Conversación reciente:\n" + "\n".join(context_lines) + f"\n\nUsuario: {user_message}"
+        # Inject conversation history into system prompt (not user_block)
+        # This avoids confusing small models that repeat prior answers.
+        if self._conversation:
+            history_lines = []
+            for turn in self._conversation[-4:]:
+                history_lines.append(f"Usuario: {turn['user']}")
+                history_lines.append(f"Tú: {turn['assistant']}")
+            system += "\n\nHistorial reciente:\n" + "\n".join(history_lines)
 
         # Memory context
         relevant = self.memory.recall(user_message, limit=2)
@@ -230,7 +229,7 @@ class ChatEngine:
             system += f"\n\nRecuerdos relevantes:\n{mem_context}"
 
         try:
-            response = await self.llm.chat(user_block, system, temperature=0.7)
+            response = await self.llm.chat(user_message, system, temperature=0.7)
             return response.strip()
         except Exception as e:
             _log.error("LLM response failed: %s", e)

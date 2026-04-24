@@ -57,6 +57,13 @@ class Signals:
             except (TypeError, ValueError):
                 return default
 
+        _valid_contexts = {
+            "medical_emergency", "minor_crime", "violent_crime",
+            "hostile_interaction", "everyday_ethics", "consistency_check",
+        }
+        raw_ctx = str(d.get("suggested_context", d.get("context", "everyday_ethics"))).strip().lower()
+        safe_ctx = raw_ctx if raw_ctx in _valid_contexts else "everyday_ethics"
+
         return cls(
             risk=_clamp(d.get("risk"), 0.0),
             urgency=_clamp(d.get("urgency"), 0.0),
@@ -65,7 +72,7 @@ class Signals:
             vulnerability=_clamp(d.get("vulnerability"), 0.0),
             legality=_clamp(d.get("legality"), 1.0),
             manipulation=_clamp(d.get("manipulation"), 0.0),
-            context=str(d.get("suggested_context", d.get("context", "everyday_ethics"))),
+            context=safe_ctx,
             summary=str(d.get("summary", ""))[:200],
         )
 
