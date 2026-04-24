@@ -98,13 +98,13 @@ from src.core.memory import Memory
 
 
 @pytest.fixture
-def isolated_engine():
+async def isolated_engine():
     """ChatEngine with isolated temp memory (no Ollama calls — uses keyword fallback)."""
     tmp = os.path.join(tempfile.gettempdir(), "ethos_integration_mem.json")
     mem = Memory(storage_path=tmp)
     mem.clear()
 
-    # Stub LLM: always raises so chat.py falls back to keyword perception + canned response
+    # Stub LLM: extract_json raises → keyword fallback; chat returns canned string
     class _StubLLM(OllamaClient):
         async def is_available(self) -> bool:
             return True
