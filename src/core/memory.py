@@ -2,10 +2,12 @@
 Ethos Core — Memory (V2 Minimal)
 
 Does ONE thing: stores episodes and retrieves relevant ones.
-No ChromaDB, no embeddings, no narrative identity epochs.
-Just a list of memories with keyword search.
 
-When we need semantic search later, we add it ON TOP of this.
+Retrieval backends (auto-selected at runtime):
+  1. Sentence embeddings  — if `sentence-transformers` is installed (V2.43).
+     Uses `all-MiniLM-L6-v2` (80 MB). Enables synonym-aware, semantic recall.
+  2. TF-IDF              — stdlib-only fallback, always available.
+  3. Keyword overlap      — ultra-light fallback for tiny corpora (<5 episodes).
 
 Usage:
     mem = Memory()
@@ -22,6 +24,16 @@ import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+
+# V2.43: Optional sentence-transformers backend
+try:
+    from sentence_transformers import SentenceTransformer  # type: ignore
+    import numpy as np  # type: ignore
+    _EMBEDDINGS_AVAILABLE = True
+except ImportError:
+    _EMBEDDINGS_AVAILABLE = False
+    SentenceTransformer = None  # type: ignore
+    np = None  # type: ignore
 
 
 @dataclass
@@ -87,8 +99,18 @@ class Memory:
         )
         self.identity: str = "Soy una IA ética cívica, dispuesta a ayudar y aprender."
         self.episodes: list[Episode] = []
-        self._idf_cache: dict[str, float] | None = None  # V2.16: TF-IDF cache
+        self._idf_cache: dict[str, float] | None = None  # TF-IDF cache
+
+        # V2.43: Semantic embeddings (lazy-loaded)
+        self._embed_model: object | None = None
+        self._embed_cache: dict[str, object] = {}  # hash → np.ndarray
+        self._episode_vecs: list[object] = []       # parallel to self.episodes
+
         self._load()
+        # Pre-compute embeddings for loaded episodes if backend is available
+        if _EMBEDDINGS_AVAILABLE and self.episodes:
+            self._ensure_embed_model()
+            self._rebuild_episode_vecs()
 
     def _load(self) -> None:
         """Load episodes and identity from disk if file exists."""
@@ -136,10 +158,56 @@ class Memory:
         # Evict oldest if over capacity
         if len(self.episodes) > self.max_episodes:
             self.episodes = self.episodes[-self.max_episodes :]
+            if self._episode_vecs:
+                self._episode_vecs = self._episode_vecs[-self.max_episodes :]
 
-        self._idf_cache = None  # Invalidate TF-IDF cache on new episode
+        self._idf_cache = None  # Invalidate TF-IDF cache
+
+        # V2.43: Pre-compute embedding for the new episode
+        if _EMBEDDINGS_AVAILABLE:
+            self._ensure_embed_model()
+            vec = self._embed(f"{summary} {action} {context}")
+            self._episode_vecs.append(vec)
+
         self.save()
         return ep
+
+    # ── Embedding backend (V2.43) ──────────────────────────────────────────────
+
+    def _ensure_embed_model(self) -> None:
+        """Lazy-load the sentence-transformers model (first call only)."""
+        if self._embed_model is None and _EMBEDDINGS_AVAILABLE:
+            self._embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    def _embed(self, text: str) -> "np.ndarray":
+        """
+        Compute and cache the embedding vector for a text.
+        Cache key: hash of the text string.
+        Anti-NaN: returns zero-vector on any failure.
+        """
+        key = str(hash(text))
+        if key not in self._embed_cache:
+            try:
+                vec = self._embed_model.encode(text, normalize_embeddings=True)  # type: ignore
+                self._embed_cache[key] = vec
+            except Exception:
+                self._embed_cache[key] = np.zeros(384, dtype="float32")  # type: ignore
+        return self._embed_cache[key]  # type: ignore
+
+    def _rebuild_episode_vecs(self) -> None:
+        """Rebuild the episode vector list from scratch (called on load)."""
+        texts = [f"{ep.summary} {ep.action} {ep.context}" for ep in self.episodes]
+        try:
+            vecs = self._embed_model.encode(texts, normalize_embeddings=True, show_progress_bar=False)  # type: ignore
+            self._episode_vecs = list(vecs)
+        except Exception:
+            self._episode_vecs = []
+
+    @staticmethod
+    def _cosine(a: "np.ndarray", b: "np.ndarray") -> float:
+        """Cosine similarity of two pre-normalized unit vectors. Anti-NaN."""
+        val = float(np.dot(a, b))  # type: ignore
+        return val if math.isfinite(val) else 0.0
 
     # ── TF-IDF ──────────────────────────────────────────────────────────────
 
@@ -151,13 +219,11 @@ class Memory:
         n = len(self.episodes)
         df: dict[str, int] = Counter()
         for ep in self.episodes:
-            # Count each term once per document (set)
             for term in set(ep._words()):
                 df[term] += 1
 
         idf: dict[str, float] = {}
         for term, doc_freq in df.items():
-            # Smoothed IDF: log((1+N)/(1+df)) + 1
             val = math.log((1.0 + n) / (1.0 + doc_freq)) + 1.0
             idf[term] = val if math.isfinite(val) else 1.0
 
@@ -167,19 +233,33 @@ class Memory:
     def recall(self, query: str, limit: int = 5) -> list[Episode]:
         """
         Find the most relevant episodes for a query.
-        Uses TF-IDF when corpus >= 5 episodes; falls back to keyword overlap for small corpora.
+
+        Routing (V2.43):
+          - Embeddings available + ≥1 episode → cosine similarity on sentence vectors.
+          - Corpus ≥ 5 episodes (no embeddings) → TF-IDF.
+          - Corpus < 5 episodes (no embeddings) → keyword overlap.
         """
         if not self.episodes or not query.strip():
             return []
 
-        query_words = query.lower().split()
+        # ── Path 1: Semantic embeddings ──
+        if _EMBEDDINGS_AVAILABLE and self._episode_vecs and len(self._episode_vecs) == len(self.episodes):
+            self._ensure_embed_model()
+            query_vec = self._embed(query)
+            scored = [
+                (ep, self._cosine(query_vec, vec))
+                for ep, vec in zip(self.episodes, self._episode_vecs)
+            ]
+            scored.sort(key=lambda x: x[1], reverse=True)
+            return [ep for ep, score in scored[:limit] if score > 0.05]
 
+        # ── Path 2: TF-IDF ──
+        query_words = query.lower().split()
         if len(self.episodes) >= 5:
-            # TF-IDF path: corpus-aware retrieval
             idf = self._build_idf()
             scored = [(ep, ep.matches_tfidf(query_words, idf)) for ep in self.episodes]
         else:
-            # Keyword fallback: corpus too small for meaningful IDF
+            # ── Path 3: Keyword overlap ──
             scored = [(ep, ep.matches(query)) for ep in self.episodes]
 
         scored.sort(key=lambda x: x[1], reverse=True)
