@@ -21,7 +21,7 @@
 | V2.1 | Chat Terminal | ✅ CLOSED | Ollama running |
 | V2.2 | Ethical Perception | ✅ CLOSED | V2.1 closed |
 | V2.3 | Functional Memory | ✅ CLOSED | V2.2 closed |
-| V2.4 | Safety Gate | ⏳ Waiting | V2.3 closed |
+| V2.4 | Safety Gate | 🔨 IN PROGRESS | V2.3 closed |
 
 ## Key files for current work
 
@@ -37,4 +37,4 @@
 - **2026-04-23:** Ethos 2.0 initiated. Core files created. V1 archived at `v15-archive-full-vision`.
 - **2026-04-24 V2.1 CLOSED:** `python -m src.core.chat` REPL verified — 5-turn conversation log captured. Bugs fixed: (1) `suggested_context` enum echo en `Signals.from_dict` → sanitized to allowlist en `ethics.py`. (2) STM history injected into system prompt en `chat.py`. Tests: 16 passed.
 - **2026-04-24 V2.2 CLOSED:** 3 tests de integración añadidos en `test_ethics.py`: sanitización de contexto, pipeline completo emergencia médica, pipeline completo interacción hostil. Tests: 19 passed.
-- **2026-04-24 V2.3 CLOSED:** 3 tests de integración de memoria añadidos en `test_memory.py`: acumulación por turno, recall por contexto, scores finitos. Fixture async para evitar scope mismatch con pytest-asyncio. Tests: 31 passed.
+- **2026-04-24 V2.3 CLOSED:** 3 tests de integración de memoria añadidos en `test_memory.py`: acumulación por turno, recall por contexto, scores finitos. + 3 tests V2.3 en `test_chat.py`: cross-session persistence, recall injection into LLM prompt, reflection. Fix empty-Memory falsy bug. Tests: 34 passed.

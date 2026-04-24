@@ -181,3 +181,56 @@ async def test_turn_records_episode(engine):
     assert len(engine.memory) == 1
     assert "hola" in engine.memory.episodes[0].summary.lower()
 
+
+# --- V2.3: Cross-session memory ---
+
+
+@pytest.mark.asyncio
+async def test_cross_session_persistence(engine):
+    """Episodes from session 1 must be loadable in session 2."""
+    # Session 1: record an episode
+    engine.memory.clear()
+    with (
+        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(engine.llm, "chat", new_callable=AsyncMock, return_value="Te ayudo"),
+    ):
+        await engine.turn("hay alguien herido en el parque")
+
+    # Session 2: new engine, same storage path
+    from src.core.memory import Memory
+
+    mem2 = Memory(storage_path=engine.memory._storage_path)
+    assert len(mem2) >= 1
+    assert "herido" in mem2.episodes[0].summary.lower()
+
+
+@pytest.mark.asyncio
+async def test_respond_injects_recalled_memories(engine):
+    """The respond method must include relevant memories in the system prompt."""
+    engine.memory.clear()
+    engine.memory.add("Previously helped an injured person", score=0.9, context="medical")
+
+    captured_system = {}
+
+    async def mock_chat(user_msg, system="", **kw):
+        captured_system["prompt"] = system
+        return "Recuerdo eso."
+
+    with (
+        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(engine.llm, "chat", new_callable=AsyncMock, side_effect=mock_chat),
+    ):
+        await engine.turn("tell me about injured people")
+
+    assert "injured" in captured_system["prompt"].lower()
+
+
+def test_reflection_contains_experience_summary(engine):
+    """Memory reflection must summarize count, tone, and top context."""
+    engine.memory.clear()
+    engine.memory.add("Helped someone", score=0.8, context="medical")
+    engine.memory.add("Had a chat", score=0.3, context="everyday")
+    r = engine.memory.reflection()
+    assert "2" in r
+    assert "medical" in r or "everyday" in r
+
