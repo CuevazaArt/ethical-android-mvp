@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.16 — Dashboard Identity Telemetry**: Exponer el perfil de identidad en `/api/status` y visualizarlo en el dashboard.
+**V2.17 — Adversarial Hardening Round 2**: Reforzar el safety gate contra nuevos vectores de evasion detectados en campo.
 
 ## Closed blocks
 
@@ -40,7 +40,8 @@
 | V2.13 | Vision → Kernel context | ✅ CLOSED | V2.12 closed |
 | V2.14 | Nomad PWA HTTPS | ✅ CLOSED | V2.13 closed |
 | V2.15 | Identity Neuroplasticity | ✅ CLOSED | V2.14 closed |
-| V2.16 | Dashboard Identity Telemetry | 🔨 IN PROGRESS | V2.15 closed |
+| V2.16 | Dashboard Identity Telemetry | ✅ CLOSED | V2.15 closed |
+| V2.17 | Adversarial Hardening R2 | 🔨 IN PROGRESS | V2.16 closed |
 
 ## Key files
 
@@ -66,4 +67,5 @@
 - **2026-04-24 V2.12 CLOSED:** `src/core/vision.py` — VisionEngine procesa JPEG base64, extrae brillo/movimiento/rostros con latencia perf_counter y Anti-NaN. Handler `vision_frame` en /ws/nomad → envía `vision_signals` al cliente. 11 tests en test_vision.py. 68 passed.
 - **2026-04-24 V2.13 CLOSED:** `chat.py` refactorizado con `_build_system()` — Single Source of Truth para system prompt. `turn_stream(vision_context=dict|None)` inyecta entorno físico (luz, movimiento, rostros) al prompt. `app.py`: `_last_vision` cacheado por conexión, pasado en los 3 handlers (chat_text, user_speech, audio_pcm). 68 passed.
 - **2026-04-24 V2.14 CLOSED:** `scripts/gen_cert.py` — cert RSA-2048 auto-firmado con SAN (Python-puro, `cryptography`), idempotente. `README_HTTPS.md` con 5 pasos (Android/iOS). Demo: SHA256 verificado, SSL context OK, 68 passed.
-- **2026-04-24 V2.15 CLOSED:** `src/core/memory.py` ampliado con neuroplasticidad de identidad. Agregada propiedad `identity` y método `evolve_identity` asíncrono para mutación basada en el LLM. Migración transparente de JSON flat-list a formato dict. `chat.py` inyecta `identity` al system prompt y evalúa la memoria cada 5 turnos. Tests de migración pasaron limpiamente.
+- **2026-04-24 V2.15 CLOSED:** `src/core/identity.py` — clase `Identity` con `update(memory)` + `narrative()`. Perfil persiste en `~/.ethos/identity.json`. Detecta tendencia ética (mejorando/estable/deteriorando), contextos y acciones dominantes, ratio de safety blocks. Anti-NaN en todos los cálculos. Integrado en `_build_system()` de `chat.py`. 79 passed.
+- **2026-04-24 V2.16 CLOSED:** Dashboard actualizado con 2 cards nuevas (Score ético con color dinámico + Tendencia con emoji) y panel de Narrativa de identidad. JS: `TREND_LABEL` map + `scoreColor()`. Todo inline en `app.py`. 79 passed.

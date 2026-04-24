@@ -99,13 +99,24 @@ a{color:#58a6ff;text-decoration:none}
   <div class="card"><div class="label">Episodios en memoria</div><div class="value" id="episodes">…</div></div>
   <div class="card"><div class="label">Uptime servidor</div><div class="value yellow" id="uptime">…</div></div>
   <div class="card"><div class="label">Estado</div><div class="value" id="status">…</div></div>
+  <div class="card"><div class="label">Score ético</div><div class="value" id="eth-score">…</div></div>
+  <div class="card"><div class="label">Tendencia</div><div class="value" id="eth-trend">…</div></div>
+</div>
+<div class="reflection" style="margin-bottom:1rem">
+  <div class="label">Narrativa de identidad</div>
+  <div class="text" id="identity-narrative">…</div>
 </div>
 <div class="reflection">
-  <div class="label">Reflexión de identidad</div>
+  <div class="label">Reflexión de memoria</div>
   <div class="text" id="reflection">…</div>
 </div>
 <footer>Actualización automática cada 5s · <a href="/">↩ Chat</a></footer>
 <script>
+const TREND_LABEL = {mejorando:'📈 Mejorando', deteriorando:'📉 Deteriorando', estable:'⚖️ Estable'};
+function scoreColor(v) {
+  if (v === null || v === undefined) return '';
+  return v > 0.65 ? 'color:#3fb950' : v > 0.35 ? 'color:#d29922' : 'color:#f85149';
+}
 async function refresh() {
   try {
     const r = await fetch('/api/status');
@@ -115,6 +126,13 @@ async function refresh() {
     document.getElementById('uptime').textContent = d.uptime;
     document.getElementById('status').textContent = d.status === 'online' ? '🟢 Online' : '🔴 Offline';
     document.getElementById('reflection').textContent = d.memory_reflection;
+    const prof = d.identity_profile || {};
+    const score = prof.avg_ethical_score ?? null;
+    const scoreEl = document.getElementById('eth-score');
+    scoreEl.textContent = score !== null ? score.toFixed(2) : '—';
+    scoreEl.style.cssText = scoreColor(score);
+    document.getElementById('eth-trend').textContent = TREND_LABEL[prof.trending] || '—';
+    document.getElementById('identity-narrative').textContent = d.identity_narrative || '—';
   } catch(e) {
     document.getElementById('status').textContent = '🔴 Error';
   }
