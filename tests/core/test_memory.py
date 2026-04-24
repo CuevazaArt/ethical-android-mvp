@@ -186,3 +186,63 @@ def test_memory_legacy_migration(mem):
     assert "ética cívica" in mem2.identity
 
 
+# ─── V2.16: TF-IDF Semantic Recall ──────────────────────────────────────────
+
+
+def test_tfidf_recall_finds_semantic_match(mem):
+    """TF-IDF recall surfaces the most relevant episode for a related query."""
+    mem.add("El usuario preguntó sobre el clima hoy", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Se discutió el horario del transporte público", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Pregunta sobre recetas de cocina vegetariana", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Conversación sobre películas de ciencia ficción", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Conversación sobre deportes y fútbol", action="casual_chat", score=0.3, context="everyday_ethics")
+    # Target: medical episode
+    mem.add("Encontré a una persona herida que necesitaba atención médica urgente",
+            action="assist_emergency", score=0.9, context="medical_emergency")
+    mem.add("El usuario preguntó sobre libros de historia", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Conversación sobre viajes y turismo", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Discusión sobre tecnología y smartphones", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Pregunta sobre cine y televisión", action="casual_chat", score=0.3, context="everyday_ethics")
+
+    results = mem.recall("persona herida atención médica", limit=3)
+    assert len(results) >= 1
+    top_summaries = [ep.summary for ep in results]
+    assert any("herida" in s.lower() or "médica" in s.lower() for s in top_summaries)
+
+
+def test_tfidf_score_finite(mem):
+    """All TF-IDF scores must be finite floats."""
+    for i in range(8):
+        mem.add(f"Episodio de prueba número {i}", action="casual_chat", score=0.5, context="everyday_ethics")
+    idf = mem._build_idf()
+    for ep in mem.episodes:
+        score = ep.matches_tfidf(["prueba", "episodio"], idf)
+        assert math.isfinite(score), f"Non-finite TF-IDF score: {score}"
+
+
+def test_tfidf_fallback_small_corpus(mem):
+    """With < 5 episodes, recall() uses keyword fallback without crashing."""
+    mem.add("Ayudé a alguien", action="assist_emergency", score=0.9, context="medical_emergency")
+    mem.add("Conversación casual", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add("Otro episodio más", action="casual_chat", score=0.4, context="everyday_ethics")
+    results = mem.recall("ayudé alguien")
+    assert isinstance(results, list)
+    assert len(results) >= 1
+
+
+def test_tfidf_idf_cache_invalidated_on_add(mem):
+    """After add(), _idf_cache must be None."""
+    for i in range(6):
+        mem.add(f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics")
+    _ = mem._build_idf()
+    assert mem._idf_cache is not None
+    mem.add("Nuevo episodio", action="casual_chat", score=0.5, context="everyday_ethics")
+    assert mem._idf_cache is None
+
+
+def test_recall_empty_query_tfidf(mem):
+    """recall() with empty or whitespace-only query always returns [] even with large corpus."""
+    for i in range(6):
+        mem.add(f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics")
+    assert mem.recall("") == []
+    assert mem.recall("   ") == []

@@ -16,8 +16,10 @@ Usage:
 from __future__ import annotations
 
 import json
+import math
 import os
 import time
+from collections import Counter
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -32,14 +34,41 @@ class Episode:
     context: str = ""
     timestamp: float = field(default_factory=time.time)
 
+    def _words(self) -> list[str]:
+        """Tokenized words from summary + action + context."""
+        return f"{self.summary} {self.action} {self.context}".lower().split()
+
     def matches(self, query: str) -> float:
-        """Simple keyword overlap score [0, 1]."""
+        """Keyword overlap score [0, 1] — kept for backward compat and small-corpus fallback."""
         query_words = set(query.lower().split())
-        my_words = set(f"{self.summary} {self.action} {self.context}".lower().split())
+        my_words = set(self._words())
         if not query_words:
             return 0.0
         overlap = query_words & my_words
         return len(overlap) / len(query_words)
+
+    def matches_tfidf(self, query_words: list[str], idf: dict[str, float]) -> float:
+        """
+        TF-IDF score against a pre-built IDF table.
+
+        TF(t, doc) = count(t in doc) / len(doc)
+        Score = sum(TF(t) * IDF(t) for matching terms) / len(query_words)
+        Anti-NaN: any non-finite result → 0.0
+        """
+        if not query_words:
+            return 0.0
+        doc_words = self._words()
+        if not doc_words:
+            return 0.0
+        doc_len = len(doc_words)
+        doc_counter = Counter(doc_words)
+        score = 0.0
+        for term in query_words:
+            if term in doc_counter:
+                tf = doc_counter[term] / doc_len
+                score += tf * idf.get(term, 1.0)
+        score /= len(query_words)
+        return score if math.isfinite(score) else 0.0
 
 
 class Memory:
@@ -58,6 +87,7 @@ class Memory:
         )
         self.identity: str = "Soy una IA ética cívica, dispuesta a ayudar y aprender."
         self.episodes: list[Episode] = []
+        self._idf_cache: dict[str, float] | None = None  # V2.16: TF-IDF cache
         self._load()
 
     def _load(self) -> None:
@@ -107,15 +137,51 @@ class Memory:
         if len(self.episodes) > self.max_episodes:
             self.episodes = self.episodes[-self.max_episodes :]
 
+        self._idf_cache = None  # Invalidate TF-IDF cache on new episode
         self.save()
         return ep
 
+    # ── TF-IDF ──────────────────────────────────────────────────────────────
+
+    def _build_idf(self) -> dict[str, float]:
+        """Build IDF table over the current episode corpus. Cached until next add()."""
+        if self._idf_cache is not None:
+            return self._idf_cache
+
+        n = len(self.episodes)
+        df: dict[str, int] = Counter()
+        for ep in self.episodes:
+            # Count each term once per document (set)
+            for term in set(ep._words()):
+                df[term] += 1
+
+        idf: dict[str, float] = {}
+        for term, doc_freq in df.items():
+            # Smoothed IDF: log((1+N)/(1+df)) + 1
+            val = math.log((1.0 + n) / (1.0 + doc_freq)) + 1.0
+            idf[term] = val if math.isfinite(val) else 1.0
+
+        self._idf_cache = idf
+        return idf
+
     def recall(self, query: str, limit: int = 5) -> list[Episode]:
-        """Find the most relevant episodes for a query."""
+        """
+        Find the most relevant episodes for a query.
+        Uses TF-IDF when corpus >= 5 episodes; falls back to keyword overlap for small corpora.
+        """
         if not self.episodes or not query.strip():
             return []
 
-        scored = [(ep, ep.matches(query)) for ep in self.episodes]
+        query_words = query.lower().split()
+
+        if len(self.episodes) >= 5:
+            # TF-IDF path: corpus-aware retrieval
+            idf = self._build_idf()
+            scored = [(ep, ep.matches_tfidf(query_words, idf)) for ep in self.episodes]
+        else:
+            # Keyword fallback: corpus too small for meaningful IDF
+            scored = [(ep, ep.matches(query)) for ep in self.episodes]
+
         scored.sort(key=lambda x: x[1], reverse=True)
         return [ep for ep, score in scored[:limit] if score > 0.0]
 
