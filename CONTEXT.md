@@ -16,7 +16,7 @@ All core modules functional and tested.
 
 ## Active block
 
-**V2.5 — WebSocket Chat**: FastAPI + WebSocket server on localhost:8000.
+**V2.7 — Dashboard Minimal**: telemetría en tiempo real en `http://localhost:8000`.
 
 ## Closed blocks (Fase α — Core Vivo)
 
@@ -32,8 +32,8 @@ All core modules functional and tested.
 | Block | Name | Status | Depends on |
 |-------|------|--------|------------|
 | V2.5 | WebSocket Chat | ✅ CLOSED | Fase α complete |
-| V2.6 | Streaming | ⏳ Waiting | V2.5 closed |
-| V2.7 | Dashboard Minimal | ⏳ Waiting | V2.6 closed |
+| V2.6 | Streaming | ✅ CLOSED | V2.5 closed |
+| V2.7 | Dashboard Minimal | 🔨 IN PROGRESS | V2.6 closed |
 
 ## Key files
 
@@ -48,6 +48,6 @@ All core modules functional and tested.
 - **2026-04-23:** Ethos 2.0 initiated. Core files created. V1 archived at `v15-archive-full-vision`.
 - **2026-04-24 V2.1 CLOSED:** Chat terminal REPL verified. Bugs fixed: context enum sanitization, STM history injection.
 - **2026-04-23 V2.3 CLOSED:** 3 tests de integración de memoria añadidos en `test_memory.py`: acumulación por turno, recall por contexto, scores finitos. + 3 tests V2.3 en `test_chat.py`: cross-session persistence, recall injection into LLM prompt, reflection. Fix empty-Memory falsy bug. Tests: 34 passed.
-- **2026-04-24 V2.4 CLOSED:** Safety gate verificada — `safety.py` + integración en `chat.py` (Safety→Perceive→Evaluate→Respond→Remember) + 19 tests en `test_safety.py`. `python -m src.core.status` → 🟢 Fase α complete. Tests: 53 passed.
-- **2026-04-24 V2.4 CLOSED:** Safety gate — 7 danger categories, Unicode sanitization, evasion resistance. 19 safety tests. Fase α COMPLETE.
-- **2026-04-24 V2.5 CLOSED:** WebSocket chat server (FastAPI) and single-file HTML frontend. 53 tests passing.
+- **2026-04-24 V2.4 CLOSED:** Safety gate verificada — `safety.py` + integración en `chat.py` (Safety→Perceive→Evaluate→Respond→Remember) + 19 tests en `test_safety.py`. Fase α complete. Tests: 53 passed.
+- **2026-04-24 V2.5 CLOSED:** Servidor WebSocket FastAPI en `src/server/app.py`. Demo: 3 turnos WS (saludo, ética, bomb bloqueado). Tests: 53 passed.
+- **2026-04-24 V2.6 CLOSED:** Streaming token-a-token en `/ws/stream`. `ChatEngine.respond_stream()` en `chat.py`. UI dark-mode con cursor animado en `index.html`. Demo: 82 tokens recibidos en turno 1, bloqueo instantáneo sin LLM en turno 2. Tests: 53 passed.

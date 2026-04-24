@@ -239,6 +239,41 @@ class ChatEngine:
                 return "Voy a buscar ayuda inmediatamente. No te muevas."
             return "Estoy aquí. ¿En qué puedo ayudarte?"
 
+    async def respond_stream(
+        self,
+        user_message: str,
+        signals: Signals,
+        evaluation: EvalResult | None = None,
+    ):
+        """
+        Streaming variant of respond(). Yields text tokens as they arrive.
+        Same system prompt logic — no duplication.
+        """
+        system = RESPONSE_PROMPT
+        if evaluation:
+            system += f"\n\nContexto ético: Acción elegida='{evaluation.chosen.name}', veredicto='{evaluation.verdict}', modo='{evaluation.mode}'."
+            if signals.context != "everyday_ethics":
+                system += f"\nSituación detectada: {signals.context}."
+
+        if self._conversation:
+            history_lines = []
+            for turn in self._conversation[-4:]:
+                history_lines.append(f"Usuario: {turn['user']}")
+                history_lines.append(f"Tú: {turn['assistant']}")
+            system += "\n\nHistorial reciente:\n" + "\n".join(history_lines)
+
+        relevant = self.memory.recall(user_message, limit=2)
+        if relevant:
+            mem_context = "\n".join(f"- {ep.summary}" for ep in relevant)
+            system += f"\n\nRecuerdos relevantes:\n{mem_context}"
+
+        try:
+            async for token in self.llm.chat_stream(user_message, system, temperature=0.7):
+                yield token
+        except Exception as e:
+            _log.error("LLM stream failed: %s", e)
+            yield "Estoy aquí. ¿En qué puedo ayudarte?"
+
     async def turn(self, user_message: str) -> TurnResult:
         """
         Process one conversational turn. The complete pipeline:
