@@ -27,7 +27,7 @@ async def get_index():
     return FileResponse(STATIC_DIR / "index.html")
 
 
-@app.get("/nomad")
+@app.get("/nomad/")
 async def get_nomad():
     """Serve the Nomad PWA (mobile client)."""
     return FileResponse(NOMAD_DIR / "index.html")
