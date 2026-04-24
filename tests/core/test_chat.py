@@ -11,20 +11,7 @@ from src.core.chat import ChatEngine, TurnResult, _generate_actions_from_signals
 from src.core.ethics import Signals
 
 
-@pytest.fixture
-def engine():
-    """ChatEngine with mocked LLM (no Ollama needed)."""
-    import tempfile, os
 
-    tmp = os.path.join(tempfile.gettempdir(), "ethos_test_chat_mem.json")
-    from src.core.memory import Memory
-
-    mem = Memory(storage_path=tmp)
-    mem.clear()
-    e = ChatEngine(memory=mem)
-    yield e
-    if os.path.exists(tmp):
-        os.remove(tmp)
 
 
 # --- Casual vs Ethical differentiation ---
