@@ -117,6 +117,64 @@ The `⚠️ Ideal` line only appears when the absolute best model for the job is
 - **Log, not essay.** Block closure is: files touched, test command, demo log. Not 3 paragraphs.
 - **Error = immediate fix.** Don't document the error and propose a plan. Just fix it.
 - **If stuck, implement the simplest solution that passes the test. Don't optimize.**
+## L0 Operations Protocol
+
+### Short commands (L0 → L1)
+
+L0 uses minimal commands. L1 interprets and acts.
+
+| L0 says | L1 does |
+|---------|---------|
+| `siguiente` | Reads CONTEXT.md, generates next block prompt with `[MODELOS]` |
+| `dame prompt V2.X` | Generates prompt for specific block |
+| `review` | Audits last Men Scout output: checks demo, tests, file scope |
+| `merge` | Runs pre-commit checks, commits, syncs with origin/main |
+| `estado` | Reports: current block, open blocks, test status, repo health |
+| `conflicto en [file]` | Reads file, resolves conflict, explains what was kept/dropped |
+| `poda` | Identifies unused files in src/, proposes deletions |
+| `el agente falló en X` | Generates correction prompt for same block |
+| `cambio de oficina` | Generates context handoff summary (see below) |
+| `roster: +Model-X, -Model-Y` | Updates model roster in AGENTS.md |
+
+### Context transfer between IDEs ("cambio de oficina")
+
+When L0 moves from one environment to another (e.g., Antigravity → Cursor → terminal):
+
+1. L0 says `cambio de oficina` in the current IDE.
+2. L1 generates a **handoff block**: a compact summary of current state, active block, last changes, and pending work. Designed to be pasted as first message in the new environment.
+3. In the new environment, L0 pastes the handoff block. The new L1 instance reads it and continues.
+
+**CONTEXT.md is the persistent bridge.** Any L1 in any IDE reads CONTEXT.md first and is immediately oriented. The handoff block adds ephemeral details (mid-block progress, uncommitted changes).
+
+### Reviewing Men Scout work
+
+When a Men Scout finishes a block, L0 reviews by saying `review`. L1 checks:
+
+1. **Demo exists?** — Did the agent produce an execution log, test output, or screenshot?
+2. **Tests pass?** — `pytest tests/core/ -q` runs clean?
+3. **Scope respected?** — Did the agent only touch files listed in the prompt?
+4. **Line budget respected?** — Did the agent stay within the max change limit?
+5. **CONTEXT.md updated?** — Is the block marked as CLOSED with correct info?
+
+If all 5 pass → L0 says `merge`. If any fail → L0 says `el agente falló en X`.
+
+### Merge and sync flow
+
+When L0 says `merge`:
+1. L1 runs `pytest tests/core/ -q` (must pass).
+2. L1 runs `python scripts/pre_commit_check.py` if available (lint/format).
+3. L1 commits with standardized message: `"V2.X: [Block name] — [one-line summary]"`.
+4. L1 runs `git pull origin main --rebase` to sync.
+5. If conflicts → L1 resolves and explains. L0 approves final state.
+6. L0 pushes when ready: `git push origin main`.
+
+### Conflict resolution
+
+Conflicts are resolved by L1 with these priorities:
+1. **New code wins over old code** (V2 over V1).
+2. **Working code wins over scaffold** (tested over untested).
+3. **Smaller change wins** when both sides are equivalent.
+4. L1 always explains what was kept and what was dropped. L0 approves.
 
 ## Security gate
 
