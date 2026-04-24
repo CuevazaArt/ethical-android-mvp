@@ -50,7 +50,7 @@
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
 | Server | `src/server/app.py` |
 | Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
-| Tests | `tests/core/` (77 tests) |
+| Tests | `tests/core/` (84 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
@@ -69,3 +69,4 @@
 - **2026-04-24 V2.14 CLOSED:** `scripts/gen_cert.py` — cert RSA-2048 auto-firmado con SAN (Python-puro, `cryptography`), idempotente. `README_HTTPS.md` con 5 pasos (Android/iOS). Demo: SHA256 verificado, SSL context OK, 68 passed.
 - **2026-04-24 V2.15 CLOSED:** `src/core/identity.py` — clase `Identity` con `update(memory)` + `narrative()`. Perfil persiste en `~/.ethos/identity.json`. Detecta tendencia ética (mejorando/estable/deteriorando), contextos y acciones dominantes, ratio de safety blocks. Anti-NaN en todos los cálculos. Integrado en `_build_system()` de `chat.py`. 79 passed.
 - **2026-04-24 V2.16 CLOSED:** Dashboard actualizado con 2 cards nuevas (Score ético con color dinámico + Tendencia con emoji) y panel de Narrativa de identidad. JS: `TREND_LABEL` map + `scoreColor()`. Todo inline en `app.py`. 79 passed.
+- **2026-04-24 V2.16 CLOSED:** Semantic Memory Recall (TF-IDF). Implementado en `memory.py` con `_build_idf()` cacheado y `matches_tfidf()`. Fallback a keyword si corpus < 5. Añadidos 5 tests nuevos a `test_memory.py`. 84 passed.
