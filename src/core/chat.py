@@ -370,6 +370,8 @@ class ChatEngine:
         )
 
         if len(self.memory) % 5 == 0:
+            # V2.20: Update identity (I/O heavy) every 5 episodes
+            self.identity.update(self.memory)
             import asyncio
             asyncio.create_task(self.memory.evolve_identity(self.llm))
 
@@ -468,6 +470,8 @@ class ChatEngine:
         )
 
         if len(self.memory) % 5 == 0:
+            # V2.20: Update identity (I/O heavy) every 5 episodes
+            self.identity.update(self.memory)
             import asyncio
             asyncio.create_task(self.memory.evolve_identity(self.llm))
 
@@ -475,9 +479,6 @@ class ChatEngine:
         self._conversation.append({"user": user_message, "assistant": message})
         if len(self._conversation) > 10:
             self._conversation = self._conversation[-10:]
-
-        # V2.15: Update identity after every episode
-        self.identity.update(self.memory)
         
         latency["memory"] = round((time.perf_counter() - t_start) * 1000, 2)
         latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
