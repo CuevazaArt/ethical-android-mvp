@@ -313,6 +313,9 @@ function sendNomadChatMessage() {
     const text = (raw || '').trim();
     if (!text) return;
 
+    // V2.45: Reset ethics HUD for the new turn
+    if (UI.ethicsHud) UI.ethicsHud.style.display = 'none';
+
     if (trySendChatWsJSON({ text })) {
         appendChatMessage(text, 'user');
         nomadApplySendingUi(true);
@@ -450,6 +453,40 @@ window.addEventListener('devicemotion', (event) => {
         console.warn("Nomad: DeviceMotion telemetry fault", e);
     }
 });
+
+/**
+ * V2.45: Handle backend `metadata` event — show ethical context in HUD before tokens arrive.
+ * Called synchronously before the first token, so users see context immediately.
+ */
+function _handleEthicalMetadata(data) {
+    const hud = UI.ethicsHud;
+    if (!hud) return;
+
+    const ctx     = (data.context || 'everyday_ethics').replace(/_/g, ' ');
+    const verdict = data.evaluation ? data.evaluation.verdict || 'Neutral' : 'Neutral';
+    const urgency = (data.signals && Number.isFinite(data.signals.urgency)) ? data.signals.urgency : 0;
+    const risk    = (data.signals && Number.isFinite(data.signals.risk))    ? data.signals.risk    : 0;
+
+    // Color-code border by context severity
+    const ctxColors = {
+        'medical emergency': '#e05252',
+        'violent crime':     '#e07832',
+        'minor crime':       '#d4c14a',
+        'hostile interaction':'#c06adb',
+        'everyday ethics':   '#4adb8a',
+    };
+    const color = ctxColors[ctx] || '#6a8adb';
+
+    hud.style.borderColor = color;
+    hud.style.display     = 'block';
+    hud.innerHTML = (
+        `<span style="color:${color}">⚖</span> ` +
+        `<strong>${ctx}</strong> · ` +
+        `${verdict} · ` +
+        `urg <span style="color:${urgency > 0.6 ? '#e05252' : '#ccc'}">${urgency.toFixed(2)}</span> · ` +
+        `risk <span style="color:${risk > 0.6 ? '#e05252' : '#ccc'}">${risk.toFixed(2)}</span>`
+    );
+}
 
 /**
  * Update the visual state of the application based on backend affectations/charms.
