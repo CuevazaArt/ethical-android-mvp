@@ -1,5 +1,5 @@
 """
-Ethos Kernel Entry Point (Lean Fachada).
+Ethos Kernel Entry Point (V2).
 
 This module serves as the primary entry point for the uvicorn server,
 delegating app construction to :mod:`src.server.app`.
@@ -8,21 +8,18 @@ delegating app construction to :mod:`src.server.app`.
 from __future__ import annotations
 
 import logging
+import os
 
 from src.server.app import app
-
-# Re-exports for tests and legacy callers
-from src.server.ws_chat import _chat_turn_to_jsonable  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
 
 def get_uvicorn_bind() -> tuple[str, int]:
-    """Host and port from environment; see :mod:`src.settings`."""
-    from .settings import kernel_settings
-
-    s = kernel_settings()
-    return s.chat_host, s.chat_port
+    """Host and port from environment."""
+    host = os.environ.get("ETHOS_CHAT_HOST", "127.0.0.1")
+    port = int(os.environ.get("ETHOS_CHAT_PORT", "8000"))
+    return host, port
 
 
 def run_chat_server() -> None:
@@ -40,3 +37,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
