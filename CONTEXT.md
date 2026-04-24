@@ -25,7 +25,7 @@ All core modules functional and tested.
 | V2.1 | Chat Terminal | ✅ CLOSED | 19 |
 | V2.2 | Ethical Perception | ✅ CLOSED | 31 |
 | V2.3 | Functional Memory | ✅ CLOSED | 34 |
-| V2.4 | Safety Gate | ✅ CLOSED | 53 |
+| **Fase α COMPLETA** — Core vivo, 53 tests passing. Siguiente: Fase β (servidor WebSocket).
 
 ## Open blocks (Fase β — Server)
 
@@ -47,6 +47,6 @@ All core modules functional and tested.
 
 - **2026-04-23:** Ethos 2.0 initiated. Core files created. V1 archived at `v15-archive-full-vision`.
 - **2026-04-24 V2.1 CLOSED:** Chat terminal REPL verified. Bugs fixed: context enum sanitization, STM history injection.
-- **2026-04-24 V2.2 CLOSED:** 9 chat integration tests + fix empty-Memory falsy bug.
-- **2026-04-24 V2.3 CLOSED:** Cross-session persistence, recall injection, reflection verified.
+- **2026-04-23 V2.3 CLOSED:** 3 tests de integración de memoria añadidos en `test_memory.py`: acumulación por turno, recall por contexto, scores finitos. + 3 tests V2.3 en `test_chat.py`: cross-session persistence, recall injection into LLM prompt, reflection. Fix empty-Memory falsy bug. Tests: 34 passed.
+- **2026-04-24 V2.4 CLOSED:** Safety gate verificada — `safety.py` + integración en `chat.py` (Safety→Perceive→Evaluate→Respond→Remember) + 19 tests en `test_safety.py`. `python -m src.core.status` → 🟢 Fase α complete. Tests: 53 passed.
 - **2026-04-24 V2.4 CLOSED:** Safety gate — 7 danger categories, Unicode sanitization, evasion resistance. 19 safety tests. Fase α COMPLETE.
