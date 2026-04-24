@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.10 — STT → Chat pipeline**: Conectar transcripciones de SpeechRecognition en media_engine.js al `turn_stream()` del kernel.
+**V2.11 — Whisper STT server-side**: Migrar STT local a backend usando Whisper para mejor robustez.
 
 ## Closed blocks
 
@@ -34,8 +34,8 @@
 
 | Block | Name | Status | Depends on |
 |-------|------|--------|------------|
-| V2.10 | STT→Chat pipeline | 🔨 IN PROGRESS | V2.9 closed |
-| V2.11 | Whisper STT server-side | ⏳ Waiting | V2.10 closed |
+| V2.10 | STT→Chat pipeline | ✅ CLOSED | V2.9 closed |
+| V2.11 | Whisper STT server-side | 🔨 IN PROGRESS | V2.10 closed |
 | V2.12 | Vision frame processing | ⏳ Waiting | V2.11 closed |
 
 ## Key files
@@ -56,3 +56,4 @@
 - **2026-04-24 Fase α:** V2.1-V2.4. 5 core modules, 53 tests.
 - **2026-04-24 Fase β:** V2.5-V2.7. WebSocket chat, streaming, dashboard.
 - **2026-04-24 V2.9 CLOSED (Fase γ COMPLETA):** Audio VAD en Nomad PWA. `media_engine.js`: SpeechRecognition con `interimResults`, VAD gate (RMS+onset+hangover), plain-text send a `turn_stream()` (protocolo V2). `style.css`: `.mic-active` ring pulsante + `.streaming-bubble` cursor parpadeante. Tests: 53 passed.
+- **2026-04-24 V2.10 CLOSED:** STT to Chat pipeline. Full-duplex voice loop con preemption (`speechSynthesis.cancel()` en interim) y feedback visual explícito de cruce de red. Tests: 53 passed.

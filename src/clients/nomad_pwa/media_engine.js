@@ -189,9 +189,20 @@ async function startSensors() {
                     else interim += t;
                 }
 
-                // Show live interim in input field
-                if (typeof UI !== 'undefined' && UI.chatInput) {
-                    UI.chatInput.value = interim || final;
+                // Preemption: Interrupt kernel TTS immediately when user speaks
+                if ((interim.trim() || final.trim()) && 'speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
+
+                // Show live interim in input field and transcript
+                if (typeof UI !== 'undefined') {
+                    if (UI.chatInput) {
+                        UI.chatInput.value = interim || final;
+                    }
+                    if (UI.transcript && interim.trim()) {
+                        UI.transcript.innerText = `Escuchando: ${interim}...`;
+                        UI.transcript.classList.remove('placeholder');
+                    }
                 }
 
                 // Only send final results that pass VAD gate
@@ -207,7 +218,13 @@ async function startSensors() {
                             UI.chatInput.value = '';
                         }
                         // V2 protocol: plain text to turn_stream()
-                        try { wsChat.send(text); } catch (_) {}
+                        try { 
+                            wsChat.send(text); 
+                            // Visual feedback that audio crossed to backend
+                            if (typeof UI !== 'undefined' && UI.transcript) {
+                                UI.transcript.innerText = `[Enviado] ${text}`;
+                            }
+                        } catch (_) {}
                     }
                 }
             };
