@@ -162,6 +162,7 @@ setInterval(refresh, 5000);
 @app.websocket("/ws/chat")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    global _last_latency
     engine = ChatEngine()
     ready = await engine.start()
     _chat_vision: dict | None = None  # Fix 2: vision context from Nomad client
@@ -196,7 +197,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     async for event in engine.turn_stream(text, vision_context=_chat_vision):
                         await websocket.send_json(event)
                         if event.get("type") == "done" and not event.get("blocked"):
-                            global _last_latency
                             lat = event.get("latency", {})
                             _last_latency = lat
                             _log.info(
@@ -227,6 +227,7 @@ async def websocket_nomad(websocket: WebSocket):
     await websocket.accept()
     _log.info("Nomad bridge connected")
 
+    global _last_latency
     engine = ChatEngine()
     await engine.start()
     vision = VisionEngine()  # V2.12: stateful per-connection vision processor
@@ -253,7 +254,6 @@ async def websocket_nomad(websocket: WebSocket):
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
                             await websocket.send_json(event)
                             if event.get("type") == "done" and not event.get("blocked"):
-                                global _last_latency
                                 lat = event.get("latency", {})
                                 _last_latency = lat
                                 _log.info(
@@ -270,7 +270,6 @@ async def websocket_nomad(websocket: WebSocket):
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
                             await websocket.send_json(event)
                             if event.get("type") == "done" and not event.get("blocked"):
-                                global _last_latency
                                 lat = event.get("latency", {})
                                 _last_latency = lat
                                 _log.info(
@@ -305,7 +304,6 @@ async def websocket_nomad(websocket: WebSocket):
                                     async for event in engine.turn_stream(text, vision_context=_last_vision):
                                         await websocket.send_json(event)
                                         if event.get("type") == "done" and not event.get("blocked"):
-                                            global _last_latency
                                             lat = event.get("latency", {})
                                             _last_latency = lat
                                             _log.info(

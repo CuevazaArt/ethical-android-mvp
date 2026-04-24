@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.20 — Identity Update Throttle**: Limitar `identity.update()` a cada 5 turnos para reducir I/O por turno.
+**V2.21 — Identity Throttle + Recall Optimization**: Implementar throttle de `identity.update()` cada 5 turnos y early-exit en `memory.recall()` cuando corpus está vacío.
 
 ## Closed blocks
 
@@ -44,7 +44,8 @@
 | V2.17 | TF-IDF Semantic Recall + Adversarial Hardening R2 | ✅ CLOSED | V2.16 closed |
 | V2.18 | Latency & Performance Audit | ✅ CLOSED | V2.17 closed |
 | V2.19 | Dashboard Latency Telemetry | ✅ CLOSED | V2.18 closed |
-| V2.20 | Identity Update Throttle | 🔨 IN PROGRESS | V2.19 closed |
+| V2.20 | Server Integration Tests + Bug Fix | ✅ CLOSED | V2.19 closed |
+| V2.21 | Identity Throttle + Recall Optimization | 🔨 IN PROGRESS | V2.20 closed |
 
 ## Key files
 
@@ -53,7 +54,7 @@
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
 | Server | `src/server/app.py` |
 | Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
-| Tests | `tests/core/` (88 tests) |
+| Tests | `tests/core/` + `tests/server/` (91 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
@@ -75,3 +76,4 @@
 - **2026-04-24 V2.17 CLOSED:** TF-IDF Semantic Recall en `memory.py` (`_build_idf()` cacheado, `matches_tfidf()`, fallback si corpus<5, 5 tests). Adversarial Hardening R2 en `safety.py`: limpieza de chars Zero-Width/RLO/LRE, regex role_simulation, deteccion Base64 payloads, 8 tests nuevos. 87 passed.
 - **2026-04-24 V2.18 CLOSED:** Telemetría de latencia en `chat.py` (`turn_stream` + `turn`): Safety/Perceive/Ethics/TTFT/Memory medidos con `perf_counter`, Anti-NaN, campo `latency` en evento `done`. Log `[TELEMETRY]` en `app.py` (4 handlers). 88 passed.
 - **2026-04-24 V2.19 CLOSED:** Dashboard Latency Telemetry — `_last_latency` global en `app.py`, expuesto en `/api/status` como `last_latency_ms`. Card TTFT en dashboard con color-coding (<800ms 🟢, <2s 🟡, ≥2s 🔴). 88 passed.
+- **2026-04-24 V2.20 CLOSED:** `tests/server/test_app_integration.py` — 3 integration tests (GET /api/status, WS chat done event, WS safety block). Fix: `global _last_latency` movido al scope de función en ambos handlers. Mock `chat_stream` con async generator `_fake_stream`. Fix SyntaxError en `app.py`. 91 passed.
