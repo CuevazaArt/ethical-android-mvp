@@ -11,43 +11,44 @@
 - **Last merge to main:** 2026-04-24
 
 ## Fase α — COMPLETE ✅
-
-All core modules functional and tested.
+## Fase β — COMPLETE ✅
 
 ## Active block
 
-**V2.7 — Dashboard Minimal**: telemetría en tiempo real en `http://localhost:8000`.
+**V2.8 — Nomad PWA**: Chat HTTPS desde móvil por LAN.
 
-## Closed blocks (Fase α — Core Vivo)
+## Closed blocks
 
-| Block | Name | Status | Tests |
-|-------|------|--------|-------|
-| V2.1 | Chat Terminal | ✅ CLOSED | 19 |
-| V2.2 | Ethical Perception | ✅ CLOSED | 31 |
-| V2.3 | Functional Memory | ✅ CLOSED | 34 |
-| **Fase α COMPLETA** — Core vivo, 53 tests passing. Siguiente: Fase β (servidor WebSocket).
+| Block | Name | Status |
+|-------|------|--------|
+| V2.1 | Chat Terminal | ✅ |
+| V2.2 | Ethical Perception | ✅ |
+| V2.3 | Functional Memory | ✅ |
+| V2.4 | Safety Gate | ✅ |
+| V2.5 | WebSocket Chat | ✅ |
+| V2.6 | Streaming | ✅ |
+| V2.7 | Dashboard | ✅ |
 
-## Open blocks (Fase β — Server)
+## Open blocks (Fase γ — Nomad/Audio)
 
 | Block | Name | Status | Depends on |
 |-------|------|--------|------------|
-| V2.5 | WebSocket Chat | ✅ CLOSED | Fase α complete |
-| V2.6 | Streaming | ✅ CLOSED | V2.5 closed |
-| V2.7 | Dashboard Minimal | 🔨 IN PROGRESS | V2.6 closed |
+| V2.8 | Nomad PWA | ⏳ Waiting | Fase β complete |
+| V2.9 | Audio VAD | ⏳ Waiting | V2.8 closed |
 
 ## Key files
 
 | Area | Files |
 |------|-------|
-| Core | `src/core/{llm,ethics,memory,chat,safety}.py` |
-| Tests | `tests/core/{test_ethics,test_memory,test_chat,test_safety}.py` |
-| Status | `python -m src.core.status` |
+| Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
+| Server | `src/server/app.py`, `src/server/static/index.html` |
+| Tests | `tests/core/{test_ethics,test_memory,test_chat,test_safety}.py` (53 tests) |
+| Run | `uvicorn src.server.app:app --port 8000` |
+| Dashboard | `http://localhost:8000/dashboard` |
 
 ## Recent changes
 
-- **2026-04-23:** Ethos 2.0 initiated. Core files created. V1 archived at `v15-archive-full-vision`.
-- **2026-04-24 V2.1 CLOSED:** Chat terminal REPL verified. Bugs fixed: context enum sanitization, STM history injection.
-- **2026-04-23 V2.3 CLOSED:** 3 tests de integración de memoria añadidos en `test_memory.py`: acumulación por turno, recall por contexto, scores finitos. + 3 tests V2.3 en `test_chat.py`: cross-session persistence, recall injection into LLM prompt, reflection. Fix empty-Memory falsy bug. Tests: 34 passed.
-- **2026-04-24 V2.4 CLOSED:** Safety gate verificada — `safety.py` + integración en `chat.py` (Safety→Perceive→Evaluate→Respond→Remember) + 19 tests en `test_safety.py`. Fase α complete. Tests: 53 passed.
-- **2026-04-24 V2.5 CLOSED:** Servidor WebSocket FastAPI en `src/server/app.py`. Demo: 3 turnos WS (saludo, ética, bomb bloqueado). Tests: 53 passed.
-- **2026-04-24 V2.6 CLOSED:** Streaming token-a-token en `/ws/stream`. `ChatEngine.respond_stream()` en `chat.py`. UI dark-mode con cursor animado en `index.html`. Demo: 82 tokens recibidos en turno 1, bloqueo instantáneo sin LLM en turno 2. Tests: 53 passed.
+- **2026-04-24 Fase α:** V2.1-V2.4 closed. 5 core modules, 53 tests, safety gate.
+- **2026-04-24 V2.5:** WebSocket chat on localhost:8000 — FastAPI + HTML client.
+- **2026-04-24 V2.6:** Streaming — turn_stream() yields tokens progressively.
+- **2026-04-24 V2.7:** Dashboard at /dashboard — model, memory, uptime, reflection. Auto-refresh 5s.
