@@ -147,7 +147,12 @@ class TextToSpeechAdapter:
     Generates audio bytes from kernel narrative responses.
     """
 
-    def __init__(self, backend: Literal["gtts", "pyttsx3"] = "pyttsx3", language: str = "es", tld: str = "com.mx"):
+    def __init__(
+        self,
+        backend: Literal["gtts", "pyttsx3"] = "pyttsx3",
+        language: str = "es",
+        tld: str = "com.mx",
+    ):
         """
         Initialize TTS adapter.
 

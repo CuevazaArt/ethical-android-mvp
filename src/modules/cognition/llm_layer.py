@@ -1006,21 +1006,30 @@ class LLMModule:
         else:
             # Local mode — no LLM backend
             return self._communicate_local(
-                action, mode, state, circle, scenario,
-                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
-                weakness_line=weakness_line, reflection_context=reflection_context,
-                salience_context=salience_context, identity_context=identity_context,
+                action,
+                mode,
+                state,
+                circle,
+                scenario,
+                affect_pad=affect_pad,
+                dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line,
+                reflection_context=reflection_context,
+                salience_context=salience_context,
+                identity_context=identity_context,
                 guardian_mode_context=guardian_mode_context,
             )
 
         # === Shared LLM completion path (ollama / api / injected) ===
         vpol = resolve_verbal_llm_backend_policy(touchpoint="communicate")
-        
+
         # Tarea 24.1: Dynamic temperature adjustment based on social tension
         # Map tension [0.0, 1.0] to temperature [0.8, 0.1]
         dynamic_temp = max(0.1, 0.8 - (float(social_tension) * 0.7))
         try:
-            response = self._llm_completion(prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp)
+            response = self._llm_completion(
+                prompt, user_msg, metrics_op="communicate", temperature=dynamic_temp
+            )
         except Exception:
             self._record_verbal_degradation("communicate", "llm_completion_exception", vpol)
             if vpol == "canned_safe":
@@ -1032,10 +1041,17 @@ class LLMModule:
                     )
                 )
             return self._communicate_local(
-                action, mode, state, circle, scenario,
-                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
-                weakness_line=weakness_line, reflection_context=reflection_context,
-                salience_context=salience_context, identity_context=identity_context,
+                action,
+                mode,
+                state,
+                circle,
+                scenario,
+                affect_pad=affect_pad,
+                dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line,
+                reflection_context=reflection_context,
+                salience_context=salience_context,
+                identity_context=identity_context,
                 guardian_mode_context=guardian_mode_context,
             )
         data = self._parse_json(response)
@@ -1052,15 +1068,19 @@ class LLMModule:
             # Small Ollama models often wrap text in spurious JSON: {"Hola":-5}
             # Strip JSON artifacts to get clean spoken text.
             import re
+
             json_key_match = re.match(r'^\s*\{\s*"([^"]+)"\s*:', clean)
-            if json_key_match and 'message' not in clean.lower():
+            if json_key_match and "message" not in clean.lower():
                 clean = json_key_match.group(1)
             # Remove any remaining JSON braces/brackets
-            clean = re.sub(r'^[\[{]+\s*', '', clean)
-            clean = re.sub(r'\s*[\]}]+$', '', clean)
+            clean = re.sub(r"^[\[{]+\s*", "", clean)
+            clean = re.sub(r"\s*[\]}]+$", "", clean)
             clean = clean.strip().strip('"').strip()
             if clean:
-                _log.info("LLM communicate: using plain-text Ollama response as verbal message: %s", clean[:100])
+                _log.info(
+                    "LLM communicate: using plain-text Ollama response as verbal message: %s",
+                    clean[:100],
+                )
                 return VerbalResponse(
                     message=clean,
                     tone="calm",
@@ -1079,10 +1099,17 @@ class LLMModule:
                 )
 
         return self._communicate_local(
-            action, mode, state, circle, scenario,
-            affect_pad=affect_pad, dominant_archetype=dominant_archetype,
-            weakness_line=weakness_line, reflection_context=reflection_context,
-            salience_context=salience_context, identity_context=identity_context,
+            action,
+            mode,
+            state,
+            circle,
+            scenario,
+            affect_pad=affect_pad,
+            dominant_archetype=dominant_archetype,
+            weakness_line=weakness_line,
+            reflection_context=reflection_context,
+            salience_context=salience_context,
+            identity_context=identity_context,
             guardian_mode_context=guardian_mode_context,
         )
 
@@ -1175,10 +1202,17 @@ class LLMModule:
         else:
             # Local mode — no LLM backend
             return self._communicate_local(
-                action, mode, state, circle, scenario,
-                affect_pad=affect_pad, dominant_archetype=dominant_archetype,
-                weakness_line=weakness_line, reflection_context=reflection_context,
-                salience_context=salience_context, identity_context=identity_context,
+                action,
+                mode,
+                state,
+                circle,
+                scenario,
+                affect_pad=affect_pad,
+                dominant_archetype=dominant_archetype,
+                weakness_line=weakness_line,
+                reflection_context=reflection_context,
+                salience_context=salience_context,
+                identity_context=identity_context,
                 guardian_mode_context=guardian_mode_context,
             )
 

@@ -10,9 +10,9 @@ from __future__ import annotations
 import logging
 import os
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
 
 from src.runtime.chat_lifecycle import api_docs_enabled, chat_lifespan
 from src.runtime_profiles import apply_named_runtime_profile_to_environ

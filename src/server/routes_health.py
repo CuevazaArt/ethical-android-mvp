@@ -129,8 +129,6 @@ def health(request: Request) -> Response:
 
 @router.get("/")
 def root() -> JSONResponse:
-    from ..runtime_profiles import applied_runtime_profile as _prof
-
     body: dict[str, Any] = {
         "service": "ethos-kernel-chat",
         "websocket": "/ws/chat",
@@ -160,7 +158,7 @@ def root() -> JSONResponse:
 async def test_llm():
     """Debug route to test Ollama connectivity directly from the kernel layer."""
     from src.modules.cognition.llm_layer import LLMModule
-    
+
     llm = LLMModule()
     try:
         # Simple non-streaming call for sanity check
@@ -178,4 +176,5 @@ async def test_llm():
         return {"status": "ok", "provider": llm.mode, "response": res.message}
     except Exception as e:
         import traceback
+
         return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}

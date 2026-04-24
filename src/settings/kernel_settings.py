@@ -341,6 +341,7 @@ class KernelSettings(BaseModel):
         """Load settings from environment variables."""
         try:
             from dotenv import load_dotenv
+
             load_dotenv()
         except ImportError:
             pass
@@ -398,8 +399,16 @@ class KernelSettings(BaseModel):
             kernel_chat_ws_max_message_bytes=_env_kernel_chat_ws_max_message_bytes(),
             # LLM
             llm_mode=_env_optional_str("LLM_MODE"),
-            llm_provider=_env_str("LLM_PROVIDER", "ollama" if _env_optional_str("LLM_MODE") == "ollama" else "anthropic"),
-            llm_model=_env_str("LLM_MODEL", os.environ.get("OLLAMA_MODEL", "llama3.2:1b") if _env_optional_str("LLM_MODE") == "ollama" else "claude-opus"),
+            llm_provider=_env_str(
+                "LLM_PROVIDER",
+                "ollama" if _env_optional_str("LLM_MODE") == "ollama" else "anthropic",
+            ),
+            llm_model=_env_str(
+                "LLM_MODEL",
+                os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
+                if _env_optional_str("LLM_MODE") == "ollama"
+                else "claude-opus",
+            ),
             llm_temperature=_env_float("LLM_TEMPERATURE", 0.7),
             llm_max_tokens=_env_int("LLM_MAX_TOKENS", 2000),
             # Governance

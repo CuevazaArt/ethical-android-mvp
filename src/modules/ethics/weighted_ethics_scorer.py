@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
-import yaml
+import yaml  # type: ignore
 
 if TYPE_CHECKING:
     from src.modules.memory.narrative import NarrativeMemory
