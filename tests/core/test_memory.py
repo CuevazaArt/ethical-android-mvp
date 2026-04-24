@@ -151,3 +151,38 @@ async def test_memory_ethical_score_is_finite(isolated_engine):
     for ep in mem.episodes:
         assert math.isfinite(ep.ethical_score), f"Non-finite score: {ep.ethical_score}"
 
+
+def test_memory_persistence_with_identity(mem):
+    import json
+    # Add episodes and change identity
+    mem.add("Test", score=0.5)
+    mem.identity = "Nueva identidad test"
+    mem.save()
+    
+    # Verify structure on disk
+    with open(mem._storage_path, encoding="utf-8") as f:
+        data = json.load(f)
+    assert isinstance(data, dict)
+    assert data["identity"] == "Nueva identidad test"
+    assert len(data["episodes"]) == 1
+    
+    # Reload
+    mem2 = Memory(storage_path=mem._storage_path)
+    assert mem2.identity == "Nueva identidad test"
+    assert len(mem2) == 1
+
+def test_memory_legacy_migration(mem):
+    import json
+    # Create a legacy flat list structure
+    legacy_data = [{"summary": "Legacy 1", "action": "test", "ethical_score": 0.5, "context": "everyday"}]
+    with open(mem._storage_path, "w", encoding="utf-8") as f:
+        json.dump(legacy_data, f)
+        
+    # Load and verify it migrated transparently
+    mem2 = Memory(storage_path=mem._storage_path)
+    assert len(mem2) == 1
+    assert mem2.episodes[0].summary == "Legacy 1"
+    # Identity should be the default
+    assert "ética cívica" in mem2.identity
+
+

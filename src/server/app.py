@@ -46,7 +46,9 @@ async def get_nomad_static(filename: str):
 async def api_status():
     """Metrics snapshot for the dashboard."""
     import os as _os
+    from src.core.identity import Identity
     mem = Memory()
+    identity = Identity()
     uptime_s = int(time.time() - _start_time)
     h, rem = divmod(uptime_s, 3600)
     m, s = divmod(rem, 60)
@@ -55,6 +57,8 @@ async def api_status():
         "ollama_url": _os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
         "memory_episodes": len(mem),
         "memory_reflection": mem.reflection(),
+        "identity_narrative": identity.narrative(),
+        "identity_profile": identity.as_dict(),
         "uptime": f"{h:02d}:{m:02d}:{s:02d}",
         "status": "online",
         "stt_available": stt_available(),
