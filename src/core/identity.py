@@ -43,6 +43,7 @@ class Identity:
     def __init__(self, storage_path: str | None = None) -> None:
         self._path = storage_path or os.environ.get("ETHOS_IDENTITY_PATH", self.DEFAULT_PATH)
         self._profile: dict = {}
+        self._journal: list[str] = []
         self._load()
 
     # ── Persistence ──────────────────────────────────────────────────────────
@@ -52,22 +53,33 @@ class Identity:
             p = Path(self._path)
             if p.exists():
                 with open(p, encoding="utf-8") as f:
-                    self._profile = json.load(f)
+                    data = json.load(f)
+                    self._profile = data.get("profile", {})
+                    self._journal = data.get("journal", [])
         except Exception:
             self._profile = {}
+            self._journal = []
 
     def _save(self) -> None:
         p = Path(self._path)
         p.parent.mkdir(parents=True, exist_ok=True)
         with open(p, "w", encoding="utf-8") as f:
-            json.dump(self._profile, f, indent=2, ensure_ascii=False)
+            data = {
+                "profile": self._profile,
+                "journal": self._journal
+            }
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
     # ── Core logic ───────────────────────────────────────────────────────────
 
     def update(self, memory: "Memory") -> None:
+        """Alias for update_stats for backward compatibility."""
+        return self.update_stats(memory)
+
+    def update_stats(self, memory: "Memory") -> None:
         """
-        Recompute the identity profile from all episodes in memory.
-        Call this after each turn — it's fast (pure Python, no I/O except final save).
+        Recompute the identity profile (hard stats) from all episodes in memory.
+        Call this periodically — it's fast (pure Python, no I/O except final save).
         """
         episodes = memory.episodes
         if not episodes:
@@ -122,6 +134,38 @@ class Identity:
         }
         self._save()
 
+    async def reflect(self, memory: "Memory", llm_client) -> None:
+        """
+        V2.44: Generate a narrative reflection based on the last 5 episodes.
+        """
+        self.update(memory)  # Keep stats synced
+        
+        recent = list(reversed(memory.episodes[-5:])) if memory.episodes else []
+        if not recent:
+            return
+
+        context_lines = [f"- {ep.summary} (contexto: {ep.context})" for ep in recent]
+        context_str = "\n".join(context_lines)
+
+        prompt = (
+            "Basándote en estas experiencias recientes, reflexiona brevemente sobre quién eres "
+            "y cómo has cambiado. Escribe en primera persona, sé introspectivo y manténlo breve "
+            "(máximo 3 frases).\n\n"
+            f"Experiencias recientes:\n{context_str}"
+        )
+
+        try:
+            reflection = await llm_client.chat(prompt, system_prompt="Eres un núcleo metacognitivo en evolución.")
+            if reflection:
+                self._journal.append(reflection.strip())
+                # Keep max 10 entries
+                if len(self._journal) > 10:
+                    self._journal = self._journal[-10:]
+                self._save()
+        except Exception:
+            # Silently fail if LLM is unavailable; we keep using the old journal or fallback
+            pass
+
     def narrative(self) -> str:
         """
         One paragraph of identity text for injection into the LLM system prompt.
@@ -137,7 +181,11 @@ class Identity:
         top_ctx = p.get("top_contexts", [])
         top_act = p.get("top_actions", [])
 
-        # Ethical character
+        # Narrative Identity (V2.44)
+        if self._journal:
+            return f"[Identidad Reflexiva] {self._journal[-1]}"
+
+        # Fallback to stats-based template
         if avg > 0.65:
             character = "Soy un agente de carácter ético sólido, con tendencia a priorizar el bienestar ajeno."
         elif avg > 0.35:
@@ -178,6 +226,7 @@ class Identity:
     # ── Convenience ──────────────────────────────────────────────────────────
 
     def reset(self) -> None:
-        """Wipe the identity profile (does NOT wipe memory)."""
+        """Wipe the identity profile and journal (does NOT wipe memory)."""
         self._profile = {}
+        self._journal = []
         self._save()

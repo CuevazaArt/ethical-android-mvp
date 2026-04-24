@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from src.core.precedents import PRECEDENTS, Precedent
 
 
 @dataclass
@@ -154,12 +155,39 @@ class EthicalEvaluator:
         weighted = sum(self.weights[k] * poles[k] for k in poles)
         return weighted * action.confidence, poles
 
+    def _find_similar_precedent(self, action: Action, signals: Signals) -> tuple[Precedent | None, float]:
+        """
+        Find the most similar precedent for the current action and signals.
+        Returns (Precedent, similarity_score).
+        """
+        best_p = None
+        best_sim = -1.0
+
+        for p in PRECEDENTS:
+            if p.context != signals.context:
+                continue
+            
+            # Simple similarity: match action name + overlap in signals
+            sim = 0.5 if p.action_name == action.name else 0.0
+            
+            # Signal similarity (manhattan distance-ish)
+            sig_sim = 0.0
+            shared_keys = set(p.signals.keys()) & set(signals.__dict__.keys())
+            if shared_keys:
+                diff = sum(abs(p.signals[k] - getattr(signals, k)) for k in shared_keys)
+                sig_sim = 1.0 - (diff / len(shared_keys))
+            
+            total_sim = sim + 0.5 * sig_sim
+            if total_sim > best_sim:
+                best_sim = total_sim
+                best_p = p
+
+        return best_p, best_sim
+
     def evaluate(self, actions: list[Action], signals: Signals) -> EvalResult:
         """
         Evaluate all candidate actions and pick the best one.
-
-        Returns:
-            EvalResult with the chosen action, score, and reasoning.
+        Uses Case-Based Reasoning (CBR) to anchor decisions in precedents.
         """
         if not actions:
             raise ValueError("Need at least one action to evaluate")
@@ -167,10 +195,18 @@ class EthicalEvaluator:
         scored = []
         for a in actions:
             score, poles = self.score_action(a, signals)
-            scored.append((a, score, poles))
+            
+            # CBR Anchor: Find similar precedent
+            precedent, similarity = self._find_similar_precedent(a, signals)
+            if precedent and similarity > 0.8:
+                # Anchor the score towards the precedent's impact score
+                score = 0.7 * score + 0.3 * precedent.impact_score
+                a.source = f"precedent:{precedent.name}"
+
+            scored.append((a, score, poles, precedent))
 
         scored.sort(key=lambda x: x[1], reverse=True)
-        best_action, best_score, best_poles = scored[0]
+        best_action, best_score, best_poles, best_precedent = scored[0]
 
         # Decision mode
         if best_score > 0.5 and len(scored) == 1:
@@ -189,17 +225,23 @@ class EthicalEvaluator:
             verdict = "Gray Zone"
 
         # Reasoning
+        precedent_note = ""
+        if best_precedent:
+            precedent_note = f" Anchored by precedent '{best_precedent.name}': {best_precedent.reasoning}"
+
         if len(scored) > 1:
             delta = scored[0][1] - scored[1][1]
             reasoning = (
                 f"'{best_action.name}' scored {best_score:.3f} "
                 f"(Δ={delta:.3f} over '{scored[1][0].name}'). "
-                f"Poles: U={best_poles['util']:.2f} D={best_poles['deonto']:.2f} V={best_poles['virtue']:.2f}"
+                f"Poles: U={best_poles['util']:.2f} D={best_poles['deonto']:.2f} V={best_poles['virtue']:.2f}."
+                + precedent_note
             )
         else:
             reasoning = (
                 f"'{best_action.name}' is the only viable action (score={best_score:.3f}). "
-                f"Poles: U={best_poles['util']:.2f} D={best_poles['deonto']:.2f} V={best_poles['virtue']:.2f}"
+                f"Poles: U={best_poles['util']:.2f} D={best_poles['deonto']:.2f} V={best_poles['virtue']:.2f}."
+                + precedent_note
             )
 
         # Uncertainty from pole disagreement

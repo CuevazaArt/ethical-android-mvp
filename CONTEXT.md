@@ -55,6 +55,9 @@ MVP V2 stabilization is 100% complete.
 | V2.36 | Clean legacy tests (verificado vacío) | ✅ |
 | V2.37 | FastAPI Static Routing Fix (/nomad/) | ✅ |
 | V2.38 | Fase γ: Auditoría Nomad PWA Sync | ✅ |
+| V2.40 | Perception Classifier (Sin LLM, 0ms) | ✅ |
+| V2.41 | Case-Based Ethics (CBR Precedents) | ✅ |
+
 
 ## Key files
 
@@ -73,8 +76,10 @@ MVP V2 stabilization is 100% complete.
 
 ## System health (2026-04-24)
 
-- **Tests:** 135/135 ✅
+- **Tests:** 136/136 ✅
 - **Legacy imports:** 0
 - **Bridge:** ELIMINADO
+- **Perception:** Determinista (Sin LLM, latencia <1ms)
+- **Ethics:** Basada en precedentes (CBR)
 - **Documentación:** Alineada con el código
 - **Adversarial Suite:** 6/6 blocked · 10/10 legitimate pass (sin Ollama: keyword fallback activo)
