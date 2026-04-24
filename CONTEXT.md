@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.22 — Perception Hardening**: Robustecer `ChatEngine.perceive()` contra respuestas JSON mal formadas del LLM.
+**V2.23 — Nomad PWA Latency Visualizer**: Implementar insignia de latencia en las burbujas de chat del cliente móvil.
 
 ## Closed blocks
 
@@ -46,7 +46,8 @@
 | V2.19 | Dashboard TTFT + Integration Tests E2E | ✅ CLOSED | V2.18 closed |
 | V2.20 | Server Integration Tests + SyntaxError fix | ✅ CLOSED | V2.19 closed |
 | V2.21 | Identity Throttle (every 5 turns) | ✅ CLOSED | V2.20 closed |
-| V2.22 | Perception Hardening | 🔨 IN PROGRESS | V2.21 closed |
+| V2.22 | Perception Hardening | ✅ CLOSED | V2.21 closed |
+| V2.23 | Nomad Latency Visualizer | 🔨 IN PROGRESS | V2.22 closed |
 
 ## Key files
 
@@ -55,7 +56,7 @@
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
 | Server | `src/server/app.py` |
 | Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
-| Tests | `tests/core/` + `tests/server/` (91 tests) |
+| Tests | `tests/core/` + `tests/server/` (92 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
@@ -79,3 +80,4 @@
 - **2026-04-24 V2.19 CLOSED:** Dashboard TTFT card + 3 integration tests E2E (`tests/server/`). `_last_latency` global en `app.py`, expuesto en `/api/status`. WS mock con `_fake_stream`. Fix `global` SyntaxError. 91 passed.
 - **2026-04-24 V2.20 CLOSED:** Consolidación de integration tests; fix doble `global _last_latency` removido de bloques `if` anidados, movido a scope de función. 91 passed.
 - **2026-04-24 V2.21 CLOSED:** `chat.py` — throttle `identity.update()` cada 5 episodios (`len(self.memory) % 5 == 0`). Eliminada llamada uncondicional por turno. I/O a disco reducido 80%. 91 passed.
+- **2026-04-24 V2.22 CLOSED:** `ChatEngine.perceive()` robustecido contra JSON malformado o `None` del LLM. Fallback a palabras clave y valores por defecto seguros. Test `test_perceive_malformed_json_fallback` añadido. 92 passed.
