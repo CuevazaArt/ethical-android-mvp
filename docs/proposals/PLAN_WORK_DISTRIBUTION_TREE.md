@@ -28,16 +28,16 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 > **[PROMPT GENERALISTA PARA EL ENJAMBRE (SWARM)]**
 > *"Estás autorizado bajo la política de Pragmatismo Anónimo. Hemos completado la consolidación a V2 (src/core/). El objetivo actual es la **Fase 16: Estabilización de V2**. Tu prioridad máxima es reparar la infraestructura rota (imports, scripts, entry points) para que el nuevo núcleo sea funcional. **Instrucciones:** Escoge un bloque [PENDING], repara los imports apuntando a `src.core`, elimina el código legacy redundante, y finaliza siempre con `python scripts/swarm_sync.py --msg '...'`. ¡Ejecuta!"*
 
-**Bloque 40.0: Reparación de Infraestructura V2 (Prioridad 1) [PENDING]**
-- Tarea: Corregir TODOS los imports en `src/*.py` y `tests/**/*.py` que apunten a `src.modules` o `src.kernel_lobes`.
-- Meta: Que `python -m src.main` y `python -m src.ethos_cli` funcionen usando `src.core.chat.ChatEngine`.
+**Bloque 40.0: Reparación de Infraestructura V2 (Prioridad 1) [DONE ✅ V2.23]**
+- Archivos eliminados: `kernel_lobes/`, `kernel_handlers/`, `modules/`, `kernel_decision.py`, `kernel_components.py`, `kernel_manifest.py`, `kernel_pipeline.py`, `kernel_utils.py`, `real_time_bridge.py`.
+- Demo: `pytest tests/core/ -q` → 91 passed.
 
-**Bloque 40.1: Purgado de Código Legacy (Prioridad 2) [PENDING]**
-- Tarea: Eliminar archivos obsoletos en la raíz de `src/` (`kernel.py`, `kernel_components.py`, etc.) una vez que `ChatEngine` cubra sus funciones.
-- Meta: Repositorio limpio y 100% V2.
+**Bloque 40.1: Purgado de Bridge y Código Legacy (Prioridad 2) [DONE ✅ V2.24]**
+- `src/kernel.py` (bridge) eliminado. `adversarial_suite.py` migrado a `ChatEngine` directo. `main.py` limpio.
+- Demo: `python -m src.ethos_cli diagnostics --json` ✅ | `pytest tests/core/ -q` → 91 passed.
 
 **Bloque 40.2: Actualización de Documentación (Prioridad 3) [PENDING]**
-- Tarea: Actualizar `README.md` y `docs/` para reflejar la estructura V2.
+- Tarea: Actualizar `README.md` para reflejar la estructura V2 real.
 - Meta: Verdad documental alineada con el código.
 
 ---

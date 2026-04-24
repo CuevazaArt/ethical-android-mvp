@@ -1,48 +1,42 @@
 """
-Ethos Kernel — Entry point (V2 Bridge Mode)
+Ethos Kernel — Entry point V2.
 
-Stabilized for V2 consolidation.
+Starts the interactive REPL (ChatEngine + Ollama).
+
+Usage:
+    python -m src.main
 """
 
 import asyncio
 import sys
-import os
 
-from .kernel import EthicalKernel
+from src.core.chat import ChatEngine
 
-def banner() -> str:
-    return """
-+--------------------------------------------------------------+
-|        ETHOS KERNEL — V2 CONSOLIDATED (CORE MINIMAL)         |
-|        Stabilization Phase — 2026-04-24                      |
-+--------------------------------------------------------------+
-"""
 
-async def _async_main():
-    print(banner())
-    
-    # Kernel initialization
-    kernel = EthicalKernel()
-    await kernel.start()
-    
-    print("  [x] V2 Core Bridge Active")
-    print("  [x] LLM Layer (Ollama) Operational")
-    print("  [x] Ethical Evaluator (3-Pole) Stabilized")
-    print("\n  Iniciando chat interactivo (REPL)...")
-    
-    # Instead of legacy simulations (which are missing), we run the new REPL
+async def _main() -> None:
+    print("""
++----------------------------------------------------------+
+|  ETHOS KERNEL V2 — Core Minimal                          |
+|  Chat interactivo con conciencia ética                   |
+|  2026 · MoSex Macchina Lab · Ex Machina Foundation       |
++----------------------------------------------------------+
+""")
+    engine = ChatEngine()
+    ok = await engine.start()
+    if not ok:
+        print("WARN: Ollama no está disponible. Las respuestas usarán fallbacks.")
     try:
-        await kernel.engine.repl()
-    except Exception as e:
-        print(f"\nError durante la ejecución: {e}")
+        await engine.repl()
     finally:
-        await kernel.stop()
+        await engine.close()
 
-def main():
+
+def main() -> None:
     try:
-        asyncio.run(_async_main())
+        asyncio.run(_main())
     except KeyboardInterrupt:
-        print("\nApagando sistema...")
+        print("\nApagando...")
+
 
 if __name__ == "__main__":
     main()
