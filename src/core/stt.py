@@ -57,13 +57,33 @@ def _get_model() -> object | None:
         return None
 
 
+def _transcribe_sync(model: object, audio: "np.ndarray", language: str) -> Optional[str]:
+    """
+    Blocking Whisper transcription — runs in a thread via asyncio.to_thread().
+    NEVER call this directly from an async context: it blocks the CPU.
+    """
+    import time as _time
+    t0 = _time.perf_counter()
+    segments, _info = model.transcribe(  # type: ignore[attr-defined]
+        audio,
+        language=language,
+        beam_size=1,
+        vad_filter=True,
+        vad_parameters={"min_silence_duration_ms": 300},
+    )
+    text = " ".join(seg.text for seg in segments).strip()
+    elapsed_ms = (_time.perf_counter() - t0) * 1000
+    _log.info("Whisper STT: %.0fms → '%s'", elapsed_ms, text[:80])
+    return text if text else None
+
+
 async def transcribe_pcm(
     pcm_bytes: bytes,
     sample_rate: int = 16000,
     language: str = "es",
 ) -> Optional[str]:
     """
-    Transcribe bytes de audio PCM a texto.
+    Transcribe bytes de audio PCM a texto. Non-blocking — Whisper corre en un thread.
 
     Args:
         pcm_bytes: Audio crudo int16 little-endian mono.
@@ -73,6 +93,8 @@ async def transcribe_pcm(
     Returns:
         Texto transcrito, o None si STT no está disponible.
     """
+    import asyncio
+
     model = _get_model()
     if model is None:
         return None
@@ -81,7 +103,6 @@ async def transcribe_pcm(
         return None  # Frame demasiado corto
 
     try:
-        import io
         import struct
         import numpy as np
 
@@ -90,23 +111,13 @@ async def transcribe_pcm(
         samples = struct.unpack(f"<{num_samples}h", pcm_bytes[:num_samples * 2])
         audio = np.array(samples, dtype=np.float32) / 32768.0
 
-        # Anti-NaN: verificar que el audio es finito
+        # Anti-NaN
         if not np.all(np.isfinite(audio)):
             _log.warning("STT: frame contiene NaN/Inf, ignorando")
             return None
 
-        t0 = time.perf_counter()
-        segments, info = model.transcribe(
-            audio,
-            language=language,
-            beam_size=1,           # Mínimo para latencia baja
-            vad_filter=True,       # Filtra silencio automáticamente
-            vad_parameters={"min_silence_duration_ms": 300},
-        )
-        text = " ".join(seg.text for seg in segments).strip()
-        elapsed_ms = (time.perf_counter() - t0) * 1000
-        _log.info("Whisper STT: %.0fms → '%s'", elapsed_ms, text[:80])
-        return text if text else None
+        # Corre el trabajo bloqueante en un thread — nunca en el event loop
+        return await asyncio.to_thread(_transcribe_sync, model, audio, language)
 
     except Exception as e:
         _log.error("STT transcription failed: %s", e)

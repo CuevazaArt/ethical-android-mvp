@@ -87,7 +87,7 @@ async function resolveKernelEndpointCandidates() {
     const candidates = [];
     const currentHost = window.location.hostname || '127.0.0.1';
     const currentPort = window.location.port || '8000';
-    const wsProto = 'ws:'; // Force unsecure WS for LAN
+    const wsProto = _wsProtocol();
     const lanIp = currentHost;
     const baseCurrent = `${wsProto}//${lanIp}:${currentPort}`;
     
@@ -888,6 +888,24 @@ async function connectKernel() {
                     if (p.rtt_ms !== undefined && UI.nomadRtt) {
                         UI.nomadRtt.textContent = Math.round(p.rtt_ms) + ' ms';
                     }
+                }
+                // ── V2.13 Fix: forward vision signals to /ws/chat ────────────
+                // wsNomad receives vision_signals; wsChat needs them for context injection.
+                if (msg.type === 'vision_signals' && msg.payload) {
+                    // Update local HUD telemetry (audio channel proxy)
+                    if (UI.telAud && msg.payload.brightness !== undefined) {
+                        UI.telAud.textContent = Number(msg.payload.brightness).toFixed(2);
+                    }
+                    // Forward to wsChat so text turns get physical context too
+                    if (wsChat && wsChat.readyState === WebSocket.OPEN) {
+                        try {
+                            wsChat.send(JSON.stringify({
+                                type: 'vision_context',
+                                payload: msg.payload,
+                            }));
+                        } catch (_) { /* non-fatal */ }
+                    }
+                    return;
                 }
             } catch (e) {
                 console.warn('Nomad WS message parse error', e);

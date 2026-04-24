@@ -96,6 +96,7 @@ scratch/
 
 # Local dev TLS (generate_local_certs / Nomad); never commit keys
 .certs/
+certs/
 
 # Local Chroma vector DB (tests / dev; default persist path)
 .chroma/

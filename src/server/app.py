@@ -127,6 +127,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     engine = ChatEngine()
     ready = await engine.start()
+    _chat_vision: dict | None = None  # Fix 2: vision context from Nomad client
 
     if not ready:
         await websocket.send_json({
@@ -140,10 +141,25 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             try:
-                async for event in engine.turn_stream(data):
-                    await websocket.send_json(event)
+                # Try to parse as JSON for typed frames (vision_context, etc.)
+                import json as _json
+                try:
+                    frame = _json.loads(data)
+                    frame_type = frame.get("type", "") if isinstance(frame, dict) else ""
+                except Exception:
+                    frame = None
+                    frame_type = ""
+
+                if frame_type == "vision_context":
+                    # Nomad client forwarding vision signals from /ws/nomad
+                    _chat_vision = frame.get("payload")
+                else:
+                    # Plain text or other — treat as chat turn
+                    text = data if not frame else (frame.get("text") or data)
+                    async for event in engine.turn_stream(text, vision_context=_chat_vision):
+                        await websocket.send_json(event)
             except Exception as e:
-                _log.error(f"Error during turn: {e}")
+                _log.error("Error during turn: %s", e)
                 await websocket.send_json({
                     "type": "done",
                     "message": "Error interno del kernel.",
