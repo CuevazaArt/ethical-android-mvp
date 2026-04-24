@@ -118,8 +118,6 @@ src/
 │   └── app.py             # FastAPI: /ws/chat, /ws/nomad, /dashboard
 ├── clients/
 │   └── nomad_pwa/         # Mobile PWA (HTML/JS, no framework)
-├── persistence/           # JSON / SQLite checkpoints
-├── validators/            # KERNEL_* env policy
 ├── runtime_profiles.py    # Named env bundles
 ├── chat_server.py         # Entry point for uvicorn
 ├── ethos_cli.py           # CLI (diagnostics, config)

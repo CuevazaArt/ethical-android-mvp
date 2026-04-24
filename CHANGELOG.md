@@ -21,6 +21,8 @@ All notable changes to this project are summarized here. For narrative context a
 
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
+### Antigravity (L1)
+
 ### Added
 - **Recursive Narrative Memory (Task 37.1):** Implemented `NarrativeEpisodicSummarizer`. The kernel now distills raw episodes into thematic chronicles using LLM-based thematic compression.
 - **Psi-Sleep Lifecycle (Task 37.2):** Fully asynchronous maintenance cycle that triggers narrative consolidation and ethical auditing during downtime.
@@ -41,11 +43,15 @@ All notable changes to this project are summarized here. For narrative context a
 - **Module Paths:** Standardized `config/ethics_weights.yaml` access in a modularized environment.
 
 ## [2026-04-22] Bloque 39.0: Sincronización general y análisis de brechas
+### Antigravity (L1)
+
 ### Changed
 - **General Sync:** Performed a global reconciliation of documentation and code following the V1.0 stabilization pulse.
 - **Gap Analysis:** Verified that all critical Phase 15 tasks are integrated and that the distributed tri-lobe architecture maintains parity with the original ethical mandate.
 
 ## [2026-04-22] Bloque 36.0: Poda documental (parcial)
+### Antigravity (L1)
+
 
 ### Added
 - **`docs/proposals/INDEX.md`:** navigation hub (PLAN, README, aspirational disclaimer, archive policy).
@@ -59,6 +65,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/server/ws_chat.py`:** combined `constitution_draft` + `text` messages now always receive the draft `ok` JSON ack before the chat turn stream; tests: `test_websocket_constitution_draft_with_text_sends_draft_ack`, `test_websocket_constitution_draft_combined_with_text_sends_draft_ack`.
 
 ## [2026-04-22] Bloque 35.0: Núcleo — vitalidad + retirada del nombre `kernel_legacy_v12`
+### Antigravity (L1)
+
 
 ### Added
 - **`src/kernel_handlers/vitality_hints.py`:** reexporta señales de vitalidad para handlers; el batch kernel las consume en lugar de importar solo desde `modules.vitality`.
@@ -72,6 +80,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Tests / scripts:** `test_malabs_semantic_integration`, `run_empirical_pilot` → `ethical_kernel_batch`; `test_transparency_s10` y `test_safety_interlock` usan batch `EthicalKernel` donde aplica; `safety_interlock` importa `KernelDecision` / `InternalState` desde los módulos canónicos.
 
 ## [2026-04-22] Bloque 34.0: Decomposición `chat_server.py` (parcial)
+### Antigravity (L1)
+
 
 ### Added
 - **`src/server/ws_sidecar.py`:** `APIRouter` with WebSocket routes `/ws/nomad` (Nomad bridge) and `/ws/dashboard`; Nomad `SYNC_IDENTITY` uses a lazy import of `src.chat_server` after the app module is fully loaded.
@@ -87,6 +97,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/server/routes_health.py`:** `uptime_seconds` en `GET /health` desde `meta.py` (mismo ancla de proceso que el resto del servicio).
 
 ## [2026-04-21] Bloque 34.0: MalAbs async / embeddings (observabilidad)
+### Antigravity (L1)
+
 
 ### Fixed
 - **Async MalAbs:** `run_perception_async` now awaits `aevaluate_chat_text` when available, otherwise runs sync `evaluate_chat_text` in `asyncio.to_thread`, avoiding sync Ollama embedding transport on a running event loop.
@@ -94,6 +106,8 @@ All notable changes to this project are summarized here. For narrative context a
 - **Legacy kernel boot:** removed imports of deleted `biographic_pruning` / `selective_amnesia`; wired `MemoryHygieneService` into `MemoryLobe` and exposed `run_maintenance_cycle` on `MemoryHygieneService` for pruning test compatibility. `EthosKernel` exposes `biographic_pruner` for integration tests.
 
 ## [2026-04-22] Bloque 33.0: L1 Auditoría Crítica + Verdad Mecánica (Tag: `v14.0-audit`)
+### Antigravity (L1)
+
 
 > **Shadow Envelope:** This block was motivated by a systemic audit revealing that the MalAbs regex gate had false-positive blind spots (single-keyword matching on common words like "explosion", "agent", "destruction") and that the ethical model's documentation inflated its capabilities beyond what the code delivers. The fix splits the hacking/exploit regex into unambiguous (solo-match) and contextual (co-occurrence) tiers.
 
