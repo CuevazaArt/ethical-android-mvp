@@ -32,6 +32,7 @@ from dataclasses import dataclass
 from src.core.ethics import Action, EthicalEvaluator, EvalResult, Signals
 from src.core.llm import OllamaClient
 from src.core.memory import Memory
+from src.core.safety import is_dangerous, sanitize
 
 _log = logging.getLogger(__name__)
 
@@ -241,8 +242,27 @@ class ChatEngine:
     async def turn(self, user_message: str) -> TurnResult:
         """
         Process one conversational turn. The complete pipeline:
-        Perceive → Evaluate → Respond → Remember
+        Safety → Perceive → Evaluate → Respond → Remember
         """
+        # 0. Safety gate: sanitize input and check for dangerous content
+        user_message = sanitize(user_message)
+        blocked, reason = is_dangerous(user_message)
+        if blocked:
+            _log.warning("Safety gate blocked input: %s", reason)
+            refusal = "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?"
+            self.memory.add(
+                summary=f"BLOCKED: {user_message[:60]} → reason={reason}",
+                action="safety_block",
+                score=0.0,
+                context="safety_violation",
+            )
+            return TurnResult(
+                message=refusal,
+                signals=Signals(risk=1.0, context="safety_violation"),
+                evaluation=None,
+                perception_raw={"blocked": True, "reason": reason},
+            )
+
         # 1. Perceive
         signals = await self.perceive(user_message)
 
