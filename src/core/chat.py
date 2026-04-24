@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from src.core.ethics import Action, EthicalEvaluator, EvalResult, Signals
 from src.core.identity import Identity
@@ -65,6 +65,7 @@ class TurnResult:
     signals: Signals  # What was perceived
     evaluation: EvalResult | None  # Ethical verdict (None for casual chat)
     perception_raw: dict  # Raw LLM perception output
+    latency_ms: dict[str, float] = field(default_factory=dict)  # V2.18: Performance tracking
 
 
 def _generate_actions_from_signals(signals: Signals) -> list[Action]:
@@ -303,9 +304,16 @@ class ChatEngine:
         Process one conversational turn. The complete pipeline:
         Safety → Perceive → Evaluate → Respond → Remember
         """
+        import time
+        latency = {}
+        t0 = time.perf_counter()
+
         # 0. Safety gate: sanitize input and check for dangerous content
+        t_start = time.perf_counter()
         user_message = sanitize(user_message)
         blocked, reason = is_dangerous(user_message)
+        latency["safety"] = round((time.perf_counter() - t_start) * 1000, 2)
+
         if blocked:
             _log.warning("Safety gate blocked input: %s", reason)
             refusal = "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?"
@@ -315,17 +323,22 @@ class ChatEngine:
                 score=0.0,
                 context="safety_violation",
             )
+            latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
             return TurnResult(
                 message=refusal,
                 signals=Signals(risk=1.0, context="safety_violation"),
                 evaluation=None,
                 perception_raw={"blocked": True, "reason": reason},
+                latency_ms=latency,
             )
 
         # 1. Perceive
+        t_start = time.perf_counter()
         signals = await self.perceive(user_message)
+        latency["perceive"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 2. Evaluate (skip for casual everyday chat)
+        t_start = time.perf_counter()
         evaluation = None
         is_casual = (
             signals.context == "everyday_ethics"
@@ -337,11 +350,15 @@ class ChatEngine:
         if not is_casual:
             actions = _generate_actions_from_signals(signals)
             evaluation = self.ethics.evaluate(actions, signals)
+        latency["evaluate"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 3. Respond
+        t_start = time.perf_counter()
         message = await self.respond(user_message, signals, evaluation)
+        latency["llm_total"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 4. Remember
+        t_start = time.perf_counter()
         score = evaluation.score if evaluation else 0.0
         if not math.isfinite(score):
             score = 0.0
@@ -360,6 +377,10 @@ class ChatEngine:
         self._conversation.append({"user": user_message, "assistant": message})
         if len(self._conversation) > 10:
             self._conversation = self._conversation[-10:]
+            
+        latency["memory"] = round((time.perf_counter() - t_start) * 1000, 2)
+        latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
+        _log.info("Turn latency: %s", latency)
 
         return TurnResult(
             message=message,
@@ -371,6 +392,7 @@ class ChatEngine:
                 "hostility": signals.hostility,
                 "context": signals.context,
             },
+            latency_ms=latency,
         )
 
     async def turn_stream(self, user_message: str, vision_context: dict | None = None):
@@ -379,23 +401,34 @@ class ChatEngine:
         Yields dicts: {"type": "token", "content": "..."} or {"type": "done", ...}
         vision_context: optional VisionSignals dict to inject physical env into prompt.
         """
+        import time
+        latency = {}
+        t0 = time.perf_counter()
+
         # 0. Safety gate
+        t_start = time.perf_counter()
         user_message = sanitize(user_message)
         blocked, reason = is_dangerous(user_message)
+        latency["safety"] = round((time.perf_counter() - t_start) * 1000, 2)
+
         if blocked:
             _log.warning("Safety gate blocked input: %s", reason)
             self.memory.add(
                 summary=f"BLOCKED: {user_message[:60]} → reason={reason}",
                 action="safety_block", score=0.0, context="safety_violation",
             )
+            latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
             yield {"type": "done", "message": "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?",
-                   "context": "safety_violation", "blocked": True, "reason": reason}
+                   "context": "safety_violation", "blocked": True, "reason": reason, "latency": latency}
             return
 
         # 1. Perceive
+        t_start = time.perf_counter()
         signals = await self.perceive(user_message)
+        latency["perceive"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 2. Evaluate
+        t_start = time.perf_counter()
         evaluation = None
         is_casual = (
             signals.context == "everyday_ethics"
@@ -406,16 +439,25 @@ class ChatEngine:
         if not is_casual:
             actions = _generate_actions_from_signals(signals)
             evaluation = self.ethics.evaluate(actions, signals)
+        latency["evaluate"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 3. Stream response
+        t_start = time.perf_counter()
         full_response = []
+        first_token = True
         async for token in self.respond_stream(user_message, signals, evaluation, vision_context):
+            if first_token:
+                latency["ttft"] = round((time.perf_counter() - t_start) * 1000, 2)
+                first_token = False
             full_response.append(token)
             yield {"type": "token", "content": token}
+        
+        latency["llm_total"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         message = "".join(full_response).strip()
 
         # 4. Remember
+        t_start = time.perf_counter()
         score = evaluation.score if evaluation else 0.0
         if not math.isfinite(score):
             score = 0.0
@@ -436,9 +478,13 @@ class ChatEngine:
 
         # V2.15: Update identity after every episode
         self.identity.update(self.memory)
+        
+        latency["memory"] = round((time.perf_counter() - t_start) * 1000, 2)
+        latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
+        _log.info("Turn stream latency: %s", latency)
 
         # Final event
-        yield {"type": "done", "message": message, "context": signals.context, "blocked": False}
+        yield {"type": "done", "message": message, "context": signals.context, "blocked": False, "latency": latency}
 
     async def repl(self) -> None:
         """Interactive terminal chat. The simplest possible UI."""
