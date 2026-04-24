@@ -35,6 +35,7 @@ from src.core.llm import OllamaClient
 from src.core.memory import Memory
 from src.core.perception import PerceptionClassifier
 from src.core.safety import is_dangerous, sanitize
+import asyncio
 
 _log = logging.getLogger(__name__)
 
@@ -324,8 +325,8 @@ class ChatEngine:
 
         self._turn_count += 1
         if self._turn_count % 5 == 0:
-            # V2.21: Update identity (I/O heavy) every 5 turns, not every turn
-            self.identity.update(self.memory)
+            # V2.42: Background reflection to avoid blocking response delivery
+            asyncio.create_task(self.identity.reflect(self.memory, self.llm))
 
         # 5. Update STM
         self._conversation.append({"user": user_message, "assistant": message})
@@ -397,6 +398,22 @@ class ChatEngine:
 
         # 3. Stream response
         t_start = time.perf_counter()
+        
+        # V2.42: Early metadata yield to reduce perceived latency
+        yield {
+            "type": "metadata", 
+            "context": signals.context, 
+            "signals": {
+                "risk": signals.risk,
+                "urgency": signals.urgency,
+                "hostility": signals.hostility
+            },
+            "evaluation": {
+                "chosen": evaluation.chosen.name if evaluation else "casual_chat",
+                "verdict": evaluation.verdict if evaluation else "Neutral"
+            } if evaluation else None
+        }
+
         full_response = []
         first_token = True
         async for token in self.respond_stream(user_message, signals, evaluation, vision_context):
@@ -423,8 +440,8 @@ class ChatEngine:
 
         self._turn_count += 1
         if self._turn_count % 5 == 0:
-            # V2.21: Update identity (I/O heavy) every 5 turns, not every turn
-            self.identity.update(self.memory)
+            # V2.42: Background reflection to avoid blocking response delivery
+            asyncio.create_task(self.identity.reflect(self.memory, self.llm))
 
         # 5. STM
         self._conversation.append({"user": user_message, "assistant": message})

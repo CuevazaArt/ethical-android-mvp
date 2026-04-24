@@ -313,6 +313,8 @@ async def test_identity_update_throttled_every_5_turns(engine):
             async for _ in engine.turn_stream(f"turno {i}"): pass
         engine.identity.update.assert_not_called()
         async for _ in engine.turn_stream("turno 5"): pass
+        import asyncio
+        await asyncio.sleep(0.05)  # V2.42: Wait for background reflection task
     engine.identity.update.assert_called_once()
 
 # --- Additional Coverage Tests ---

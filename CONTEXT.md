@@ -57,6 +57,7 @@ MVP V2 stabilization is 100% complete.
 | V2.38 | Fase γ: Auditoría Nomad PWA Sync | ✅ |
 | V2.40 | Perception Classifier (Sin LLM, 0ms) | ✅ |
 | V2.41 | Case-Based Ethics (CBR Precedents) | ✅ |
+| V2.42 | Single-Call Pipeline (Hardening) | ✅ |
 
 
 ## Key files
@@ -81,5 +82,6 @@ MVP V2 stabilization is 100% complete.
 - **Bridge:** ELIMINADO
 - **Perception:** Determinista (Sin LLM, latencia <1ms)
 - **Ethics:** Basada en precedentes (CBR)
+- **Pipeline:** Single-Call Hardened (Background reflection, Early signaling)
 - **Documentación:** Alineada con el código
 - **Adversarial Suite:** 6/6 blocked · 10/10 legitimate pass (sin Ollama: keyword fallback activo)
