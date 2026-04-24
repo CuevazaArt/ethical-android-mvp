@@ -12,6 +12,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **Estado:** Fase 15 [CERRADA] -> Iniciando Fase 16 (Estabilización V2).
 
 
+## [2026-04-24] V2.25 — Fase 16 COMPLETA: Documentación y Cierre — Antigravity (L1)
+- **Bloque 40.2 DONE:** `README.md` reescrito para reflejar V2 Core Minimal real.
+- **Fase 16 CERRADA:** Todos los bloques (40.0, 40.1, 40.2) completados. Cero imports legacy. Bridge eliminado. 91 tests ✅.
+- **Arquitectura V2:** `src/core/` es la única fuente de verdad. `ChatEngine` orquesta todo el pipeline Safety→Perceive→Evaluate→Respond→Memory.
+
+
+
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Added
 - **Recursive Narrative Memory (Task 37.1):** Implemented `NarrativeEpisodicSummarizer`. The kernel now distills raw episodes into thematic chronicles using LLM-based thematic compression.

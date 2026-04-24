@@ -3,29 +3,49 @@
 [![CI](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/CuevazaArt/ethical-android-mvp/graph/badge.svg)](https://codecov.io/gh/CuevazaArt/ethical-android-mvp)
 
-**MoSex Macchina Lab** — open **kernel + runtime** for a model of artificial ethical agency: traceable governance hooks (DAO / hub audit), persistence, WebSocket chat, and a large **pytest** suite (CI on Python **3.11 / 3.12**).
+**MoSex Macchina Lab** — open **kernel + runtime** for a model of artificial ethical agency: deterministic safety gate, three-pole ethical evaluator, episodic memory, WebSocket chat, and a **pytest** suite (CI on Python **3.11 / 3.12**).
 
-**Documentation:** design notes and proposal index: [`docs/proposals/README.md`](docs/proposals/README.md) (e.g. [`PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md`](docs/proposals/PROPOSAL_BAYESIAN_MIXTURE_FEEDBACK.md)). **Governance & safety:** [`GOVERNANCE_MOCKDAO_AND_L0.md`](docs/proposals/GOVERNANCE_MOCKDAO_AND_L0.md) (mock DAO limits, L0 immutability), [`INPUT_TRUST_THREAT_MODEL.md`](docs/proposals/INPUT_TRUST_THREAT_MODEL.md) (MalAbs evasion). Architecture decisions live in [`docs/adr/`](docs/adr/README.md). Narrative history: [`HISTORY.md`](HISTORY.md) · changes: [`CHANGELOG.md`](CHANGELOG.md). Layout: [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). The full proposal tree is versioned under **`docs/proposals/`**. **Academic bibliography** (104+ refs) and the **Next.js landing** app live on branch **`main-whit-landing`** — this **`main`** line stays kernel-first and landing-free.
-
-**Kernel / runtime line:** ethical core **v5** through **v12** hub / persistence / advisory features — see `HISTORY.md` for the version story.
+> Architecture decisions: [`docs/adr/`](docs/adr/README.md) · Changes: [`CHANGELOG.md`](CHANGELOG.md) · History: [`HISTORY.md`](HISTORY.md)
 
 This project is also listed in [Spanish](https://github.com/CuevazaArt/androide-etico-mvp).
 
+---
+
 ## What it does
 
-- **WebSocket chat:** `python -m src.chat_server` or `python -m src.runtime` — JSON over `/ws/chat`; optional `KERNEL_*` layers (see `src/chat_server.py` docstring and `src/chat_settings.py`).
-- **Batch simulations:** `python -m src.main` — legacy harness for regression scenarios.
-- **Experiments (optional):** [`experiments/README.md`](experiments/README.md).
-- **Ethical scoring:** Candidate actions are ranked using a **linear mixture** of three fixed hyperparameter weights (utilitarian / deontological / virtue). The engine uses these predefined weights with bounded nudges via feedback. The names `BayesianEngine` and `KERNEL_BAYESIAN_*` refer to this basic adjustment layer — **not** unconstrained "full Bayes" over a latent world model. See [ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md) and [THEORY_AND_IMPLEMENTATION.md](docs/proposals/THEORY_AND_IMPLEMENTATION.md).
+| Feature | Command |
+|---------|---------|
+| **Interactive chat REPL** | `python -m src.main` |
+| **WebSocket chat server** | `python -m src.chat_server` → `ws://127.0.0.1:8765/ws/chat` |
+| **Nomad PWA bridge** | `ws://127.0.0.1:8765/ws/nomad` (mobile STT + vision) |
+| **CLI diagnostics** | `python -m src.ethos_cli diagnostics` |
+| **Adversarial security validation** | `python scripts/eval/adversarial_suite.py` |
 
-- **Nomad Mode (llama3.2:1b):** **Physical limits warning.** When running in "Zero-API" local mode, a 1.5B model *does not* perform ethical reasoning nor can it follow complex prompts reliably. The system functions because the deterministic gates (MalAbs, UchiSoto, Executive Lobe) do the heavy ethical lifting *before* the LLM. The local LLM merely acts as a fluent text-generation interface.
+### Decision pipeline (every turn)
+
+```
+User input
+  → Safety Gate (regex + Base64 decode — deterministic, no LLM)
+  → Perceive (LLM extracts signals: risk, urgency, hostility…)
+  → Ethical Evaluator (3-pole: Utilitarian 40% · Deontological 35% · Virtue 25%)
+  → Respond (LLM generates contextual reply in Spanish)
+  → Memory (episode recorded, TF-IDF indexed)
+```
+
+**Nomad Mode (llama3.2:1b):** The deterministic Safety Gate and Ethical Evaluator do the heavy lifting *before* the LLM. The 1B local model acts purely as a fluent text-generation interface.
+
+---
 
 ## Quick start
 
 ### Prerequisites
 
-- Python 3.9+
-- pip
+- Python 3.11+
+- [Ollama](https://ollama.com) running locally (`ollama serve`)
+
+```bash
+ollama pull llama3.2:1b   # ~1 GB, one-time download
+```
 
 ### Install
 
@@ -35,74 +55,112 @@ cd ethical-android-mvp
 python -m venv .venv
 # Windows PowerShell: .venv\Scripts\Activate.ps1
 # Unix: source .venv/bin/activate
-pip install -r requirements.txt
-# pip install -e ".[runtime]"   # FastAPI / uvicorn / httpx for chat server
+pip install -e ".[runtime]"    # FastAPI + uvicorn + httpx
 ```
 
-### Run simulations
+### Interactive chat
 
 ```bash
 python -m src.main
-python -m src.main --sim 3
 ```
 
-### Run tests (same as CI)
-
-```bash
-pip install -r requirements.txt -r requirements-dev.txt
-pytest tests/ -v
-python -m ruff check src tests
-python -m ruff format --check src tests
-python -m mypy src
-```
-
-### Environment validation (`KERNEL_*` combinations)
-
-After optional `ETHOS_RUNTIME_PROFILE` merge, the chat server applies **`KERNEL_ENV_VALIDATION`**: **`strict`** (default), **`warn`**, or **`off`**. In **strict** mode, incompatible flag combinations fail fast at startup (see [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md)). From an editable install, run **`ethos config --strict`** to exit non-zero on the same rules without starting the server ([`CONTRIBUTING.md`](CONTRIBUTING.md)).
-
-### Real-time chat (WebSocket)
+### WebSocket chat server
 
 ```bash
 python -m src.chat_server
-# http://127.0.0.1:8765/health  —  ws://127.0.0.1:8765/ws/chat
+# Dashboard: http://127.0.0.1:8765/dashboard
+# Nomad PWA: http://127.0.0.1:8765/nomad
 ```
 
-Optional: `ETHOS_RUNTIME_PROFILE=lan_operational` (see [`src/runtime_profiles.py`](src/runtime_profiles.py)). Docker: [`Dockerfile`](Dockerfile), [`docker-compose.yml`](docker-compose.yml), [`docs/deploy/COMPOSE_PRODISH.md`](docs/deploy/COMPOSE_PRODISH.md) (includes **staging verification** for `/health` and `/metrics`).
+Optional: `ETHOS_RUNTIME_PROFILE=lan_operational` (see [`src/runtime_profiles.py`](src/runtime_profiles.py)).
 
-## Modular architecture (overview)
+### CLI
+
+```bash
+python -m src.ethos_cli diagnostics          # Memory stats + reflection
+python -m src.ethos_cli diagnostics --json   # Machine-readable
+python -m src.ethos_cli config               # Active env vars
+python -m src.ethos_cli config --profiles    # List runtime profiles
+```
+
+### Tests (same as CI)
+
+```bash
+pip install -e ".[dev]"
+pytest tests/core/ -q          # Core suite (91 tests)
+pytest tests/ -v               # Full suite
+```
+
+### Security validation
+
+```bash
+python scripts/eval/adversarial_suite.py
+# → 6/6 adversarial blocked · 10/10 legitimate allowed
+```
+
+---
+
+## Architecture (V2 Core Minimal)
 
 ```
 src/
-├── modules/          # Ethical pipeline, LLM, sensors, hub, persistence helpers
-├── simulations/      # Batch scenario runner
-├── persistence/      # Snapshots (JSON / SQLite)
-├── kernel.py         # EthicalKernel orchestration + process_chat_turn
-├── chat_server.py    # FastAPI WebSocket
-├── runtime_profiles.py
-└── main.py
+├── core/                  # The entire ethical brain (V2)
+│   ├── chat.py            # ChatEngine — turn pipeline orchestrator
+│   ├── ethics.py          # 3-pole ethical evaluator (no LLM needed)
+│   ├── safety.py          # Deterministic safety gate (regex + Base64)
+│   ├── memory.py          # Episodic memory with TF-IDF recall
+│   ├── llm.py             # OllamaClient — text in → text out
+│   ├── identity.py        # Evolving identity narrative
+│   ├── vision.py          # Frame processor (brightness, motion, faces)
+│   ├── stt.py             # Whisper STT client
+│   └── status.py          # Health check
+├── server/
+│   └── app.py             # FastAPI: /ws/chat, /ws/nomad, /dashboard
+├── clients/
+│   └── nomad_pwa/         # Mobile PWA (HTML/JS, no framework)
+├── persistence/           # JSON / SQLite checkpoints
+├── validators/            # KERNEL_* env policy
+├── runtime_profiles.py    # Named env bundles
+├── chat_server.py         # Entry point for uvicorn
+├── ethos_cli.py           # CLI (diagnostics, config)
+└── main.py                # Interactive REPL entry point
 ```
 
-Psi Sleep, moral hub, judicial escalation, and other subsystems are documented in code and in [`docs/adr/`](docs/adr/README.md).
+### Core module responsibilities
+
+| Module | Responsibility |
+|--------|---------------|
+| `safety.py` | Block dangerous input before any LLM call. Deterministic. |
+| `ethics.py` | Score candidate actions across 3 ethical poles. No LLM. |
+| `chat.py` | Orchestrate: Safety → Perceive → Evaluate → Respond → Remember |
+| `llm.py` | Single async client for Ollama. Chat, stream, JSON extraction. |
+| `memory.py` | Store episodes. TF-IDF recall. JSON persistence. |
+| `identity.py` | Build identity narrative from memory. Updates every 5 turns. |
+
+---
 
 ## Repository structure
 
 ```
 .
-├── .github/           # CI, issue templates
+├── .github/           # CI workflows, issue templates
 ├── docs/
-│   ├── proposals/     # PROPOSAL_*.md + README index
+│   ├── proposals/     # Design proposals and work plan
 │   └── adr/           # Architecture decision records
-├── experiments/       # Optional research harnesses
+├── scripts/
+│   └── eval/          # adversarial_suite.py, visual_dashboard.py
 ├── src/
 ├── tests/
+│   └── core/          # 91 unit tests for V2 Core
+├── AGENTS.md          # Men Scout protocol
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── HISTORY.md
 ├── LICENSE
-├── SECURITY.md
-├── README.md
-└── requirements.txt
+└── README.md
 ```
+
+---
 
 ## Contributing
 
@@ -112,6 +170,8 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`AGENTS.md`](AGENTS.md). Security:
 
 Apache 2.0 — see [`LICENSE`](LICENSE).
 
+---
+
 ## MoSex Macchina Lab · Ex Machina Foundation — 2026
 
-**MoSex Macchina Lab** — public project name ([mosexmacchinalab.com](https://mosexmacchinalab.com)). **Ethos Kernel** — technical name of this repository (GitHub slug may remain `ethical-android-mvp`). **Ex Machina Foundation** — research in computational ethics and civic robotics.
+**MoSex Macchina Lab** — public project name ([mosexmacchinalab.com](https://mosexmacchinalab.com)). **Ethos Kernel** — technical name of this repository. **Ex Machina Foundation** — research in computational ethics and civic robotics.

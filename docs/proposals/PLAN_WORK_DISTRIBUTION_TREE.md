@@ -36,9 +36,19 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 - `src/kernel.py` (bridge) eliminado. `adversarial_suite.py` migrado a `ChatEngine` directo. `main.py` limpio.
 - Demo: `python -m src.ethos_cli diagnostics --json` ✅ | `pytest tests/core/ -q` → 91 passed.
 
-**Bloque 40.2: Actualización de Documentación (Prioridad 3) [PENDING]**
-- Tarea: Actualizar `README.md` para reflejar la estructura V2 real.
-- Meta: Verdad documental alineada con el código.
+**Bloque 40.2: Actualización de Documentación (Prioridad 3) [DONE ✅ V2.25]**
+- `README.md` reescrito contra la arquitectura V2 real: tabla de comandos, pipeline de decisión, estructura de `src/core/`, responsabilidades por módulo.
+- Sin referencias a `modules/`, `kernel.py`, `EthicalKernel`, ni `--sim 3`.
+
+---
+
+## 🏆 FASE 16: ESTABILIZACIÓN V2 [COMPLETA ✅]
+
+**Todos los bloques cerrados. El repositorio es 100% V2 Core Minimal.**
+- Cero imports legacy
+- Bridge eliminado
+- 91 tests ✅
+- Documentación alineada con el código
 
 ---
 
