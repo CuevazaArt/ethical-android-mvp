@@ -15,12 +15,29 @@ _log = logging.getLogger(__name__)
 app = FastAPI(title="Ethos Kernel Chat")
 
 STATIC_DIR = Path(__file__).parent / "static"
+NOMAD_DIR = Path(__file__).parent.parent / "clients" / "nomad_pwa"
 _start_time = time.time()
 
 
 @app.get("/")
 async def get_index():
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/nomad")
+async def get_nomad():
+    """Serve the Nomad PWA (mobile client)."""
+    return FileResponse(NOMAD_DIR / "index.html")
+
+
+@app.get("/nomad/{filename:path}")
+async def get_nomad_static(filename: str):
+    """Serve Nomad PWA static assets (app.js, style.css, manifest.json, sw.js, icon)."""
+    target = NOMAD_DIR / filename
+    if not target.exists() or not target.is_file():
+        from fastapi.responses import Response
+        return Response(status_code=404)
+    return FileResponse(target)
 
 
 @app.get("/api/status")
@@ -131,5 +148,49 @@ async def websocket_endpoint(websocket: WebSocket):
                 })
     except WebSocketDisconnect:
         _log.info("Client disconnected")
+    finally:
+        await engine.close()
+
+
+@app.websocket("/ws/nomad")
+async def websocket_nomad(websocket: WebSocket):
+    """
+    Nomad sensory sideband — receives telemetry from mobile PWA.
+    Handles: ping→pong, telemetry (battery/kinetics/orientation), chat_text relay.
+    """
+    await websocket.accept()
+    _log.info("Nomad bridge connected")
+
+    engine = ChatEngine()
+    await engine.start()
+
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                import json as _json
+                msg = _json.loads(raw)
+                msg_type = msg.get("type", "")
+
+                if msg_type == "ping":
+                    await websocket.send_json({"type": "pong", "payload": {}})
+
+                elif msg_type == "telemetry":
+                    payload = msg.get("payload", {})
+                    _log.debug("Nomad telemetry: %s", payload)
+
+                elif msg_type == "chat_text":
+                    text = (msg.get("payload") or {}).get("text", "")
+                    if text:
+                        async for event in engine.turn_stream(text):
+                            await websocket.send_json(event)
+
+                else:
+                    _log.debug("Nomad unknown frame: %s", msg_type)
+
+            except Exception as e:
+                _log.warning("Nomad frame error: %s", e)
+    except WebSocketDisconnect:
+        _log.info("Nomad bridge disconnected")
     finally:
         await engine.close()

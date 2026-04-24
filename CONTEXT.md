@@ -15,7 +15,7 @@
 
 ## Active block
 
-**V2.8 — Nomad PWA**: Chat HTTPS desde móvil por LAN.
+**V2.9 — Audio VAD**: Voz activa como input en el Nomad PWA.
 
 ## Closed blocks
 
@@ -33,8 +33,8 @@
 
 | Block | Name | Status | Depends on |
 |-------|------|--------|------------|
-| V2.8 | Nomad PWA | ⏳ Waiting | Fase β complete |
-| V2.9 | Audio VAD | ⏳ Waiting | V2.8 closed |
+| V2.8 | Nomad PWA | ✅ CLOSED | Fase β complete |
+| V2.9 | Audio VAD | 🔨 IN PROGRESS | V2.8 closed |
 
 ## Key files
 
@@ -51,4 +51,4 @@
 - **2026-04-24 Fase α:** V2.1-V2.4 closed. 5 core modules, 53 tests, safety gate.
 - **2026-04-24 V2.5:** WebSocket chat on localhost:8000 — FastAPI + HTML client.
 - **2026-04-24 V2.6:** Streaming — turn_stream() yields tokens progressively.
-- **2026-04-24 V2.7:** Dashboard at /dashboard — model, memory, uptime, reflection. Auto-refresh 5s.
+- **2026-04-24 V2.8 CLOSED:** Nomad PWA servida en `/nomad` + `/nomad/{file}`. `/ws/nomad` acepta telemetría (ping→pong, batería, kinética) y relay de chat. `app.js` actualizado con handler V2 `{type:token}` + `{type:done}` + TTS. Demo: GET /nomad→200 (4145B), /nomad/app.js→200 (41542B). Servidor activo en 0.0.0.0:8000 (LAN). Tests: 53 passed.

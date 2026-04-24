@@ -594,7 +594,51 @@ async function connectKernel() {
         wsChat.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
-                
+
+                // ── V2 streaming protocol ──────────────────────────────
+                if (data.type === 'token') {
+                    let streamDiv = UI.chatHistory.querySelector('.streaming-bubble');
+                    if (!streamDiv) {
+                        streamDiv = document.createElement('div');
+                        streamDiv.className = 'chat-msg kernel streaming-bubble';
+                        UI.chatHistory.appendChild(streamDiv);
+                    }
+                    streamDiv.textContent += data.content;
+                    UI.chatHistory.scrollTop = UI.chatHistory.scrollHeight;
+                    return;
+                }
+                if (data.type === 'done') {
+                    const streamDiv = UI.chatHistory.querySelector('.streaming-bubble');
+                    const msg = data.message || '';
+                    if (data.blocked) {
+                        if (streamDiv) streamDiv.remove();
+                        appendChatMessage('\uD83D\uDEAB ' + msg, 'kernel');
+                    } else if (streamDiv) {
+                        streamDiv.classList.remove('streaming-bubble');
+                        if (msg && !streamDiv.textContent.trim()) streamDiv.textContent = msg;
+                    } else if (msg) {
+                        appendChatMessage(msg, 'kernel');
+                    }
+                    if (msg && UI.transcript) {
+                        UI.transcript.innerText = msg;
+                        UI.transcript.classList.remove('placeholder');
+                    }
+                    if (msg && !data.blocked && 'speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const utter = new SpeechSynthesisUtterance(msg.replace(/[*_~`#>\-]/g, '').trim());
+                        utter.lang = 'es-MX';
+                        const voices = window.speechSynthesis.getVoices();
+                        const pref = voices.find(v => v.lang === 'es-MX') || voices.find(v => v.lang.startsWith('es')) || voices[0];
+                        if (pref) utter.voice = pref;
+                        utter.onstart = () => { if (UI.orb) UI.orb.classList.add('speaking'); };
+                        utter.onend   = () => { if (UI.orb) UI.orb.classList.remove('speaking'); };
+                        window.speechSynthesis.speak(utter);
+                    }
+                    UI.chatHistory.scrollTop = UI.chatHistory.scrollHeight;
+                    return;
+                }
+                // ── end V2 protocol ────────────────────────────────────
+
                 // Claude's domain (F.4): detailed message handling
                 if (data.role === 'android' || data.final_action) {
                     appendChatMessage(data.content || data.final_action, "kernel");
