@@ -10,12 +10,11 @@
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
 - **Last merge to main:** 2026-04-24
 
-## Fase α — COMPLETE ✅
-## Fase β — COMPLETE ✅
+## Fase α ✅ · Fase β ✅ · Fase γ ✅
 
 ## Active block
 
-**V2.9 — Audio VAD**: Voz activa como input en el Nomad PWA.
+**V2.10 — STT → Chat pipeline**: Conectar transcripciones de SpeechRecognition en media_engine.js al `turn_stream()` del kernel.
 
 ## Closed blocks
 
@@ -28,27 +27,32 @@
 | V2.5 | WebSocket Chat | ✅ |
 | V2.6 | Streaming | ✅ |
 | V2.7 | Dashboard | ✅ |
+| V2.8 | Nomad PWA | ✅ |
+| V2.9 | Audio VAD | ✅ (incluido en V2.8) |
 
-## Open blocks (Fase γ — Nomad/Audio)
+## Open blocks (Fase δ — Audio/Vision pipeline)
 
 | Block | Name | Status | Depends on |
 |-------|------|--------|------------|
-| V2.8 | Nomad PWA | ✅ CLOSED | Fase β complete |
-| V2.9 | Audio VAD | 🔨 IN PROGRESS | V2.8 closed |
+| V2.10 | STT→Chat pipeline | 🔨 IN PROGRESS | V2.9 closed |
+| V2.11 | Whisper STT server-side | ⏳ Waiting | V2.10 closed |
+| V2.12 | Vision frame processing | ⏳ Waiting | V2.11 closed |
 
 ## Key files
 
 | Area | Files |
 |------|-------|
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
-| Server | `src/server/app.py`, `src/server/static/index.html` |
-| Tests | `tests/core/{test_ethics,test_memory,test_chat,test_safety}.py` (53 tests) |
+| Server | `src/server/app.py` |
+| Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
+| Tests | `tests/core/` (53 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
+| Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
+| Nomad | `http://[LAN-IP]:8000/nomad` |
 
 ## Recent changes
 
-- **2026-04-24 Fase α:** V2.1-V2.4 closed. 5 core modules, 53 tests, safety gate.
-- **2026-04-24 V2.5:** WebSocket chat on localhost:8000 — FastAPI + HTML client.
-- **2026-04-24 V2.6:** Streaming — turn_stream() yields tokens progressively.
-- **2026-04-24 V2.8 CLOSED:** Nomad PWA servida en `/nomad` + `/nomad/{file}`. `/ws/nomad` acepta telemetría (ping→pong, batería, kinética) y relay de chat. `app.js` actualizado con handler V2 `{type:token}` + `{type:done}` + TTS. Demo: GET /nomad→200 (4145B), /nomad/app.js→200 (41542B). Servidor activo en 0.0.0.0:8000 (LAN). Tests: 53 passed.
+- **2026-04-24 Fase α:** V2.1-V2.4. 5 core modules, 53 tests.
+- **2026-04-24 Fase β:** V2.5-V2.7. WebSocket chat, streaming, dashboard.
+- **2026-04-24 V2.8+V2.9 CLOSED:** Nomad PWA completo — VAD (RMS+onset+hangover), Speech Recognition→kernel, TTS es-MX, PCM audio stream, vision frames JPEG@5FPS, PAD affective state, telemetría completa. 53 tests.
