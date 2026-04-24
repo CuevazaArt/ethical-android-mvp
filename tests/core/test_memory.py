@@ -10,13 +10,16 @@ from src.core.memory import Memory
 
 @pytest.fixture
 def mem():
-    """Fresh memory with temp storage."""
-    tmp = os.path.join(tempfile.gettempdir(), "ethos_test_mem.json")
+    """Fresh memory with temp storage (unique file per test — Windows-safe)."""
+    tmp = tempfile.mktemp(suffix=".json", prefix="ethos_test_mem_")
     m = Memory(storage_path=tmp)
     m.clear()
     yield m
-    if os.path.exists(tmp):
-        os.remove(tmp)
+    try:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    except PermissionError:
+        pass  # Windows: file still locked by GC — benign, temp dir is cleaned up anyway
 
 
 def test_add_and_recall(mem):

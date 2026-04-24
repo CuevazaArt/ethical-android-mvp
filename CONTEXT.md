@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.26 — Fase 17: A definir con L0.**
+**V2.26 CLOSED — Próximo: V2.27**
 
 ## Closed blocks
 
