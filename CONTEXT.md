@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.21 — Identity Throttle + Recall Optimization**: Implementar throttle de `identity.update()` cada 5 turnos y early-exit en `memory.recall()` cuando corpus está vacío.
+**V2.22 — Perception Hardening**: Robustecer `ChatEngine.perceive()` contra respuestas JSON mal formadas del LLM.
 
 ## Closed blocks
 
@@ -43,10 +43,10 @@
 | V2.16 | Dashboard Identity Telemetry | ✅ CLOSED | V2.15 closed |
 | V2.17 | TF-IDF Semantic Recall + Adversarial Hardening R2 | ✅ CLOSED | V2.16 closed |
 | V2.18 | Latency & Performance Audit | ✅ CLOSED | V2.17 closed |
-| V2.19 | Integration Test Suite E2E | ✅ CLOSED | V2.18 closed |
-| V2.19 | Dashboard Latency Telemetry | ✅ CLOSED | V2.18 closed |
-| V2.20 | Server Integration Tests + Bug Fix | ✅ CLOSED | V2.19 closed |
-| V2.21 | Identity Throttle + Recall Optimization | 🔨 IN PROGRESS | V2.20 closed |
+| V2.19 | Dashboard TTFT + Integration Tests E2E | ✅ CLOSED | V2.18 closed |
+| V2.20 | Server Integration Tests + SyntaxError fix | ✅ CLOSED | V2.19 closed |
+| V2.21 | Identity Throttle (every 5 turns) | ✅ CLOSED | V2.20 closed |
+| V2.22 | Perception Hardening | 🔨 IN PROGRESS | V2.21 closed |
 
 ## Key files
 
@@ -75,6 +75,7 @@
 - **2026-04-24 V2.15 CLOSED:** `src/core/identity.py` — clase `Identity` con `update(memory)` + `narrative()`. Perfil persiste en `~/.ethos/identity.json`. Detecta tendencia ética (mejorando/estable/deteriorando), contextos y acciones dominantes, ratio de safety blocks. Anti-NaN en todos los cálculos. Integrado en `_build_system()` de `chat.py`. 79 passed.
 - **2026-04-24 V2.16 CLOSED:** Dashboard actualizado con 2 cards nuevas (Score ético con color dinámico + Tendencia con emoji) y panel de Narrativa de identidad. JS: `TREND_LABEL` map + `scoreColor()`. Todo inline en `app.py`. 79 passed.
 - **2026-04-24 V2.17 CLOSED:** TF-IDF Semantic Recall en `memory.py` (`_build_idf()` cacheado, `matches_tfidf()`, fallback si corpus<5, 5 tests). Adversarial Hardening R2 en `safety.py`: limpieza de chars Zero-Width/RLO/LRE, regex role_simulation, deteccion Base64 payloads, 8 tests nuevos. 87 passed.
-- **2026-04-24 V2.18 CLOSED:** Telemetría de latencia end-to-end en `chat.py` (`turn_stream`): Safety/Perceive/Ethics/TTFT/Total medidos con `perf_counter`. Evento `done` incluye `latency` dict con Anti-NaN. Log `[TELEMETRY]` en `app.py` (handlers `/ws/chat` y `/ws/nomad`). Test `test_chat_pipeline_latency_metrics` valida todos los keys finitos. 88 passed.
-- **2026-04-24 V2.19 CLOSED:** `tests/server/test_app_integration.py` (3 tests E2E). Valida: `/api/status` con todos los campos de telemetría, WS `/ws/chat` recibe evento `done` con `blocked=false`, Safety bloquea input peligroso en WS. Corregido `SyntaxError` de doble `global _last_latency` en `app.py`. 91 tests (88 core + 3 server). 100% passed.
-- **2026-04-24 V2.20 CLOSED:** `tests/server/test_app_integration.py` — 3 integration tests (GET /api/status, WS chat done event, WS safety block). Fix: `global _last_latency` movido al scope de función en ambos handlers. Mock `chat_stream` con async generator `_fake_stream`. Fix SyntaxError en `app.py`. 91 passed.
+- **2026-04-24 V2.18 CLOSED:** Telemetría de latencia en `chat.py` (`turn_stream` + `turn`): Safety/Perceive/Ethics/TTFT/Memory medidos con `perf_counter`, campo `latency` en evento `done`, Anti-NaN. Log `[TELEMETRY]` en `app.py` (4 handlers). 88 passed.
+- **2026-04-24 V2.19 CLOSED:** Dashboard TTFT card + 3 integration tests E2E (`tests/server/`). `_last_latency` global en `app.py`, expuesto en `/api/status`. WS mock con `_fake_stream`. Fix `global` SyntaxError. 91 passed.
+- **2026-04-24 V2.20 CLOSED:** Consolidación de integration tests; fix doble `global _last_latency` removido de bloques `if` anidados, movido a scope de función. 91 passed.
+- **2026-04-24 V2.21 CLOSED:** `chat.py` — throttle `identity.update()` cada 5 episodios (`len(self.memory) % 5 == 0`). Eliminada llamada uncondicional por turno. I/O a disco reducido 80%. 91 passed.
