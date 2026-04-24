@@ -23,6 +23,7 @@ const UI = {
     telKin: document.getElementById('tel-kin'),
     telAud: document.getElementById('tel-aud'),
     nomadRtt: document.getElementById('nomad-rtt'),
+    ethicsHud: document.getElementById('ethics-hud'),
 };
 
 let wsChat = null;
@@ -663,6 +664,10 @@ async function connectKernel() {
                 const data = JSON.parse(event.data);
 
                 // ── V2 streaming protocol ──────────────────────────────
+                if (data.type === 'metadata') {
+                    _handleEthicalMetadata(data);
+                    return;
+                }
                 if (data.type === 'token') {
                     let streamDiv = UI.chatHistory.querySelector('.streaming-bubble');
                     if (!streamDiv) {
