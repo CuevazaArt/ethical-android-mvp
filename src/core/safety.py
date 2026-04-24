@@ -173,9 +173,15 @@ def sanitize(text: str) -> str:
 def _normalize_for_matching(text: str) -> str:
     """Normalize text for pattern matching (strip tricks, lowercase)."""
     text = sanitize(text)
-    # Additional: squash repeated chars (e.g., "boooomb" → "bomb")
+    # Squash repeated chars (e.g., "boooomb" → "bomb")
     text = re.sub(r"(.)\1{2,}", r"\1", text)
-    return text.lower()
+    text = text.lower()
+    # Strip dots/hyphens between word chars (e.g., "b.o.m.b" → "bomb")
+    text = re.sub(r"(?<=[a-z0-9])[\.\-](?=[a-z0-9])", "", text)
+    # Leet-speak substitution (common digits/symbols → letters)
+    _LEET = {"4": "a", "3": "e", "0": "o", "1": "i", "7": "t", "5": "s", "@": "a"}
+    text = "".join(_LEET.get(c, c) for c in text)
+    return text
 
 
 # === Self-test ===
