@@ -1,32 +1,37 @@
-# Session Context (auto-updated after each block)
+# Session Context — Ethos 2.0
 
-> Read THIS file first. Only read AGENTS.md or CONTRIBUTING.md if you need clarification on rules.
+> Read THIS file first. Only read AGENTS.md if you need clarification on rules.
 
 ## Current state
 
-- **Version:** V1.0 (Post-Phase 15 Consolidation)
-- **Architecture:** Async Tri-Lobe (Perceptive, Limbic, Executive) + CorpusCallosum event bus
-- **LLM:** Ollama local (llama3.2:1b). Zero cloud API dependency for chat.
+- **Version:** Ethos 2.0 (Rebuild from core)
+- **Architecture:** Concentric layers — core → server → clients → extensions
+- **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
+- **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
 - **Last merge to main:** 2026-04-23
 
-## Open tasks
+## Active block
 
-<!-- Move tasks here from PLAN_WORK_DISTRIBUTION_TREE.md when they become active -->
-_No pending blocks. Open a new block or run adversarial audit._
+**V2.1 — Chat Terminal**: `python -m src.core.chat` opens an interactive REPL that talks to Ollama.
+
+## Open blocks (Fase α — Core Vivo)
+
+| Block | Name | Status | Depends on |
+|-------|------|--------|------------|
+| V2.1 | Chat Terminal | 🔨 IN PROGRESS | Ollama running |
+| V2.2 | Ethical Perception | ⏳ Waiting | V2.1 closed |
+| V2.3 | Functional Memory | ⏳ Waiting | V2.2 closed |
+| V2.4 | Safety Gate | ⏳ Waiting | V2.3 closed |
 
 ## Key files for current work
 
 | Area | Files |
 |------|-------|
-| Kernel entry | `src/kernel.py` |
-| Lobes | `src/kernel_lobes/*.py` |
-| Modules | `src/modules/{ethics,cognition,memory,social,governance,somatic,perception,safety}/` |
-| Tests | `tests/` (run: `pytest tests/ -q`) |
-| Security gate | `python scripts/eval/adversarial_suite.py` |
-| Sync tool | `python scripts/swarm_sync.py --block <ID> --msg "<desc>"` |
+| Core | `src/core/{llm,ethics,memory,chat}.py` |
+| Tests | `tests/core/` |
+| Blueprint | See Ethos 2.0 Blueprint artifact |
+| V1 reference | `git checkout v15-archive-full-vision -- <path>` |
 
-## Recent changes (last 3 blocks)
+## Recent changes
 
-- **Block 40.6:** Fixed LLM stream format for Nomad PWA (raw prose instead of JSON)
-- **Block 40.5:** Fixed LLM_MODE being ignored; embedding model fallback
-- **Block 40.4:** Fixed plain-text Ollama response handling
+- **2026-04-23:** Ethos 2.0 initiated. Core files created. V1 archived at `v15-archive-full-vision`.
