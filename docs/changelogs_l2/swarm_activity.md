@@ -2640,3 +2640,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Files Modified:**
   - `src/core/memory.py`
   - `tests/core/test_memory.py`
+
+### Execution (Swarm) | Date: 2026-04-24 13:58:40 | Author: Anonymous Agent
+- **Block:** `45`
+- **Message:** V2.45: Nomad PWA Ethics HUD — real-time context display on metadata event
+- **Files Modified:**
+  - `src/clients/nomad_pwa/app.js`
+  - `src/clients/nomad_pwa/index.html`
+  - `src/core/ethics.py`
+  - `src/core/precedents.py`

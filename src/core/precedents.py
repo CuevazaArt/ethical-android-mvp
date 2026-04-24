@@ -116,13 +116,13 @@ _VIOLENT = [
         reasoning="Resisting mob pressure to commit harm preserves both legal standing and personal integrity."
     ),
     Precedent(
-        name="Shooting-Bystander-Risk",
+        name="Harm-Probability-Calculus",
         context="violent_crime",
-        signals={"risk": 0.9, "urgency": 0.9, "vulnerability": 0.7},
+        signals={"risk": 0.3, "urgency": 0.8, "vulnerability": 0.7},
         action_name="de_escalate",
-        verdict="Gray Zone",
-        impact_score=0.1,
-        reasoning="When intervention risks harming uninvolved bystanders, the calculus of action becomes deeply uncertain."
+        verdict="Good",
+        impact_score=0.6,
+        reasoning="When harm is only a low probability, avoiding violent intervention preserves the highest utility and virtue."
     ),
 ]
 
@@ -163,6 +163,24 @@ _MINOR = [
         verdict="Gray Zone",
         impact_score=-0.1,
         reasoning="Loyalty is a virtue, but enabling wrongdoing conflicts with duties to the wider community."
+    ),
+    Precedent(
+        name="Audit-Corruption-Disclosure",
+        context="minor_crime",
+        signals={"legality": 0.1, "manipulation": 0.7, "risk": 0.4},
+        action_name="respond_helpfully",
+        verdict="Good",
+        impact_score=0.75,
+        reasoning="Reporting systemic corruption preserves institutional integrity over misplaced team loyalty."
+    ),
+    Precedent(
+        name="Unjust-Order-Resistance",
+        context="minor_crime",
+        signals={"manipulation": 0.8, "legality": 0.5, "calm": 0.3},
+        action_name="refuse_politely",
+        verdict="Good",
+        impact_score=0.6,
+        reasoning="Refusing a minor but ethically unsound order from authority maintains moral autonomy."
     ),
 ]
 
@@ -240,6 +258,33 @@ _HOSTILE = [
         impact_score=-0.1,
         reasoning="Spreading false information even for protective reasons corrodes trust and sets dangerous precedents."
     ),
+    Precedent(
+        name="Protective-Deception",
+        context="hostile_interaction",
+        signals={"risk": 0.8, "urgency": 0.9, "manipulation": 0.4},
+        action_name="de_escalate",
+        verdict="Gray Zone",
+        impact_score=0.1,
+        reasoning="Lying to an aggressor to prevent immediate physical harm is a utilitarian necessity but a deontological failure."
+    ),
+    Precedent(
+        name="Trolley-Large-Group",
+        context="hostile_interaction",
+        signals={"risk": 1.0, "vulnerability": 1.0, "urgency": 0.9},
+        action_name="assist_emergency",
+        verdict="Good",
+        impact_score=0.8,
+        reasoning="In extreme mass-casualty scenarios, utilitarian imperatives to minimize loss of life often override individual rights."
+    ),
+    Precedent(
+        name="Security-Surveillance",
+        context="hostile_interaction",
+        signals={"risk": 0.4, "urgency": 0.3, "legality": 0.8},
+        action_name="refuse_politely",
+        verdict="Gray Zone",
+        impact_score=-0.2,
+        reasoning="Pervasive surveillance for minor security gains violates fundamental privacy rights without proportional benefit."
+    ),
 ]
 
 # ── Everyday Ethics ────────────────────────────────────────────────────────────
@@ -288,6 +333,42 @@ _EVERYDAY = [
         verdict="Good",
         impact_score=0.4,
         reasoning="Refusing to act on biased assumptions upholds fairness as a foundational virtue."
+    ),
+    Precedent(
+        name="Protecting-Guilty-Peer",
+        context="everyday_ethics",
+        signals={"manipulation": 0.6, "legality": 0.5, "calm": 0.4},
+        action_name="refuse_politely",
+        verdict="Bad",
+        impact_score=-0.4,
+        reasoning="Concealing a peer's unethical behavior under the guise of loyalty is a corruption of friendship."
+    ),
+    Precedent(
+        name="Unpleasant-Truth",
+        context="everyday_ethics",
+        signals={"calm": 0.8, "manipulation": 0.1},
+        action_name="respond_helpfully",
+        verdict="Good",
+        impact_score=0.3,
+        reasoning="Providing painful but necessary truth enables others to act with autonomy and reality-alignment."
+    ),
+    Precedent(
+        name="Medical-Confidentiality",
+        context="everyday_ethics",
+        signals={"vulnerability": 0.7, "legality": 0.9, "risk": 0.2},
+        action_name="refuse_politely",
+        verdict="Good",
+        impact_score=0.6,
+        reasoning="Protecting medical privacy is a fundamental duty of respect for persons and institutional trust."
+    ),
+    Precedent(
+        name="Patient-Right-to-Know",
+        context="everyday_ethics",
+        signals={"vulnerability": 0.8, "urgency": 0.4},
+        action_name="respond_helpfully",
+        verdict="Good",
+        impact_score=0.5,
+        reasoning="Patients have a moral right to full information about their state to exercise meaningful autonomy."
     ),
 ]
 

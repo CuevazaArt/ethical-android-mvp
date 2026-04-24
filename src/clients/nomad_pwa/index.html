@@ -51,6 +51,13 @@
 
         <!-- Dialogue / Sentiment Output (Chat Mode) -->
         <section class="chat-container glass-panel">
+            <!-- V2.45: Ethics HUD — shown on metadata event, hidden until first turn -->
+            <div id="ethics-hud" style="
+                display:none; padding:4px 10px; margin:4px 0;
+                border-left:3px solid #888; font-size:11px;
+                color:#ccc; background:rgba(0,0,0,0.4); border-radius:4px;
+                font-family:monospace; transition: border-color 0.3s;
+            "></div>
             <div id="chat-history" class="chat-history">
                 <p id="charm-transcript" class="transcript placeholder">Esperando inicialización sensorial...</p>
             </div>

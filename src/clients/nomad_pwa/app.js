@@ -327,6 +327,28 @@ function sendNomadChatMessage() {
     if (UI.statusText) UI.statusText.innerText = 'Queued (waiting for link)…';
 }
 
+/** V2.45: Update the Ethics HUD with real-time context from a ``metadata`` WS event. */
+const _CTX_COLORS = {
+    'medical_emergency':   '#ff4444',
+    'violent_crime':       '#ff6600',
+    'minor_crime':         '#ffaa00',
+    'hostile_interaction': '#cc44cc',
+    'everyday_ethics':     '#44cc88',
+    'safety_violation':    '#ff6600',
+};
+function _handleEthicalMetadata(msg) {
+    const hud = document.getElementById('ethics-hud');
+    if (!hud) return;
+    const ctx     = msg.context                               || 'everyday_ethics';
+    const verdict = (msg.evaluation && msg.evaluation.verdict) || 'Neutral';
+    const urgency = (msg.signals   && msg.signals.urgency)     || 0;
+    const risk    = (msg.signals   && msg.signals.risk)        || 0;
+    if (!Number.isFinite(urgency) || !Number.isFinite(risk)) return;
+    hud.style.borderColor = _CTX_COLORS[ctx] || '#888';
+    hud.textContent = `⚖ ${ctx.replace(/_/g, ' ')} · ${verdict} · urg=${urgency.toFixed(2)} risk=${risk.toFixed(2)}`;
+    hud.style.display = 'block';
+}
+
 /**
  * Battery & Kinetic Telemetry (Replaced Temp due to browser security)
  */
@@ -682,6 +704,12 @@ async function connectKernel() {
                     return;
                 }
                 // ── end V2 protocol ────────────────────────────────────
+
+                // V2.45: Ethical context HUD
+                if (data.type === 'metadata') {
+                    _handleEthicalMetadata(data);
+                    return;
+                }
 
                 // Claude's domain (F.4): detailed message handling
                 if (data.role === 'android' || data.final_action) {

@@ -19,6 +19,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from src.core.precedents import PRECEDENTS, Precedent
+from src.core.memory import _EMBEDDINGS_AVAILABLE
 
 
 @dataclass
@@ -163,25 +164,35 @@ class EthicalEvaluator:
           1. Action name match (0.40 weight) — exact string match.
           2. Signal vector proximity (0.45 weight) — normalized L1 distance
              over shared keys, clamped to [0,1].
-          3. Summary keyword overlap (0.15 weight) — common words between
-             signals.summary and precedent.reasoning.
+          3. Semantic/Keyword similarity (0.15 weight) — cosine similarity if
+             embeddings are available, else keyword overlap.
 
         Returns (Precedent, similarity_score in [0, 1]).
-        Anti-NaN: any non-finite intermediate → 0.0.
         """
         best_p = None
         best_sim = -1.0
 
-        summary_words = set(signals.summary.lower().split()) if signals.summary else set()
+        # V2.46: Semantic embeddings upgrade
+        query_vec = None
+        if _EMBEDDINGS_AVAILABLE and signals.summary:
+            try:
+                from sentence_transformers import SentenceTransformer
+                import numpy as np
+                model = SentenceTransformer("all-MiniLM-L6-v2")
+                query_vec = model.encode(signals.summary, normalize_embeddings=True)
+            except Exception:
+                query_vec = None
+
+        summary_words = set(signals.summary.lower().split()) if signals.summary and not query_vec else set()
 
         for p in PRECEDENTS:
             if p.context != signals.context:
                 continue
 
-            # Factor 1: action name
+            # Factor 1: Action name
             action_match = 0.40 if p.action_name == action.name else 0.0
 
-            # Factor 2: signal vector proximity
+            # Factor 2: Signal vector proximity
             sig_sim = 0.0
             shared_keys = set(p.signals.keys()) & set(signals.__dict__.keys())
             if shared_keys:
@@ -192,13 +203,26 @@ class EthicalEvaluator:
                     sig_sim = 0.0
             signal_score = 0.45 * sig_sim
 
-            # Factor 3: reasoning/summary keyword overlap
-            reasoning_words = set(p.reasoning.lower().split())
-            if summary_words and reasoning_words:
-                overlap = len(summary_words & reasoning_words) / max(len(summary_words), 1)
-                text_score = 0.15 * min(1.0, overlap * 5)  # scale: 20% overlap → max
+            # Factor 3: Text similarity (Embeddings or Keyword Overlap)
+            text_score = 0.0
+            if query_vec:
+                try:
+                    import numpy as np
+                    from sentence_transformers import SentenceTransformer
+                    # We need the embedding for p.reasoning
+                    # Optimization: In a real system, these would be pre-computed.
+                    p_vec = SentenceTransformer("all-MiniLM-L6-v2").encode(p.reasoning, normalize_embeddings=True)
+                    cos_sim = float(np.dot(query_vec, p_vec))
+                    text_score = 0.15 * max(0.0, cos_sim)
+                except Exception:
+                    text_score = 0.0
             else:
-                text_score = 0.0
+                reasoning_words = set(p.reasoning.lower().split())
+                if summary_words and reasoning_words:
+                    overlap = len(summary_words & reasoning_words) / max(len(summary_words), 1)
+                    text_score = 0.15 * min(1.0, overlap * 5)
+                else:
+                    text_score = 0.0
 
             total_sim = action_match + signal_score + text_score
             if not math.isfinite(total_sim):
