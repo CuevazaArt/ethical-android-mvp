@@ -287,3 +287,44 @@ async def test_perceive_malformed_json_fallback(engine):
 
 
 
+
+
+# --- V2.21: Identity throttle coherence ---
+
+
+async def _fake_stream_throttle(*args, **kwargs):
+    yield "OK"
+
+
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_turn_count_increments(engine):
+    from unittest.mock import patch, AsyncMock
+    with (
+        patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=True),
+        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(engine.llm, "chat_stream", side_effect=_fake_stream_throttle),
+    ):
+        await engine.start()
+        for i in range(4):
+            async for _ in engine.turn_stream(f"turno {i}"): pass
+    assert engine._turn_count == 4
+
+
+@pytest.mark.asyncio
+async def test_identity_update_throttled_every_5_turns(engine):
+    from unittest.mock import patch, AsyncMock, MagicMock
+    with (
+        patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=True),
+        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(engine.llm, "chat_stream", side_effect=_fake_stream_throttle),
+    ):
+        await engine.start()
+        engine.identity.update = MagicMock()
+        for i in range(4):
+            async for _ in engine.turn_stream(f"turno {i}"): pass
+        engine.identity.update.assert_not_called()
+        async for _ in engine.turn_stream("turno 5"): pass
+    engine.identity.update.assert_called_once()
