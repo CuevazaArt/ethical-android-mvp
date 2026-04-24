@@ -19,6 +19,7 @@ app = FastAPI(title="Ethos Kernel Chat")
 STATIC_DIR = Path(__file__).parent / "static"
 NOMAD_DIR = Path(__file__).parent.parent / "clients" / "nomad_pwa"
 _start_time = time.time()
+_last_latency: dict | None = None  # V2.19: Store last latency globally
 
 
 @app.get("/")
@@ -62,6 +63,7 @@ async def api_status():
         "uptime": f"{h:02d}:{m:02d}:{s:02d}",
         "status": "online",
         "stt_available": stt_available(),
+        "last_latency_ms": _last_latency,
     })
 
 
@@ -101,6 +103,7 @@ a{color:#58a6ff;text-decoration:none}
   <div class="card"><div class="label">Estado</div><div class="value" id="status">…</div></div>
   <div class="card"><div class="label">Score ético</div><div class="value" id="eth-score">…</div></div>
   <div class="card"><div class="label">Tendencia</div><div class="value" id="eth-trend">…</div></div>
+  <div class="card"><div class="label">Latencia (TTFT)</div><div class="value" id="latency-ttft">…</div></div>
 </div>
 <div class="reflection" style="margin-bottom:1rem">
   <div class="label">Narrativa de identidad</div>
@@ -133,6 +136,18 @@ async function refresh() {
     scoreEl.style.cssText = scoreColor(score);
     document.getElementById('eth-trend').textContent = TREND_LABEL[prof.trending] || '—';
     document.getElementById('identity-narrative').textContent = d.identity_narrative || '—';
+    
+    const lat = d.last_latency_ms;
+    const latEl = document.getElementById('latency-ttft');
+    if (lat && lat.ttft) {
+      const ttft = lat.ttft;
+      latEl.textContent = `${ttft.toFixed(0)}ms`;
+      latEl.style.color = ttft < 800 ? '#3fb950' : ttft < 2000 ? '#d29922' : '#f85149';
+      latEl.title = `Total: ${lat.total ? lat.total.toFixed(0) : 0}ms`;
+    } else {
+      latEl.textContent = '—';
+      latEl.style.color = '';
+    }
   } catch(e) {
     document.getElementById('status').textContent = '🔴 Error';
   }
@@ -181,7 +196,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     async for event in engine.turn_stream(text, vision_context=_chat_vision):
                         await websocket.send_json(event)
                         if event.get("type") == "done" and not event.get("blocked"):
+                            global _last_latency
                             lat = event.get("latency", {})
+                            _last_latency = lat
                             _log.info(
                                 "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
                                 lat.get("safety", 0), lat.get("perceive", 0),
@@ -236,7 +253,9 @@ async def websocket_nomad(websocket: WebSocket):
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
                             await websocket.send_json(event)
                             if event.get("type") == "done" and not event.get("blocked"):
+                                global _last_latency
                                 lat = event.get("latency", {})
+                                _last_latency = lat
                                 _log.info(
                                     "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
                                     lat.get("safety", 0), lat.get("perceive", 0),
@@ -250,6 +269,15 @@ async def websocket_nomad(websocket: WebSocket):
                         _log.info("Nomad STT -> kernel: %s", text[:80])
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
                             await websocket.send_json(event)
+                            if event.get("type") == "done" and not event.get("blocked"):
+                                global _last_latency
+                                lat = event.get("latency", {})
+                                _last_latency = lat
+                                _log.info(
+                                    "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
+                                    lat.get("safety", 0), lat.get("perceive", 0),
+                                    lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                                )
 
                 elif msg_type == "vision_frame":
                     # V2.12+V2.13: process JPEG frame, cache signals for next turn
@@ -276,6 +304,15 @@ async def websocket_nomad(websocket: WebSocket):
                                     _log.info("Whisper STT: '%s'", text[:80])
                                     async for event in engine.turn_stream(text, vision_context=_last_vision):
                                         await websocket.send_json(event)
+                                        if event.get("type") == "done" and not event.get("blocked"):
+                                            global _last_latency
+                                            lat = event.get("latency", {})
+                                            _last_latency = lat
+                                            _log.info(
+                                                "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
+                                                lat.get("safety", 0), lat.get("perceive", 0),
+                                                lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                                            )
                             except Exception as e:
                                 _log.warning("audio_pcm transcription error: %s", e)
                     # If STT not available, client uses Web Speech API (already works)
