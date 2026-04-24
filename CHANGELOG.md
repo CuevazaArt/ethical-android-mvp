@@ -4,6 +4,14 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-24] V2 Stabilization Pulse (L1 Audit) - Antigravity (L1)
+- **Tag:** [REVISADO] [ACTUALIZADO]
+- **Infraestructura:** Creado `src/kernel.py` (V2 Bridge) para restaurar compatibilidad con scripts legacy tras la consolidación V2 (src/core).
+- **Correcciones:** Reparado SyntaxError en `src/core/safety.py` (compatibilidad Python 3.11).
+- **Validación:** `src/main.py` y `adversarial_suite.py` restaurados y operativos bajo el núcleo consolidado.
+- **Estado:** Fase 15 [CERRADA] -> Iniciando Fase 16 (Estabilización V2).
+
+
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Added
 - **Recursive Narrative Memory (Task 37.1):** Implemented `NarrativeEpisodicSummarizer`. The kernel now distills raw episodes into thematic chronicles using LLM-based thematic compression.
