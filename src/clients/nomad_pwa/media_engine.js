@@ -176,19 +176,55 @@ async function startSensors() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
+            recognition.lang = 'es-MX';
             recognition.continuous = true;
+            recognition.interimResults = true;
+
             recognition.onresult = (event) => {
-                const result = event.results[event.results.length - 1];
-                const transcript = result[0].transcript.trim();
-                const confidence = result[0].confidence ?? 1.0;
-                if (transcript.length > 0 && confidence > 0.4 && (isVadSpeaking() || _vadHangover > 0)) {
-                    if (wsChat && wsChat.readyState === WebSocket.OPEN) {
-                        UI.transcript.innerText = `You: ${transcript}`;
-                        try { wsChat.send(JSON.stringify({ type: "user_speech", text: transcript, confidence })); } catch (_) {}
+                let interim = '';
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const t = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) final += t;
+                    else interim += t;
+                }
+
+                // Show live interim in input field
+                if (typeof UI !== 'undefined' && UI.chatInput) {
+                    UI.chatInput.value = interim || final;
+                }
+
+                // Only send final results that pass VAD gate
+                if (final.trim().length > 0 && (isVadSpeaking() || _vadHangover > 0)) {
+                    const text = final.trim();
+                    const confidence = event.results[event.results.length - 1][0].confidence ?? 1.0;
+                    if (confidence > 0.35 && typeof wsChat !== 'undefined' && wsChat && wsChat.readyState === WebSocket.OPEN) {
+                        if (typeof UI !== 'undefined' && UI.transcript) {
+                            UI.transcript.innerText = `Tú: ${text}`;
+                            UI.transcript.classList.remove('placeholder');
+                        }
+                        if (typeof UI !== 'undefined' && UI.chatInput) {
+                            UI.chatInput.value = '';
+                        }
+                        // V2 protocol: plain text to turn_stream()
+                        try { wsChat.send(text); } catch (_) {}
                     }
                 }
             };
-            recognition.onend = () => { try { recognition.start(); } catch(e){} };
+
+            recognition.onstart = () => {
+                const orb = document.getElementById('affect-orb');
+                if (orb) orb.classList.add('mic-active');
+            };
+            recognition.onend = () => {
+                try { recognition.start(); } catch (e) {}
+            };
+            recognition.onerror = (e) => {
+                console.warn('SpeechRecognition error:', e.error);
+                if (e.error !== 'aborted') {
+                    try { recognition.start(); } catch (_) {}
+                }
+            };
             recognition.start();
         }
 

@@ -28,7 +28,7 @@
 | V2.6 | Streaming | ✅ |
 | V2.7 | Dashboard | ✅ |
 | V2.8 | Nomad PWA | ✅ |
-| V2.9 | Audio VAD | ✅ (incluido en V2.8) |
+| **Fase γ COMPLETA** — Nomad PWA + VAD activo. Siguiente: Fase δ (streaming HTTPS / sync identidad).
 
 ## Open blocks (Fase δ — Audio/Vision pipeline)
 
@@ -55,4 +55,4 @@
 
 - **2026-04-24 Fase α:** V2.1-V2.4. 5 core modules, 53 tests.
 - **2026-04-24 Fase β:** V2.5-V2.7. WebSocket chat, streaming, dashboard.
-- **2026-04-24 V2.8+V2.9 CLOSED:** Nomad PWA completo — VAD (RMS+onset+hangover), Speech Recognition→kernel, TTS es-MX, PCM audio stream, vision frames JPEG@5FPS, PAD affective state, telemetría completa. 53 tests.
+- **2026-04-24 V2.9 CLOSED (Fase γ COMPLETA):** Audio VAD en Nomad PWA. `media_engine.js`: SpeechRecognition con `interimResults`, VAD gate (RMS+onset+hangover), plain-text send a `turn_stream()` (protocolo V2). `style.css`: `.mic-active` ring pulsante + `.streaming-bubble` cursor parpadeante. Tests: 53 passed.

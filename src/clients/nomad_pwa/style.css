@@ -645,3 +645,27 @@ body.nomad-text-focus .app-container {
     padding: 6px 10px;
     white-space: nowrap;
 }
+
+/* ── V2.9 VAD / Streaming visual states ─────────────────────── */
+.affect-orb.mic-active {
+    outline: 3px solid rgba(16, 185, 129, 0.8);
+    outline-offset: 6px;
+    animation: orb-float 8s infinite ease-in-out,
+               orb-morph 20s infinite alternate linear,
+               mic-ring 1s infinite ease-in-out;
+}
+@keyframes mic-ring {
+    0%, 100% { outline-color: rgba(16, 185, 129, 0.8); outline-offset: 4px; }
+    50%       { outline-color: rgba(16, 185, 129, 0.4); outline-offset: 10px; }
+}
+.streaming-bubble::after {
+    content: '\25AE';
+    display: inline-block;
+    animation: blink-cursor 0.7s step-end infinite;
+    color: rgba(56, 189, 248, 0.9);
+    margin-left: 2px;
+}
+@keyframes blink-cursor {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
