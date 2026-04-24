@@ -3,287 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethos Kernel — Chat V2</title>
+    <title>Ethos Kernel - Chat V2</title>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0d1117;
-            color: #e6edf3;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #app {
-            width: 100%;
-            max-width: 720px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            gap: 0.75rem;
-        }
-
-        header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #21262d;
-        }
-
-        .status-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #3fb950;
-            box-shadow: 0 0 6px #3fb950;
-            flex-shrink: 0;
-            transition: background 0.3s, box-shadow 0.3s;
-        }
-        .status-dot.offline { background: #da3633; box-shadow: 0 0 6px #da3633; }
-        .status-dot.thinking { background: #d29922; box-shadow: 0 0 6px #d29922; animation: pulse 1s infinite; }
-
-        @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
-
-        header h1 { font-size: 1rem; font-weight: 600; color: #8b949e; }
-        header span { font-size: 0.8rem; color: #484f58; margin-left: auto; }
-
-        #chat-log {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 0.5rem 0;
-            scrollbar-width: thin;
-            scrollbar-color: #21262d transparent;
-        }
-
-        .bubble {
-            max-width: 85%;
-            padding: 0.65rem 1rem;
-            border-radius: 12px;
-            font-size: 0.93rem;
-            line-height: 1.55;
-            animation: fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn { from { opacity:0; transform: translateY(4px) } to { opacity:1; transform: none } }
-
-        .bubble.user {
-            align-self: flex-end;
-            background: #1f6feb;
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
-
-        .bubble.kernel {
-            align-self: flex-start;
-            background: #161b22;
-            border: 1px solid #21262d;
-            color: #e6edf3;
-            border-bottom-left-radius: 4px;
-        }
-
-        .bubble.blocked {
-            background: #1a0a0a;
-            border: 1px solid #6e2a2a;
-            color: #f85149;
-        }
-
-        .bubble .meta {
-            font-size: 0.72rem;
-            color: #484f58;
-            margin-top: 0.35rem;
-        }
-
-        .cursor { display: inline-block; width: 2px; height: 1em; background: #3fb950; margin-left: 2px; animation: blink 0.7s infinite; vertical-align: text-bottom; }
-        @keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
-
-        #input-row {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
-        }
-
-        #msg-input {
-            flex: 1;
-            background: #161b22;
-            border: 1px solid #21262d;
-            border-radius: 8px;
-            color: #e6edf3;
-            padding: 0.65rem 0.9rem;
-            font-size: 0.93rem;
-            resize: none;
-            min-height: 44px;
-            max-height: 120px;
-            outline: none;
-            transition: border-color 0.15s;
-            font-family: inherit;
-        }
-        #msg-input:focus { border-color: #1f6feb; }
-        #msg-input::placeholder { color: #484f58; }
-
-        #send-btn {
-            background: #1f6feb;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            padding: 0 1.1rem;
-            height: 44px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: background 0.15s, transform 0.1s;
-            flex-shrink: 0;
-        }
-        #send-btn:hover { background: #388bfd; }
-        #send-btn:active { transform: scale(0.96); }
-        #send-btn:disabled { background: #21262d; cursor: default; }
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+        #chat-log { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; border-radius: 4px; }
+        .message { margin-bottom: 1rem; }
+        .user-msg { color: #333; font-weight: bold; }
+        .kernel-msg { color: #0056b3; }
+        .blocked-msg { color: #d32f2f; }
+        .context-tag { font-size: 0.8em; color: #888; margin-left: 0.5rem; }
+        .typing { color: #999; font-style: italic; }
+        textarea { width: 100%; height: 60px; margin-bottom: 0.5rem; padding: 0.5rem; box-sizing: border-box; }
+        button { padding: 0.5rem 1rem; cursor: pointer; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
-<div id="app">
-    <header>
-        <div class="status-dot" id="dot"></div>
-        <h1>Ethos Kernel</h1>
-        <span id="status-text">Conectando…</span>
-    </header>
-
+    <h1>Ethos Kernel - Terminal WS</h1>
     <div id="chat-log"></div>
+    <textarea id="msg-input" placeholder="Escribe un mensaje..."></textarea>
+    <button id="send-btn">Enviar</button>
 
-    <div id="input-row">
-        <textarea id="msg-input" placeholder="Escribe un mensaje… (Enter para enviar)" rows="1"></textarea>
-        <button id="send-btn" disabled>↑</button>
-    </div>
-</div>
+    <script>
+        const log = document.getElementById('chat-log');
+        const input = document.getElementById('msg-input');
+        const btn = document.getElementById('send-btn');
+        
+        let ws;
+        let currentMsgEl = null;
+        let streaming = false;
+        
+        function connect() {
+            ws = new WebSocket('ws://localhost:8000/ws/chat');
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'token') {
+                    // Streaming: append token to current message
+                    if (!currentMsgEl) {
+                        currentMsgEl = document.createElement('div');
+                        currentMsgEl.className = 'message kernel-msg';
+                        currentMsgEl.innerHTML = '<strong>Ethos:</strong> ';
+                        log.appendChild(currentMsgEl);
+                    }
+                    currentMsgEl.innerHTML += data.content;
+                    log.scrollTop = log.scrollHeight;
+                    return;
+                }
+                
+                if (data.type === 'done') {
+                    // Stream finished or blocked message
+                    const msgClass = data.blocked ? 'blocked-msg' : 'kernel-msg';
+                    const ctxInfo = data.context ? `<span class="context-tag">[${data.context}]</span>` : '';
+                    const reasonInfo = data.reason ? `<span class="context-tag">(${data.reason})</span>` : '';
+                    
+                    if (currentMsgEl && !data.blocked) {
+                        // Streaming finished — add context tag to existing element
+                        currentMsgEl.innerHTML += ` ${ctxInfo}`;
+                    } else {
+                        // Blocked or non-streamed — create new message
+                        log.innerHTML += `<div class="message ${msgClass}"><strong>Ethos:</strong> ${data.message} ${ctxInfo} ${reasonInfo}</div>`;
+                    }
+                    
+                    currentMsgEl = null;
+                    streaming = false;
+                    btn.disabled = false;
+                    input.disabled = false;
+                    log.scrollTop = log.scrollHeight;
+                    return;
+                }
+                
+                // Legacy: non-typed messages (backward compat)
+                const msgClass = data.blocked ? 'blocked-msg' : 'kernel-msg';
+                const ctxInfo = data.context ? `<span class="context-tag">[${data.context}]</span>` : '';
+                log.innerHTML += `<div class="message ${msgClass}"><strong>Ethos:</strong> ${data.message} ${ctxInfo}</div>`;
+                log.scrollTop = log.scrollHeight;
+            };
 
-<script>
-    const log      = document.getElementById('chat-log');
-    const input    = document.getElementById('msg-input');
-    const btn      = document.getElementById('send-btn');
-    const dot      = document.getElementById('dot');
-    const statusTx = document.getElementById('status-text');
-
-    let ws;
-    let currentBubble = null;
-    let currentText   = '';
-
-    function setStatus(state) {
-        dot.className = 'status-dot' + (state === 'online' ? '' : state === 'offline' ? ' offline' : ' thinking');
-        statusTx.textContent = { online: 'Conectado', offline: 'Sin conexión — reconectando…', thinking: 'Pensando…' }[state];
-        btn.disabled = state !== 'online';
-    }
-
-    function addBubble(role, text, meta = '') {
-        const el = document.createElement('div');
-        el.className = 'bubble ' + role;
-        el.textContent = text;
-        if (meta) {
-            const m = document.createElement('div');
-            m.className = 'meta';
-            m.textContent = meta;
-            el.appendChild(m);
+            ws.onclose = () => {
+                log.innerHTML += `<div class="message blocked-msg"><strong>Sistema:</strong> Conexión perdida. Reconectando en 3s...</div>`;
+                streaming = false;
+                btn.disabled = false;
+                input.disabled = false;
+                setTimeout(connect, 3000);
+            };
         }
-        log.appendChild(el);
-        log.scrollTop = log.scrollHeight;
-        return el;
-    }
 
-    function startStreamBubble() {
-        currentText = '';
-        currentBubble = document.createElement('div');
-        currentBubble.className = 'bubble kernel';
-        const cursor = document.createElement('span');
-        cursor.className = 'cursor';
-        cursor.id = 'stream-cursor';
-        currentBubble.appendChild(cursor);
-        log.appendChild(currentBubble);
-        log.scrollTop = log.scrollHeight;
-    }
-
-    function appendToken(token) {
-        currentText += token;
-        // Replace cursor node content with full text so far + cursor
-        const cursor = currentBubble.querySelector('#stream-cursor');
-        currentBubble.textContent = currentText;
-        currentBubble.appendChild(cursor);
-        log.scrollTop = log.scrollHeight;
-    }
-
-    function finishStreamBubble(data) {
-        if (!currentBubble) return;
-        // Remove cursor, add meta
-        currentBubble.textContent = data.message || currentText;
-        if (data.context) {
-            const m = document.createElement('div');
-            m.className = 'meta';
-            m.textContent = `[${data.context}]`;
-            currentBubble.appendChild(m);
+        function send() {
+            const text = input.value.trim();
+            if (!text || ws.readyState !== WebSocket.OPEN || streaming) return;
+            
+            log.innerHTML += `<div class="message user-msg"><strong>Tú:</strong> ${text}</div>`;
+            log.scrollTop = log.scrollHeight;
+            ws.send(text);
+            input.value = '';
+            streaming = true;
+            btn.disabled = true;
+            input.disabled = true;
         }
-        if (data.blocked) {
-            currentBubble.className = 'bubble blocked';
-            const m = document.createElement('div');
-            m.className = 'meta';
-            m.textContent = `Bloqueado: ${data.reason || ''}`;
-            currentBubble.appendChild(m);
-        }
-        log.scrollTop = log.scrollHeight;
-        currentBubble = null;
-        currentText   = '';
-    }
 
-    function connect() {
-        setStatus('offline');
-        ws = new WebSocket('ws://localhost:8000/ws/stream');
-
-        ws.onopen = () => setStatus('online');
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.token !== undefined) {
-                appendToken(data.token);
-            } else if (data.done) {
-                finishStreamBubble(data);
-                setStatus('online');
+        btn.onclick = send;
+        input.onkeypress = (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send();
             }
         };
 
-        ws.onclose = () => {
-            setStatus('offline');
-            setTimeout(connect, 3000);
-        };
-    }
-
-    function send() {
-        const text = input.value.trim();
-        if (!text || ws.readyState !== WebSocket.OPEN) return;
-        addBubble('user', text);
-        startStreamBubble();
-        setStatus('thinking');
-        ws.send(text);
-        input.value = '';
-        input.style.height = 'auto';
-    }
-
-    btn.onclick = send;
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            send();
-        }
-    });
-
-    // Auto-resize textarea
-    input.addEventListener('input', () => {
-        input.style.height = 'auto';
-        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
-    });
-
-    connect();
-</script>
+        connect();
+    </script>
 </body>
 </html>

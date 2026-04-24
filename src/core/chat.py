@@ -345,6 +345,65 @@ class ChatEngine:
             },
         )
 
+    async def turn_stream(self, user_message: str):
+        """
+        Streaming variant of turn(). Same pipeline, but yields tokens as they arrive.
+        Yields dicts: {"type": "token", "content": "..."} or {"type": "done", ...}
+        """
+        # 0. Safety gate
+        user_message = sanitize(user_message)
+        blocked, reason = is_dangerous(user_message)
+        if blocked:
+            _log.warning("Safety gate blocked input: %s", reason)
+            self.memory.add(
+                summary=f"BLOCKED: {user_message[:60]} → reason={reason}",
+                action="safety_block", score=0.0, context="safety_violation",
+            )
+            yield {"type": "done", "message": "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?",
+                   "context": "safety_violation", "blocked": True, "reason": reason}
+            return
+
+        # 1. Perceive
+        signals = await self.perceive(user_message)
+
+        # 2. Evaluate
+        evaluation = None
+        is_casual = (
+            signals.context == "everyday_ethics"
+            and signals.risk < 0.2
+            and signals.hostility < 0.2
+            and signals.manipulation < 0.2
+        )
+        if not is_casual:
+            actions = _generate_actions_from_signals(signals)
+            evaluation = self.ethics.evaluate(actions, signals)
+
+        # 3. Stream response
+        full_response = []
+        async for token in self.respond_stream(user_message, signals, evaluation):
+            full_response.append(token)
+            yield {"type": "token", "content": token}
+
+        message = "".join(full_response).strip()
+
+        # 4. Remember
+        score = evaluation.score if evaluation else 0.0
+        if not math.isfinite(score):
+            score = 0.0
+        self.memory.add(
+            summary=f"Usuario: {user_message[:80]} → Respondí: {message[:80]}",
+            action=evaluation.chosen.name if evaluation else "casual_chat",
+            score=score, context=signals.context,
+        )
+
+        # 5. STM
+        self._conversation.append({"user": user_message, "assistant": message})
+        if len(self._conversation) > 10:
+            self._conversation = self._conversation[-10:]
+
+        # Final event
+        yield {"type": "done", "message": message, "context": signals.context, "blocked": False}
+
     async def repl(self) -> None:
         """Interactive terminal chat. The simplest possible UI."""
         print("═" * 60)
