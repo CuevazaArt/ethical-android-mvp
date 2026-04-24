@@ -67,6 +67,16 @@ Each Men Scout receives:
 - ❌ Do NOT touch files outside the assigned block scope
 - ❌ Do NOT push to `main` directly (L0-only)
 
+## Token Economy Rules
+
+- **No greetings, no sign-offs.** Start with the work, end with the result.
+- **No project history.** Agents don't need to know about V1 or past decisions.
+- **Exact file paths, not "explore".** Every task specifies exactly which files to read and modify.
+- **Change limits per block.** Each block has a max line-change budget. Don't rewrite files.
+- **Log, not essay.** Block closure is: files touched, test command, demo log. Not 3 paragraphs.
+- **Error = immediate fix.** Don't document the error and propose a plan. Just fix it.
+- **If stuck, implement the simplest solution that passes the test. Don't optimize.**
+
 ## Security gate
 
 Run `pytest tests/core/ -q` before committing. All tests must pass.
