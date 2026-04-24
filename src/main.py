@@ -15,6 +15,12 @@ from pathlib import Path
 # Fix PYTHONPATH for direct execution (python src/main.py)
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+if sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 from src.core.chat import ChatEngine
 
 
