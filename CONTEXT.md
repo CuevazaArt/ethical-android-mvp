@@ -14,7 +14,7 @@
 
 ## Active block
 
-**V2.17 — Adversarial Hardening Round 2**: Reforzar el safety gate contra nuevos vectores de evasion detectados en campo.
+**V2.18 — Latency & Performance Audit**: Medir y optimizar latencia end-to-end en el pipeline de chat (perceive → ethics → LLM → memory).
 
 ## Closed blocks
 
@@ -41,7 +41,8 @@
 | V2.14 | Nomad PWA HTTPS | ✅ CLOSED | V2.13 closed |
 | V2.15 | Identity Neuroplasticity | ✅ CLOSED | V2.14 closed |
 | V2.16 | Dashboard Identity Telemetry | ✅ CLOSED | V2.15 closed |
-| V2.17 | Adversarial Hardening R2 | ✅ CLOSED | V2.16 closed |
+| V2.17 | TF-IDF Semantic Recall + Adversarial Hardening R2 | ✅ CLOSED | V2.16 closed |
+| V2.18 | Latency & Performance Audit | 🔨 IN PROGRESS | V2.17 closed |
 
 ## Key files
 
@@ -50,7 +51,7 @@
 | Core | `src/core/{llm,ethics,memory,chat,safety,status}.py` |
 | Server | `src/server/app.py` |
 | Nomad PWA | `src/clients/nomad_pwa/{index.html,app.js,media_engine.js,style.css,sw.js}` |
-| Tests | `tests/core/` (84 tests) |
+| Tests | `tests/core/` (87 tests) |
 | Run | `uvicorn src.server.app:app --port 8000` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
@@ -69,5 +70,4 @@
 - **2026-04-24 V2.14 CLOSED:** `scripts/gen_cert.py` — cert RSA-2048 auto-firmado con SAN (Python-puro, `cryptography`), idempotente. `README_HTTPS.md` con 5 pasos (Android/iOS). Demo: SHA256 verificado, SSL context OK, 68 passed.
 - **2026-04-24 V2.15 CLOSED:** `src/core/identity.py` — clase `Identity` con `update(memory)` + `narrative()`. Perfil persiste en `~/.ethos/identity.json`. Detecta tendencia ética (mejorando/estable/deteriorando), contextos y acciones dominantes, ratio de safety blocks. Anti-NaN en todos los cálculos. Integrado en `_build_system()` de `chat.py`. 79 passed.
 - **2026-04-24 V2.16 CLOSED:** Dashboard actualizado con 2 cards nuevas (Score ético con color dinámico + Tendencia con emoji) y panel de Narrativa de identidad. JS: `TREND_LABEL` map + `scoreColor()`. Todo inline en `app.py`. 79 passed.
-- **2026-04-24 V2.17 CLOSED:** `src/core/safety.py` mejorado (Adversarial Hardening R2). Se añadió limpieza de caracteres invisibles (Zero-Width y RLO/LRE) a `sanitize`. Se agregaron regex para bloquear "role_simulation" (ahora eres) e inyección de system prompts. Integrada detección de Base64 rápida por regex con decodificación para interceptar payloads ocultos de jailbreaks. 87 passed.
-- **2026-04-24 V2.16 CLOSED:** Semantic Memory Recall (TF-IDF). Implementado en `memory.py` con `_build_idf()` cacheado y `matches_tfidf()`. Fallback a keyword si corpus < 5. Añadidos 5 tests nuevos a `test_memory.py`. 84 passed.
+- **2026-04-24 V2.17 CLOSED:** TF-IDF Semantic Recall en `memory.py` (`_build_idf()` cacheado, `matches_tfidf()`, fallback si corpus<5, 5 tests). Adversarial Hardening R2 en `safety.py`: limpieza de chars Zero-Width/RLO/LRE, regex role_simulation, deteccion Base64 payloads, 8 tests nuevos. 87 passed.
