@@ -34,7 +34,7 @@ class OllamaClient:
         self.base_url = (
             base_url or os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
         ).rstrip("/")
-        self.model = model or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
+        self.model = model or os.environ.get("OLLAMA_MODEL", "gemma3")
         self.timeout = timeout
         self._client: httpx.AsyncClient | None = None
 
