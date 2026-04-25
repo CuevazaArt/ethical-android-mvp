@@ -8,24 +8,25 @@
 - **Architecture:** `src/core/` → `src/server/` (zero legacy)
 - **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
-- **Last merge to main:** 2026-04-25 (V2.60 — `v22.3.3-field-tested`)
+- **Last merge to main:** 2026-04-25 (V2.70 — `v2.70-secure-vault`)
 
-## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅
+## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
 
 ## Active block
 
-- **V2 CORE REFINEMENT (Phase 18)**: Refinando mente y memoria en `src/core`.
-  - [x] V2.61: Recursive Narrative Memory.
-  - [x] V2.62: Heuristic User Model Bias Detection.
-  - [x] V2.63: Narrative Archetype Distillation (L3).
-  - [x] V2.64: Persistent User Model (`~/.ethos/user_model.json`).
-  - [ ] Siguiente bloque (Pendiente de selección del Backlog).
+- **V2.71: VAULT AUTHORIZATION PIPELINE (Phase 19)**: Conectando biometría/aprobación a la Bóveda Segura.
+  - [ ] Implementar herramienta de `Function Calling` para que el LLM dispare el trigger `UNLOCK_VAULT`.
+  - [ ] Implementar pausa de servidor y solicitud de biometría en Nomad PWA o CLI.
+  - [ ] Inyección efímera de la llave en un turno de respuesta.
 Sensory expansion via hardware (Nomad camera/mic integration) is **FROZEN** until better resources/hardware are available. Development will now focus on higher-level conversational features and kernel logic via traditional chat interfaces.
 
 ## Closed blocks
 
 | Block | Name | Status |
 |-------|------|--------|
+| V2.70 | Secure Vault (Isolation Boundary) | ✅ |
+| V2.66 | CBR Injection (Doctrina Legal) | ✅ |
+| V2.65 | LLM Reasoning Suppression (<think>) | ✅ |
 | V2.40 | Perception Classifier (Sin LLM, 0ms) | ✅ |
 | V2.41 | Case-Based Ethics (CBR Precedents) | ✅ |
 | V2.42 | Single-Call Pipeline (Hardening) | ✅ |

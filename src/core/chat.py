@@ -35,8 +35,10 @@ from src.core.identity import Identity
 from src.core.llm import OllamaClient
 from src.core.memory import Memory
 from src.core.perception import PerceptionClassifier
+from src.core.precedents import find_nearest_precedents
 from src.core.safety import is_dangerous, sanitize
 from src.core.user_model import UserModelTracker
+from src.core.vault import SecureVault
 
 _log = logging.getLogger(__name__)
 
@@ -139,6 +141,7 @@ class ChatEngine:
         self.perception = PerceptionClassifier()  # V2.40: deterministic, no LLM
         self.identity = Identity()  # V2.15: evolves with each episode
         self.user_model = UserModelTracker()  # V2.62: cognitive bias & risk
+        self.vault = SecureVault()  # V2.70: isolated secure storage
         self._turn_count: int = 0  # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
 
@@ -179,11 +182,21 @@ class ChatEngine:
         # Conversation history is now passed as native multi-turn messages
         # to llm.chat() / llm.chat_stream() — see respond() and respond_stream().
 
-        # Long-term memory recall
         relevant = self.memory.recall(user_message, limit=2)
         if relevant:
             mem_context = "\n".join(f"- {ep.summary}" for ep in relevant)
             system += f"\n\nRecuerdos relevantes:\n{mem_context}"
+
+        # V2.66: Case-Based Reasoning (CBR) Injection on High Risk
+        if self.user_model.risk_band.value == "high" and signals.context != "everyday_ethics":
+            precedents = find_nearest_precedents(signals.context, limit=1)
+            if precedents:
+                system += f"\n\n[PRECEDENTE / DOCTRINA LEGAL]: {precedents[0].reasoning}"
+
+        # V2.70: Vault awareness
+        keys = self.vault.list_keys()
+        if keys:
+            system += f"\n\n[SISTEMA VAULT]: Tienes datos encriptados disponibles: {keys}. Si necesitas acceder a ellos para responder al usuario, asume que el sistema los inyectará si están desbloqueados."
 
         # V2.13: Physical environment from Nomad vision
         if vision_context:

@@ -76,6 +76,7 @@ def main() -> None:
         "src.core.safety",
         "src.core.perception",
         "src.core.user_model",
+        "src.core.vault",
     ]
     core_ok = all(_check(m.split(".")[-1], lambda m=m: _importable(m)) for m in modules)
 
@@ -99,10 +100,12 @@ def main() -> None:
         from src.core.memory import Memory
         from src.core.identity import Identity
         from src.core.user_model import UserModelTracker
+        from src.core.vault import SecureVault
 
         mem = Memory()
         ident = Identity()
         user_mod = UserModelTracker()
+        vault = SecureVault()
         
         print(f"  📝 Memory: {len(mem)} episodes stored")
         print(f"  🧠 Identity: {len(ident._journal)} journal entries, {len(ident._chronicle)} chronicles")
@@ -110,6 +113,7 @@ def main() -> None:
             print(f"  👑 Archetype: {ident._archetype}")
             
         print(f"  👤 User Model: Risk [{user_mod.risk_band.value}], Bias [{user_mod.cognitive_pattern.value}], Turns [{user_mod.turns_observed}]")
+        print(f"  🔒 Vault: {len(vault.list_keys())} protected keys")
 
     except Exception:
         print("  📝 System state: partially initialized")

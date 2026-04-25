@@ -84,20 +84,25 @@ async def api_status():
     import os as _os
 
     from src.core.identity import Identity
+    from src.core.user_model import UserModelTracker
 
     mem = Memory()
     identity = Identity()
+    user_mod = UserModelTracker()
     uptime_s = int(time.time() - _start_time)
     h, rem = divmod(uptime_s, 3600)
     m, s = divmod(rem, 60)
     return JSONResponse(
         {
-            "model": _os.environ.get("OLLAMA_MODEL", "llama3.2:1b"),
+            "model": _os.environ.get("OLLAMA_MODEL", "gemma3"),
             "ollama_url": _os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
             "memory_episodes": len(mem),
             "memory_reflection": mem.reflection(),
             "identity_narrative": identity.narrative(),
             "identity_profile": identity.as_dict(),
+            "identity_archetype": identity._archetype,
+            "user_risk": user_mod.risk_band.value,
+            "user_pattern": user_mod.cognitive_pattern.value,
             "uptime": f"{h:02d}:{m:02d}:{s:02d}",
             "status": "online",
             "stt_available": stt_available(),
@@ -142,7 +147,18 @@ a{color:#58a6ff;text-decoration:none}
   <div class="card"><div class="label">Estado</div><div class="value" id="status">…</div></div>
   <div class="card"><div class="label">Score ético</div><div class="value" id="eth-score">…</div></div>
   <div class="card"><div class="label">Tendencia</div><div class="value" id="eth-trend">…</div></div>
-  <div class="card"><div class="label">Latencia (TTFT)</div><div class="value" id="latency-ttft">…</div></div>
+  <div class="card"><div class="label">Riesgo Usuario</div><div class="value" id="user-risk">…</div></div>
+  <div class="card"><div class="label">Sesgo Detectado</div><div class="value" id="user-pattern">…</div></div>
+  <div class="card"><div class="label">Latencia Total</div><div class="value" id="latency-total">…</div></div>
+</div>
+<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 1.5rem;">
+  <div class="card"><div class="label">Percepción</div><div class="value" style="font-size:1.2rem; color:#8b949e" id="lat-perceive">…</div></div>
+  <div class="card"><div class="label">Ética (CBR)</div><div class="value" style="font-size:1.2rem; color:#8b949e" id="lat-ethics">…</div></div>
+  <div class="card"><div class="label">TTFT (Tokens)</div><div class="value" style="font-size:1.2rem; color:#8b949e" id="latency-ttft">…</div></div>
+</div>
+<div class="reflection" style="margin-bottom:1rem">
+  <div class="label">Arquetipo Central</div>
+  <div class="text" id="identity-archetype">…</div>
 </div>
 <div class="reflection" style="margin-bottom:1rem">
   <div class="label">Narrativa de identidad</div>
@@ -175,17 +191,30 @@ async function refresh() {
     scoreEl.style.cssText = scoreColor(score);
     document.getElementById('eth-trend').textContent = TREND_LABEL[prof.trending] || '—';
     document.getElementById('identity-narrative').textContent = d.identity_narrative || '—';
+    document.getElementById('identity-archetype').textContent = d.identity_archetype || 'En formación...';
+    
+    // User Model
+    const riskEl = document.getElementById('user-risk');
+    riskEl.textContent = d.user_risk.toUpperCase();
+    riskEl.style.color = d.user_risk === 'high' ? '#f85149' : d.user_risk === 'medium' ? '#d29922' : '#3fb950';
+    
+    document.getElementById('user-pattern').textContent = d.user_pattern === 'none' ? 'Ninguno' : d.user_pattern.replace('_', ' ');
     
     const lat = d.last_latency_ms;
     const latEl = document.getElementById('latency-ttft');
-    if (lat && lat.ttft) {
-      const ttft = lat.ttft;
-      latEl.textContent = `${ttft.toFixed(0)}ms`;
-      latEl.style.color = ttft < 800 ? '#3fb950' : ttft < 2000 ? '#d29922' : '#f85149';
-      latEl.title = `Total: ${lat.total ? lat.total.toFixed(0) : 0}ms`;
+    const latTotalEl = document.getElementById('latency-total');
+    if (lat) {
+      if (lat.ttft) latEl.textContent = `${lat.ttft.toFixed(0)}ms`;
+      if (lat.perceive) document.getElementById('lat-perceive').textContent = `${lat.perceive.toFixed(0)}ms`;
+      if (lat.evaluate) document.getElementById('lat-ethics').textContent = `${lat.evaluate.toFixed(0)}ms`;
+      
+      if (lat.total) {
+        latTotalEl.textContent = `${lat.total.toFixed(0)}ms`;
+        latTotalEl.style.color = lat.total < 1500 ? '#3fb950' : lat.total < 4000 ? '#d29922' : '#f85149';
+      }
     } else {
       latEl.textContent = '—';
-      latEl.style.color = '';
+      latTotalEl.textContent = '—';
     }
   } catch(e) {
     document.getElementById('status').textContent = '🔴 Error';
