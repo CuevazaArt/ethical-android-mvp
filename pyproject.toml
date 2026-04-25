@@ -185,3 +185,8 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = "src.sandbox.*"
 ignore_errors = true
+[tool.pyright]
+include = ["src", "tests"]
+executionEnvironments = [
+  { root = "." }
+]

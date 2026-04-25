@@ -86,7 +86,10 @@ class OllamaClient:
             "model": self.model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": temperature},
+            "options": {
+                "temperature": temperature,
+                "stop": ["Usuario:", "User:", "Tú:", "Assistant:"],
+            },
         }
 
         try:
@@ -135,7 +138,10 @@ class OllamaClient:
             "model": self.model,
             "messages": messages,
             "stream": True,
-            "options": {"temperature": temperature},
+            "options": {
+                "temperature": temperature,
+                "stop": ["Usuario:", "User:", "Tú:", "Assistant:"],
+            },
         }
 
         async with client.stream(
