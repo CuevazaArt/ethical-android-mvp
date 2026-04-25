@@ -59,13 +59,18 @@ function _speak(text) {
     if (voices.length > 0) {
         _pickVoiceAndSpeak();
     } else {
-        // Voces no cargadas aún — esperar el evento
         window.speechSynthesis.onvoiceschanged = () => {
-            window.speechSynthesis.onvoiceschanged = null;
             _pickVoiceAndSpeak();
+            window.speechSynthesis.onvoiceschanged = null;
         };
     }
 }
+
+// ── V2.52 Limbic System (Emotional Resonance) ───────────────────────────────
+window.setAppAffectState = function(state) {
+    document.body.classList.remove('state-alarm', 'state-alert', 'state-calm');
+    document.body.classList.add(`state-${state}`);
+};
 // ─────────────────────────────────────────────────────────────────────────────
 /** @type {number|null} performance.now() when last bridge ping was sent (S.1.1 RTT) */
 let nomadBridgePingT0 = null;
@@ -702,7 +707,20 @@ async function connectKernel() {
 
                 // ── V2 streaming protocol ──────────────────────────────
                 if (data.type === 'metadata') {
-                    _handleEthicalMetadata(data);
+                    if (typeof _handleEthicalMetadata === 'function') {
+                        _handleEthicalMetadata(data);
+                    }
+                    if (data.signals && typeof setAppAffectState === 'function') {
+                        const risk = data.signals.risk || 0;
+                        const urgency = data.signals.urgency || 0;
+                        if (risk > 0.5) {
+                            setAppAffectState('alarm');
+                        } else if (urgency > 0.5) {
+                            setAppAffectState('alert');
+                        } else {
+                            setAppAffectState('calm');
+                        }
+                    }
                     return;
                 }
                 if (data.type === 'token') {

@@ -24,11 +24,22 @@ async def _safe_send(ws: WebSocket, data: dict) -> bool:
     except (WebSocketDisconnect, RuntimeError):
         return False
 
-async def _safe_send_tts(ws: WebSocket, event: dict):
+async def _safe_send_tts(ws: WebSocket, event: dict, metadata: dict | None = None):
     msg = event.get("message", "")
     if msg:
         import base64
-        audio_bytes = await synthesize(msg)
+        pitch = "+0Hz"
+        rate = "+0%"
+        if metadata:
+            risk = metadata.get("risk", 0.0)
+            urgency = metadata.get("urgency", 0.0)
+            if risk > 0.5:
+                pitch = "-15Hz"
+                rate = "-10%"
+            elif urgency > 0.5:
+                rate = "+15%"
+                
+        audio_bytes = await synthesize(msg, pitch=pitch, rate=rate)
         if audio_bytes:
             b64 = base64.b64encode(audio_bytes).decode('utf-8')
             await _safe_send(ws, {"type": "tts_audio", "audio_b64": b64, "text": msg})
@@ -223,9 +234,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 else:
                     # Plain text or other — treat as chat turn
                     text = data if not frame else (frame.get("text") or data)
+                    _current_metadata = None
                     async for event in engine.turn_stream(text, vision_context=_chat_vision):
                         if not await _safe_send(websocket, event):
                             return  # Client gone — exit cleanly
+                        if event.get("type") == "metadata":
+                            _current_metadata = event.get("signals")
                         if event.get("type") == "done" and not event.get("blocked"):
                             lat = event.get("latency", {})
                             _last_latency = lat
@@ -237,7 +251,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                 lat.get("ttft", 0),
                                 lat.get("total", 0),
                             )
-                            await _safe_send_tts(websocket, event)
+                            await _safe_send_tts(websocket, event, _current_metadata)
             except Exception as e:
                 _log.error("Error during turn: %s", e)
                 await _safe_send(websocket, {
@@ -287,9 +301,12 @@ async def websocket_nomad(websocket: WebSocket):
                 elif msg_type == "chat_text":
                     text = (msg.get("payload") or {}).get("text", "")
                     if text:
+                        _current_metadata = None
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
                             if not await _safe_send(websocket, event):
                                 return
+                            if event.get("type") == "metadata":
+                                _current_metadata = event.get("signals")
                             if event.get("type") == "done" and not event.get("blocked"):
                                 lat = event.get("latency", {})
                                 _last_latency = lat
@@ -301,16 +318,19 @@ async def websocket_nomad(websocket: WebSocket):
                                     lat.get("ttft", 0),
                                     lat.get("total", 0),
                                 )
-                                await _safe_send_tts(websocket, event)
+                                await _safe_send_tts(websocket, event, _current_metadata)
 
                 elif msg_type == "user_speech":
                     # V2.10: STT transcript from media_engine.js SpeechRecognition
                     text = msg.get("text", "").strip()
                     if text:
                         _log.info("Nomad STT -> kernel: %s", text[:80])
+                        _current_metadata = None
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
                             if not await _safe_send(websocket, event):
                                 return
+                            if event.get("type") == "metadata":
+                                _current_metadata = event.get("signals")
                             if event.get("type") == "done" and not event.get("blocked"):
                                 lat = event.get("latency", {})
                                 _last_latency = lat
@@ -322,7 +342,7 @@ async def websocket_nomad(websocket: WebSocket):
                                     lat.get("ttft", 0),
                                     lat.get("total", 0),
                                 )
-                                await _safe_send_tts(websocket, event)
+                                await _safe_send_tts(websocket, event, _current_metadata)
 
                 elif msg_type == "vision_frame":
                     # V2.12+V2.13: process JPEG frame, cache signals for next turn
@@ -343,9 +363,12 @@ async def websocket_nomad(websocket: WebSocket):
                                     _last_autonomous_turn = now
                                     _log.info("Autonomous vision turn triggered! Face: %s, Motion: %.3f", sig.face_present, sig.motion)
                                     sys_prompt = "[SYSTEM: Acabas de notar algo a través de la cámara (movimiento o una persona). Inicia tú la conversación. Haz un comentario espontáneo, corto y natural (máx 12 palabras) sobre lo que ves o saluda.]"
+                                    _current_metadata = None
                                     async for event in engine.turn_stream(sys_prompt, vision_context=_last_vision):
                                         if not await _safe_send(websocket, event):
                                             return
+                                        if event.get("type") == "metadata":
+                                            _current_metadata = event.get("signals")
                                         if event.get("type") == "done" and not event.get("blocked"):
                                             lat = event.get("latency", {})
                                             _last_latency = lat
@@ -354,7 +377,7 @@ async def websocket_nomad(websocket: WebSocket):
                                                 lat.get("ttft", 0),
                                                 lat.get("total", 0),
                                             )
-                                            await _safe_send_tts(websocket, event)
+                                            await _safe_send_tts(websocket, event, _current_metadata)
 
 
                 elif msg_type == "audio_pcm":
@@ -369,11 +392,14 @@ async def websocket_nomad(websocket: WebSocket):
                                 text = await transcribe_pcm(pcm_bytes)
                                 if text:
                                     _log.info("Whisper STT: '%s'", text[:80])
+                                    _current_metadata = None
                                     async for event in engine.turn_stream(
                                         text, vision_context=_last_vision
                                     ):
                                         if not await _safe_send(websocket, event):
                                             return
+                                        if event.get("type") == "metadata":
+                                            _current_metadata = event.get("signals")
                                         if event.get("type") == "done" and not event.get("blocked"):
                                             lat = event.get("latency", {})
                                             _last_latency = lat
@@ -385,7 +411,7 @@ async def websocket_nomad(websocket: WebSocket):
                                                 lat.get("ttft", 0),
                                                 lat.get("total", 0),
                                             )
-                                            await _safe_send_tts(websocket, event)
+                                            await _safe_send_tts(websocket, event, _current_metadata)
                             except Exception as e:
                                 _log.warning("audio_pcm transcription error: %s", e)
                     # If STT not available, client uses Web Speech API (already works)

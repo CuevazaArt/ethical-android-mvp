@@ -5,14 +5,14 @@ import edge_tts
 
 _log = logging.getLogger(__name__)
 
-async def synthesize(text: str, voice: str = "es-MX-DaliaNeural") -> bytes | None:
+async def synthesize(text: str, voice: str = "es-MX-DaliaNeural", pitch: str = "+0Hz", rate: str = "+0%") -> bytes | None:
     """
     Synthesize text to MP3 using edge-tts.
     Returns bytes if successful, None if it fails.
     """
     t0 = time.perf_counter()
     try:
-        communicate = edge_tts.Communicate(text, voice)
+        communicate = edge_tts.Communicate(text, voice, pitch=pitch, rate=rate)
         audio_data = bytearray()
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
