@@ -233,12 +233,16 @@ async def websocket_endpoint(websocket: WebSocket):
                 if frame_type == "vision_context":
                     # Nomad client forwarding vision signals from /ws/nomad
                     _chat_vision = frame.get("payload")
+                elif frame_type:
+                    # Known JSON event type — skip silently (not a chat message)
+                    _log.debug("wsChat ignoring frame type: %s", frame_type)
                 else:
-                    # Plain text or other — treat as chat turn
-                    text = data if not frame else (frame.get("text") or data)
-                    await _run_turn_and_send(
-                        engine, websocket, text, _chat_vision, label="Pipeline",
-                    )
+                    # Plain text from user — actual chat turn
+                    text = data.strip() if not frame else (frame.get("text", "") or data).strip()
+                    if text:
+                        await _run_turn_and_send(
+                            engine, websocket, text, _chat_vision, label="Pipeline",
+                        )
             except Exception as e:
                 _log.error("Error during turn: %s", e)
                 await _safe_send(websocket, {
