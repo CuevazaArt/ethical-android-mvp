@@ -108,18 +108,27 @@ async function startSensors() {
     }
 
     try {
-        // V2.60: Request VIDEO ONLY. Audio is NOT needed here because:
-        // - AudioContext was removed (caused resampler tone on Android)
-        // - SpeechRecognition manages its own mic access independently
-        // - Having both getUserMedia(audio) + SpeechRecognition duplicates
-        //   hardware access, causing Android to cycle privacy indicators + sounds
+        // V2.60: Request BOTH video + audio in a SINGLE unified session.
+        // On Android devices, separate APIs (getUserMedia for camera + SpeechRecognition
+        // for mic) compete and ALTERNATE hardware access — camera and mic cannot coexist.
+        // By requesting both here, Android Chrome keeps camera AND mic active simultaneously.
+        // The audio tracks are kept alive (not consumed by AudioContext) so that
+        // SpeechRecognition can piggyback on the already-active mic session.
         mediaStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'environment', width: 640, height: 480 },
-            audio: false
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+                channelCount: 1
+            }
         });
-        
-        // ... rest of the successful initialization ...
+        // Audio tracks stay alive in the stream — DO NOT stop them, DO NOT route
+        // them to AudioContext. They keep the mic hardware warm for SpeechRecognition.
+
+        // Assign video stream to hidden video element for canvas capture
         UI.videoElement.srcObject = mediaStream;
+        UI.videoElement.muted = true; // Prevent audio tracks from playing through speaker
 
         // Start frame capture loop
         videoInterval = setInterval(() => {
@@ -143,13 +152,6 @@ async function startSensors() {
                 wsNomad.send(JSON.stringify({ type: "vision_frame", payload: { image_b64: base64Img } }));
             }
         }, 1000 / FRAME_RATE);
-
-        // V2.60: AudioContext REMOVED entirely.
-        // On Android Chrome, creating an AudioContext with sampleRate: 16000
-        // (non-native) produces a rhythmic audible tone through the speakers
-        // caused by the hardware resampler. Since STT is handled by Web Speech API
-        // (not server-side Whisper), no AudioContext is needed.
-        // VAD visual feedback is now driven by SpeechRecognition interim results.
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -293,18 +295,23 @@ async function startSensors() {
                 if (orb) orb.classList.add('mic-active');
             };
             recognition.onend = () => {
-                // V2.60: Delay restart to avoid rapid mic cycling
-                // (Android plays system sound on each mic access toggle)
+                // V2.60: Long delay to minimize Android mic-cycling sounds
+                // SpeechRecognition stops periodically on Android Chrome (OS limitation)
+                // Each restart triggers Android privacy indicator + system sound
+                const orb = document.getElementById('affect-orb');
+                if (orb) orb.classList.remove('mic-active');
                 setTimeout(() => {
-                    try { recognition.start(); } catch (e) { console.warn('SR restart failed', e); }
-                }, 1000);
+                    try {
+                        recognition.start();
+                    } catch (e) { console.warn('SR restart failed', e); }
+                }, 10000); // 10 seconds — much slower cycle
             };
             recognition.onerror = (e) => {
                 console.warn('SpeechRecognition error:', e.error);
                 if (e.error !== 'aborted') {
                     setTimeout(() => {
                         try { recognition.start(); } catch (_) {}
-                    }, 1500);
+                    }, 12000); // 12 seconds on error
                 }
             };
             recognition.start();
