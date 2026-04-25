@@ -144,43 +144,30 @@ async function startSensors() {
             }
         }, 1000 / FRAME_RATE);
 
+        // V2.60: Use AnalyserNode instead of ScriptProcessor.
+        // ScriptProcessor steals the audio stream from SpeechRecognition on Android.
+        // AnalyserNode is read-only — observes levels without consuming the stream.
         audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: TARGET_SAMPLE_RATE });
         const source = audioContext.createMediaStreamSource(mediaStream);
-        const processor = audioContext.createScriptProcessor(4096, 1, 1);
-        // V2.60: Mute output — ScriptProcessor needs a connected destination to fire,
-        // but we do NOT want mic audio playing through the speaker (that was the pulse bug).
-        const muteNode = audioContext.createGain();
-        muteNode.gain.value = 0;
-        source.connect(processor);
-        processor.connect(muteNode);
-        muteNode.connect(audioContext.destination);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.3;
+        source.connect(analyser);
+        // DO NOT connect to destination — no output, no speaker leakage
 
-        processor.onaudioprocess = (e) => {
-            // V2.60: Explicitly zero output buffer — prevents mic-to-speaker leakage
-            const outputData = e.outputBuffer.getChannelData(0);
-            for (let j = 0; j < outputData.length; j++) outputData[j] = 0;
-
-            const inputData = e.inputBuffer.getChannelData(0);
+        const analyserBuffer = new Float32Array(analyser.fftSize);
+        setInterval(() => {
+            analyser.getFloatTimeDomainData(analyserBuffer);
             let sumSquares = 0;
-            for (let i = 0; i < inputData.length; i++) sumSquares += inputData[i] * inputData[i];
-            const rms = Math.sqrt(sumSquares / inputData.length);
+            for (let i = 0; i < analyserBuffer.length; i++) sumSquares += analyserBuffer[i] * analyserBuffer[i];
+            const rms = Math.sqrt(sumSquares / analyserBuffer.length);
             const normalizedVolume = Math.min(1, rms * 5);
-            const isSpeech = vadUpdate(rms);
+            vadUpdate(rms);
 
-            window.requestAnimationFrame(() => {
-                if (window.updateOrbScale) window.updateOrbScale(normalizedVolume);
-                // Update Nomad telemetry display
-                const telAud = document.getElementById('tel-aud');
-                if (telAud) telAud.textContent = rms.toFixed(3);
-            });
-
-            if (isSpeech && wsNomad && wsNomad.readyState === WebSocket.OPEN) {
-                const b64Audio = encodeAudioToBase64(inputData);
-                try {
-                    wsNomad.send(JSON.stringify({ type: "audio_pcm", payload: { audio_b64: b64Audio } }));
-                } catch (_) {}
-            }
-        };
+            const telAud = document.getElementById('tel-aud');
+            if (telAud) telAud.textContent = rms.toFixed(3);
+            if (window.updateOrbScale) window.updateOrbScale(normalizedVolume);
+        }, 250); // 4x per second for smooth VAD visual
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
