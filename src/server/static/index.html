@@ -39,6 +39,16 @@
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 
+                if (data.type === 'metadata') {
+                    // V2.42: Early ethical context — no visual output needed
+                    return;
+                }
+
+                if (data.type === 'tts_audio') {
+                    // V2.49: TTS audio — handled by audio player if present
+                    return;
+                }
+
                 if (data.type === 'token') {
                     // Streaming: append token to current message
                     if (!currentMsgEl) {
@@ -61,7 +71,7 @@
                     if (currentMsgEl && !data.blocked) {
                         // Streaming finished — add context tag to existing element
                         currentMsgEl.innerHTML += ` ${ctxInfo}`;
-                    } else {
+                    } else if (data.message) {
                         // Blocked or non-streamed — create new message
                         log.innerHTML += `<div class="message ${msgClass}"><strong>Ethos:</strong> ${data.message} ${ctxInfo} ${reasonInfo}</div>`;
                     }
@@ -73,12 +83,6 @@
                     log.scrollTop = log.scrollHeight;
                     return;
                 }
-                
-                // Legacy: non-typed messages (backward compat)
-                const msgClass = data.blocked ? 'blocked-msg' : 'kernel-msg';
-                const ctxInfo = data.context ? `<span class="context-tag">[${data.context}]</span>` : '';
-                log.innerHTML += `<div class="message ${msgClass}"><strong>Ethos:</strong> ${data.message} ${ctxInfo}</div>`;
-                log.scrollTop = log.scrollHeight;
             };
 
             ws.onclose = () => {
