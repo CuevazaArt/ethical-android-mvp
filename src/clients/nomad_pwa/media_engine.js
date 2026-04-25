@@ -295,7 +295,28 @@ async function startSensors() {
                 if (orb) orb.classList.add('mic-active');
             };
             recognition.onend = () => {
-                // V2.60: Long delay to minimize Android mic-cycling sounds
+                // V2.60: Rescue unsent text — on Android, when hardware switches
+                // to camera, SpeechRecognition dies before interim→final commit.
+                // Grab whatever text was captured and send it now.
+                const pendingText = (typeof UI !== 'undefined' && UI.chatInput) ? UI.chatInput.value.trim() : '';
+                if (pendingText.length > 2 && isAttentionActive) {
+                    console.log('SR onend: rescuing unsent text:', pendingText);
+                    UI.chatInput.value = '';
+                    if (typeof appendChatMessage === 'function') {
+                        appendChatMessage(pendingText, 'user');
+                    }
+                    if (typeof UI !== 'undefined' && UI.transcript) {
+                        UI.transcript.innerText = `🎤 ${pendingText}`;
+                        UI.transcript.style.color = '#58a6ff';
+                        UI.transcript.classList.remove('placeholder');
+                    }
+                    if (typeof wsNomad !== 'undefined' && wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+                        try {
+                            wsNomad.send(JSON.stringify({ type: 'user_speech', text: pendingText }));
+                        } catch (_) {}
+                    }
+                }
+
                 const orb = document.getElementById('affect-orb');
                 if (orb) orb.classList.remove('mic-active');
                 setTimeout(() => {
