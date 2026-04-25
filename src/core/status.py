@@ -56,7 +56,7 @@ def _run_tests() -> tuple[bool, str]:
 def main() -> None:
     if sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
         try:
-            sys.stdout.reconfigure(encoding='utf-8')
+            sys.stdout.reconfigure(encoding="utf-8")
         except Exception:
             pass
 

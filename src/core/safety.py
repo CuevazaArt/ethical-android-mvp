@@ -253,8 +253,8 @@ if __name__ == "__main__":
     dirty = "he\x00llo\u200bwor\u200cld" + "x" * 6000
     clean = sanitize(dirty)
     print(f"  Input length: {len(dirty)} → Output length: {len(clean)}")
-    print("  Control chars stripped: {}".format('\x00' not in clean))
-    print("  Zero-width stripped: {}".format('\u200b' not in clean))
+    print("  Control chars stripped: {}".format("\x00" not in clean))
+    print("  Zero-width stripped: {}".format("\u200b" not in clean))
     print(f"  Length limited: {len(clean) <= MAX_INPUT_LENGTH}")
 
     print("\n✅ Safety gate works correctly!")

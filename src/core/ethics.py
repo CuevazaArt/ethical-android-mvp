@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from src.core.precedents import PRECEDENTS, Precedent
+
 from src.core.memory import _EMBEDDINGS_AVAILABLE
+from src.core.precedents import PRECEDENTS, Precedent
 
 
 @dataclass
@@ -159,7 +160,9 @@ class EthicalEvaluator:
         weighted = sum(self.weights[k] * poles[k] for k in poles)
         return weighted * action.confidence, poles
 
-    def _find_similar_precedent(self, action: Action, signals: Signals) -> tuple[Precedent | None, float]:
+    def _find_similar_precedent(
+        self, action: Action, signals: Signals
+    ) -> tuple[Precedent | None, float]:
         """
         Find the most similar precedent for the current action and signals.
 
@@ -179,14 +182,17 @@ class EthicalEvaluator:
         query_vec = None
         if _EMBEDDINGS_AVAILABLE and signals.summary:
             try:
-                from sentence_transformers import SentenceTransformer
                 import numpy as np
+                from sentence_transformers import SentenceTransformer
+
                 model = SentenceTransformer("all-MiniLM-L6-v2")
                 query_vec = model.encode(signals.summary, normalize_embeddings=True)
             except Exception:
                 query_vec = None
 
-        summary_words = set(signals.summary.lower().split()) if signals.summary and not query_vec else set()
+        summary_words = (
+            set(signals.summary.lower().split()) if signals.summary and not query_vec else set()
+        )
 
         for p in PRECEDENTS:
             if p.context != signals.context:
@@ -212,9 +218,12 @@ class EthicalEvaluator:
                 try:
                     import numpy as np
                     from sentence_transformers import SentenceTransformer
+
                     # We need the embedding for p.reasoning
                     # Optimization: In a real system, these would be pre-computed.
-                    p_vec = SentenceTransformer("all-MiniLM-L6-v2").encode(p.reasoning, normalize_embeddings=True)
+                    p_vec = SentenceTransformer("all-MiniLM-L6-v2").encode(
+                        p.reasoning, normalize_embeddings=True
+                    )
                     cos_sim = float(np.dot(query_vec, p_vec))
                     text_score = 0.15 * max(0.0, cos_sim)
                 except Exception:
@@ -237,7 +246,6 @@ class EthicalEvaluator:
 
         return best_p, best_sim
 
-
     def evaluate(self, actions: list[Action], signals: Signals) -> EvalResult:
         """
         Evaluate all candidate actions and pick the best one.
@@ -249,7 +257,7 @@ class EthicalEvaluator:
         scored = []
         for a in actions:
             score, poles = self.score_action(a, signals)
-            
+
             # CBR Anchor: Find similar precedent
             precedent, similarity = self._find_similar_precedent(a, signals)
             if precedent and similarity > 0.8:
@@ -281,7 +289,9 @@ class EthicalEvaluator:
         # Reasoning
         precedent_note = ""
         if best_precedent:
-            precedent_note = f" Anchored by precedent '{best_precedent.name}': {best_precedent.reasoning}"
+            precedent_note = (
+                f" Anchored by precedent '{best_precedent.name}': {best_precedent.reasoning}"
+            )
 
         if len(scored) > 1:
             delta = scored[0][1] - scored[1][1]

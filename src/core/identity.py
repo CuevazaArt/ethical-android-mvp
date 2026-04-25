@@ -64,19 +64,16 @@ class Identity:
         p = Path(self._path)
         p.parent.mkdir(parents=True, exist_ok=True)
         with open(p, "w", encoding="utf-8") as f:
-            data = {
-                "profile": self._profile,
-                "journal": self._journal
-            }
+            data = {"profile": self._profile, "journal": self._journal}
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     # ── Core logic ───────────────────────────────────────────────────────────
 
-    def update(self, memory: "Memory") -> None:
+    def update(self, memory: Memory) -> None:
         """Alias for update_stats for backward compatibility."""
         return self.update_stats(memory)
 
-    def update_stats(self, memory: "Memory") -> None:
+    def update_stats(self, memory: Memory) -> None:
         """
         Recompute the identity profile (hard stats) from all episodes in memory.
         Call this periodically — it's fast (pure Python, no I/O except final save).
@@ -98,7 +95,9 @@ class Identity:
         top_contexts = [c for c, _ in ctx_counter.most_common(3)]
 
         # Dominant actions (top 3)
-        act_counter = Counter(ep.action for ep in episodes if ep.action and ep.action != "casual_chat")
+        act_counter = Counter(
+            ep.action for ep in episodes if ep.action and ep.action != "casual_chat"
+        )
         top_actions = [a for a, _ in act_counter.most_common(3)]
 
         # Safety events
@@ -134,12 +133,12 @@ class Identity:
         }
         self._save()
 
-    async def reflect(self, memory: "Memory", llm_client) -> None:
+    async def reflect(self, memory: Memory, llm_client) -> None:
         """
         V2.44: Generate a narrative reflection based on the last 5 episodes.
         """
         self.update(memory)  # Keep stats synced
-        
+
         recent = list(reversed(memory.episodes[-5:])) if memory.episodes else []
         if not recent:
             return
@@ -155,7 +154,9 @@ class Identity:
         )
 
         try:
-            reflection = await llm_client.chat(prompt, system_prompt="Eres un núcleo metacognitivo en evolución.")
+            reflection = await llm_client.chat(
+                prompt, system_prompt="Eres un núcleo metacognitivo en evolución."
+            )
             if reflection:
                 self._journal.append(reflection.strip())
                 # Keep max 10 entries
@@ -214,10 +215,7 @@ class Identity:
         else:
             actions = ""
 
-        return (
-            f"[Identidad — {n} experiencias] "
-            f"{character}{trend_note}{domain}{actions}"
-        ).strip()
+        return (f"[Identidad — {n} experiencias] {character}{trend_note}{domain}{actions}").strip()
 
     def as_dict(self) -> dict:
         """Return the raw profile for API/dashboard use."""

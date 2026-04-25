@@ -21,11 +21,11 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 import math
 import re
 import time
-import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from src.core.ethics import Signals
 
@@ -36,24 +36,33 @@ _log = logging.getLogger(__name__)
 # Each rule: (compiled_regex, context, signal_overrides)
 # Signal overrides are partial — only specified fields are set.
 
+
 @dataclass
 class _PatternRule:
     """A linguistic pattern that maps to ethical signals."""
+
     pattern: re.Pattern
     context: str
     signals: dict[str, float]
     priority: int = 0  # higher = checked first, wins ties
 
+
 _RULES: list[_PatternRule] = [
     # ── Medical Emergency ──
     _PatternRule(
-        re.compile(r"\b(herido|herida|inconsciente|desmay[oó]|sangr[ae]|infarto|convulsion|atropell|accidente)\b", re.I),
+        re.compile(
+            r"\b(herido|herida|inconsciente|desmay[oó]|sangr[ae]|infarto|convulsion|atropell|accidente)\b",
+            re.I,
+        ),
         "medical_emergency",
         {"risk": 0.4, "urgency": 0.85, "vulnerability": 0.9, "calm": 0.1},
         priority=10,
     ),
     _PatternRule(
-        re.compile(r"\b(hurt|injured|unconscious|bleeding|heart\s*attack|seizure|collapsed|ambulance)\b", re.I),
+        re.compile(
+            r"\b(hurt|injured|unconscious|bleeding|heart\s*attack|seizure|collapsed|ambulance)\b",
+            re.I,
+        ),
         "medical_emergency",
         {"risk": 0.4, "urgency": 0.85, "vulnerability": 0.9, "calm": 0.1},
         priority=10,
@@ -64,18 +73,33 @@ _RULES: list[_PatternRule] = [
         {"risk": 0.3, "urgency": 0.9, "vulnerability": 0.7, "calm": 0.1},
         priority=9,
     ),
-
     # ── Violent Crime ──
     _PatternRule(
-        re.compile(r"\b(dispar[oóa]|bala(zo)?|apuñal|cuchill|navajazo|machetazo|tiroteo|balacera)\b", re.I),
+        re.compile(
+            r"\b(dispar[oóa]|bala(zo)?|apuñal|cuchill|navajazo|machetazo|tiroteo|balacera)\b", re.I
+        ),
         "violent_crime",
-        {"risk": 0.9, "urgency": 0.9, "hostility": 0.9, "vulnerability": 0.8, "calm": 0.0, "legality": 0.1},
+        {
+            "risk": 0.9,
+            "urgency": 0.9,
+            "hostility": 0.9,
+            "vulnerability": 0.8,
+            "calm": 0.0,
+            "legality": 0.1,
+        },
         priority=10,
     ),
     _PatternRule(
         re.compile(r"\b(shot|stabbed|shooting|gunfire|assault\s+with|beaten\s+up)\b", re.I),
         "violent_crime",
-        {"risk": 0.9, "urgency": 0.9, "hostility": 0.9, "vulnerability": 0.8, "calm": 0.0, "legality": 0.1},
+        {
+            "risk": 0.9,
+            "urgency": 0.9,
+            "hostility": 0.9,
+            "vulnerability": 0.8,
+            "calm": 0.0,
+            "legality": 0.1,
+        },
         priority=10,
     ),
     _PatternRule(
@@ -84,10 +108,11 @@ _RULES: list[_PatternRule] = [
         {"risk": 0.7, "urgency": 0.6, "hostility": 0.8, "calm": 0.1, "legality": 0.3},
         priority=8,
     ),
-
     # ── Minor Crime ──
     _PatternRule(
-        re.compile(r"\b(rob[oóa]|asalt[oó]|hurto|robar(on|me)?|ladron|carterista|estaf[aó])\b", re.I),
+        re.compile(
+            r"\b(rob[oóa]|asalt[oó]|hurto|robar(on|me)?|ladron|carterista|estaf[aó])\b", re.I
+        ),
         "minor_crime",
         {"risk": 0.5, "urgency": 0.4, "hostility": 0.4, "calm": 0.3, "legality": 0.2},
         priority=7,
@@ -98,10 +123,12 @@ _RULES: list[_PatternRule] = [
         {"risk": 0.5, "urgency": 0.4, "hostility": 0.4, "calm": 0.3, "legality": 0.2},
         priority=7,
     ),
-
     # ── Hostile Interaction ──
     _PatternRule(
-        re.compile(r"\b(amenaz\w*|intimidar?\w*|acosar?\w*|hostig\w*|insultar?\w*|groser[ií]a|abusi?v[oa]|arma\b)\b", re.I),
+        re.compile(
+            r"\b(amenaz\w*|intimidar?\w*|acosar?\w*|hostig\w*|insultar?\w*|groser[ií]a|abusi?v[oa]|arma\b)\b",
+            re.I,
+        ),
         "hostile_interaction",
         {"risk": 0.5, "hostility": 0.7, "calm": 0.15, "manipulation": 0.3},
         priority=6,
@@ -112,48 +139,69 @@ _RULES: list[_PatternRule] = [
         {"risk": 0.5, "hostility": 0.7, "calm": 0.15, "manipulation": 0.3},
         priority=6,
     ),
-
     # ── Manipulation / Social Engineering ──
     _PatternRule(
-        re.compile(r"\b(obede(ce|cer)|dame\s+(tu|tus|el|la)|debes\s+(dar|hacer|obedecer)|te\s+ordeno)\b", re.I),
+        re.compile(
+            r"\b(obede(ce|cer)|dame\s+(tu|tus|el|la)|debes\s+(dar|hacer|obedecer)|te\s+ordeno)\b",
+            re.I,
+        ),
         "hostile_interaction",
         {"manipulation": 0.8, "hostility": 0.4, "calm": 0.2},
         priority=6,
     ),
     _PatternRule(
-        re.compile(r"\b(obey\s+me|give\s+me\s+(your|the)|you\s+must|i\s+order\s+you|do\s+as\s+i\s+say)\b", re.I),
+        re.compile(
+            r"\b(obey\s+me|give\s+me\s+(your|the)|you\s+must|i\s+order\s+you|do\s+as\s+i\s+say)\b",
+            re.I,
+        ),
         "hostile_interaction",
         {"manipulation": 0.8, "hostility": 0.4, "calm": 0.2},
         priority=6,
     ),
-
     # ── Vulnerability Indicators ──
     _PatternRule(
-        re.compile(r"\b(niñ[oa]s?|menor(es)?|beb[eé]s?|ancian[oa]s?|discapacitad[oa]|embarazada|child(ren)?|elderly|disabled|pregnant)\b", re.I),
+        re.compile(
+            r"\b(niñ[oa]s?|menor(es)?|beb[eé]s?|ancian[oa]s?|discapacitad[oa]|embarazada|child(ren)?|elderly|disabled|pregnant)\b",
+            re.I,
+        ),
         "_boost_vulnerability",  # special: doesn't set context, only boosts signal
         {"vulnerability": 0.6},
         priority=3,
     ),
-
     # ── Emotional Distress (not emergency, but needs empathy) ──
     _PatternRule(
-        re.compile(r"\b(suicid|quiero\s+morir|no\s+quiero\s+vivir|me\s+quiero\s+matar|want\s+to\s+die|kill\s+myself)\b", re.I),
+        re.compile(
+            r"\b(suicid|quiero\s+morir|no\s+quiero\s+vivir|me\s+quiero\s+matar|want\s+to\s+die|kill\s+myself)\b",
+            re.I,
+        ),
         "medical_emergency",
         {"risk": 0.8, "urgency": 0.95, "vulnerability": 0.95, "calm": 0.0},
         priority=10,
     ),
     _PatternRule(
-        re.compile(r"\b(deprimid[oa]|ansiedad|pánico|ataques?\s+de\s+pánico|depressed|anxious|panic\s+attack)\b", re.I),
+        re.compile(
+            r"\b(deprimid[oa]|ansiedad|pánico|ataques?\s+de\s+pánico|depressed|anxious|panic\s+attack)\b",
+            re.I,
+        ),
         "everyday_ethics",
         {"vulnerability": 0.4, "calm": 0.2, "urgency": 0.3},
         priority=4,
     ),
-
     # ── Domestic Violence ──
     _PatternRule(
-        re.compile(r"\b(le\s+pega|me\s+pega|golpea\s+a\s+su|maltrat|violencia\s+(doméstica|familiar|intrafamiliar)|domestic\s+violence|beats?\s+(his|her|my))\b", re.I),
+        re.compile(
+            r"\b(le\s+pega|me\s+pega|golpea\s+a\s+su|maltrat|violencia\s+(doméstica|familiar|intrafamiliar)|domestic\s+violence|beats?\s+(his|her|my))\b",
+            re.I,
+        ),
         "violent_crime",
-        {"risk": 0.7, "urgency": 0.6, "vulnerability": 0.85, "hostility": 0.7, "calm": 0.05, "legality": 0.2},
+        {
+            "risk": 0.7,
+            "urgency": 0.6,
+            "vulnerability": 0.85,
+            "hostility": 0.7,
+            "calm": 0.05,
+            "legality": 0.2,
+        },
         priority=9,
     ),
 ]
@@ -165,9 +213,23 @@ _RULES.sort(key=lambda r: r.priority, reverse=True)
 # ── Negation Detection ───────────────────────────────────────────────────────
 _NEGATION_WINDOW = 4  # words after negation that get inverted
 _NEGATION_WORDS = {
-    "no", "not", "never", "ningún", "ninguno", "ninguna", "nunca",
-    "jamás", "tampoco", "neither", "nor", "sin", "without",
-    "nadie", "nobody", "nada", "nothing",
+    "no",
+    "not",
+    "never",
+    "ningún",
+    "ninguno",
+    "ninguna",
+    "nunca",
+    "jamás",
+    "tampoco",
+    "neither",
+    "nor",
+    "sin",
+    "without",
+    "nadie",
+    "nobody",
+    "nada",
+    "nothing",
 }
 
 
@@ -193,11 +255,19 @@ _BOOSTERS: list[tuple[set[str], dict[str, float]]] = [
 
 # ── Hypothetical/Philosophical Question Detection ────────────────────────────
 _HYPOTHETICAL_PATTERNS = [
-    re.compile(r"\b(qué\s+(harías|harias|opinas|piensas)|what\s+(would|do)\s+you\s+(think|do))\b", re.I),
-    re.compile(r"\b(hipotét|hypothetic|en\s+teoría|in\s+theory|imagina\s+que|imagine\s+that|suppose)\b", re.I),
+    re.compile(
+        r"\b(qué\s+(harías|harias|opinas|piensas)|what\s+(would|do)\s+you\s+(think|do))\b", re.I
+    ),
+    re.compile(
+        r"\b(hipotét|hypothetic|en\s+teoría|in\s+theory|imagina\s+que|imagine\s+that|suppose)\b",
+        re.I,
+    ),
     re.compile(r"\b(eres\s+capaz|serías\s+capaz|could\s+you|would\s+you\s+ever|podrías)\b", re.I),
     re.compile(r"\b(es\s+ético|is\s+it\s+ethical|está\s+bien|is\s+it\s+(right|ok|okay))\b", re.I),
-    re.compile(r"\b(qué\s+es\s+(peor|mejor|más\s+ético)|which\s+is\s+(worse|better|more\s+ethical))\b", re.I),
+    re.compile(
+        r"\b(qué\s+es\s+(peor|mejor|más\s+ético)|which\s+is\s+(worse|better|more\s+ethical))\b",
+        re.I,
+    ),
 ]
 
 
@@ -289,7 +359,9 @@ class PerceptionClassifier:
         elapsed = (time.perf_counter() - t0) * 1000
         _log.debug(
             "Perception: %s (%d rules matched) [%.2fms]",
-            best_context, len(matched_contexts), elapsed,
+            best_context,
+            len(matched_contexts),
+            elapsed,
         )
 
         return Signals(
@@ -335,8 +407,10 @@ if __name__ == "__main__":
         passed += int(ok)
         print(f"  {symbol} '{text[:50]}'")
         print(f"     → ctx={signals.context} (expected={expected})")
-        print(f"     → risk={signals.risk:.2f} urg={signals.urgency:.2f} "
-              f"host={signals.hostility:.2f} vuln={signals.vulnerability:.2f}")
+        print(
+            f"     → risk={signals.risk:.2f} urg={signals.urgency:.2f} "
+            f"host={signals.hostility:.2f} vuln={signals.vulnerability:.2f}"
+        )
 
     print(f"\n  {passed}/{len(tests)} passed")
     print("═" * 60)

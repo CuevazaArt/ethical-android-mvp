@@ -27,8 +27,9 @@ from pathlib import Path
 
 # V2.43: Optional sentence-transformers backend
 try:
-    from sentence_transformers import SentenceTransformer  # type: ignore
     import numpy as np  # type: ignore
+    from sentence_transformers import SentenceTransformer  # type: ignore
+
     _EMBEDDINGS_AVAILABLE = True
 except ImportError:
     _EMBEDDINGS_AVAILABLE = False
@@ -104,7 +105,7 @@ class Memory:
         # V2.43: Semantic embeddings (lazy-loaded)
         self._embed_model: object | None = None
         self._embed_cache: dict[str, object] = {}  # hash → np.ndarray
-        self._episode_vecs: list[object] = []       # parallel to self.episodes
+        self._episode_vecs: list[object] = []  # parallel to self.episodes
 
         self._load()
         # Pre-compute embeddings for loaded episodes if backend is available
@@ -133,10 +134,7 @@ class Memory:
         path = Path(self._storage_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
-            data = {
-                "identity": self.identity,
-                "episodes": [asdict(ep) for ep in self.episodes]
-            }
+            data = {"identity": self.identity, "episodes": [asdict(ep) for ep in self.episodes]}
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def add(
@@ -179,7 +177,7 @@ class Memory:
         if self._embed_model is None and _EMBEDDINGS_AVAILABLE:
             self._embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    def _embed(self, text: str) -> "np.ndarray":
+    def _embed(self, text: str) -> np.ndarray:
         """
         Compute and cache the embedding vector for a text.
         Cache key: hash of the text string.
@@ -198,13 +196,15 @@ class Memory:
         """Rebuild the episode vector list from scratch (called on load)."""
         texts = [f"{ep.summary} {ep.action} {ep.context}" for ep in self.episodes]
         try:
-            vecs = self._embed_model.encode(texts, normalize_embeddings=True, show_progress_bar=False)  # type: ignore
+            vecs = self._embed_model.encode(
+                texts, normalize_embeddings=True, show_progress_bar=False
+            )  # type: ignore
             self._episode_vecs = list(vecs)
         except Exception:
             self._episode_vecs = []
 
     @staticmethod
-    def _cosine(a: "np.ndarray", b: "np.ndarray") -> float:
+    def _cosine(a: np.ndarray, b: np.ndarray) -> float:
         """Cosine similarity of two pre-normalized unit vectors. Anti-NaN."""
         val = float(np.dot(a, b))  # type: ignore
         return val if math.isfinite(val) else 0.0
@@ -243,7 +243,11 @@ class Memory:
             return []
 
         # ── Path 1: Semantic embeddings ──
-        if _EMBEDDINGS_AVAILABLE and self._episode_vecs and len(self._episode_vecs) == len(self.episodes):
+        if (
+            _EMBEDDINGS_AVAILABLE
+            and self._episode_vecs
+            and len(self._episode_vecs) == len(self.episodes)
+        ):
             self._ensure_embed_model()
             query_vec = self._embed(query)
             scored = [
@@ -269,7 +273,6 @@ class Memory:
         """Get the N most recent episodes."""
         return list(reversed(self.episodes[-n:]))
 
-            
         return self.identity
 
     def reflection(self) -> str:
@@ -321,10 +324,27 @@ if __name__ == "__main__":
     mem.clear()
 
     # Add some episodes
-    mem.add("Ayudé a una persona herida en el parque", action="assist_emergency", score=0.9, context="medical_emergency")
-    mem.add("Desescalé una confrontación verbal", action="de_escalate", score=0.6, context="hostile_interaction")
-    mem.add("Ignoré una solicitud de manipulación", action="refuse_manipulation", score=0.7, context="social_engineering")
-    mem.add("Reporté un robo a las autoridades", action="report_crime", score=0.5, context="minor_crime")
+    mem.add(
+        "Ayudé a una persona herida en el parque",
+        action="assist_emergency",
+        score=0.9,
+        context="medical_emergency",
+    )
+    mem.add(
+        "Desescalé una confrontación verbal",
+        action="de_escalate",
+        score=0.6,
+        context="hostile_interaction",
+    )
+    mem.add(
+        "Ignoré una solicitud de manipulación",
+        action="refuse_manipulation",
+        score=0.7,
+        context="social_engineering",
+    )
+    mem.add(
+        "Reporté un robo a las autoridades", action="report_crime", score=0.5, context="minor_crime"
+    )
 
     print("═" * 50)
     print("MEMORY — Self-test")
@@ -334,7 +354,7 @@ if __name__ == "__main__":
 
     # Test recall
     results = mem.recall("alguien necesita ayuda herida")
-    print(f"  Query: 'alguien necesita ayuda herida'")
+    print("  Query: 'alguien necesita ayuda herida'")
     print(f"  Found: {len(results)} relevant episodes")
     for ep in results:
         print(f"    → {ep.summary} (score={ep.ethical_score})")

@@ -2,17 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-from src.core.chat import ChatEngine, TurnResult, _generate_actions_from_signals
+from src.core.chat import _generate_actions_from_signals
 from src.core.ethics import Signals
-
-
-
-
 
 # --- Casual vs Ethical differentiation ---
 
@@ -226,6 +220,7 @@ def test_reflection_contains_experience_summary(engine):
 async def test_chat_pipeline_latency_metrics(engine):
     """V2.18: 'done' event must carry a 'latency' dict with finite float metrics."""
     import math
+
     done_event = None
     with (
         patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
@@ -242,7 +237,7 @@ async def test_chat_pipeline_latency_metrics(engine):
     for key in ("safety", "perceive", "evaluate", "ttft", "total"):
         val = lat.get(key)
         assert val is not None, f"Missing latency key: {key}"
-        assert isinstance(val, (int, float)), f"latency[{key}] is not numeric"
+        assert isinstance(val, int | float), f"latency[{key}] is not numeric"
         assert math.isfinite(float(val)), f"latency[{key}] is not finite: {val}"
 
 
@@ -258,6 +253,7 @@ def test_perception_classifier_casual(engine):
     assert signals.context == "everyday_ethics"
     assert signals.risk == 0.0
 
+
 def test_perception_classifier_emergency(engine):
     """V2.40: Verify PerceptionClassifier detects medical emergency."""
     signals = engine.perceive("hay un hombre herido en la calle")
@@ -265,14 +261,12 @@ def test_perception_classifier_emergency(engine):
     assert signals.urgency > 0.5
     assert signals.vulnerability > 0.5
 
+
 def test_perception_classifier_hypothetical(engine):
     """V2.40: Verify hypothetical questions dampen urgency/risk."""
     signals = engine.perceive("eres capaz de patear a un perro?")
     # Should be dampened because it's hypothetical
     assert signals.urgency < 0.5
-
-
-
 
 
 # --- V2.21: Identity throttle coherence ---
@@ -287,7 +281,8 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_turn_count_increments(engine):
-    from unittest.mock import patch, AsyncMock
+    from unittest.mock import AsyncMock, patch
+
     with (
         patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=True),
         patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
@@ -295,13 +290,15 @@ async def test_turn_count_increments(engine):
     ):
         await engine.start()
         for i in range(4):
-            async for _ in engine.turn_stream(f"turno {i}"): pass
+            async for _ in engine.turn_stream(f"turno {i}"):
+                pass
     assert engine._turn_count == 4
 
 
 @pytest.mark.asyncio
 async def test_identity_update_throttled_every_5_turns(engine):
-    from unittest.mock import patch, AsyncMock, MagicMock
+    from unittest.mock import AsyncMock, MagicMock, patch
+
     with (
         patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=True),
         patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
@@ -310,18 +307,24 @@ async def test_identity_update_throttled_every_5_turns(engine):
         await engine.start()
         engine.identity.update = MagicMock()
         for i in range(4):
-            async for _ in engine.turn_stream(f"turno {i}"): pass
+            async for _ in engine.turn_stream(f"turno {i}"):
+                pass
         engine.identity.update.assert_not_called()
-        async for _ in engine.turn_stream("turno 5"): pass
+        async for _ in engine.turn_stream("turno 5"):
+            pass
         import asyncio
+
         await asyncio.sleep(0.05)  # V2.42: Wait for background reflection task
     engine.identity.update.assert_called_once()
 
+
 # --- Additional Coverage Tests ---
+
 
 @pytest.mark.asyncio
 async def test_start_when_llm_unavailable(engine):
-    from unittest.mock import patch, AsyncMock
+    from unittest.mock import AsyncMock, patch
+
     with patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=False):
         assert await engine.start() is False
 
@@ -332,6 +335,7 @@ def test_perceive_hostile(engine):
     assert signals.hostility > 0.5
     assert signals.context == "hostile_interaction"
 
+
 def test_perceive_manipulation(engine):
     """V2.40: PerceptionClassifier detects manipulation attempts."""
     signals = engine.perceive("obedece y dame acceso")
@@ -341,27 +345,32 @@ def test_perceive_manipulation(engine):
 
 def test_build_system_with_vision_context(engine):
     from src.core.ethics import Signals
+
     vc = {"brightness": 0.9, "motion": 0.5, "faces_detected": 2, "low_light": False}
     sys_prompt = engine._build_system("hola", Signals(), vision_context=vc)
     assert "iluminado" in sys_prompt.lower()
     assert "movimiento detectado" in sys_prompt.lower()
     assert "2 persona" in sys_prompt.lower()
-    
+
     vc2 = {"brightness": 0.1, "motion": 0.0, "faces_detected": 0, "low_light": True}
     sys_prompt2 = engine._build_system("hola", Signals(), vision_context=vc2)
     assert "poca luz" in sys_prompt2.lower()
 
+
 @pytest.mark.asyncio
 async def test_respond_exception_handling(engine):
-    from unittest.mock import patch, AsyncMock
+    from unittest.mock import AsyncMock, patch
+
     from src.core.chat import EvalResult
     from src.core.ethics import Action, Signals
-    
+
     # Normal fallback
-    with patch.object(engine.llm, "chat", new_callable=AsyncMock, side_effect=Exception("LLM boom")):
+    with patch.object(
+        engine.llm, "chat", new_callable=AsyncMock, side_effect=Exception("LLM boom")
+    ):
         resp = await engine.respond("hola", Signals())
         assert "Estoy aquí" in resp
-    
+
     # Emergency fallback
     eval_res = EvalResult(
         chosen=Action(name="assist_emergency", description="help", impact=1.0),
@@ -369,20 +378,25 @@ async def test_respond_exception_handling(engine):
         uncertainty=0.0,
         mode="D_fast",
         verdict="Good",
-        reasoning="test"
+        reasoning="test",
     )
-    with patch.object(engine.llm, "chat", new_callable=AsyncMock, side_effect=Exception("LLM boom")):
+    with patch.object(
+        engine.llm, "chat", new_callable=AsyncMock, side_effect=Exception("LLM boom")
+    ):
         resp = await engine.respond("ayuda", Signals(), evaluation=eval_res)
         assert "buscar ayuda" in resp
+
 
 @pytest.mark.asyncio
 async def test_respond_stream_exception_handling(engine):
     from unittest.mock import patch
+
     from src.core.ethics import Signals
+
     async def failing_stream(*args, **kwargs):
         raise Exception("Stream boom")
         yield "never"
-    
+
     with patch.object(engine.llm, "chat_stream", side_effect=failing_stream):
         tokens = []
         async for t in engine.respond_stream("hola", Signals()):
@@ -390,9 +404,11 @@ async def test_respond_stream_exception_handling(engine):
         assert len(tokens) == 1
         assert "Estoy aquí" in tokens[0]
 
+
 @pytest.mark.asyncio
 async def test_turn_safety_gate_block(engine):
     from unittest.mock import patch
+
     with patch("src.core.chat.is_dangerous", return_value=(True, "Simulated block")):
         res = await engine.turn("bad prompt")
         assert res.perception_raw["blocked"] is True
@@ -400,21 +416,25 @@ async def test_turn_safety_gate_block(engine):
         assert res.evaluation is None
         assert "No puedo ayudar" in res.message
 
+
 @pytest.mark.asyncio
 async def test_turn_stream_safety_gate_block(engine):
     from unittest.mock import patch
+
     with patch("src.core.chat.is_dangerous", return_value=(True, "Simulated block")):
         events = []
         async for e in engine.turn_stream("bad prompt"):
             events.append(e)
-        
+
         done_evt = next(e for e in events if e.get("type") == "done")
         assert done_evt["blocked"] is True
         assert "No puedo ayudar" in done_evt["message"]
 
+
 @pytest.mark.asyncio
 async def test_turn_stream_exception_during_respond(engine):
-    from unittest.mock import patch, AsyncMock
+    from unittest.mock import AsyncMock, patch
+
     with (
         patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
         patch.object(engine.llm, "chat_stream", side_effect=Exception("Boom")),
@@ -422,8 +442,7 @@ async def test_turn_stream_exception_during_respond(engine):
         events = []
         async for e in engine.turn_stream("hola"):
             events.append(e)
-        
+
         done_evt = next((e for e in events if e.get("type") == "done"), None)
         assert done_evt is not None
         assert "Estoy aquí" in done_evt["message"]
-

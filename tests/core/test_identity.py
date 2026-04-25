@@ -4,12 +4,14 @@ import math
 import os
 import tempfile
 
+import pytest
 from src.core.identity import Identity
 from src.core.memory import Memory
 
 
 def _temp_identity() -> Identity:
     import uuid
+
     tmp = os.path.join(tempfile.gettempdir(), f"ethos_identity_test_{uuid.uuid4().hex}.json")
     return Identity(storage_path=tmp)
 
@@ -150,9 +152,15 @@ def test_reset_clears_profile():
 async def test_reflect_adds_to_journal():
     """V2.44: reflect() calls LLM and appends result to _journal."""
     from unittest.mock import AsyncMock, MagicMock
+
     identity = _temp_identity()
     mem = _temp_memory()
-    mem.add("Ayudé a una persona herida", action="assist_emergency", score=0.9, context="medical_emergency")
+    mem.add(
+        "Ayudé a una persona herida",
+        action="assist_emergency",
+        score=0.9,
+        context="medical_emergency",
+    )
 
     llm = MagicMock()
     llm.chat = AsyncMock(return_value="Soy reflexivo y empático con quienes sufren.")
@@ -194,6 +202,7 @@ def test_journal_capped_at_10():
 async def test_reflect_noop_on_empty_memory():
     """V2.44: reflect() does nothing if memory has no episodes."""
     from unittest.mock import AsyncMock, MagicMock
+
     identity = _temp_identity()
     mem = _temp_memory()  # 0 episodes
 
@@ -204,4 +213,3 @@ async def test_reflect_noop_on_empty_memory():
 
     assert len(identity._journal) == 0
     llm.chat.assert_not_called()
-

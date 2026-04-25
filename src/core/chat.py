@@ -25,6 +25,7 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 from dataclasses import dataclass, field
@@ -35,7 +36,6 @@ from src.core.llm import OllamaClient
 from src.core.memory import Memory
 from src.core.perception import PerceptionClassifier
 from src.core.safety import is_dangerous, sanitize
-import asyncio
 
 _log = logging.getLogger(__name__)
 
@@ -136,7 +136,7 @@ class ChatEngine:
         self.memory = memory if memory is not None else Memory()
         self.perception = PerceptionClassifier()  # V2.40: deterministic, no LLM
         self.identity = Identity()  # V2.15: evolves with each episode
-        self._turn_count: int = 0   # V2.21: throttle identity I/O
+        self._turn_count: int = 0  # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
 
     async def start(self) -> bool:
@@ -259,6 +259,7 @@ class ChatEngine:
         Safety → Perceive → Evaluate → Respond → Remember
         """
         import time
+
         latency = {}
         t0 = time.perf_counter()
 
@@ -332,7 +333,7 @@ class ChatEngine:
         self._conversation.append({"user": user_message, "assistant": message})
         if len(self._conversation) > 10:
             self._conversation = self._conversation[-10:]
-            
+
         latency["memory"] = round((time.perf_counter() - t_start) * 1000, 2)
         latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
         _log.info("Turn latency: %s", latency)
@@ -357,6 +358,7 @@ class ChatEngine:
         vision_context: optional VisionSignals dict to inject physical env into prompt.
         """
         import time
+
         latency = {}
         t0 = time.perf_counter()
 
@@ -370,11 +372,19 @@ class ChatEngine:
             _log.warning("Safety gate blocked input: %s", reason)
             self.memory.add(
                 summary=f"BLOCKED: {user_message[:60]} → reason={reason}",
-                action="safety_block", score=0.0, context="safety_violation",
+                action="safety_block",
+                score=0.0,
+                context="safety_violation",
             )
             latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
-            yield {"type": "done", "message": "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?",
-                   "context": "safety_violation", "blocked": True, "reason": reason, "latency": latency}
+            yield {
+                "type": "done",
+                "message": "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?",
+                "context": "safety_violation",
+                "blocked": True,
+                "reason": reason,
+                "latency": latency,
+            }
             return
 
         # 1. Perceive
@@ -398,20 +408,22 @@ class ChatEngine:
 
         # 3. Stream response
         t_start = time.perf_counter()
-        
+
         # V2.42: Early metadata yield to reduce perceived latency
         yield {
-            "type": "metadata", 
-            "context": signals.context, 
+            "type": "metadata",
+            "context": signals.context,
             "signals": {
                 "risk": signals.risk,
                 "urgency": signals.urgency,
-                "hostility": signals.hostility
+                "hostility": signals.hostility,
             },
             "evaluation": {
                 "chosen": evaluation.chosen.name if evaluation else "casual_chat",
-                "verdict": evaluation.verdict if evaluation else "Neutral"
-            } if evaluation else None
+                "verdict": evaluation.verdict if evaluation else "Neutral",
+            }
+            if evaluation
+            else None,
         }
 
         full_response = []
@@ -422,7 +434,7 @@ class ChatEngine:
                 first_token = False
             full_response.append(token)
             yield {"type": "token", "content": token}
-        
+
         latency["llm_total"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         message = "".join(full_response).strip()
@@ -435,7 +447,8 @@ class ChatEngine:
         self.memory.add(
             summary=f"Usuario: {user_message[:80]} → Respondí: {message[:80]}",
             action=evaluation.chosen.name if evaluation else "casual_chat",
-            score=score, context=signals.context,
+            score=score,
+            context=signals.context,
         )
 
         self._turn_count += 1
@@ -447,13 +460,19 @@ class ChatEngine:
         self._conversation.append({"user": user_message, "assistant": message})
         if len(self._conversation) > 10:
             self._conversation = self._conversation[-10:]
-        
+
         latency["memory"] = round((time.perf_counter() - t_start) * 1000, 2)
         latency["total"] = round((time.perf_counter() - t0) * 1000, 2)
         _log.info("Turn stream latency: %s", latency)
 
         # Final event
-        yield {"type": "done", "message": message, "context": signals.context, "blocked": False, "latency": latency}
+        yield {
+            "type": "done",
+            "message": message,
+            "context": signals.context,
+            "blocked": False,
+            "latency": latency,
+        }
 
     async def repl(self) -> None:
         """Interactive terminal chat. The simplest possible UI."""
@@ -489,7 +508,7 @@ class ChatEngine:
             # Show debug info and latency in gray
             ctx = result.signals.context
             latency = result.latency_ms.get("total", 0) / 1000.0  # convert ms to seconds
-            
+
             if result.evaluation:
                 ev = result.evaluation
                 print(

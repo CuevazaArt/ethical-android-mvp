@@ -16,13 +16,13 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 from typing import Any
 
 
 def _engine() -> Any:
     """Build a ChatEngine for CLI diagnostics."""
     from src.core.chat import ChatEngine
+
     return ChatEngine()
 
 
@@ -80,7 +80,6 @@ def cmd_config(args: argparse.Namespace) -> int:
     return exit_code
 
 
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ethos",
@@ -95,7 +94,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p_cfg = sub.add_parser("config", help="Environment config report.")
     p_cfg.add_argument("--json", action="store_true", help="Machine-readable output.")
     p_cfg.add_argument("--profiles", action="store_true", help="List runtime profile names.")
-    p_cfg.add_argument("--strict", action="store_true", help="Validate env strictly; exit 1 on violations.")
+    p_cfg.add_argument(
+        "--strict", action="store_true", help="Validate env strictly; exit 1 on violations."
+    )
     p_cfg.set_defaults(func=cmd_config)
 
     return parser

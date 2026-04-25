@@ -1,14 +1,13 @@
 """Tests for src/core/llm.py — OllamaClient (mocked HTTP)."""
-import json
-from unittest.mock import AsyncMock, MagicMock, patch
+
+from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
-
 from src.core.llm import OllamaClient
 
-
 # ── Fixtures ────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def llm():
@@ -16,6 +15,7 @@ def llm():
 
 
 # ── Constructor ─────────────────────────────────────────────────────────────────
+
 
 def test_init_defaults(monkeypatch):
     monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
@@ -45,6 +45,7 @@ def test_base_url_strips_trailing_slash():
 
 
 # ── is_available ────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_is_available_true(llm):
@@ -78,6 +79,7 @@ async def test_is_available_false_on_non_200(llm):
 
 
 # ── chat ────────────────────────────────────────────────────────────────────────
+
 
 def _make_chat_response(content: str) -> MagicMock:
     mock_resp = MagicMock()
@@ -154,6 +156,7 @@ async def test_chat_strips_whitespace(llm):
 
 # ── extract_json ────────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_extract_json_valid(llm):
     mock_resp = _make_chat_response('{"risk": 0.8, "urgency": 0.9}')
@@ -204,6 +207,7 @@ async def test_extract_json_malformed_returns_empty(llm):
 
 
 # ── close ───────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_close_no_client(llm):

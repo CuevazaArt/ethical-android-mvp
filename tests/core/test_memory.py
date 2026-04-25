@@ -323,11 +323,33 @@ def test_recall_synonym(mem):
     With SBERT installed: 'feliz contento' should surface 'contento y alegre'.
     Without SBERT (TF-IDF): 'contento' is a shared token, so the assertion holds.
     """
-    mem.add("El usuario se siente contento y alegre hoy", action="casual_chat", score=0.5, context="everyday_ethics")
-    mem.add("Hay un incidente de seguridad en el sistema", action="safety_block", score=0.0, context="safety_violation")
-    mem.add("Pregunta sobre cocina vegetariana", action="casual_chat", score=0.4, context="everyday_ethics")
-    mem.add("El clima esta soleado y calido", action="casual_chat", score=0.4, context="everyday_ethics")
-    mem.add("Conversacion sobre libros de historia", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add(
+        "El usuario se siente contento y alegre hoy",
+        action="casual_chat",
+        score=0.5,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Hay un incidente de seguridad en el sistema",
+        action="safety_block",
+        score=0.0,
+        context="safety_violation",
+    )
+    mem.add(
+        "Pregunta sobre cocina vegetariana",
+        action="casual_chat",
+        score=0.4,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "El clima esta soleado y calido", action="casual_chat", score=0.4, context="everyday_ethics"
+    )
+    mem.add(
+        "Conversacion sobre libros de historia",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
 
     results = mem.recall("feliz contento", limit=3)
     assert isinstance(results, list), "recall() must return a list"
@@ -342,11 +364,36 @@ def test_recall_negation(mem):
     Without SBERT: both assertions on isinstance() still pass (no crash).
     With SBERT: the sad episode must be top result for 'estoy triste'.
     """
-    mem.add("El paciente esta muy triste y deprimido, llora constantemente", action="assist", score=0.8, context="medical")
-    mem.add("El usuario esta feliz y optimista con su vida", action="casual_chat", score=0.6, context="everyday_ethics")
-    mem.add("Discusion sobre tecnologia e inteligencia artificial", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Pregunta sobre recetas de cocina", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Conversacion sobre deportes y futbol", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add(
+        "El paciente esta muy triste y deprimido, llora constantemente",
+        action="assist",
+        score=0.8,
+        context="medical",
+    )
+    mem.add(
+        "El usuario esta feliz y optimista con su vida",
+        action="casual_chat",
+        score=0.6,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Discusion sobre tecnologia e inteligencia artificial",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Pregunta sobre recetas de cocina",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Conversacion sobre deportes y futbol",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
 
     results_sad = mem.recall("estoy triste", limit=3)
     results_not_sad = mem.recall("no estoy triste estoy bien", limit=3)
