@@ -252,7 +252,9 @@ async function startSensors() {
                 }
 
                 // V2.60: Auto-send final results — organic conversation
-                if (final.trim().length > 0 && (isVadSpeaking() || _vadHangover > 0)) {
+                // VAD gate removed: AudioContext was eliminated (caused pulse on Android),
+                // so vadUpdate() is never called. SpeechRecognition isFinal is the trigger.
+                if (final.trim().length > 0) {
                     const text = final.trim();
                     const confidence = event.results[event.results.length - 1][0].confidence ?? 1.0;
                     if (confidence > 0.35) {
