@@ -999,14 +999,8 @@ async function connectKernel() {
                             if (UI.transcript) {
                                 UI.transcript.innerText = `[Proxied] Kernel: ${text}`;
                             }
-                            if ('speechSynthesis' in window) {
-                                const utterance = new SpeechSynthesisUtterance(text);
-                                utterance.lang = 'es-ES';
-                                const voices = window.speechSynthesis.getVoices();
-                                const preferred = voices.find(v => v.lang.startsWith("es")) || voices[0];
-                                if (preferred) utterance.voice = preferred;
-                                window.speechSynthesis.speak(utterance);
-                            }
+                            // V2.60: No automatic speech — charm_feedback is silent
+                            // TTS only happens through the main Pipeline path
                         }
                     }
                     if (payload.type === 'haptic_feedback' || payload.haptics) {

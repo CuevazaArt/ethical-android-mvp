@@ -156,6 +156,10 @@ async function startSensors() {
         muteNode.connect(audioContext.destination);
 
         processor.onaudioprocess = (e) => {
+            // V2.60: Explicitly zero output buffer — prevents mic-to-speaker leakage
+            const outputData = e.outputBuffer.getChannelData(0);
+            for (let j = 0; j < outputData.length; j++) outputData[j] = 0;
+
             const inputData = e.inputBuffer.getChannelData(0);
             let sumSquares = 0;
             for (let i = 0; i < inputData.length; i++) sumSquares += inputData[i] * inputData[i];

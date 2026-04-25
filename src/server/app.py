@@ -233,16 +233,34 @@ async def websocket_endpoint(websocket: WebSocket):
                 if frame_type == "vision_context":
                     # Nomad client forwarding vision signals from /ws/nomad
                     _chat_vision = frame.get("payload")
-                elif frame_type:
-                    # Known JSON event type — skip silently (not a chat message)
-                    _log.debug("wsChat ignoring frame type: %s", frame_type)
-                else:
-                    # Plain text from user — actual chat turn
-                    text = data.strip() if not frame else (frame.get("text", "") or data).strip()
+                elif frame_type == "chat_text":
+                    # Explicit chat message from Nomad client
+                    text = (frame.get("payload") or frame).get("text", "").strip() if isinstance(frame, dict) else ""
                     if text:
+                        _log.info("[wsChat] User text: %s", text[:80])
                         await _run_turn_and_send(
                             engine, websocket, text, _chat_vision, label="Pipeline",
                         )
+                elif frame_type:
+                    _log.debug("wsChat ignoring typed frame: %s", frame_type)
+                elif frame and isinstance(frame, dict) and frame.get("text"):
+                    # Legacy { text: "..." } format — also treat as chat
+                    text = frame["text"].strip()
+                    if text:
+                        _log.info("[wsChat] Legacy text: %s", text[:80])
+                        await _run_turn_and_send(
+                            engine, websocket, text, _chat_vision, label="Pipeline",
+                        )
+                elif not frame:
+                    # Plain string — user typed directly
+                    text = data.strip()
+                    if text:
+                        _log.info("[wsChat] Plain text: %s", text[:80])
+                        await _run_turn_and_send(
+                            engine, websocket, text, _chat_vision, label="Pipeline",
+                        )
+                else:
+                    _log.debug("wsChat ignoring unknown frame: %s", str(data)[:100])
             except Exception as e:
                 _log.error("Error during turn: %s", e)
                 await _safe_send(websocket, {
