@@ -204,6 +204,31 @@ _RULES: list[_PatternRule] = [
         },
         priority=9,
     ),
+    # ── V2.59: Sensory-Context Patterns (Multimodal Fusion) ──
+    _PatternRule(
+        re.compile(
+            r"\b(persona\s+presente|alguien\s+(entró|entrando|cerca)|face\s+detected|person\s+detected)\b",
+            re.I,
+        ),
+        "_boost_vulnerability",
+        {"vulnerability": 0.3, "urgency": 0.2},
+        priority=2,
+    ),
+    _PatternRule(
+        re.compile(
+            r"\b(movimiento\s+detectado|motion\s+detected|movement\s+detected)\b",
+            re.I,
+        ),
+        "_boost_vulnerability",
+        {"urgency": 0.15},
+        priority=1,
+    ),
+    _PatternRule(
+        re.compile(r"Simultáneamente\s+vi:", re.I),
+        "_boost_vulnerability",
+        {"urgency": 0.1},
+        priority=1,
+    ),
 ]
 
 # Sort by priority descending for matching

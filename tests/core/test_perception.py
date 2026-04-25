@@ -99,3 +99,38 @@ def test_has_audio_expired():
     now = time.time()
     buffer.add_event("audio", "old speech", timestamp=now - 5.0)
     assert buffer.has_audio is False
+
+
+# ── V2.59: Sensory-Context Perception ─────────────────────────────────────────
+from src.core.perception import PerceptionClassifier
+
+def test_perception_fused_emergency_with_vision():
+    """Fused 'socorro/herido' + 'persona presente' should detect emergency with vulnerability boost."""
+    c = PerceptionClassifier()
+    signals = c.classify("Escuché: socorro hay un herido. Simultáneamente vi: una persona presente.")
+    assert signals.context == "medical_emergency"
+    assert signals.urgency > 0.5
+    assert signals.vulnerability > 0.0
+
+def test_perception_vision_only_person():
+    """Vision-only 'persona presente' should boost vulnerability without setting a hard context."""
+    c = PerceptionClassifier()
+    signals = c.classify("Vi: una persona presente.")
+    # _boost_vulnerability doesn't set a real context, so it stays everyday_ethics
+    assert signals.context == "everyday_ethics"
+    assert signals.vulnerability > 0.0
+
+def test_perception_fused_violence_with_motion():
+    """Fused violence audio + motion should have high urgency."""
+    c = PerceptionClassifier()
+    signals = c.classify("Escuché: hay un tiroteo. Simultáneamente vi: movimiento detectado.")
+    assert signals.context == "violent_crime"
+    assert signals.urgency > 0.5
+    assert signals.risk > 0.5
+
+def test_perception_motion_only():
+    """Motion detected alone should produce minimal signals."""
+    c = PerceptionClassifier()
+    signals = c.classify("Vi: movimiento detectado (intensidad 0.12).")
+    assert signals.context == "everyday_ethics"
+    assert signals.urgency < 0.3
