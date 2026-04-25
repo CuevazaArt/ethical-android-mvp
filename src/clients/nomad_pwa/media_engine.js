@@ -175,6 +175,9 @@ async function startSensors() {
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
+            let isAttentionActive = false;
+            let attentionTimeout = null;
+
             const recognition = new SpeechRecognition();
             recognition.lang = 'es-MX';
             recognition.continuous = true;
@@ -194,37 +197,72 @@ async function startSensors() {
                     window.speechSynthesis.cancel();
                 }
 
+                // V2.51: Thalamic Gate (Wake word)
+                const fullText = (interim + " " + final).toLowerCase();
+                if (/(ethos|etos|eto|hector|oye|hola)/i.test(fullText)) {
+                    isAttentionActive = true;
+                    if (attentionTimeout) clearTimeout(attentionTimeout);
+                    attentionTimeout = setTimeout(() => {
+                        isAttentionActive = false;
+                        if (typeof UI !== 'undefined' && UI.transcript) {
+                            UI.transcript.innerText = '[Modo Pasivo - Di "Ethos" para hablar]';
+                            UI.transcript.classList.add('placeholder');
+                            UI.transcript.style.color = '';
+                        }
+                    }, 15000); // 15 seconds of attention
+                }
+
                 // Show live interim in input field and transcript
                 if (typeof UI !== 'undefined') {
                     if (UI.chatInput) {
                         UI.chatInput.value = interim || final;
                     }
                     if (UI.transcript && interim.trim()) {
-                        UI.transcript.innerText = `Escuchando: ${interim}...`;
+                        if (isAttentionActive) {
+                            UI.transcript.innerText = `[Ethos Escuchando]: ${interim}...`;
+                            UI.transcript.style.color = '#58a6ff';
+                        } else {
+                            UI.transcript.innerText = `[Ignorado (TV)]: ${interim}...`;
+                            UI.transcript.style.color = '#8b949e';
+                        }
                         UI.transcript.classList.remove('placeholder');
                     }
                 }
 
-                // Only send final results that pass VAD gate
+                // Only send final results that pass VAD gate AND attention gate
                 if (final.trim().length > 0 && (isVadSpeaking() || _vadHangover > 0)) {
                     const text = final.trim();
                     const confidence = event.results[event.results.length - 1][0].confidence ?? 1.0;
                     if (confidence > 0.35 && typeof wsChat !== 'undefined' && wsChat && wsChat.readyState === WebSocket.OPEN) {
-                        if (typeof UI !== 'undefined' && UI.transcript) {
-                            UI.transcript.innerText = `Tú: ${text}`;
-                            UI.transcript.classList.remove('placeholder');
-                        }
                         if (typeof UI !== 'undefined' && UI.chatInput) {
                             UI.chatInput.value = '';
                         }
-                        // V2 protocol: plain text to turn_stream()
-                        try { 
-                            wsChat.send(text); 
-                            // Visual feedback that audio crossed to backend
+                        if (isAttentionActive) {
                             if (typeof UI !== 'undefined' && UI.transcript) {
-                                UI.transcript.innerText = `[Enviado] ${text}`;
+                                UI.transcript.innerText = `Tú: ${text}`;
+                                UI.transcript.style.color = '';
+                                UI.transcript.classList.remove('placeholder');
                             }
-                        } catch (_) {}
+                            // V2 protocol: plain text to turn_stream()
+                            try { 
+                                wsChat.send(text); 
+                                // Visual feedback that audio crossed to backend
+                                if (typeof UI !== 'undefined' && UI.transcript) {
+                                    UI.transcript.innerText = `[Enviado] ${text}`;
+                                }
+                            } catch (_) {}
+                        } else {
+                            if (typeof UI !== 'undefined' && UI.transcript) {
+                                UI.transcript.innerText = `[Silenciado] ${text}`;
+                                setTimeout(() => {
+                                    if (!isAttentionActive) {
+                                        UI.transcript.innerText = '[Modo Pasivo - Di "Ethos" para hablar]';
+                                        UI.transcript.style.color = '';
+                                        UI.transcript.classList.add('placeholder');
+                                    }
+                                }, 2000);
+                            }
+                        }
                     }
                 }
             };

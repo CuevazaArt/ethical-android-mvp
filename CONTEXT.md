@@ -32,6 +32,7 @@ GPU containerization complete. Next: break the chatbot paradigm with continuous 
 | V2.48 | LLM Native Multi-turn & Crash Fixes | ✅ |
 | V2.49 | Neural TTS (Voz propia para Ethos con edge-tts) | ✅ |
 | V2.50 | Sensory Expansion — Autonomous vision triggers | ✅ |
+| V2.51 | Thalamic Gate — Wake word protection against background noise | ✅ |
 
 
 ## Key files
