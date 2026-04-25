@@ -741,8 +741,21 @@ async function connectKernel() {
                         UI.transcript.innerText = msg;
                         UI.transcript.classList.remove('placeholder');
                     }
-                    if (msg && !data.blocked) _speak(msg);
                     UI.chatHistory.scrollTop = UI.chatHistory.scrollHeight;
+                    return;
+                }
+
+                if (data.type === 'tts_audio') {
+                    if (data.audio_b64) {
+                        const audio = new Audio("data:audio/mp3;base64," + data.audio_b64);
+                        if (UI.orb) {
+                            audio.onplay = () => UI.orb.classList.add('speaking');
+                            audio.onended = () => UI.orb.classList.remove('speaking');
+                        }
+                        audio.play().catch(e => console.warn("TTS play failed:", e));
+                    } else if (data.text) {
+                        _speak(data.text);
+                    }
                     return;
                 }
                 // ── end V2 protocol ────────────────────────────────────

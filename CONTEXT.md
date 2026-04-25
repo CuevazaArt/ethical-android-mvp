@@ -29,13 +29,15 @@ GPU containerization complete. Next: break the chatbot paradigm with continuous 
 | V2.45 | Nomad PWA Ethics HUD (Metadata stream) | ✅ |
 | V2.46 | Precedents Expansion (36 rich cases) | ✅ |
 | V2.47 | GPU Docker Orchestration (NVIDIA + Ollama) | ✅ |
+| V2.48 | LLM Native Multi-turn & Crash Fixes | ✅ |
+| V2.49 | Neural TTS (Voz propia para Ethos con edge-tts) | ✅ |
 
 
 ## Key files
 
 | Area | Files |
 |------|-------|
-| Core | `src/core/{llm,ethics,memory,chat,safety,identity,vision,stt,status,precedents}.py` |
+| Core | `src/core/{llm,ethics,memory,chat,safety,identity,vision,stt,tts,status,precedents}.py` |
 | Server | `src/server/app.py` |
 | CLI | `src/ethos_cli.py` |
 | Entry | `src/main.py` (REPL) · `src/chat_server.py` (uvicorn) |

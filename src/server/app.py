@@ -10,6 +10,7 @@ from src.core.memory import Memory
 from src.core.stt import is_available as stt_available
 from src.core.stt import transcribe_pcm
 from src.core.vision import VisionEngine
+from src.core.tts import synthesize
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -22,6 +23,17 @@ async def _safe_send(ws: WebSocket, data: dict) -> bool:
         return True
     except (WebSocketDisconnect, RuntimeError):
         return False
+
+async def _safe_send_tts(ws: WebSocket, event: dict):
+    msg = event.get("message", "")
+    if msg:
+        import base64
+        audio_bytes = await synthesize(msg)
+        if audio_bytes:
+            b64 = base64.b64encode(audio_bytes).decode('utf-8')
+            await _safe_send(ws, {"type": "tts_audio", "audio_b64": b64, "text": msg})
+        else:
+            await _safe_send(ws, {"type": "tts_audio", "audio_b64": None, "text": msg})
 
 app = FastAPI(title="Ethos Kernel Chat")
 
@@ -225,6 +237,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                 lat.get("ttft", 0),
                                 lat.get("total", 0),
                             )
+                            await _safe_send_tts(websocket, event)
             except Exception as e:
                 _log.error("Error during turn: %s", e)
                 await _safe_send(websocket, {
@@ -287,6 +300,7 @@ async def websocket_nomad(websocket: WebSocket):
                                     lat.get("ttft", 0),
                                     lat.get("total", 0),
                                 )
+                                await _safe_send_tts(websocket, event)
 
                 elif msg_type == "user_speech":
                     # V2.10: STT transcript from media_engine.js SpeechRecognition
@@ -307,6 +321,7 @@ async def websocket_nomad(websocket: WebSocket):
                                     lat.get("ttft", 0),
                                     lat.get("total", 0),
                                 )
+                                await _safe_send_tts(websocket, event)
 
                 elif msg_type == "vision_frame":
                     # V2.12+V2.13: process JPEG frame, cache signals for next turn
@@ -348,6 +363,7 @@ async def websocket_nomad(websocket: WebSocket):
                                                 lat.get("ttft", 0),
                                                 lat.get("total", 0),
                                             )
+                                            await _safe_send_tts(websocket, event)
                             except Exception as e:
                                 _log.warning("audio_pcm transcription error: %s", e)
                     # If STT not available, client uses Web Speech API (already works)
