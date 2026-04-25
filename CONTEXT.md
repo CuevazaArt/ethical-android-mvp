@@ -8,14 +8,14 @@
 - **Architecture:** `src/core/` → `src/server/` (zero legacy)
 - **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
-- **Last merge to main:** 2026-04-25 (V2.57)
+- **Last merge to main:** 2026-04-25 (V2.60 — `v22.3.3-field-tested`)
 
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅
 
 ## Active block
 
-**SENSORY EXPANSION — Continuous aferent perception (V2.48+).**
-Multimodal temporal fusion active. Speech-triggered immediate response with concurrent vision fusion. Vision-only autonomous observations via background consolidation.
+**NEXT PHASE — Post-field-test development.**
+V2.60 multimodal stabilization complete. Voice capture, vision, TTS, and WebSocket pipeline field-tested on Android hardware. PWA install validated as production-viable UX.
 
 ## Closed blocks
 
@@ -41,6 +41,7 @@ Multimodal temporal fusion active. Speech-triggered immediate response with conc
 | V2.57 | SensoryBuffer WebSocket Integration — Continuous fusion loop | ✅ |
 | V2.58 | Speech-Triggered Immediate Fusion — Zero-delay audio response | ✅ |
 | V2.59 | Sensory-Context Perception — Multimodal pattern recognition | ✅ |
+| V2.60 | Audio Feedback Suppression — ScriptProcessor removed, SR text rescue, phantom turn kill | ✅ FIELD-TESTED |
 
 ## Key files
 
@@ -71,4 +72,10 @@ Multimodal temporal fusion active. Speech-triggered immediate response with conc
 - **PWA HUD:** Contexto ético en tiempo real (metadata event)
 - **Adversarial Suite:** 6/6 blocked · 10/10 legitimate pass
 - **GPU Deploy:** Docker + NVIDIA Container Toolkit + Ollama sidecar ready
+- **Field Test:** Android PWA voice+vision confirmed (v22.3.3-field-tested)
 
+## Known hardware limitations (field-tested)
+
+- **Old Android SoC:** Camera and mic alternate (shared media pipeline). Cannot coexist simultaneously.
+- **Mitigation:** SpeechRecognition text rescue on `onend` sends captured speech before mic-off.
+- **Future:** Newer hardware with independent media pipelines eliminates this. Native app (Play Store) planned.
