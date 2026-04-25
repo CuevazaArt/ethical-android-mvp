@@ -29,6 +29,7 @@ const UI = {
 let wsChat = null;
 let wsNomad = null;
 let isConnected = false;
+window.isEthosSpeaking = false;
 
 // ── TTS helper — español garantizado ──────────────────────────────────────
 // Los browsers cargan voces de forma asíncrona; llamar getVoices() en el
@@ -39,8 +40,9 @@ function _speak(text) {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text.replace(/[*_~`#>\-]/g, '').trim());
     utter.lang = 'es-MX';
-    utter.onstart = () => { if (UI.orb) UI.orb.classList.add('speaking'); };
-    utter.onend   = () => { if (UI.orb) UI.orb.classList.remove('speaking'); };
+    utter.onstart = () => { window.isEthosSpeaking = true; if (UI.orb) UI.orb.classList.add('speaking'); };
+    utter.onend   = () => { window.isEthosSpeaking = false; if (UI.orb) UI.orb.classList.remove('speaking'); };
+    utter.onerror = () => { window.isEthosSpeaking = false; if (UI.orb) UI.orb.classList.remove('speaking'); };
 
     function _pickVoiceAndSpeak() {
         const voices = window.speechSynthesis.getVoices();
@@ -766,11 +768,22 @@ async function connectKernel() {
                 if (data.type === 'tts_audio') {
                     if (data.audio_b64) {
                         const audio = new Audio("data:audio/mp3;base64," + data.audio_b64);
-                        if (UI.orb) {
-                            audio.onplay = () => UI.orb.classList.add('speaking');
-                            audio.onended = () => UI.orb.classList.remove('speaking');
-                        }
-                        audio.play().catch(e => console.warn("TTS play failed:", e));
+                        audio.onplay = () => {
+                            window.isEthosSpeaking = true;
+                            if (UI.orb) UI.orb.classList.add('speaking');
+                        };
+                        audio.onended = () => {
+                            window.isEthosSpeaking = false;
+                            if (UI.orb) UI.orb.classList.remove('speaking');
+                        };
+                        audio.onerror = () => {
+                            window.isEthosSpeaking = false;
+                            if (UI.orb) UI.orb.classList.remove('speaking');
+                        };
+                        audio.play().catch(e => {
+                            window.isEthosSpeaking = false;
+                            console.warn("TTS play failed:", e);
+                        });
                     } else if (data.text) {
                         _speak(data.text);
                     }

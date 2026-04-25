@@ -184,6 +184,8 @@ async function startSensors() {
             recognition.interimResults = true;
 
             recognition.onresult = (event) => {
+                if (window.isEthosSpeaking) return;
+
                 let interim = '';
                 let final = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
