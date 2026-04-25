@@ -8,14 +8,14 @@
 - **Architecture:** `src/core/` → `src/server/` (zero legacy)
 - **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
-- **Last merge to main:** 2026-04-24 (V2.47)
+- **Last merge to main:** 2026-04-25 (V2.57)
 
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅
 
 ## Active block
 
 **SENSORY EXPANSION — Continuous aferent perception (V2.48+).**
-GPU containerization complete. Next: break the chatbot paradigm with continuous audio/video streams.
+Multimodal temporal fusion active. Speech-triggered immediate response with concurrent vision fusion. Vision-only autonomous observations via background consolidation.
 
 ## Closed blocks
 
@@ -36,7 +36,10 @@ GPU containerization complete. Next: break the chatbot paradigm with continuous 
 | V2.52 | Limbic System — Emotional TTS and Visual Resonance | ✅ |
 | V2.53 | Acoustic Echo Shield — Ignore STT while playing audio | ✅ |
 | V2.54 | Cognitive Proprioception — STT semantic echo cancellation & Preemption | ✅ |
-
+| V2.55 | Temporal Multimodal Fusion — Audio & Video context sync | ✅ |
+| V2.56 | Status Telemetry Hardening (Boy Scout) | ✅ |
+| V2.57 | SensoryBuffer WebSocket Integration — Continuous fusion loop | ✅ |
+| V2.58 | Speech-Triggered Immediate Fusion — Zero-delay audio response | ✅ |
 
 ## Key files
 
@@ -46,7 +49,7 @@ GPU containerization complete. Next: break the chatbot paradigm with continuous 
 | Server | `src/server/app.py` |
 | CLI | `src/ethos_cli.py` |
 | Entry | `src/main.py` (REPL) · `src/chat_server.py` (uvicorn) |
-| Tests | `tests/core/` (142 tests) |
+| Tests | `tests/core/` (161 tests) |
 | Security | `scripts/eval/adversarial_suite.py` |
 | Deploy | `Dockerfile.gpu` · `docker-compose.gpu.yml` · `scripts/docker_entrypoint.sh` |
 | Run | `python -m src.chat_server` or `uvicorn src.server.app:app --port 8000` |
@@ -55,9 +58,9 @@ GPU containerization complete. Next: break the chatbot paradigm with continuous 
 | Dashboard | `http://localhost:8000/dashboard` |
 | Nomad | `https://[LAN-IP]:8443/nomad` |
 
-## System health (2026-04-24)
+## System health (2026-04-25)
 
-- **Tests:** 142/142 ✅
+- **Tests:** 161/161 ✅
 - **Legacy imports:** 0
 - **Perception:** Determinista (Sin LLM, latencia <1ms)
 - **Ethics:** Basada en precedentes (CBR, 36 casos)

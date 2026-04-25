@@ -66,13 +66,22 @@ def main() -> None:
 
     # Core modules
     print("\nCore modules:")
-    modules = ["src.core.llm", "src.core.ethics", "src.core.memory", "src.core.chat"]
+    modules = [
+        "src.core.llm",
+        "src.core.ethics",
+        "src.core.memory",
+        "src.core.chat",
+        "src.core.identity",
+        "src.core.vision",
+        "src.core.safety",
+        "src.core.perception",
+    ]
     core_ok = all(_check(m.split(".")[-1], lambda m=m: _importable(m)) for m in modules)
 
-    # Optional modules
-    safety_exists = _importable("src.core.safety")
-    if safety_exists:
-        print("  ✅ safety")
+    # Sensory modules
+    print("\nSensory modules:")
+    sensory = ["src.core.stt", "src.core.tts"]
+    sensory_ok = all(_check(m.split(".")[-1], lambda m=m: _importable(m)) for m in sensory)
 
     # Tests
     print("\nTests:")
@@ -99,12 +108,12 @@ def main() -> None:
         print("  🔴 Core modules broken — fix before anything else")
     elif not tests_pass:
         print("  🟡 Core importable but tests failing")
-    elif not safety_exists:
-        print("  🟡 Fase α in progress — safety gate pending")
     elif not ollama_ok:
         print("  🟡 Code ready — Ollama not running (start: ollama serve)")
+    elif not sensory_ok:
+        print("  🟡 Core complete — Sensory modules (STT/TTS) pending")
     else:
-        print("  🟢 Fase α complete — ready for Fase β (server)")
+        print("  🟢 Fase 17 Complete — Project stable with sensory perception")
 
     print()
 

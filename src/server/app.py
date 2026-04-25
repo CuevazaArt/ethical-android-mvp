@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 from pathlib import Path
@@ -7,6 +8,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from src.core.chat import ChatEngine
 from src.core.memory import Memory
+from src.core.perception import SensoryBuffer
 from src.core.stt import is_available as stt_available
 from src.core.stt import transcribe_pcm
 from src.core.vision import VisionEngine
@@ -234,24 +236,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 else:
                     # Plain text or other — treat as chat turn
                     text = data if not frame else (frame.get("text") or data)
-                    _current_metadata = None
-                    async for event in engine.turn_stream(text, vision_context=_chat_vision):
-                        if not await _safe_send(websocket, event):
-                            return  # Client gone — exit cleanly
-                        if event.get("type") == "metadata":
-                            _current_metadata = event.get("signals")
-                        if event.get("type") == "done" and not event.get("blocked"):
-                            lat = event.get("latency", {})
-                            _last_latency = lat
-                            _log.info(
-                                "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                lat.get("safety", 0),
-                                lat.get("perceive", 0),
-                                lat.get("evaluate", 0),
-                                lat.get("ttft", 0),
-                                lat.get("total", 0),
-                            )
-                            await _safe_send_tts(websocket, event, _current_metadata)
+                    await _run_turn_and_send(
+                        engine, websocket, text, _chat_vision, label="Pipeline",
+                    )
             except Exception as e:
                 _log.error("Error during turn: %s", e)
                 await _safe_send(websocket, {
@@ -266,11 +253,43 @@ async def websocket_endpoint(websocket: WebSocket):
         await engine.close()
 
 
+async def _run_turn_and_send(
+    engine: ChatEngine,
+    ws: WebSocket,
+    text: str,
+    vision_context: dict | None,
+    label: str = "Pipeline",
+) -> None:
+    """Shared helper: run turn_stream, send events, log telemetry, send TTS."""
+    global _last_latency
+    _current_metadata: dict | None = None
+    async for event in engine.turn_stream(text, vision_context=vision_context):
+        if not await _safe_send(ws, event):
+            return
+        if event.get("type") == "metadata":
+            _current_metadata = event.get("signals")
+        if event.get("type") == "done" and not event.get("blocked"):
+            lat = event.get("latency", {})
+            _last_latency = lat
+            _log.info(
+                "[TELEMETRY] %s: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
+                label,
+                lat.get("safety", 0),
+                lat.get("perceive", 0),
+                lat.get("evaluate", 0),
+                lat.get("ttft", 0),
+                lat.get("total", 0),
+            )
+            await _safe_send_tts(ws, event, _current_metadata)
+
+
 @app.websocket("/ws/nomad")
 async def websocket_nomad(websocket: WebSocket):
     """
     Nomad sensory sideband — receives telemetry from mobile PWA.
-    Handles: ping→pong, telemetry (battery/kinetics/orientation), chat_text relay.
+    V2.57: Uses SensoryBuffer for temporal multimodal fusion.
+    Audio and vision events are buffered in a 2s window and fused
+    into a single semantic frame before reaching the LLM.
     """
     await websocket.accept()
     _log.info("Nomad bridge connected")
@@ -278,9 +297,30 @@ async def websocket_nomad(websocket: WebSocket):
     global _last_latency
     engine = ChatEngine()
     await engine.start()
-    vision = VisionEngine()  # V2.12: stateful per-connection vision processor
-    _last_vision: dict | None = None  # V2.13: last vision signals for context injection
-    _last_autonomous_turn: float = 0.0  # V2.50: cooldown for autonomous vision turn
+    vision = VisionEngine()
+    sensory_buffer = SensoryBuffer(window_seconds=2.0)
+    _last_vision: dict | None = None
+    _last_autonomous_turn: float = 0.0
+    _consolidation_running = True
+
+    async def _consolidation_loop() -> None:
+        """V2.58: Background loop for vision-only autonomous observations."""
+        nonlocal _last_vision
+        while _consolidation_running:
+            await asyncio.sleep(2.5)  # Wait full window + margin
+            # Only fire if there's vision data but NO audio (user didn't speak)
+            if sensory_buffer.has_audio:
+                continue  # Speech handler will flush it immediately
+            fused = sensory_buffer.get_fused_context(flush=True)
+            if fused:
+                # Wrap vision-only observations with system context
+                prompt = f"[SYSTEM: Observación autónoma de sensores — {fused} Haz un comentario espontáneo, corto y natural (máx 12 palabras) sobre lo que percibes.]"
+                _log.info("[FUSION/AUTO] %s", fused[:120])
+                await _run_turn_and_send(
+                    engine, websocket, prompt, _last_vision, label="Autonomous",
+                )
+
+    consolidation_task = asyncio.create_task(_consolidation_loop())
 
     try:
         while True:
@@ -295,57 +335,28 @@ async def websocket_nomad(websocket: WebSocket):
                     await websocket.send_json({"type": "pong", "payload": {}})
 
                 elif msg_type == "telemetry":
-                    payload = msg.get("payload", {})
-                    _log.debug("Nomad telemetry: %s", payload)
+                    _log.debug("Nomad telemetry: %s", msg.get("payload", {}))
 
                 elif msg_type == "chat_text":
+                    # Explicit typed chat: bypass buffer entirely
                     text = (msg.get("payload") or {}).get("text", "")
                     if text:
-                        _current_metadata = None
-                        async for event in engine.turn_stream(text, vision_context=_last_vision):
-                            if not await _safe_send(websocket, event):
-                                return
-                            if event.get("type") == "metadata":
-                                _current_metadata = event.get("signals")
-                            if event.get("type") == "done" and not event.get("blocked"):
-                                lat = event.get("latency", {})
-                                _last_latency = lat
-                                _log.info(
-                                    "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                    lat.get("safety", 0),
-                                    lat.get("perceive", 0),
-                                    lat.get("evaluate", 0),
-                                    lat.get("ttft", 0),
-                                    lat.get("total", 0),
-                                )
-                                await _safe_send_tts(websocket, event, _current_metadata)
+                        await _run_turn_and_send(
+                            engine, websocket, text, _last_vision, label="Pipeline",
+                        )
 
                 elif msg_type == "user_speech":
-                    # V2.10: STT transcript from media_engine.js SpeechRecognition
+                    # V2.58: Immediate flush — fuse with any concurrent vision, zero delay
                     text = msg.get("text", "").strip()
                     if text:
-                        _log.info("Nomad STT -> kernel: %s", text[:80])
-                        _current_metadata = None
-                        async for event in engine.turn_stream(text, vision_context=_last_vision):
-                            if not await _safe_send(websocket, event):
-                                return
-                            if event.get("type") == "metadata":
-                                _current_metadata = event.get("signals")
-                            if event.get("type") == "done" and not event.get("blocked"):
-                                lat = event.get("latency", {})
-                                _last_latency = lat
-                                _log.info(
-                                    "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                    lat.get("safety", 0),
-                                    lat.get("perceive", 0),
-                                    lat.get("evaluate", 0),
-                                    lat.get("ttft", 0),
-                                    lat.get("total", 0),
-                                )
-                                await _safe_send_tts(websocket, event, _current_metadata)
+                        fused = sensory_buffer.add_and_flush("audio", text)
+                        if fused:
+                            _log.info("[FUSION/SPEECH] %s", fused[:120])
+                            await _run_turn_and_send(
+                                engine, websocket, fused, _last_vision, label="Fusion",
+                            )
 
                 elif msg_type == "vision_frame":
-                    # V2.12+V2.13: process JPEG frame, cache signals for next turn
                     b64 = (msg.get("payload") or {}).get("image_b64", "")
                     if b64:
                         sig = vision.process_b64(b64)
@@ -355,33 +366,18 @@ async def websocket_nomad(websocket: WebSocket):
                                 "type": "vision_signals",
                                 "payload": _last_vision,
                             })
-                            
-                            # V2.50: Autonomous turn based on vision
+
+                            # Buffer vision triggers for potential fusion with speech
                             now = time.time()
                             if (now - _last_autonomous_turn) > 30.0:
                                 if sig.face_present or sig.motion > 0.05:
                                     _last_autonomous_turn = now
-                                    _log.info("Autonomous vision turn triggered! Face: %s, Motion: %.3f", sig.face_present, sig.motion)
-                                    sys_prompt = "[SYSTEM: Acabas de notar algo a través de la cámara (movimiento o una persona). Inicia tú la conversación. Haz un comentario espontáneo, corto y natural (máx 12 palabras) sobre lo que ves o saluda.]"
-                                    _current_metadata = None
-                                    async for event in engine.turn_stream(sys_prompt, vision_context=_last_vision):
-                                        if not await _safe_send(websocket, event):
-                                            return
-                                        if event.get("type") == "metadata":
-                                            _current_metadata = event.get("signals")
-                                        if event.get("type") == "done" and not event.get("blocked"):
-                                            lat = event.get("latency", {})
-                                            _last_latency = lat
-                                            _log.info(
-                                                "[TELEMETRY] Autonomous Turn: TTFT %.0fms | Total %.0fms",
-                                                lat.get("ttft", 0),
-                                                lat.get("total", 0),
-                                            )
-                                            await _safe_send_tts(websocket, event, _current_metadata)
-
+                                    _log.info("Vision trigger -> buffer: Face=%s Motion=%.3f", sig.face_present, sig.motion)
+                                    desc = "una persona presente" if sig.face_present else f"movimiento detectado (intensidad {sig.motion:.2f})"
+                                    sensory_buffer.add_event("vision", desc)
 
                 elif msg_type == "audio_pcm":
-                    # V2.11: PCM audio from media_engine.js → Whisper STT → turn_stream()
+                    # V2.58: Whisper transcription → immediate flush with fusion
                     if stt_available():
                         import base64
 
@@ -391,30 +387,14 @@ async def websocket_nomad(websocket: WebSocket):
                                 pcm_bytes = base64.b64decode(b64)
                                 text = await transcribe_pcm(pcm_bytes)
                                 if text:
-                                    _log.info("Whisper STT: '%s'", text[:80])
-                                    _current_metadata = None
-                                    async for event in engine.turn_stream(
-                                        text, vision_context=_last_vision
-                                    ):
-                                        if not await _safe_send(websocket, event):
-                                            return
-                                        if event.get("type") == "metadata":
-                                            _current_metadata = event.get("signals")
-                                        if event.get("type") == "done" and not event.get("blocked"):
-                                            lat = event.get("latency", {})
-                                            _last_latency = lat
-                                            _log.info(
-                                                "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                                lat.get("safety", 0),
-                                                lat.get("perceive", 0),
-                                                lat.get("evaluate", 0),
-                                                lat.get("ttft", 0),
-                                                lat.get("total", 0),
-                                            )
-                                            await _safe_send_tts(websocket, event, _current_metadata)
+                                    fused = sensory_buffer.add_and_flush("audio", text)
+                                    if fused:
+                                        _log.info("[FUSION/WHISPER] %s", fused[:120])
+                                        await _run_turn_and_send(
+                                            engine, websocket, fused, _last_vision, label="Fusion",
+                                        )
                             except Exception as e:
                                 _log.warning("audio_pcm transcription error: %s", e)
-                    # If STT not available, client uses Web Speech API (already works)
 
                 elif msg_type == "vad_event":
                     _log.debug("Nomad VAD: %s", msg.get("payload", {}).get("state"))
@@ -427,4 +407,10 @@ async def websocket_nomad(websocket: WebSocket):
     except WebSocketDisconnect:
         _log.info("Nomad bridge disconnected")
     finally:
+        _consolidation_running = False
+        consolidation_task.cancel()
+        try:
+            await consolidation_task
+        except asyncio.CancelledError:
+            pass
         await engine.close()

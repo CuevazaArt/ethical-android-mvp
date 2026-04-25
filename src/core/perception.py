@@ -414,3 +414,78 @@ if __name__ == "__main__":
 
     print(f"\n  {passed}/{len(tests)} passed")
     print("═" * 60)
+
+# ── V2.55 Temporal Multimodal Fusion ─────────────────────────────────────────
+
+@dataclass
+class SensoryEvent:
+    """An atomic sensory event with timestamp."""
+    modality: str  # 'audio' or 'vision'
+    content: str   # The text content or visual summary
+    timestamp: float
+
+class SensoryBuffer:
+    """
+    V2.55 Temporal Multimodal Fusion Buffer
+    Maintains a rolling window of sensory events to fuse concurrent audio and vision
+    into a single cohesive semantic frame.
+    """
+    def __init__(self, window_seconds: float = 2.0):
+        self.window_seconds = window_seconds
+        self._events: list[SensoryEvent] = []
+
+    def add_event(self, modality: str, content: str, timestamp: float | None = None) -> None:
+        ts = timestamp if timestamp is not None else time.time()
+        if not math.isfinite(ts):
+            ts = time.time()
+        self._events.append(SensoryEvent(modality=modality, content=content, timestamp=ts))
+
+    def add_and_flush(self, modality: str, content: str) -> str | None:
+        """
+        V2.58: Add an event and immediately flush — zero polling delay.
+        Used for speech events that must respond instantly while still
+        fusing with any concurrent vision in the window.
+        """
+        self.add_event(modality, content)
+        return self.get_fused_context(flush=True)
+
+    @property
+    def has_audio(self) -> bool:
+        """True if the buffer contains any audio events (i.e., a human spoke)."""
+        now = time.time()
+        return any(
+            e.modality == 'audio' and (now - e.timestamp) <= self.window_seconds
+            for e in self._events
+        )
+
+    def get_fused_context(self, current_time: float | None = None, flush: bool = True) -> str | None:
+        """
+        Retrieves the fused context of all active events in the window.
+        If flush is True, clears the retrieved events from the buffer.
+        """
+        now = current_time if current_time is not None else time.time()
+        if not math.isfinite(now):
+            now = time.time()
+            
+        # Filter valid events within window
+        valid_events = [e for e in self._events if (now - e.timestamp) <= self.window_seconds]
+        expired_events = [e for e in self._events if (now - e.timestamp) > self.window_seconds]
+        
+        if not valid_events:
+            self._events = expired_events if not flush else []
+            return None
+
+        audios = [e.content for e in valid_events if e.modality == 'audio']
+        visions = [e.content for e in valid_events if e.modality == 'vision']
+        
+        if flush:
+            self._events = expired_events
+        
+        if audios and visions:
+            return f"Escuché: {' '.join(audios)}. Simultáneamente vi: {' '.join(visions)}."
+        elif audios:
+            return " ".join(audios)
+        elif visions:
+            return f"Vi: {' '.join(visions)}."
+        
+        return None
