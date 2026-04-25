@@ -35,6 +35,7 @@ GPU containerization complete. Next: break the chatbot paradigm with continuous 
 | V2.51 | Thalamic Gate — Wake word protection against background noise | ✅ |
 | V2.52 | Limbic System — Emotional TTS and Visual Resonance | ✅ |
 | V2.53 | Acoustic Echo Shield — Ignore STT while playing audio | ✅ |
+| V2.54 | Cognitive Proprioception — STT semantic echo cancellation & Preemption | ✅ |
 
 
 ## Key files

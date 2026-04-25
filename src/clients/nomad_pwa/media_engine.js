@@ -184,14 +184,48 @@ async function startSensors() {
             recognition.interimResults = true;
 
             recognition.onresult = (event) => {
-                if (window.isEthosSpeaking) return;
-
                 let interim = '';
                 let final = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const t = event.results[i][0].transcript;
                     if (event.results[i].isFinal) final += t;
                     else interim += t;
+                }
+
+                // V2.54: Cognitive Proprioception (Echo cancellation vs Interruption)
+                const rawTrans = (interim + " " + final).toLowerCase().replace(/[^a-záéíóúüñ\s]/g, '').trim();
+                if (window.isEthosSpeaking) {
+                    if (rawTrans.length > 3) {
+                        const heardWords = rawTrans.split(/\s+/).filter(w => w.length > 2);
+                        const spokenText = window.currentEthosText || "";
+                        
+                        let matches = 0;
+                        for (const w of heardWords) {
+                            if (spokenText.includes(w)) matches++;
+                        }
+                        
+                        const matchRatio = heardWords.length > 0 ? matches / heardWords.length : 0;
+                        
+                        if (matchRatio > 0.4) {
+                            // Ethos hears its own voice. Ignore silently.
+                            return;
+                        } else {
+                            // Interruption! User spoke over him.
+                            console.log("Proprioception: Interruption detected!", rawTrans);
+                            window.isEthosSpeaking = false;
+                            if (window.currentAudioElement) {
+                                window.currentAudioElement.pause();
+                                window.currentAudioElement = null;
+                            }
+                            if ('speechSynthesis' in window) {
+                                window.speechSynthesis.cancel();
+                            }
+                            if (typeof UI !== 'undefined' && UI.orb) UI.orb.classList.remove('speaking');
+                        }
+                    } else {
+                        // Too short to evaluate, wait for more context
+                        return;
+                    }
                 }
 
                 // Preemption: Interrupt kernel TTS immediately when user speaks
