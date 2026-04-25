@@ -37,15 +37,18 @@ except ImportError:
 # Singleton del modelo (se carga una sola vez al primer uso)
 _model: object | None = None
 _MODEL_SIZE = "tiny"  # tiny=39MB, base=74MB, small=244MB
+_stt_warned = False
 
 
 def _get_model() -> object | None:
     """Carga el modelo Whisper al primer uso. Retorna None si no disponible."""
-    global _model
+    global _model, _stt_warned
     if _model is not None:
         return _model
     if not _WHISPER_AVAILABLE:
-        _log.info("faster-whisper no instalado — STT server-side no disponible")
+        if not _stt_warned:
+            _log.info("faster-whisper no instalado — STT server-side no disponible")
+            _stt_warned = True
         return None
     try:
         t0 = time.perf_counter()

@@ -259,11 +259,14 @@ async def _run_turn_and_send(
     text: str,
     vision_context: dict | None,
     label: str = "Pipeline",
+    skip_tts: bool = False,
 ) -> None:
-    """Shared helper: run turn_stream, send events, log telemetry, send TTS."""
+    """Shared helper: run turn_stream, send events, log telemetry, optionally send TTS."""
     global _last_latency
     _current_metadata: dict | None = None
     async for event in engine.turn_stream(text, vision_context=vision_context):
+        if skip_tts:
+            event["autonomous"] = True  # V2.60: mark so client suppresses audio
         if not await _safe_send(ws, event):
             return
         if event.get("type") == "metadata":
@@ -280,7 +283,8 @@ async def _run_turn_and_send(
                 lat.get("ttft", 0),
                 lat.get("total", 0),
             )
-            await _safe_send_tts(ws, event, _current_metadata)
+            if not skip_tts:
+                await _safe_send_tts(ws, event, _current_metadata)
 
 
 @app.websocket("/ws/nomad")
@@ -301,23 +305,27 @@ async def websocket_nomad(websocket: WebSocket):
     sensory_buffer = SensoryBuffer(window_seconds=2.0)
     _last_vision: dict | None = None
     _last_autonomous_turn: float = 0.0
+    _last_user_interaction: float = 0.0  # V2.60: suppress autonomous during conversation
     _consolidation_running = True
 
     async def _consolidation_loop() -> None:
-        """V2.58: Background loop for vision-only autonomous observations."""
-        nonlocal _last_vision
+        """V2.60: Background loop for vision-only autonomous observations (no TTS)."""
+        nonlocal _last_vision, _last_user_interaction
         while _consolidation_running:
-            await asyncio.sleep(2.5)  # Wait full window + margin
-            # Only fire if there's vision data but NO audio (user didn't speak)
+            await asyncio.sleep(2.5)
+            # Suppress autonomous turns during active conversation (60s cooldown)
+            if (time.time() - _last_user_interaction) < 60.0:
+                sensory_buffer.get_fused_context(flush=True)  # Discard silently
+                continue
             if sensory_buffer.has_audio:
-                continue  # Speech handler will flush it immediately
+                continue
             fused = sensory_buffer.get_fused_context(flush=True)
             if fused:
-                # Wrap vision-only observations with system context
                 prompt = f"[SYSTEM: Observación autónoma de sensores — {fused} Haz un comentario espontáneo, corto y natural (máx 12 palabras) sobre lo que percibes.]"
                 _log.info("[FUSION/AUTO] %s", fused[:120])
                 await _run_turn_and_send(
-                    engine, websocket, prompt, _last_vision, label="Autonomous",
+                    engine, websocket, prompt, _last_vision,
+                    label="Autonomous", skip_tts=True,
                 )
 
     consolidation_task = asyncio.create_task(_consolidation_loop())
@@ -341,14 +349,16 @@ async def websocket_nomad(websocket: WebSocket):
                     # Explicit typed chat: bypass buffer entirely
                     text = (msg.get("payload") or {}).get("text", "")
                     if text:
+                        _last_user_interaction = time.time()
                         await _run_turn_and_send(
                             engine, websocket, text, _last_vision, label="Pipeline",
                         )
 
                 elif msg_type == "user_speech":
-                    # V2.58: Immediate flush — fuse with any concurrent vision, zero delay
+                    # V2.60: Immediate flush — fuse with concurrent vision, zero delay
                     text = msg.get("text", "").strip()
                     if text:
+                        _last_user_interaction = time.time()
                         fused = sensory_buffer.add_and_flush("audio", text)
                         if fused:
                             _log.info("[FUSION/SPEECH] %s", fused[:120])
@@ -369,7 +379,7 @@ async def websocket_nomad(websocket: WebSocket):
 
                             # Buffer vision triggers for potential fusion with speech
                             now = time.time()
-                            if (now - _last_autonomous_turn) > 30.0:
+                            if (now - _last_autonomous_turn) > 120.0:  # V2.60: 120s cooldown
                                 if sig.face_present or sig.motion > 0.05:
                                     _last_autonomous_turn = now
                                     _log.info("Vision trigger -> buffer: Face=%s Motion=%.3f", sig.face_present, sig.motion)

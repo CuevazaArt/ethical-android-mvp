@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def get_uvicorn_bind() -> tuple[str, int]:
     """Host and port from environment."""
-    host = os.environ.get("ETHOS_CHAT_HOST", "127.0.0.1")
+    host = os.environ.get("ETHOS_CHAT_HOST", "0.0.0.0")
     port = int(os.environ.get("ETHOS_CHAT_PORT", "8000"))
     return host, port
 

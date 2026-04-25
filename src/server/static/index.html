@@ -34,7 +34,8 @@
         let streaming = false;
         
         function connect() {
-            ws = new WebSocket('ws://localhost:8000/ws/chat');
+            const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${wsProto}//${window.location.host}/ws/chat`);
             
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);

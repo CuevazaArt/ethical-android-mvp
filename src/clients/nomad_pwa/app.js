@@ -712,6 +712,8 @@ async function connectKernel() {
 
                 // ── V2 streaming protocol ──────────────────────────────
                 if (data.type === 'metadata') {
+                    // V2.60: Suppress autonomous metadata entirely
+                    if (data.autonomous) return;
                     if (typeof _handleEthicalMetadata === 'function') {
                         _handleEthicalMetadata(data);
                     }
@@ -729,6 +731,12 @@ async function connectKernel() {
                     return;
                 }
                 if (data.type === 'token') {
+                    // V2.60: Skip autonomous tokens — just pulse the dot
+                    if (data.autonomous) {
+                        const dot = document.getElementById('ethical-heartbeat');
+                        if (dot) dot.classList.add('pulsing');
+                        return;
+                    }
                     let streamDiv = UI.chatHistory.querySelector('.streaming-bubble');
                     if (!streamDiv) {
                         streamDiv = document.createElement('div');
@@ -740,6 +748,12 @@ async function connectKernel() {
                     return;
                 }
                 if (data.type === 'done') {
+                    // V2.60: Autonomous done — stop pulse, no TTS
+                    if (data.autonomous) {
+                        const dot = document.getElementById('ethical-heartbeat');
+                        if (dot) dot.classList.remove('pulsing');
+                        return;
+                    }
                     const streamDiv = UI.chatHistory.querySelector('.streaming-bubble');
                     const msg = data.message || '';
                     let finalDiv = streamDiv;
@@ -849,15 +863,12 @@ async function connectKernel() {
 
                 if (data.event_type === "turn_finished") {
                     const reply = (data.payload && data.payload.response && data.payload.response.message) || "";
-                    if (reply) {
-                        // Show in chat history
+                    if (reply && !data.autonomous) {
                         appendChatMessage(reply, "kernel");
-                        // Mirror in transcript strip
                         if (UI.transcript) {
                             UI.transcript.innerText = reply;
                             UI.transcript.classList.remove('placeholder');
                         }
-                        // TTS
                         _speak(reply);
                     }
                     return;

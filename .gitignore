@@ -106,3 +106,6 @@ certs/
 simulations/reports/*.json
 simulations/reports/*.md
 !simulations/reports/report_template.md
+
+cert.pem
+key.pem

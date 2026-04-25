@@ -234,9 +234,13 @@ async function startSensors() {
                 }
 
                 // V2.51: Thalamic Gate (Wake word)
+                // V2.60: Extended attention — stays active 30s after last interaction
                 const fullText = (interim + " " + final).toLowerCase();
                 if (/(ethos|etos|eto|hector|oye|hola)/i.test(fullText)) {
                     isAttentionActive = true;
+                }
+                // Any speech resets the attention timer (organic conversation)
+                if (isAttentionActive && (interim.trim() || final.trim())) {
                     if (attentionTimeout) clearTimeout(attentionTimeout);
                     attentionTimeout = setTimeout(() => {
                         isAttentionActive = false;
@@ -245,7 +249,7 @@ async function startSensors() {
                             UI.transcript.classList.add('placeholder');
                             UI.transcript.style.color = '';
                         }
-                    }, 15000); // 15 seconds of attention
+                    }, 30000); // 30 seconds of attention (organic conversation)
                 }
 
                 // Show live interim in input field and transcript
@@ -265,38 +269,37 @@ async function startSensors() {
                     }
                 }
 
-                // Only send final results that pass VAD gate AND attention gate
+                // V2.60: Auto-send final results — organic conversation
                 if (final.trim().length > 0 && (isVadSpeaking() || _vadHangover > 0)) {
                     const text = final.trim();
                     const confidence = event.results[event.results.length - 1][0].confidence ?? 1.0;
-                    if (confidence > 0.35 && typeof wsChat !== 'undefined' && wsChat && wsChat.readyState === WebSocket.OPEN) {
+                    if (confidence > 0.35) {
                         if (typeof UI !== 'undefined' && UI.chatInput) {
                             UI.chatInput.value = '';
                         }
                         if (isAttentionActive) {
+                            // Show in chat history like a typed message
+                            if (typeof appendChatMessage === 'function') {
+                                appendChatMessage(text, 'user');
+                            }
                             if (typeof UI !== 'undefined' && UI.transcript) {
-                                UI.transcript.innerText = `Tú: ${text}`;
-                                UI.transcript.style.color = '';
+                                UI.transcript.innerText = `🎤 ${text}`;
+                                UI.transcript.style.color = '#58a6ff';
                                 UI.transcript.classList.remove('placeholder');
                             }
-                            // V2 protocol: plain text to turn_stream()
-                            try { 
-                                wsChat.send(text); 
-                                // Visual feedback that audio crossed to backend
-                                if (typeof UI !== 'undefined' && UI.transcript) {
-                                    UI.transcript.innerText = `[Enviado] ${text}`;
-                                }
-                            } catch (_) {}
+                            // Send via Nomad for multimodal fusion (V2.58)
+                            if (typeof wsNomad !== 'undefined' && wsNomad && wsNomad.readyState === WebSocket.OPEN) {
+                                try {
+                                    wsNomad.send(JSON.stringify({ type: 'user_speech', text }));
+                                } catch (_) {}
+                            } else if (typeof wsChat !== 'undefined' && wsChat && wsChat.readyState === WebSocket.OPEN) {
+                                // Fallback: direct chat if Nomad unavailable
+                                try { wsChat.send(text); } catch (_) {}
+                            }
                         } else {
                             if (typeof UI !== 'undefined' && UI.transcript) {
-                                UI.transcript.innerText = `[Silenciado] ${text}`;
-                                setTimeout(() => {
-                                    if (!isAttentionActive) {
-                                        UI.transcript.innerText = '[Modo Pasivo - Di "Ethos" para hablar]';
-                                        UI.transcript.style.color = '';
-                                        UI.transcript.classList.add('placeholder');
-                                    }
-                                }, 2000);
+                                UI.transcript.innerText = `[Pasivo] ${text}`;
+                                UI.transcript.style.color = '#8b949e';
                             }
                         }
                     }
