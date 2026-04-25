@@ -14,6 +14,15 @@ from src.core.vision import VisionEngine
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 
+
+async def _safe_send(ws: WebSocket, data: dict) -> bool:
+    """Send JSON to WebSocket, returning False if client disconnected."""
+    try:
+        await ws.send_json(data)
+        return True
+    except (WebSocketDisconnect, RuntimeError):
+        return False
+
 app = FastAPI(title="Ethos Kernel Chat")
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -203,7 +212,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Plain text or other — treat as chat turn
                     text = data if not frame else (frame.get("text") or data)
                     async for event in engine.turn_stream(text, vision_context=_chat_vision):
-                        await websocket.send_json(event)
+                        if not await _safe_send(websocket, event):
+                            return  # Client gone — exit cleanly
                         if event.get("type") == "done" and not event.get("blocked"):
                             lat = event.get("latency", {})
                             _last_latency = lat
@@ -217,14 +227,12 @@ async def websocket_endpoint(websocket: WebSocket):
                             )
             except Exception as e:
                 _log.error("Error during turn: %s", e)
-                await websocket.send_json(
-                    {
-                        "type": "done",
-                        "message": "Error interno del kernel.",
-                        "blocked": True,
-                        "reason": str(e),
-                    }
-                )
+                await _safe_send(websocket, {
+                    "type": "done",
+                    "message": "Error interno del kernel.",
+                    "blocked": True,
+                    "reason": str(e),
+                })
     except WebSocketDisconnect:
         _log.info("Client disconnected")
     finally:
@@ -266,7 +274,8 @@ async def websocket_nomad(websocket: WebSocket):
                     text = (msg.get("payload") or {}).get("text", "")
                     if text:
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
-                            await websocket.send_json(event)
+                            if not await _safe_send(websocket, event):
+                                return
                             if event.get("type") == "done" and not event.get("blocked"):
                                 lat = event.get("latency", {})
                                 _last_latency = lat
@@ -285,7 +294,8 @@ async def websocket_nomad(websocket: WebSocket):
                     if text:
                         _log.info("Nomad STT -> kernel: %s", text[:80])
                         async for event in engine.turn_stream(text, vision_context=_last_vision):
-                            await websocket.send_json(event)
+                            if not await _safe_send(websocket, event):
+                                return
                             if event.get("type") == "done" and not event.get("blocked"):
                                 lat = event.get("latency", {})
                                 _last_latency = lat
@@ -305,12 +315,10 @@ async def websocket_nomad(websocket: WebSocket):
                         sig = vision.process_b64(b64)
                         if sig:
                             _last_vision = sig.to_dict()
-                            await websocket.send_json(
-                                {
-                                    "type": "vision_signals",
-                                    "payload": _last_vision,
-                                }
-                            )
+                            await _safe_send(websocket, {
+                                "type": "vision_signals",
+                                "payload": _last_vision,
+                            })
 
                 elif msg_type == "audio_pcm":
                     # V2.11: PCM audio from media_engine.js → Whisper STT → turn_stream()
@@ -327,7 +335,8 @@ async def websocket_nomad(websocket: WebSocket):
                                     async for event in engine.turn_stream(
                                         text, vision_context=_last_vision
                                     ):
-                                        await websocket.send_json(event)
+                                        if not await _safe_send(websocket, event):
+                                            return
                                         if event.get("type") == "done" and not event.get("blocked"):
                                             lat = event.get("latency", {})
                                             _last_latency = lat
