@@ -108,14 +108,14 @@ async function startSensors() {
     }
 
     try {
+        // V2.60: Request VIDEO ONLY. Audio is NOT needed here because:
+        // - AudioContext was removed (caused resampler tone on Android)
+        // - SpeechRecognition manages its own mic access independently
+        // - Having both getUserMedia(audio) + SpeechRecognition duplicates
+        //   hardware access, causing Android to cycle privacy indicators + sounds
         mediaStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'environment', width: 640, height: 480 },
-            audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
-                channelCount: 1 // Mono
-            }
+            audio: false
         });
         
         // ... rest of the successful initialization ...
@@ -144,30 +144,12 @@ async function startSensors() {
             }
         }, 1000 / FRAME_RATE);
 
-        // V2.60: Use AnalyserNode instead of ScriptProcessor.
-        // ScriptProcessor steals the audio stream from SpeechRecognition on Android.
-        // AnalyserNode is read-only — observes levels without consuming the stream.
-        audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: TARGET_SAMPLE_RATE });
-        const source = audioContext.createMediaStreamSource(mediaStream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = 0.3;
-        source.connect(analyser);
-        // DO NOT connect to destination — no output, no speaker leakage
-
-        const analyserBuffer = new Float32Array(analyser.fftSize);
-        setInterval(() => {
-            analyser.getFloatTimeDomainData(analyserBuffer);
-            let sumSquares = 0;
-            for (let i = 0; i < analyserBuffer.length; i++) sumSquares += analyserBuffer[i] * analyserBuffer[i];
-            const rms = Math.sqrt(sumSquares / analyserBuffer.length);
-            const normalizedVolume = Math.min(1, rms * 5);
-            vadUpdate(rms);
-
-            const telAud = document.getElementById('tel-aud');
-            if (telAud) telAud.textContent = rms.toFixed(3);
-            if (window.updateOrbScale) window.updateOrbScale(normalizedVolume);
-        }, 250); // 4x per second for smooth VAD visual
+        // V2.60: AudioContext REMOVED entirely.
+        // On Android Chrome, creating an AudioContext with sampleRate: 16000
+        // (non-native) produces a rhythmic audible tone through the speakers
+        // caused by the hardware resampler. Since STT is handled by Web Speech API
+        // (not server-side Whisper), no AudioContext is needed.
+        // VAD visual feedback is now driven by SpeechRecognition interim results.
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -180,6 +162,10 @@ async function startSensors() {
             recognition.interimResults = true;
 
             recognition.onresult = (event) => {
+                // V2.60: Drive orb visual from speech activity (AudioContext removed)
+                if (window.updateOrbScale) window.updateOrbScale(0.6);
+                setTimeout(() => { if (window.updateOrbScale) window.updateOrbScale(0); }, 500);
+
                 let interim = '';
                 let final = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -307,12 +293,18 @@ async function startSensors() {
                 if (orb) orb.classList.add('mic-active');
             };
             recognition.onend = () => {
-                try { recognition.start(); } catch (e) {}
+                // V2.60: Delay restart to avoid rapid mic cycling
+                // (Android plays system sound on each mic access toggle)
+                setTimeout(() => {
+                    try { recognition.start(); } catch (e) { console.warn('SR restart failed', e); }
+                }, 1000);
             };
             recognition.onerror = (e) => {
                 console.warn('SpeechRecognition error:', e.error);
                 if (e.error !== 'aborted') {
-                    try { recognition.start(); } catch (_) {}
+                    setTimeout(() => {
+                        try { recognition.start(); } catch (_) {}
+                    }, 1500);
                 }
             };
             recognition.start();
