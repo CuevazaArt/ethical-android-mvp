@@ -1,0 +1,87 @@
+# Ethos Kernel — GPU Deployment Stack (NVIDIA)
+#
+# Orchestrates two services:
+#   1. ethos   — The Ethos Kernel server (FastAPI + WebSocket + HTTPS)
+#   2. ollama  — Ollama LLM inference server (GPU-accelerated)
+#
+# Prerequisites:
+#   - Docker with NVIDIA Container Toolkit (nvidia-docker2)
+#   - NVIDIA GPU with CUDA drivers installed on host
+#
+# Usage:
+#   docker compose -f docker-compose.gpu.yml up --build
+#
+# Mobile access (from same LAN):
+#   https://<HOST-LAN-IP>:8443/nomad
+#
+# Override cert IP for mobile access:
+#   ETHOS_CERT_IP=192.168.1.65 docker compose -f docker-compose.gpu.yml up --build
+#
+# Pull a specific model before first use:
+#   docker compose -f docker-compose.gpu.yml exec ollama ollama pull llama3.2:1b
+
+services:
+  # ---------------------------------------------------------------------------
+  # Ethos Kernel — Ethical AI Chat Server
+  # ---------------------------------------------------------------------------
+  ethos:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: ethos-kernel
+    ports:
+      - "8000:8000"   # HTTP  (plain, for local/reverse-proxy)
+      - "8443:8443"   # HTTPS (TLS, for mobile/LAN)
+    environment:
+      # --- LLM Connection ---
+      OLLAMA_BASE_URL: "http://ollama:11434"
+      OLLAMA_MODEL: "llama3.2:1b"
+
+      # --- Server ---
+      ETHOS_CHAT_HOST: "0.0.0.0"
+      ETHOS_CHAT_PORT: "8000"
+      # Set to your LAN IP for mobile cert validity:
+      # ETHOS_CERT_IP: "192.168.1.65"
+
+      # --- Telemetry ---
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      # Persist memory, identity, and precedent data across restarts
+      - ethos_data:/app/data
+      # Persist generated certs so they don't regenerate every restart
+      - ethos_certs:/app/certs
+    depends_on:
+      ollama:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # ---------------------------------------------------------------------------
+  # Ollama — Local LLM Inference (GPU)
+  # ---------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ethos-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  ethos_data: {}
+  ethos_certs: {}
+  ollama_models: {}

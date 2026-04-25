@@ -8,14 +8,14 @@
 - **Architecture:** `src/core/` → `src/server/` (zero legacy)
 - **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
-- **Last merge to main:** 2026-04-24 (V2.46)
+- **Last merge to main:** 2026-04-24 (V2.47)
 
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅
 
 ## Active block
 
-**HARDWARE MIGRATION — Ready for GPU host deployment.**
-MVP V2 stabilization and model hardening are 100% complete.
+**SENSORY EXPANSION — Continuous aferent perception (V2.48+).**
+GPU containerization complete. Next: break the chatbot paradigm with continuous audio/video streams.
 
 ## Closed blocks
 
@@ -28,6 +28,7 @@ MVP V2 stabilization and model hardening are 100% complete.
 | V2.44 | Narrative Identity (LLM Journal Reflections) | ✅ |
 | V2.45 | Nomad PWA Ethics HUD (Metadata stream) | ✅ |
 | V2.46 | Precedents Expansion (36 rich cases) | ✅ |
+| V2.47 | GPU Docker Orchestration (NVIDIA + Ollama) | ✅ |
 
 
 ## Key files
@@ -40,10 +41,12 @@ MVP V2 stabilization and model hardening are 100% complete.
 | Entry | `src/main.py` (REPL) · `src/chat_server.py` (uvicorn) |
 | Tests | `tests/core/` (142 tests) |
 | Security | `scripts/eval/adversarial_suite.py` |
+| Deploy | `Dockerfile.gpu` · `docker-compose.gpu.yml` · `scripts/docker_entrypoint.sh` |
 | Run | `python -m src.chat_server` or `uvicorn src.server.app:app --port 8000` |
+| Run GPU | `docker compose -f docker-compose.gpu.yml up --build` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
-| Nomad | `http://[LAN-IP]:8000/nomad` |
+| Nomad | `https://[LAN-IP]:8443/nomad` |
 
 ## System health (2026-04-24)
 
@@ -56,4 +59,5 @@ MVP V2 stabilization and model hardening are 100% complete.
 - **Pipeline:** Single-Call Hardened (Background reflection, Early signaling)
 - **PWA HUD:** Contexto ético en tiempo real (metadata event)
 - **Adversarial Suite:** 6/6 blocked · 10/10 legitimate pass
+- **GPU Deploy:** Docker + NVIDIA Container Toolkit + Ollama sidecar ready
 

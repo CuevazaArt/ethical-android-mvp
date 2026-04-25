@@ -1,0 +1,81 @@
+# Ethos Kernel — GPU-accelerated image (NVIDIA CUDA).
+#
+# Includes: PyTorch (CUDA), faster-whisper (STT), sentence-transformers (Semantic Memory).
+# Entrypoint: auto-generates TLS cert then starts uvicorn on port 8443 (HTTPS).
+#
+# Build:
+#   docker compose -f docker-compose.gpu.yml build
+# Run:
+#   docker compose -f docker-compose.gpu.yml up
+#
+# Requires: NVIDIA Container Toolkit (nvidia-docker2) on the host.
+
+# ---------------------------------------------------------------------------
+# Stage 1: Builder — install Python deps into a venv
+# ---------------------------------------------------------------------------
+FROM python:3.12-slim-bookworm AS builder
+
+WORKDIR /build
+
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# System deps for cryptography wheel build (needed for gen_cert.py)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libffi-dev libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml /build/
+COPY requirements.txt /build/
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Core + runtime + ML extras
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -e "/build[runtime]" \
+    || pip install --no-cache-dir -r /build/requirements.txt
+
+# GPU-specific: PyTorch with CUDA, faster-whisper (STT), sentence-transformers (Semantic Memory)
+RUN pip install --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cu121 \
+    && pip install --no-cache-dir \
+    faster-whisper \
+    sentence-transformers
+
+# ---------------------------------------------------------------------------
+# Stage 2: Runtime — slim image with venv copied in
+# ---------------------------------------------------------------------------
+FROM python:3.12-slim-bookworm AS runtime
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+# Copy venv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Non-root user for security
+RUN useradd --create-home --uid 1000 --shell /bin/bash appuser
+
+# Copy application code
+COPY --chown=appuser:appuser . /app
+
+# Ensure entrypoint is executable (handles CRLF→LF too)
+RUN sed -i 's/\r$//' /app/scripts/docker_entrypoint.sh \
+    && chmod +x /app/scripts/docker_entrypoint.sh
+
+# Cert directory (writable by appuser)
+RUN mkdir -p /app/certs && chown appuser:appuser /app/certs
+
+# Data persistence directories
+RUN mkdir -p /app/data && chown appuser:appuser /app/data
+
+USER appuser
+
+# HTTP (plain) + HTTPS (TLS for mobile)
+EXPOSE 8000 8443
+
+ENTRYPOINT ["/app/scripts/docker_entrypoint.sh"]
