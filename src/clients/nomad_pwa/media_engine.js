@@ -293,18 +293,19 @@ async function startSensors() {
                 if (orb) orb.classList.add('mic-active');
             };
             recognition.onend = () => {
-                // V2.60: Delay restart to avoid rapid mic cycling
-                // (Android plays system sound on each mic access toggle)
+                // V2.60: Long delay to minimize Android mic-cycling sounds
+                const orb = document.getElementById('affect-orb');
+                if (orb) orb.classList.remove('mic-active');
                 setTimeout(() => {
                     try { recognition.start(); } catch (e) { console.warn('SR restart failed', e); }
-                }, 1000);
+                }, 10000);
             };
             recognition.onerror = (e) => {
                 console.warn('SpeechRecognition error:', e.error);
                 if (e.error !== 'aborted') {
                     setTimeout(() => {
                         try { recognition.start(); } catch (_) {}
-                    }, 1500);
+                    }, 12000);
                 }
             };
             recognition.start();
