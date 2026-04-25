@@ -40,6 +40,7 @@ Multimodal temporal fusion active. Speech-triggered immediate response with conc
 | V2.56 | Status Telemetry Hardening (Boy Scout) | ✅ |
 | V2.57 | SensoryBuffer WebSocket Integration — Continuous fusion loop | ✅ |
 | V2.58 | Speech-Triggered Immediate Fusion — Zero-delay audio response | ✅ |
+| V2.59 | Sensory-Context Perception — Multimodal pattern recognition | ✅ |
 
 ## Key files
 
@@ -49,7 +50,7 @@ Multimodal temporal fusion active. Speech-triggered immediate response with conc
 | Server | `src/server/app.py` |
 | CLI | `src/ethos_cli.py` |
 | Entry | `src/main.py` (REPL) · `src/chat_server.py` (uvicorn) |
-| Tests | `tests/core/` (161 tests) |
+| Tests | `tests/core/` (165 tests) |
 | Security | `scripts/eval/adversarial_suite.py` |
 | Deploy | `Dockerfile.gpu` · `docker-compose.gpu.yml` · `scripts/docker_entrypoint.sh` |
 | Run | `python -m src.chat_server` or `uvicorn src.server.app:app --port 8000` |
@@ -60,7 +61,7 @@ Multimodal temporal fusion active. Speech-triggered immediate response with conc
 
 ## System health (2026-04-25)
 
-- **Tests:** 161/161 ✅
+- **Tests:** 165/165 ✅
 - **Legacy imports:** 0
 - **Perception:** Determinista (Sin LLM, latencia <1ms)
 - **Ethics:** Basada en precedentes (CBR, 36 casos)
