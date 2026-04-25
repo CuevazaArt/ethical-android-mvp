@@ -14,8 +14,13 @@
 
 ## Active block
 
-**NEXT PHASE — Post-field-test development.**
-V2.60 multimodal stabilization complete. Voice capture, vision, TTS, and WebSocket pipeline field-tested on Android hardware. PWA install validated as production-viable UX.
+- **V2 CORE REFINEMENT (Phase 18)**: Refinando mente y memoria en `src/core`.
+  - [x] V2.61: Recursive Narrative Memory.
+  - [x] V2.62: Heuristic User Model Bias Detection.
+  - [x] V2.63: Narrative Archetype Distillation (L3).
+  - [x] V2.64: Persistent User Model (`~/.ethos/user_model.json`).
+  - [ ] Siguiente bloque (Pendiente de selección del Backlog).
+Sensory expansion via hardware (Nomad camera/mic integration) is **FROZEN** until better resources/hardware are available. Development will now focus on higher-level conversational features and kernel logic via traditional chat interfaces.
 
 ## Closed blocks
 
@@ -42,6 +47,12 @@ V2.60 multimodal stabilization complete. Voice capture, vision, TTS, and WebSock
 | V2.58 | Speech-Triggered Immediate Fusion — Zero-delay audio response | ✅ |
 | V2.59 | Sensory-Context Perception — Multimodal pattern recognition | ✅ |
 | V2.60 | Audio Feedback Suppression — ScriptProcessor removed, SR text rescue, phantom turn kill | ✅ FIELD-TESTED |
+
+## Frozen blocks ❄️
+
+| Block | Name | Reason |
+|-------|------|--------|
+| SENSORY-HW | High-frequency continuous sensory hardware integration | SoC hardware limitations (Android media pipeline constraints) |
 
 ## Key files
 
@@ -79,3 +90,10 @@ V2.60 multimodal stabilization complete. Voice capture, vision, TTS, and WebSock
 - **Old Android SoC:** Camera and mic alternate (shared media pipeline). Cannot coexist simultaneously.
 - **Mitigation:** SpeechRecognition text rescue on `onend` sends captured speech before mic-off.
 - **Future:** Newer hardware with independent media pipelines eliminates this. Native app (Play Store) planned.
+
+## Closed blocks
+
+- **V2.61 - V2.64 (Mente y Memoria):** Implementado el Arquetipo Narrativo (nivel 3 de destilación) en `Identity` y persistencia en disco del `UserModelTracker`. Modificado `llm.py` con máquina de estados para silenciar etiquetas `<think>`.
+- **V2.60 (Sensory Feedback Suppression):** Se eliminó el `AudioContext` de la PWA para evitar el "pulso rítmico" por conflicto de hardware. Se agregó una rutina de rescate de transcripción interina en `onend`.
+- **L1-AUDIT-PULSE (2026-04-24):** Resolución de conflictos de importación en tests tras la consolidación V2. Todo el kernel ahora importa exclusivamente de `src.core.*`.
+- **V2.22 (Consolidated Core Minimal):** El kernel ha sido completamente movido a `src/core/`. Se eliminaron docenas de archivos del monolito Tri-Lobo legacy en favor de una arquitectura minimalista y directa.

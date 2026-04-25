@@ -75,6 +75,7 @@ def main() -> None:
         "src.core.vision",
         "src.core.safety",
         "src.core.perception",
+        "src.core.user_model",
     ]
     core_ok = all(_check(m.split(".")[-1], lambda m=m: _importable(m)) for m in modules)
 
@@ -96,11 +97,22 @@ def main() -> None:
     # Memory state
     try:
         from src.core.memory import Memory
+        from src.core.identity import Identity
+        from src.core.user_model import UserModelTracker
 
         mem = Memory()
+        ident = Identity()
+        user_mod = UserModelTracker()
+        
         print(f"  📝 Memory: {len(mem)} episodes stored")
+        print(f"  🧠 Identity: {len(ident._journal)} journal entries, {len(ident._chronicle)} chronicles")
+        if ident._archetype:
+            print(f"  👑 Archetype: {ident._archetype}")
+            
+        print(f"  👤 User Model: Risk [{user_mod.risk_band.value}], Bias [{user_mod.cognitive_pattern.value}], Turns [{user_mod.turns_observed}]")
+
     except Exception:
-        print("  📝 Memory: not initialized")
+        print("  📝 System state: partially initialized")
 
     # Phase assessment
     print("\nPhase assessment:")
@@ -113,7 +125,7 @@ def main() -> None:
     elif not sensory_ok:
         print("  🟡 Core complete — Sensory modules (STT/TTS) pending")
     else:
-        print("  🟢 Fase 17 Complete — Project stable with sensory perception")
+        print("  🟢 V2 Core Refinement — Recursive Identity & User Modeling active")
 
     print()
 

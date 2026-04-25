@@ -19,7 +19,17 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 ## 📈 ESTADO DE INTEGRACIÓN (PULSE 2026-04-24 / AUDIT L1) [REVISADO] [ACTUALIZADO]
 - **V2.22 (Consolidated Core Minimal)**: INTEGRADO. El sistema ha sido consolidado en `src/core/` (V2).
 - **V1.0 Final Stabilization**: ARCHIVADO. La arquitectura Tri-Lobo asíncrona V13/V14 ha sido consolidada en un núcleo minimalista para mayor estabilidad en hardware limitado.
-- **L1-AUDIT-PULSE (2026-04-24)**: PENDIENTE. Iniciando ciclo de estabilización para corregir imports rotos tras la consolidación V2.
+- **L1-AUDIT-PULSE (2026-04-24)**: COMPLETADO. Repara imports tras consolidación V2.
+- **V2.60 (Feedback Suppression)**: INTEGRADO. Estabilización de audio en Nomad.
+
+---
+
+## ❄️ BLOQUES CONGELADOS (Hardware Constraints)
+**Bloque SENSORY-HW: Integración Sensorial Continua de Alta Frecuencia**
+- **Motivo:** Limitaciones de hardware en SoC Android antiguos (mic/cam no pueden coexistir).
+- **Estado:** CONGELADO. No se dedicarán más recursos hasta disponer de hardware con pipelines de medios independientes.
+
+---
 
 ---
 
@@ -45,10 +55,20 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 ## 🏆 FASE 16: ESTABILIZACIÓN V2 [COMPLETA ✅]
 
 **Todos los bloques cerrados. El repositorio es 100% V2 Core Minimal.**
-- Cero imports legacy
-- Bridge eliminado
-- 91 tests ✅
-- Documentación alineada con el código
+
+---
+
+## 🚀 FASE 18: V2 CORE REFINEMENT (Mente y Memoria)
+
+**Bloque 18.1: Recursive Narrative Memory [INTEGRADO ✅]**
+- **Tarea:** Implementar destilación multi-nivel de episodios en crónicas temáticas y un Arquetipo central (V2.61 & V2.63).
+- **Meta:** Coherencia de identidad a largo plazo sin saturar el contexto del LLM, culminando en un arquetipo dinámico.
+- **Archivos:** `src/core/memory.py`, `src/core/identity.py`.
+
+**Bloque 18.2: User Model Enrichment (Cognitive Bias & Risk) [INTEGRADO ✅]**
+- **Tarea:** Implementar detección heurística de sesgos del usuario, perfil de riesgo y persistencia a largo plazo (V2.62 & V2.64).
+- **Meta:** Calibrar la apertura informativa y el tono del LLM según el estado del usuario, persistiendo entre sesiones.
+- **Archivos:** `src/core/user_model.py` (nuevo), `src/core/chat.py`.
 
 ---
 

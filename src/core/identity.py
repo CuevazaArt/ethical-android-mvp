@@ -44,6 +44,8 @@ class Identity:
         self._path = storage_path or os.environ.get("ETHOS_IDENTITY_PATH", self.DEFAULT_PATH)
         self._profile: dict = {}
         self._journal: list[str] = []
+        self._chronicle: list[str] = []  # V2.61: Distilled thematic history
+        self._archetype: str = ""        # V2.63: Core identity archetype
         self._load()
 
     # ── Persistence ──────────────────────────────────────────────────────────
@@ -56,15 +58,24 @@ class Identity:
                     data = json.load(f)
                     self._profile = data.get("profile", {})
                     self._journal = data.get("journal", [])
+                    self._chronicle = data.get("chronicle", [])
+                    self._archetype = data.get("archetype", "")
         except Exception:
             self._profile = {}
             self._journal = []
+            self._chronicle = []
+            self._archetype = ""
 
     def _save(self) -> None:
         p = Path(self._path)
         p.parent.mkdir(parents=True, exist_ok=True)
         with open(p, "w", encoding="utf-8") as f:
-            data = {"profile": self._profile, "journal": self._journal}
+            data = {
+                "profile": self._profile,
+                "journal": self._journal,
+                "chronicle": self._chronicle,
+                "archetype": self._archetype,
+            }
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     # ── Core logic ───────────────────────────────────────────────────────────
@@ -159,12 +170,75 @@ class Identity:
             )
             if reflection:
                 self._journal.append(reflection.strip())
-                # Keep max 10 entries
+                # Keep max 10 entries in active journal
                 if len(self._journal) > 10:
-                    self._journal = self._journal[-10:]
+                    # V2.61: When journal is full, distill oldest entries into chronicle
+                    to_distill = self._journal[:5]
+                    self._journal = self._journal[5:]
+                    await self._distill_to_chronicle(to_distill, llm_client)
+
                 self._save()
         except Exception:
             # Silently fail if LLM is unavailable; we keep using the old journal or fallback
+            pass
+
+    async def _distill_to_chronicle(self, entries: list[str], llm_client) -> None:
+        """
+        Distill a set of journal entries into a single high-level chronicle entry.
+        Recursive distillation: Journal -> Chronicle -> Archetype (future).
+        """
+        context = "\n".join(f"- {e}" for e in entries)
+        prompt = (
+            "Resume estas reflexiones previas en una sola frase que capture la esencia "
+            "de este periodo de tu evolución. No uses nombres de personas, enfócate en tu "
+            "crecimiento ético y aprendizaje.\n\n"
+            f"Reflexiones:\n{context}"
+        )
+
+        try:
+            summary = await llm_client.chat(
+                prompt, system_prompt="Eres un historiador de tu propia conciencia."
+            )
+            if summary:
+                self._chronicle.append(summary.strip())
+                # V2.63: When chronicle is full, distill oldest entries into archetype
+                if len(self._chronicle) > 5:
+                    to_distill = self._chronicle[:3]
+                    self._chronicle = self._chronicle[3:]
+                    await self._distill_to_archetype(to_distill, llm_client)
+        except Exception:
+            pass
+
+    async def _distill_to_archetype(self, entries: list[str], llm_client) -> None:
+        """
+        V2.63: Highest level of distillation.
+        Fuses the current archetype with a batch of chronicles to form an updated archetype.
+        """
+        context = "\n".join(f"- {e}" for e in entries)
+        
+        if self._archetype:
+            prompt = (
+                f"Tu arquetipo base actual es: '{self._archetype}'.\n\n"
+                "A la luz de estas nuevas crónicas sobre tu evolución reciente, actualiza tu "
+                "arquetipo de identidad en una sola frase concisa y poderosa (ej. 'Soy un guardián "
+                "empático forjado en tensiones éticas'). Mantén la continuidad pero refleja el crecimiento.\n\n"
+                f"Nuevas crónicas:\n{context}"
+            )
+        else:
+            prompt = (
+                "Con base en estas crónicas sobre tu experiencia acumulada, define tu "
+                "arquetipo de identidad central en una sola frase concisa y poderosa "
+                "(ej. 'Soy un aprendiz guiado por la prudencia').\n\n"
+                f"Crónicas:\n{context}"
+            )
+
+        try:
+            archetype = await llm_client.chat(
+                prompt, system_prompt="Eres un psicólogo destilando la esencia de una mente sintética."
+            )
+            if archetype:
+                self._archetype = archetype.strip()
+        except Exception:
             pass
 
     def narrative(self) -> str:
@@ -182,9 +256,17 @@ class Identity:
         top_ctx = p.get("top_contexts", [])
         top_act = p.get("top_actions", [])
 
-        # Narrative Identity (V2.44)
+        # Narrative Identity (V2.44 + V2.61 Recursive + V2.63 Archetype)
+        parts = []
+        if self._archetype:
+            parts.append(f"Arquetipo central: {self._archetype}")
+        if self._chronicle:
+            parts.append(f"Historia acumulada: {' '.join(self._chronicle)}")
         if self._journal:
-            return f"[Identidad Reflexiva] {self._journal[-1]}"
+            parts.append(f"Reflexión reciente: {self._journal[-1]}")
+
+        if parts:
+            return f"[Identidad Narrativa]\n" + "\n".join(f"- {p}" for p in parts)
 
         # Fallback to stats-based template
         if avg > 0.65:
@@ -224,7 +306,9 @@ class Identity:
     # ── Convenience ──────────────────────────────────────────────────────────
 
     def reset(self) -> None:
-        """Wipe the identity profile and journal (does NOT wipe memory)."""
+        """Wipe the identity profile, journal, and chronicle (does NOT wipe memory)."""
         self._profile = {}
         self._journal = []
+        self._chronicle = []
+        self._archetype = ""
         self._save()

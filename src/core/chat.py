@@ -36,6 +36,7 @@ from src.core.llm import OllamaClient
 from src.core.memory import Memory
 from src.core.perception import PerceptionClassifier
 from src.core.safety import is_dangerous, sanitize
+from src.core.user_model import UserModelTracker
 
 _log = logging.getLogger(__name__)
 
@@ -137,6 +138,7 @@ class ChatEngine:
         self.memory = memory if memory is not None else Memory()
         self.perception = PerceptionClassifier()  # V2.40: deterministic, no LLM
         self.identity = Identity()  # V2.15: evolves with each episode
+        self.user_model = UserModelTracker()  # V2.62: cognitive bias & risk
         self._turn_count: int = 0  # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
 
@@ -206,6 +208,11 @@ class ChatEngine:
         narrative = self.identity.narrative()
         if narrative:
             system += f"\n\n{narrative}"
+
+        # V2.62: Relational guidance based on user model (bias/risk)
+        relational_guidance = self.user_model.guidance_for_communicate()
+        if relational_guidance:
+            system += f"\n\n{relational_guidance}"
 
         return system
 
@@ -309,6 +316,9 @@ class ChatEngine:
             evaluation = self.ethics.evaluate(actions, signals)
         latency["evaluate"] = round((time.perf_counter() - t_start) * 1000, 2)
 
+        # 2.1 Update user model (bias/risk tracking)
+        self.user_model.update(signals)
+
         # 3. Respond
         t_start = time.perf_counter()
         message = await self.respond(user_message, signals, evaluation)
@@ -407,6 +417,9 @@ class ChatEngine:
             actions = _generate_actions_from_signals(signals)
             evaluation = self.ethics.evaluate(actions, signals)
         latency["evaluate"] = round((time.perf_counter() - t_start) * 1000, 2)
+
+        # 2.1 Update user model
+        self.user_model.update(signals)
 
         # 3. Stream response
         t_start = time.perf_counter()
