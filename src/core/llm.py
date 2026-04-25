@@ -62,6 +62,7 @@ class OllamaClient:
         user_message: str,
         system_prompt: str = "",
         temperature: float = 0.7,
+        history: list[dict[str, str]] | None = None,
     ) -> str:
         """
         Send a message and get a response. That's it.
@@ -70,6 +71,7 @@ class OllamaClient:
             user_message: What the user said.
             system_prompt: Optional system context.
             temperature: Creativity dial (0.0 = robotic, 1.0 = creative).
+            history: Optional conversation history as [{"user": ..., "assistant": ...}].
 
         Returns:
             The model's text response.
@@ -80,6 +82,11 @@ class OllamaClient:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
+        # Inject multi-turn history as native Ollama messages
+        if history:
+            for turn in history:
+                messages.append({"role": "user", "content": turn["user"]})
+                messages.append({"role": "assistant", "content": turn["assistant"]})
         messages.append({"role": "user", "content": user_message})
 
         payload = {
@@ -119,6 +126,7 @@ class OllamaClient:
         user_message: str,
         system_prompt: str = "",
         temperature: float = 0.7,
+        history: list[dict[str, str]] | None = None,
     ):
         """
         Stream response tokens as they arrive (async generator).
@@ -132,6 +140,11 @@ class OllamaClient:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
+        # Inject multi-turn history as native Ollama messages
+        if history:
+            for turn in history:
+                messages.append({"role": "user", "content": turn["user"]})
+                messages.append({"role": "assistant", "content": turn["assistant"]})
         messages.append({"role": "user", "content": user_message})
 
         payload = {

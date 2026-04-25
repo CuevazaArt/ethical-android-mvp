@@ -174,13 +174,8 @@ class ChatEngine:
             if signals.context != "everyday_ethics":
                 system += f"\nSituación detectada: {signals.context}."
 
-        # Conversation history (STM)
-        if self._conversation:
-            history_lines = []
-            for turn in self._conversation[-4:]:
-                history_lines.append(f"Usuario: {turn['user']}")
-                history_lines.append(f"Tú: {turn['assistant']}")
-            system += "\n\nHistorial reciente:\n" + "\n".join(history_lines)
+        # Conversation history is now passed as native multi-turn messages
+        # to llm.chat() / llm.chat_stream() — see respond() and respond_stream().
 
         # Long-term memory recall
         relevant = self.memory.recall(user_message, limit=2)
@@ -227,7 +222,10 @@ class ChatEngine:
         """
         system = self._build_system(user_message, signals, evaluation, vision_context)
         try:
-            response = await self.llm.chat(user_message, system, temperature=0.7)
+            response = await self.llm.chat(
+                user_message, system, temperature=0.7,
+                history=self._conversation[-4:] if self._conversation else None,
+            )
             return response.strip()
         except Exception as e:
             _log.error("LLM response failed: %s", e)
@@ -248,7 +246,10 @@ class ChatEngine:
         """
         system = self._build_system(user_message, signals, evaluation, vision_context)
         try:
-            async for token in self.llm.chat_stream(user_message, system, temperature=0.7):
+            async for token in self.llm.chat_stream(
+                user_message, system, temperature=0.7,
+                history=self._conversation[-4:] if self._conversation else None,
+            ):
                 yield token
         except Exception as e:
             _log.error("LLM stream failed: %s", e)
