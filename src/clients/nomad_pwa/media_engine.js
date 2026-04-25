@@ -7,7 +7,7 @@
 let mediaStream = null;
 let audioContext = null;
 let videoInterval = null;
-const FRAME_RATE = 5; // 5 FPS is enough for situational awareness without melting the LAN
+const FRAME_RATE = 0.33; // ~1 frame every 3 seconds for continuous vision without melting the LAN
 const TARGET_SAMPLE_RATE = 16000;
 
 // ── Bloque 13.2: VAD (Voice Activity Detection) ──────────────────────────────

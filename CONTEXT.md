@@ -31,6 +31,7 @@ GPU containerization complete. Next: break the chatbot paradigm with continuous 
 | V2.47 | GPU Docker Orchestration (NVIDIA + Ollama) | ✅ |
 | V2.48 | LLM Native Multi-turn & Crash Fixes | ✅ |
 | V2.49 | Neural TTS (Voz propia para Ethos con edge-tts) | ✅ |
+| V2.50 | Sensory Expansion — Autonomous vision triggers | ✅ |
 
 
 ## Key files

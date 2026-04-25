@@ -266,6 +266,7 @@ async def websocket_nomad(websocket: WebSocket):
     await engine.start()
     vision = VisionEngine()  # V2.12: stateful per-connection vision processor
     _last_vision: dict | None = None  # V2.13: last vision signals for context injection
+    _last_autonomous_turn: float = 0.0  # V2.50: cooldown for autonomous vision turn
 
     try:
         while True:
@@ -334,6 +335,27 @@ async def websocket_nomad(websocket: WebSocket):
                                 "type": "vision_signals",
                                 "payload": _last_vision,
                             })
+                            
+                            # V2.50: Autonomous turn based on vision
+                            now = time.time()
+                            if (now - _last_autonomous_turn) > 30.0:
+                                if sig.face_present or sig.motion > 0.05:
+                                    _last_autonomous_turn = now
+                                    _log.info("Autonomous vision turn triggered! Face: %s, Motion: %.3f", sig.face_present, sig.motion)
+                                    sys_prompt = "[SYSTEM: Acabas de notar algo a través de la cámara (movimiento o una persona). Inicia tú la conversación. Haz un comentario espontáneo, corto y natural (máx 12 palabras) sobre lo que ves o saluda.]"
+                                    async for event in engine.turn_stream(sys_prompt, vision_context=_last_vision):
+                                        if not await _safe_send(websocket, event):
+                                            return
+                                        if event.get("type") == "done" and not event.get("blocked"):
+                                            lat = event.get("latency", {})
+                                            _last_latency = lat
+                                            _log.info(
+                                                "[TELEMETRY] Autonomous Turn: TTFT %.0fms | Total %.0fms",
+                                                lat.get("ttft", 0),
+                                                lat.get("total", 0),
+                                            )
+                                            await _safe_send_tts(websocket, event)
+
 
                 elif msg_type == "audio_pcm":
                     # V2.11: PCM audio from media_engine.js → Whisper STT → turn_stream()

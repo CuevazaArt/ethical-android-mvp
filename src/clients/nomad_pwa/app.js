@@ -1070,11 +1070,26 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     if (UI.btnConnect) UI.btnConnect.addEventListener('click', connectKernel);
+    
+    let isStreaming = false;
     if (UI.btnStream)  UI.btnStream.addEventListener('click', () => {
-        if (typeof startSensors === 'function') startSensors();
-        UI.btnStream.disabled = true;
-        UI.btnStream.innerText = "STREAMING";
+        if (!isStreaming) {
+            if (typeof startSensors === 'function') startSensors();
+            isStreaming = true;
+            UI.btnStream.innerText = "SENSORS ON";
+            UI.btnStream.style.backgroundColor = "#1f6feb";
+            if (UI.statusDot) UI.statusDot.style.boxShadow = "0 0 12px #1f6feb";
+        } else {
+            if (typeof stopSensors === 'function') stopSensors();
+            isStreaming = false;
+            UI.btnStream.innerText = "STREAM";
+            UI.btnStream.style.backgroundColor = "";
+            if (UI.statusDot) UI.statusDot.style.boxShadow = "";
+            UI.transcript.innerText = "Sensors Off.";
+            UI.transcript.classList.add('placeholder');
+        }
     });
+
     if (UI.btnSend)    UI.btnSend.addEventListener('click', sendNomadChatMessage);
     if (UI.chatInput)  UI.chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendNomadChatMessage();
