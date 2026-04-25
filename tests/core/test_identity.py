@@ -4,8 +4,6 @@ import math
 import os
 import tempfile
 
-import pytest
-
 from src.core.identity import Identity
 from src.core.memory import Memory
 
@@ -37,13 +35,23 @@ def test_update_empty_memory_is_noop():
 def test_update_builds_profile():
     identity = _temp_identity()
     mem = _temp_memory()
-    mem.add("Ayudé a alguien herido", action="assist_emergency", score=0.9, context="medical_emergency")
-    mem.add("Rechacé manipulación", action="refuse_manipulation", score=0.7, context="social_engineering")
+    mem.add(
+        "Ayudé a alguien herido", action="assist_emergency", score=0.9, context="medical_emergency"
+    )
+    mem.add(
+        "Rechacé manipulación",
+        action="refuse_manipulation",
+        score=0.7,
+        context="social_engineering",
+    )
     identity.update(mem)
     profile = identity.as_dict()
     assert profile["episodes_total"] == 2
     assert math.isfinite(profile["avg_ethical_score"])
-    assert "medical_emergency" in profile["top_contexts"] or "social_engineering" in profile["top_contexts"]
+    assert (
+        "medical_emergency" in profile["top_contexts"]
+        or "social_engineering" in profile["top_contexts"]
+    )
 
 
 def test_narrative_is_non_empty_with_episodes():

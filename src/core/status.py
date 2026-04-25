@@ -34,6 +34,7 @@ def _importable(module: str) -> bool:
 
 def _ollama_reachable() -> bool:
     import httpx
+
     try:
         r = httpx.get("http://127.0.0.1:11434/api/tags", timeout=3.0)
         return r.status_code == 200
@@ -44,7 +45,9 @@ def _ollama_reachable() -> bool:
 def _run_tests() -> tuple[bool, str]:
     r = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/core/", "-q", "--tb=no"],
-        capture_output=True, text=True, timeout=30,
+        capture_output=True,
+        text=True,
+        timeout=30,
     )
     last_line = r.stdout.strip().split("\n")[-1] if r.stdout.strip() else "no output"
     return r.returncode == 0, last_line
@@ -69,7 +72,7 @@ def main() -> None:
     # Optional modules
     safety_exists = _importable("src.core.safety")
     if safety_exists:
-        print(f"  ✅ safety")
+        print("  ✅ safety")
 
     # Tests
     print("\nTests:")
@@ -84,10 +87,11 @@ def main() -> None:
     # Memory state
     try:
         from src.core.memory import Memory
+
         mem = Memory()
         print(f"  📝 Memory: {len(mem)} episodes stored")
     except Exception:
-        print(f"  📝 Memory: not initialized")
+        print("  📝 Memory: not initialized")
 
     # Phase assessment
     print("\nPhase assessment:")

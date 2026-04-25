@@ -5,12 +5,12 @@ import math
 
 import cv2
 import numpy as np
-import pytest
-
 from src.core.vision import VisionEngine, VisionSignals
 
 
-def _make_frame_b64(color: tuple[int, int, int] = (128, 128, 128), w: int = 320, h: int = 240) -> str:
+def _make_frame_b64(
+    color: tuple[int, int, int] = (128, 128, 128), w: int = 320, h: int = 240
+) -> str:
     """Generate a synthetic JPEG frame in base64."""
     frame = np.full((h, w, 3), color, dtype=np.uint8)
     _, jpeg = cv2.imencode(".jpg", frame)
@@ -49,7 +49,7 @@ def test_no_motion_on_first_frame():
 
 def test_motion_detected_between_frames():
     engine = VisionEngine()
-    engine.process_b64(_make_frame_b64(color=(50, 50, 50)))   # frame 1
+    engine.process_b64(_make_frame_b64(color=(50, 50, 50)))  # frame 1
     sig = engine.process_b64(_make_frame_b64(color=(200, 200, 200)))  # frame 2 — big diff
     assert sig.motion > 0.0
 
@@ -92,7 +92,14 @@ def test_returns_none_on_empty():
 def test_to_dict_has_required_keys():
     sig = VisionSignals(brightness=0.5, motion=0.1, faces_detected=1, face_present=True)
     d = sig.to_dict()
-    for key in ("brightness", "motion", "faces_detected", "face_present", "low_light", "latency_ms"):
+    for key in (
+        "brightness",
+        "motion",
+        "faces_detected",
+        "face_present",
+        "low_light",
+        "latency_ms",
+    ):
         assert key in d
 
 

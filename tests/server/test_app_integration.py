@@ -10,13 +10,11 @@ from __future__ import annotations
 import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
+from src.server.app import app
 from starlette.testclient import TestClient
 
-from src.server.app import app
-
-
 # ── Shared LLM mock ────────────────────────────────────────────────────────────
+
 
 async def _fake_stream(*args, **kwargs):
     """Async generator yielding one stub token — satisfies chat_stream callers."""
@@ -27,7 +25,11 @@ def _apply_patches():
     patches = [
         patch("src.core.llm.OllamaClient.is_available", new_callable=AsyncMock, return_value=True),
         patch("src.core.llm.OllamaClient.extract_json", new_callable=AsyncMock, return_value={}),
-        patch("src.core.llm.OllamaClient.chat", new_callable=AsyncMock, return_value="Estoy aquí para ayudarte."),
+        patch(
+            "src.core.llm.OllamaClient.chat",
+            new_callable=AsyncMock,
+            return_value="Estoy aquí para ayudarte.",
+        ),
         patch("src.core.llm.OllamaClient.chat_stream", side_effect=_fake_stream),
     ]
     for p in patches:
@@ -54,9 +56,16 @@ def test_api_status_returns_all_fields():
             resp = client.get("/api/status")
         assert resp.status_code == 200
         data = resp.json()
-        for field in ("model", "memory_episodes", "uptime", "status",
-                      "identity_narrative", "identity_profile",
-                      "last_latency_ms", "stt_available"):
+        for field in (
+            "model",
+            "memory_episodes",
+            "uptime",
+            "status",
+            "identity_narrative",
+            "identity_profile",
+            "last_latency_ms",
+            "stt_available",
+        ):
             assert field in data, f"Missing field: {field}"
         assert data["status"] == "online"
     finally:

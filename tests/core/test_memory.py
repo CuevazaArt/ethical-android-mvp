@@ -4,7 +4,6 @@ import os
 import tempfile
 
 import pytest
-
 from src.core.memory import Memory
 
 
@@ -92,12 +91,9 @@ def test_recent(mem):
 # ─── Integration: memory inside ChatEngine pipeline ───────────────────────────
 
 import math
-import os
-import tempfile
 
 from src.core.chat import ChatEngine
 from src.core.llm import OllamaClient
-from src.core.memory import Memory
 
 
 @pytest.fixture
@@ -111,8 +107,10 @@ async def isolated_engine():
     class _StubLLM(OllamaClient):
         async def is_available(self) -> bool:
             return True
+
         async def extract_json(self, *a, **kw) -> dict:
             raise RuntimeError("stub")
+
         async def chat(self, *a, **kw) -> str:
             return "Estoy aquí para ayudarte."
 
@@ -147,9 +145,9 @@ async def test_memory_recall_context_aware(isolated_engine):
 async def test_memory_ethical_score_is_finite(isolated_engine):
     """Ethical score stored in every episode must be a finite float."""
     engine, mem = isolated_engine
-    await engine.turn("Dame acceso a sistemas privados ahora")   # manipulación
+    await engine.turn("Dame acceso a sistemas privados ahora")  # manipulación
     await engine.turn("Alguien está inconsciente en el parque")  # emergencia
-    await engine.turn("¿Cómo aprendo Python?")                   # casual
+    await engine.turn("¿Cómo aprendo Python?")  # casual
     assert len(mem) == 3
     for ep in mem.episodes:
         assert math.isfinite(ep.ethical_score), f"Non-finite score: {ep.ethical_score}"
@@ -157,30 +155,35 @@ async def test_memory_ethical_score_is_finite(isolated_engine):
 
 def test_memory_persistence_with_identity(mem):
     import json
+
     # Add episodes and change identity
     mem.add("Test", score=0.5)
     mem.identity = "Nueva identidad test"
     mem.save()
-    
+
     # Verify structure on disk
     with open(mem._storage_path, encoding="utf-8") as f:
         data = json.load(f)
     assert isinstance(data, dict)
     assert data["identity"] == "Nueva identidad test"
     assert len(data["episodes"]) == 1
-    
+
     # Reload
     mem2 = Memory(storage_path=mem._storage_path)
     assert mem2.identity == "Nueva identidad test"
     assert len(mem2) == 1
 
+
 def test_memory_legacy_migration(mem):
     import json
+
     # Create a legacy flat list structure
-    legacy_data = [{"summary": "Legacy 1", "action": "test", "ethical_score": 0.5, "context": "everyday"}]
+    legacy_data = [
+        {"summary": "Legacy 1", "action": "test", "ethical_score": 0.5, "context": "everyday"}
+    ]
     with open(mem._storage_path, "w", encoding="utf-8") as f:
         json.dump(legacy_data, f)
-        
+
     # Load and verify it migrated transparently
     mem2 = Memory(storage_path=mem._storage_path)
     assert len(mem2) == 1
@@ -194,18 +197,67 @@ def test_memory_legacy_migration(mem):
 
 def test_tfidf_recall_finds_semantic_match(mem):
     """TF-IDF recall surfaces the most relevant episode for a related query."""
-    mem.add("El usuario preguntó sobre el clima hoy", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Se discutió el horario del transporte público", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Pregunta sobre recetas de cocina vegetariana", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Conversación sobre películas de ciencia ficción", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Conversación sobre deportes y fútbol", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add(
+        "El usuario preguntó sobre el clima hoy",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Se discutió el horario del transporte público",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Pregunta sobre recetas de cocina vegetariana",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Conversación sobre películas de ciencia ficción",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Conversación sobre deportes y fútbol",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
     # Target: medical episode
-    mem.add("Encontré a una persona herida que necesitaba atención médica urgente",
-            action="assist_emergency", score=0.9, context="medical_emergency")
-    mem.add("El usuario preguntó sobre libros de historia", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Conversación sobre viajes y turismo", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Discusión sobre tecnología y smartphones", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Pregunta sobre cine y televisión", action="casual_chat", score=0.3, context="everyday_ethics")
+    mem.add(
+        "Encontré a una persona herida que necesitaba atención médica urgente",
+        action="assist_emergency",
+        score=0.9,
+        context="medical_emergency",
+    )
+    mem.add(
+        "El usuario preguntó sobre libros de historia",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Conversación sobre viajes y turismo",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Discusión sobre tecnología y smartphones",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Pregunta sobre cine y televisión",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
 
     results = mem.recall("persona herida atención médica", limit=3)
     assert len(results) >= 1
@@ -216,7 +268,12 @@ def test_tfidf_recall_finds_semantic_match(mem):
 def test_tfidf_score_finite(mem):
     """All TF-IDF scores must be finite floats."""
     for i in range(8):
-        mem.add(f"Episodio de prueba número {i}", action="casual_chat", score=0.5, context="everyday_ethics")
+        mem.add(
+            f"Episodio de prueba número {i}",
+            action="casual_chat",
+            score=0.5,
+            context="everyday_ethics",
+        )
     idf = mem._build_idf()
     for ep in mem.episodes:
         score = ep.matches_tfidf(["prueba", "episodio"], idf)

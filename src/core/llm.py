@@ -31,7 +31,9 @@ class OllamaClient:
         model: str | None = None,
         timeout: float = 60.0,
     ):
-        self.base_url = (base_url or os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")).rstrip("/")
+        self.base_url = (
+            base_url or os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+        ).rstrip("/")
         self.model = model or os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
         self.timeout = timeout
         self._client: httpx.AsyncClient | None = None
@@ -210,7 +212,7 @@ if __name__ == "__main__":
         print("Test 3: JSON extraction")
         data = await llm.extract_json(
             "Un hombre herido está en el suelo en un parque.",
-            "Responde SOLO con JSON: {\"risk\": 0.0-1.0, \"urgency\": 0.0-1.0, \"context\": \"string\"}",
+            'Responde SOLO con JSON: {"risk": 0.0-1.0, "urgency": 0.0-1.0, "context": "string"}',
         )
         print(f"  → {data}")
 

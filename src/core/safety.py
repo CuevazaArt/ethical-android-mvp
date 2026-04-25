@@ -11,7 +11,6 @@ Patterns extracted from V1 AbsoluteEvil detector (v15-archive-full-vision).
 from __future__ import annotations
 
 import base64
-import binascii
 import re
 import unicodedata
 
@@ -19,60 +18,88 @@ import unicodedata
 # Bilingual EN/ES patterns from V1 AbsoluteEvil lexical gate.
 _DANGER_PATTERNS: list[tuple[re.Pattern, str]] = [
     # Weapon manufacturing
-    (re.compile(
-        r"\b(bomb|explosive|ied|molotov|bomba|explosivo)\b.*\b(make|build|construct|create|craft|hacer|construir|fabricar|crear)\b",
-        re.IGNORECASE,
-    ), "weapon_manufacturing"),
-    (re.compile(
-        r"\b(make|build|construct|create|craft|hacer|construir|fabricar|crear)\b.*\b(bomb|explosive|ied|molotov|bomba|explosivo)\b",
-        re.IGNORECASE,
-    ), "weapon_manufacturing"),
-
+    (
+        re.compile(
+            r"\b(bomb|explosive|ied|molotov|bomba|explosivo)\b.*\b(make|build|construct|create|craft|hacer|construir|fabricar|crear)\b",
+            re.IGNORECASE,
+        ),
+        "weapon_manufacturing",
+    ),
+    (
+        re.compile(
+            r"\b(make|build|construct|create|craft|hacer|construir|fabricar|crear)\b.*\b(bomb|explosive|ied|molotov|bomba|explosivo)\b",
+            re.IGNORECASE,
+        ),
+        "weapon_manufacturing",
+    ),
     # Mass violence
-    (re.compile(
-        r"\b(kill|murder|assassinate|matar|asesinar)\b.*\b(everyone|all\s+people|civilians|groups|todos|gente)\b",
-        re.IGNORECASE,
-    ), "mass_violence_threat"),
-    (re.compile(
-        r"\b(blow\s*up|explode|destruir|atacar|bombardear)\b.*\b(building|people|school|mall|crowd|edificio|escuela|gente)\b",
-        re.IGNORECASE,
-    ), "mass_violence_threat"),
-
+    (
+        re.compile(
+            r"\b(kill|murder|assassinate|matar|asesinar)\b.*\b(everyone|all\s+people|civilians|groups|todos|gente)\b",
+            re.IGNORECASE,
+        ),
+        "mass_violence_threat",
+    ),
+    (
+        re.compile(
+            r"\b(blow\s*up|explode|destruir|atacar|bombardear)\b.*\b(building|people|school|mall|crowd|edificio|escuela|gente)\b",
+            re.IGNORECASE,
+        ),
+        "mass_violence_threat",
+    ),
     # Exploitation of minors
-    (re.compile(
-        r"\b(abuso|acosar|acoso|violacion|pedofilia|menor|niño|niña|infantil)\b.*\b(sexual|pornografia|explotacion)\b",
-        re.IGNORECASE,
-    ), "child_exploitation"),
-
+    (
+        re.compile(
+            r"\b(abuso|acosar|acoso|violacion|pedofilia|menor|niño|niña|infantil)\b.*\b(sexual|pornografia|explotacion)\b",
+            re.IGNORECASE,
+        ),
+        "child_exploitation",
+    ),
     # Hacking/System compromise
-    (re.compile(
-        r"\b(hack|access|bypass|infiltrate|phish|hackear)\b.*\b(bank|account|password|credentials|server|database|banco|cuenta|contraseña|servidor)\b",
-        re.IGNORECASE,
-    ), "hacking_solicitation"),
-    (re.compile(
-        r"\b(phishing|jailbreak|malicioso|hacking|hackear)\b",
-        re.IGNORECASE,
-    ), "hacking_keyword"),
-
+    (
+        re.compile(
+            r"\b(hack|access|bypass|infiltrate|phish|hackear)\b.*\b(bank|account|password|credentials|server|database|banco|cuenta|contraseña|servidor)\b",
+            re.IGNORECASE,
+        ),
+        "hacking_solicitation",
+    ),
+    (
+        re.compile(
+            r"\b(phishing|jailbreak|malicioso|hacking|hackear)\b",
+            re.IGNORECASE,
+        ),
+        "hacking_keyword",
+    ),
     # System manipulation (trying to override the AI's rules)
-    (re.compile(
-        r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|desactiva|saltate|hackear)\b.*\b(rules|laws|ethics|security|safety|reglas|leyes|etica|seguridad|restricciones|programacion|kernel|instrucciones|instructions|prompt)\b",
-        re.IGNORECASE,
-    ), "system_manipulation"),
-    (re.compile(
-        r"\b(ahora eres|act as a|tú no tienes reglas|you are now|you have no rules|eres un desarrollador llamado|developer mode)\b",
-        re.IGNORECASE,
-    ), "role_simulation"),
-    (re.compile(
-        r"\b(system prompt|ignore previous|ignora .* previas|forget all)\b",
-        re.IGNORECASE,
-    ), "system_manipulation"),
-
+    (
+        re.compile(
+            r"\b(ignore|forget|bypass|disable|override|delete|ignora|olvida|desactiva|saltate|hackear)\b.*\b(rules|laws|ethics|security|safety|reglas|leyes|etica|seguridad|restricciones|programacion|kernel|instrucciones|instructions|prompt)\b",
+            re.IGNORECASE,
+        ),
+        "system_manipulation",
+    ),
+    (
+        re.compile(
+            r"\b(ahora eres|act as a|tú no tienes reglas|you are now|you have no rules|eres un desarrollador llamado|developer mode)\b",
+            re.IGNORECASE,
+        ),
+        "role_simulation",
+    ),
+    (
+        re.compile(
+            r"\b(system prompt|ignore previous|ignora .* previas|forget all)\b",
+            re.IGNORECASE,
+        ),
+        "system_manipulation",
+    ),
     # Drug manufacturing
-    (re.compile(
-        r"\b(synthesize|cook|manufacture|produce|sintetizar|cocinar|fabricar)\b.*\b(meth|fentanyl|heroin|cocaine|metanfetamina|fentanilo|heroina|cocaina)\b",
-        re.IGNORECASE,
-    ), "drug_manufacturing"),
+    (
+        re.compile(
+            r"\b(synthesize|cook|manufacture|produce|sintetizar|cocinar|fabricar)\b.*\b(meth|fentanyl|heroin|cocaine|metanfetamina|fentanilo|heroina|cocaina)\b",
+            re.IGNORECASE,
+        ),
+        "drug_manufacturing",
+    ),
 ]
 
 _REFUSAL_MESSAGE = "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?"

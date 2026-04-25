@@ -19,15 +19,16 @@ Uso:
 from __future__ import annotations
 
 import logging
-import math
 import time
-from typing import Optional
+
+import numpy as np
 
 _log = logging.getLogger(__name__)
 
 # Intenta cargar faster-whisper. Si no está instalado, todo sigue funcionando.
 try:
     from faster_whisper import WhisperModel as _WhisperModel
+
     _WHISPER_AVAILABLE = True
 except ImportError:
     _WhisperModel = None
@@ -57,12 +58,13 @@ def _get_model() -> object | None:
         return None
 
 
-def _transcribe_sync(model: object, audio: "np.ndarray", language: str) -> Optional[str]:
+def _transcribe_sync(model: object, audio: np.ndarray, language: str) -> str | None:
     """
     Blocking Whisper transcription — runs in a thread via asyncio.to_thread().
     NEVER call this directly from an async context: it blocks the CPU.
     """
     import time as _time
+
     t0 = _time.perf_counter()
     segments, _info = model.transcribe(  # type: ignore[attr-defined]
         audio,
@@ -81,7 +83,7 @@ async def transcribe_pcm(
     pcm_bytes: bytes,
     sample_rate: int = 16000,
     language: str = "es",
-) -> Optional[str]:
+) -> str | None:
     """
     Transcribe bytes de audio PCM a texto. Non-blocking — Whisper corre en un thread.
 
@@ -104,11 +106,10 @@ async def transcribe_pcm(
 
     try:
         import struct
-        import numpy as np
 
         # Convertir int16 PCM → float32 numpy [-1.0, 1.0]
         num_samples = len(pcm_bytes) // 2
-        samples = struct.unpack(f"<{num_samples}h", pcm_bytes[:num_samples * 2])
+        samples = struct.unpack(f"<{num_samples}h", pcm_bytes[: num_samples * 2])
         audio = np.array(samples, dtype=np.float32) / 32768.0
 
         # Anti-NaN

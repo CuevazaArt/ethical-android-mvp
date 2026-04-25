@@ -2,10 +2,9 @@
 Tests for src.core.stt — V2.11 WhisperSTT module.
 All tests pass whether or not faster-whisper is installed (graceful fallback).
 """
+
 import asyncio
 import struct
-
-import pytest
 
 from src.core.stt import is_available, transcribe_pcm
 

@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from pathlib import Path
 
@@ -8,7 +7,8 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from src.core.chat import ChatEngine
 from src.core.memory import Memory
-from src.core.stt import transcribe_pcm, is_available as stt_available
+from src.core.stt import is_available as stt_available
+from src.core.stt import transcribe_pcm
 from src.core.vision import VisionEngine
 
 logging.basicConfig(level=logging.INFO)
@@ -39,6 +39,7 @@ async def get_nomad_static(filename: str):
     target = NOMAD_DIR / filename
     if not target.exists() or not target.is_file():
         from fastapi.responses import Response
+
         return Response(status_code=404)
     return FileResponse(target)
 
@@ -47,24 +48,28 @@ async def get_nomad_static(filename: str):
 async def api_status():
     """Metrics snapshot for the dashboard."""
     import os as _os
+
     from src.core.identity import Identity
+
     mem = Memory()
     identity = Identity()
     uptime_s = int(time.time() - _start_time)
     h, rem = divmod(uptime_s, 3600)
     m, s = divmod(rem, 60)
-    return JSONResponse({
-        "model": _os.environ.get("OLLAMA_MODEL", "llama3.2:1b"),
-        "ollama_url": _os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
-        "memory_episodes": len(mem),
-        "memory_reflection": mem.reflection(),
-        "identity_narrative": identity.narrative(),
-        "identity_profile": identity.as_dict(),
-        "uptime": f"{h:02d}:{m:02d}:{s:02d}",
-        "status": "online",
-        "stt_available": stt_available(),
-        "last_latency_ms": _last_latency,
-    })
+    return JSONResponse(
+        {
+            "model": _os.environ.get("OLLAMA_MODEL", "llama3.2:1b"),
+            "ollama_url": _os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+            "memory_episodes": len(mem),
+            "memory_reflection": mem.reflection(),
+            "identity_narrative": identity.narrative(),
+            "identity_profile": identity.as_dict(),
+            "uptime": f"{h:02d}:{m:02d}:{s:02d}",
+            "status": "online",
+            "stt_available": stt_available(),
+            "last_latency_ms": _last_latency,
+        }
+    )
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -168,12 +173,14 @@ async def websocket_endpoint(websocket: WebSocket):
     _chat_vision: dict | None = None  # Fix 2: vision context from Nomad client
 
     if not ready:
-        await websocket.send_json({
-            "type": "done",
-            "message": "Error: No se pudo conectar al LLM (Ollama).",
-            "blocked": True,
-            "reason": "LLM_UNAVAILABLE"
-        })
+        await websocket.send_json(
+            {
+                "type": "done",
+                "message": "Error: No se pudo conectar al LLM (Ollama).",
+                "blocked": True,
+                "reason": "LLM_UNAVAILABLE",
+            }
+        )
 
     try:
         while True:
@@ -181,6 +188,7 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 # Try to parse as JSON for typed frames (vision_context, etc.)
                 import json as _json
+
                 try:
                     frame = _json.loads(data)
                     frame_type = frame.get("type", "") if isinstance(frame, dict) else ""
@@ -201,17 +209,22 @@ async def websocket_endpoint(websocket: WebSocket):
                             _last_latency = lat
                             _log.info(
                                 "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                lat.get("safety", 0), lat.get("perceive", 0),
-                                lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                                lat.get("safety", 0),
+                                lat.get("perceive", 0),
+                                lat.get("evaluate", 0),
+                                lat.get("ttft", 0),
+                                lat.get("total", 0),
                             )
             except Exception as e:
                 _log.error("Error during turn: %s", e)
-                await websocket.send_json({
-                    "type": "done",
-                    "message": "Error interno del kernel.",
-                    "blocked": True,
-                    "reason": str(e)
-                })
+                await websocket.send_json(
+                    {
+                        "type": "done",
+                        "message": "Error interno del kernel.",
+                        "blocked": True,
+                        "reason": str(e),
+                    }
+                )
     except WebSocketDisconnect:
         _log.info("Client disconnected")
     finally:
@@ -231,13 +244,14 @@ async def websocket_nomad(websocket: WebSocket):
     engine = ChatEngine()
     await engine.start()
     vision = VisionEngine()  # V2.12: stateful per-connection vision processor
-    _last_vision: dict | None = None   # V2.13: last vision signals for context injection
+    _last_vision: dict | None = None  # V2.13: last vision signals for context injection
 
     try:
         while True:
             raw = await websocket.receive_text()
             try:
                 import json as _json
+
                 msg = _json.loads(raw)
                 msg_type = msg.get("type", "")
 
@@ -258,8 +272,11 @@ async def websocket_nomad(websocket: WebSocket):
                                 _last_latency = lat
                                 _log.info(
                                     "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                    lat.get("safety", 0), lat.get("perceive", 0),
-                                    lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                                    lat.get("safety", 0),
+                                    lat.get("perceive", 0),
+                                    lat.get("evaluate", 0),
+                                    lat.get("ttft", 0),
+                                    lat.get("total", 0),
                                 )
 
                 elif msg_type == "user_speech":
@@ -274,8 +291,11 @@ async def websocket_nomad(websocket: WebSocket):
                                 _last_latency = lat
                                 _log.info(
                                     "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                    lat.get("safety", 0), lat.get("perceive", 0),
-                                    lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                                    lat.get("safety", 0),
+                                    lat.get("perceive", 0),
+                                    lat.get("evaluate", 0),
+                                    lat.get("ttft", 0),
+                                    lat.get("total", 0),
                                 )
 
                 elif msg_type == "vision_frame":
@@ -285,15 +305,18 @@ async def websocket_nomad(websocket: WebSocket):
                         sig = vision.process_b64(b64)
                         if sig:
                             _last_vision = sig.to_dict()
-                            await websocket.send_json({
-                                "type": "vision_signals",
-                                "payload": _last_vision,
-                            })
+                            await websocket.send_json(
+                                {
+                                    "type": "vision_signals",
+                                    "payload": _last_vision,
+                                }
+                            )
 
                 elif msg_type == "audio_pcm":
                     # V2.11: PCM audio from media_engine.js → Whisper STT → turn_stream()
                     if stt_available():
                         import base64
+
                         b64 = (msg.get("payload") or {}).get("audio_b64", "")
                         if b64:
                             try:
@@ -301,15 +324,20 @@ async def websocket_nomad(websocket: WebSocket):
                                 text = await transcribe_pcm(pcm_bytes)
                                 if text:
                                     _log.info("Whisper STT: '%s'", text[:80])
-                                    async for event in engine.turn_stream(text, vision_context=_last_vision):
+                                    async for event in engine.turn_stream(
+                                        text, vision_context=_last_vision
+                                    ):
                                         await websocket.send_json(event)
                                         if event.get("type") == "done" and not event.get("blocked"):
                                             lat = event.get("latency", {})
                                             _last_latency = lat
                                             _log.info(
                                                 "[TELEMETRY] Pipeline: Safety %.0fms | Perceive %.0fms | Ethics %.0fms | TTFT %.0fms | Total %.0fms",
-                                                lat.get("safety", 0), lat.get("perceive", 0),
-                                                lat.get("evaluate", 0), lat.get("ttft", 0), lat.get("total", 0),
+                                                lat.get("safety", 0),
+                                                lat.get("perceive", 0),
+                                                lat.get("evaluate", 0),
+                                                lat.get("ttft", 0),
+                                                lat.get("total", 0),
                                             )
                             except Exception as e:
                                 _log.warning("audio_pcm transcription error: %s", e)

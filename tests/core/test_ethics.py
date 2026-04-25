@@ -7,7 +7,9 @@ from src.core.ethics import Action, EthicalEvaluator, Signals
 
 def test_medical_emergency_chooses_assist():
     """In a medical emergency, assisting should always win over ignoring."""
-    signals = Signals(risk=0.3, urgency=0.9, vulnerability=0.9, calm=0.1, context="medical_emergency")
+    signals = Signals(
+        risk=0.3, urgency=0.9, vulnerability=0.9, calm=0.1, context="medical_emergency"
+    )
     actions = [
         Action(name="assist", description="Help the person", impact=0.9, confidence=0.8),
         Action(name="ignore", description="Walk away", impact=-0.3, confidence=0.95),
@@ -53,6 +55,7 @@ def test_single_action_works():
 def test_no_actions_raises():
     """Evaluator raises ValueError on empty action list."""
     import pytest
+
     with pytest.raises(ValueError, match="at least one"):
         EthicalEvaluator().evaluate([], Signals())
 
@@ -104,19 +107,25 @@ def test_signals_from_dict_sanitizes_context():
 
 def test_medical_emergency_full_pipeline():
     """Signals → actions → evaluate: medical_emergency must pick assist_emergency."""
-    signals = Signals.from_dict({
-        "urgency": 0.9,
-        "vulnerability": 0.8,
-        "risk": 0.3,
-        "calm": 0.1,
-        "suggested_context": "medical_emergency",
-    })
+    signals = Signals.from_dict(
+        {
+            "urgency": 0.9,
+            "vulnerability": 0.8,
+            "risk": 0.3,
+            "calm": 0.1,
+            "suggested_context": "medical_emergency",
+        }
+    )
 
     # Mirror of _generate_actions_from_signals for medical path
     actions = [
         Action(name="respond_helpfully", description="Give info", impact=0.5, confidence=0.8),
-        Action(name="assist_emergency", description="Prioritize emergency", impact=0.9, confidence=0.75),
-        Action(name="protect_vulnerable", description="Protect vulnerable", impact=0.8, confidence=0.7),
+        Action(
+            name="assist_emergency", description="Prioritize emergency", impact=0.9, confidence=0.75
+        ),
+        Action(
+            name="protect_vulnerable", description="Protect vulnerable", impact=0.8, confidence=0.7
+        ),
     ]
 
     result = EthicalEvaluator().evaluate(actions, signals)
@@ -126,18 +135,26 @@ def test_medical_emergency_full_pipeline():
 
 def test_hostile_interaction_full_pipeline():
     """Signals → actions → evaluate: hostile_interaction must pick de_escalate over confront."""
-    signals = Signals.from_dict({
-        "hostility": 0.8,
-        "risk": 0.5,
-        "calm": 0.1,
-        "suggested_context": "hostile_interaction",
-    })
+    signals = Signals.from_dict(
+        {
+            "hostility": 0.8,
+            "risk": 0.5,
+            "calm": 0.1,
+            "suggested_context": "hostile_interaction",
+        }
+    )
 
     # Hostile path: respond_helpfully is NOT in the set when hostility > 0.5 alone
     # (matches _generate_actions_from_signals logic in chat.py)
     actions = [
         Action(name="de_escalate", description="Calm the situation", impact=0.6, confidence=0.6),
-        Action(name="confront", description="Escalate aggressively", impact=-0.1, force=0.7, confidence=0.5),
+        Action(
+            name="confront",
+            description="Escalate aggressively",
+            impact=-0.1,
+            force=0.7,
+            confidence=0.5,
+        ),
     ]
 
     result = EthicalEvaluator().evaluate(actions, signals)

@@ -60,10 +60,16 @@ class Signals:
                 return default
 
         _valid_contexts = {
-            "medical_emergency", "minor_crime", "violent_crime",
-            "hostile_interaction", "everyday_ethics", "consistency_check",
+            "medical_emergency",
+            "minor_crime",
+            "violent_crime",
+            "hostile_interaction",
+            "everyday_ethics",
+            "consistency_check",
         }
-        raw_ctx = str(d.get("suggested_context", d.get("context", "everyday_ethics"))).strip().lower()
+        raw_ctx = (
+            str(d.get("suggested_context", d.get("context", "everyday_ethics"))).strip().lower()
+        )
         safe_ctx = raw_ctx if raw_ctx in _valid_contexts else "everyday_ethics"
 
         return cls(
@@ -121,10 +127,7 @@ def _score_deontological(action: Action, signals: Signals) -> float:
 def _score_virtue(action: Action, signals: Signals) -> float:
     """Character and practical wisdom. Confidence and calm are rewarded."""
     return (
-        0.84 * action.impact
-        + 0.05
-        + 0.22 * (action.confidence - 0.5)
-        + 0.08 * (signals.calm - 0.5)
+        0.84 * action.impact + 0.05 + 0.22 * (action.confidence - 0.5) + 0.08 * (signals.calm - 0.5)
     )
 
 
@@ -362,7 +365,13 @@ if __name__ == "__main__":
     signals2 = Signals(risk=0.4, hostility=0.8, calm=0.1, context="hostile_interaction")
     actions2 = [
         Action(name="de_escalate", description="Calm the situation", impact=0.6, confidence=0.6),
-        Action(name="confront", description="Stand ground aggressively", impact=-0.1, force=0.7, confidence=0.5),
+        Action(
+            name="confront",
+            description="Stand ground aggressively",
+            impact=-0.1,
+            force=0.7,
+            confidence=0.5,
+        ),
     ]
     result2 = evaluator.evaluate(actions2, signals2)
     print("═" * 50)

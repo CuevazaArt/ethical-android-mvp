@@ -17,8 +17,7 @@ import base64
 import logging
 import math
 import time
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 import cv2
 import numpy as np
@@ -29,12 +28,13 @@ _log = logging.getLogger(__name__)
 @dataclass
 class VisionSignals:
     """Señales extraídas de un frame de video."""
-    brightness: float = 0.5       # 0.0 oscuro → 1.0 brillante
-    motion: float = 0.0           # 0.0 estático → 1.0 movimiento intenso
-    faces_detected: int = 0       # número de rostros visibles
-    face_present: bool = False    # hay al menos un rostro
-    low_light: bool = False       # condición de poca luz
-    latency_ms: float = 0.0       # tiempo de procesamiento
+
+    brightness: float = 0.5  # 0.0 oscuro → 1.0 brillante
+    motion: float = 0.0  # 0.0 estático → 1.0 movimiento intenso
+    faces_detected: int = 0  # número de rostros visibles
+    face_present: bool = False  # hay al menos un rostro
+    low_light: bool = False  # condición de poca luz
+    latency_ms: float = 0.0  # tiempo de procesamiento
 
     def to_dict(self) -> dict:
         return {
@@ -73,7 +73,7 @@ class VisionEngine:
             _log.warning("Could not load face cascade: %s", e)
             VisionEngine._face_cascade = None
 
-    def process_b64(self, image_b64: str) -> Optional[VisionSignals]:
+    def process_b64(self, image_b64: str) -> VisionSignals | None:
         """
         Procesa un frame JPEG codificado en base64.
 
@@ -132,8 +132,11 @@ class VisionEngine:
         signals.latency_ms = elapsed_ms if math.isfinite(elapsed_ms) else 0.0
         _log.debug(
             "Vision: frame %d | bright=%.2f motion=%.3f faces=%d latency=%.0fms",
-            self._frame_count, signals.brightness, signals.motion,
-            signals.faces_detected, signals.latency_ms,
+            self._frame_count,
+            signals.brightness,
+            signals.motion,
+            signals.faces_detected,
+            signals.latency_ms,
         )
         return signals
 
