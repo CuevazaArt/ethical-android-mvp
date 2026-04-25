@@ -147,8 +147,13 @@ async function startSensors() {
         audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: TARGET_SAMPLE_RATE });
         const source = audioContext.createMediaStreamSource(mediaStream);
         const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        // V2.60: Mute output — ScriptProcessor needs a connected destination to fire,
+        // but we do NOT want mic audio playing through the speaker (that was the pulse bug).
+        const muteNode = audioContext.createGain();
+        muteNode.gain.value = 0;
         source.connect(processor);
-        processor.connect(audioContext.destination);
+        processor.connect(muteNode);
+        muteNode.connect(audioContext.destination);
 
         processor.onaudioprocess = (e) => {
             const inputData = e.inputBuffer.getChannelData(0);
