@@ -109,3 +109,6 @@ simulations/reports/*.md
 
 cert.pem
 key.pem
+
+scratch_frames/
+*.mp4
