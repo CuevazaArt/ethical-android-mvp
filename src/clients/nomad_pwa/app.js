@@ -1015,6 +1015,17 @@ async function connectKernel() {
                     }
                 }
 
+                // ── V2.60: Autonomous pulse — silent visual indicator only ────
+                if (msg.type === 'autonomous_pulse') {
+                    const dot = document.getElementById('ethical-heartbeat');
+                    if (dot) {
+                        dot.classList.add('pulsing');
+                        dot.title = msg.description || 'Sensing...';
+                        setTimeout(() => dot.classList.remove('pulsing'), 2000);
+                    }
+                    return;
+                }
+
                 // ── Server-pushed telemetry updates (HUD spans) ──────────────
                 if (msg.type === 'telemetry' && msg.payload) {
                     const p = msg.payload;

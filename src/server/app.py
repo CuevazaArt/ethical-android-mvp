@@ -309,24 +309,24 @@ async def websocket_nomad(websocket: WebSocket):
     _consolidation_running = True
 
     async def _consolidation_loop() -> None:
-        """V2.60: Background loop for vision-only autonomous observations (no TTS)."""
+        """V2.60: Background loop — silent visual pulse only, no LLM, no TTS."""
         nonlocal _last_vision, _last_user_interaction
         while _consolidation_running:
             await asyncio.sleep(2.5)
-            # Suppress autonomous turns during active conversation (60s cooldown)
+            # Suppress during active conversation (60s cooldown)
             if (time.time() - _last_user_interaction) < 60.0:
-                sensory_buffer.get_fused_context(flush=True)  # Discard silently
+                sensory_buffer.get_fused_context(flush=True)
                 continue
             if sensory_buffer.has_audio:
                 continue
             fused = sensory_buffer.get_fused_context(flush=True)
             if fused:
-                prompt = f"[SYSTEM: Observación autónoma de sensores — {fused} Haz un comentario espontáneo, corto y natural (máx 12 palabras) sobre lo que percibes.]"
                 _log.info("[FUSION/AUTO] %s", fused[:120])
-                await _run_turn_and_send(
-                    engine, websocket, prompt, _last_vision,
-                    label="Autonomous", skip_tts=True,
-                )
+                # V2.60: Only send a lightweight pulse — NO LLM, NO TTS
+                await _safe_send(websocket, {
+                    "type": "autonomous_pulse",
+                    "description": fused[:200],
+                })
 
     consolidation_task = asyncio.create_task(_consolidation_loop())
 
