@@ -12,13 +12,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+
 class MainActivity : ComponentActivity() {
+    private val RECORD_AUDIO_REQUEST_CODE = 1001
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Start the Nomad Service (Foreground)
-        val serviceIntent = Intent(this, NomadService::class.java)
-        startService(serviceIntent) // Should be startForegroundService in prod
+        checkPermissionsAndStartService()
 
         setContent {
             MaterialTheme {
@@ -30,6 +35,30 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun checkPermissionsAndStartService() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                RECORD_AUDIO_REQUEST_CODE
+            )
+        } else {
+            startNomadService()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == RECORD_AUDIO_REQUEST_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startNomadService()
+        }
+    }
+
+    private fun startNomadService() {
+        val serviceIntent = Intent(this, NomadService::class.java)
+        startService(serviceIntent) // Use startForegroundService in prod
     }
 }
 
