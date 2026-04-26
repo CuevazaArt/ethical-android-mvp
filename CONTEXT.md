@@ -18,12 +18,16 @@
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
-- **V2.79: PARASITE SDK & MESH DISCOVERY**
-  - Implementar descubrimiento P2P (WiFi Direct / Bluetooth / WebRTC).
-  - Profiling de capacidades del nodo (CPU, RAM, Batería).
-  - Runtime de inferencia local (GGUF/NNAPI) integrado en el Daemon.
+- **V2.80: MESH COLONIZATION & HYBRID COGNITION** - IN PROGRESS
+  - Done: `mesh_protocol_v1.md`, `CognitiveInterfaces.kt`, `AudioStreamer.kt`, `mesh_listener.py`, `mesh_models.py`, `test_mesh_models.py`.
+  - Pending: `NodeProfiler.kt` (Android hardware telemetry), integration testing.
 
 ## Bloques Recientes
+- **V2.79: PARASITE SDK & MESH DISCOVERY** - CLOSED ✅
+  - Files: `LICENSING_STRATEGY.md`, `TRADEMARK.md`, `.github/FUNDING.yml`, `LICENSE_BSL`, `AGENTS.md`.
+  - Established Hybrid Licensing (Apache 2.0 Kernel + BSL 1.1 SDK).
+  - Tests: 203/203.
+
 - **V2.78: NATIVE ANDROID CORE SETUP** - CLOSED ✅
   - Inicializado proyecto Gradle / Jetpack Compose.
   - Configurados permisos (`RECORD_AUDIO`, `INTERNET`, `FOREGROUND_SERVICE`).
@@ -48,7 +52,7 @@
   - Fix: `web_context` siempre inicializado (bug de variable no declarada).
   - STM ahora guarda `user_message + [dato obtenido vía Plugin: ...]` para continuidad.
   - `plugin_used` expuesto en evento `done` + badge 🔌 verde en UI.
-  - **199/199 pasando.**
+  - **203/203 pasando.**
 - **V2.73: WEB SEARCH PLUGIN + WEATHER** - CLOSED ✅
   - `WeatherPlugin` (wttr.in), `WebPlugin` (DuckDuckGo), detección determinista.
   - Inyección en mensaje de usuario (no en system prompt) para superar RLHF bias.
