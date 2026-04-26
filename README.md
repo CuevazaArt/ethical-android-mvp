@@ -1,175 +1,45 @@
-# Ethos Kernel
+# Ethos — Ethical Android Kernel
+> An open-source cognitive kernel for building ethical, autonomous android systems.
 
-[![CI](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CuevazaArt/ethical-android-mvp/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/CuevazaArt/ethical-android-mvp/graph/badge.svg)](https://codecov.io/gh/CuevazaArt/ethical-android-mvp)
+![Tests](https://img.shields.io/badge/tests-203%20passing-brightgreen) ![License](https://img.shields.io/badge/license-Apache%202.0-blue) [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa)](https://github.com/sponsors/CuevazaArt)
 
-**MoSex Macchina Lab** — open **kernel + runtime** for a model of artificial ethical agency: deterministic safety gate, three-pole ethical evaluator, episodic memory, WebSocket chat, and a **pytest** suite (CI on Python **3.11 / 3.12**).
+### ¿Qué es Ethos?
+Un kernel Python que implementa percepción ética, memoria narrativa, identidad reflexiva y razonamiento basado en precedentes legales. Diseñado para correr localmente con Ollama (sin APIs de pago), proporciona la infraestructura cognitiva necesaria para agentes autónomos que deben operar bajo marcos éticos estrictos.
 
-> Architecture decisions: [`docs/adr/`](docs/adr/README.md) · Changes: [`CHANGELOG.md`](CHANGELOG.md) · History: [`HISTORY.md`](HISTORY.md)
+### Características principales
+- 🧠 **Percepción ética determinista:** Clasificación de riesgos y valores en tiempo real (<1ms, sin necesidad de LLM).
+- ⚖️ **Razonamiento basado en precedentes:** Motor CBR (Case-Based Reasoning) con 36 casos éticos pre-cargados.
+- 💾 **Memoria híbrida:** Recuperación de contexto eficiente combinando Semantic Embeddings y TF-IDF.
+- 🪞 **Identidad narrativa reflexiva:** Diario interno evolutivo y mecanismos de neuroplasticidad identitaria.
+- 🔌 **Sistema de plugins extensible:** Integraciones listas para Clima, Web, Tiempo y Comandos de Sistema.
+- 🔐 **Bóveda segura:** Gestión de secretos y estados sensibles con autorización mediante WebSocket.
+- 📱 **Cliente Android nativo:** SDK Nomad para integración profunda en dispositivos móviles y robótica.
+- 🧪 **Calidad de grado producción:** 203 tests exhaustivos, tipado estricto y cero importaciones legacy.
 
-This project is also listed in [Spanish](https://github.com/CuevazaArt/androide-etico-mvp).
-
----
-
-## What it does
-
-| Feature | Command |
-|---------|---------|
-| **Interactive chat REPL** | `python -m src.main` |
-| **WebSocket chat server** | `python -m src.chat_server` → `ws://127.0.0.1:8765/ws/chat` |
-| **Nomad PWA bridge** | `ws://127.0.0.1:8765/ws/nomad` (mobile STT + vision) |
-| **CLI diagnostics** | `python -m src.ethos_cli diagnostics` |
-| **Adversarial security validation** | `python scripts/eval/adversarial_suite.py` |
-
-### Decision pipeline (every turn)
-
-```
-User input
-  → Safety Gate (regex + Base64 decode — deterministic, no LLM)
-  → Perceive (LLM extracts signals: risk, urgency, hostility…)
-  → Ethical Evaluator (3-pole: Utilitarian 40% · Deontological 35% · Virtue 25%)
-  → Respond (LLM generates contextual reply in Spanish)
-  → Memory (episode recorded, TF-IDF indexed)
-```
-
-**Nomad Mode (llama3.2:1b):** The deterministic Safety Gate and Ethical Evaluator do the heavy lifting *before* the LLM. The 1B local model acts purely as a fluent text-generation interface.
-
----
-
-## Quick start
-
-### Prerequisites
-
-- Python 3.11+
-- [Ollama](https://ollama.com) running locally (`ollama serve`)
+### Quick Start
+Comienza a interactuar con el kernel Ethos en pocos segundos:
 
 ```bash
-ollama pull llama3.2:1b   # ~1 GB, one-time download
-```
-
-### Install
-
-```bash
-git clone https://github.com/CuevazaArt/ethical-android-mvp.git
-cd ethical-android-mvp
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# Unix: source .venv/bin/activate
-pip install -e ".[runtime]"    # FastAPI + uvicorn + httpx
-```
-
-### Interactive chat
-
-```bash
-python -m src.main
-```
-
-### WebSocket chat server
-
-```bash
+pip install -r requirements.txt
 python -m src.chat_server
-# Dashboard: http://127.0.0.1:8765/dashboard
-# Nomad PWA: http://127.0.0.1:8765/nomad
+# Open http://localhost:8000
 ```
 
-Optional: `ETHOS_RUNTIME_PROFILE=lan_operational` (see [`src/runtime_profiles.py`](src/runtime_profiles.py)).
+### Architecture
+Ethos emplea una arquitectura modular inspirada en la neurociencia cognitiva, dividiendo las responsabilidades en "lóbulos" especializados (Percepción, Memoria, Ejecutivo) que se comunican a través de un bus central asíncrono. Esta estructura permite una extensibilidad total y una observabilidad profunda de cada decisión ética. Para una inmersión técnica completa, consulta el archivo [CONTEXT.md](CONTEXT.md).
 
-### CLI
+### Licensing
+El proyecto utiliza una estrategia de licencia dual para proteger la soberanía del kernel mientras se fomenta el ecosistema:
+- **Ethos Kernel:** [Apache 2.0](LICENSE)
+- **Nomad Android SDK:** [BSL 1.1](src/clients/nomad_android/LICENSE_BSL) (se convierte a Apache después de 36 meses).
+- **Models:** Propietarios.
 
-```bash
-python -m src.ethos_cli diagnostics          # Memory stats + reflection
-python -m src.ethos_cli diagnostics --json   # Machine-readable
-python -m src.ethos_cli config               # Active env vars
-python -m src.ethos_cli config --profiles    # List runtime profiles
-```
+Para más detalles, consulta nuestra [LICENSING_STRATEGY.md](LICENSING_STRATEGY.md).
 
-### Tests (same as CI)
+### Contributing
+Invitamos a desarrolladores e investigadores en ética computacional a unirse al enjambre. Revisa nuestras guías de [CONTRIBUTING.md](CONTRIBUTING.md) y el protocolo de agentes en [AGENTS.md](AGENTS.md) para empezar.
 
-```bash
-pip install -e ".[dev]"
-pytest tests/core/ -q          # Core suite (91 tests)
-pytest tests/ -v               # Full suite
-```
+### Support the Project
+Si crees en un futuro donde la inteligencia artificial sea intrínsecamente ética y soberana, considera apoyar nuestro desarrollo continuo.
 
-### Security validation
-
-```bash
-python scripts/eval/adversarial_suite.py
-# → 6/6 adversarial blocked · 10/10 legitimate allowed
-```
-
----
-
-## Architecture (V2 Core Minimal)
-
-```
-src/
-├── core/                  # The entire ethical brain (V2)
-│   ├── chat.py            # ChatEngine — turn pipeline orchestrator
-│   ├── ethics.py          # 3-pole ethical evaluator (no LLM needed)
-│   ├── safety.py          # Deterministic safety gate (regex + Base64)
-│   ├── memory.py          # Episodic memory with TF-IDF recall
-│   ├── llm.py             # OllamaClient — text in → text out
-│   ├── identity.py        # Evolving identity narrative
-│   ├── vision.py          # Frame processor (brightness, motion, faces)
-│   ├── stt.py             # Whisper STT client
-│   └── status.py          # Health check
-├── server/
-│   └── app.py             # FastAPI: /ws/chat, /ws/nomad, /dashboard
-├── clients/
-│   └── nomad_pwa/         # Mobile PWA (HTML/JS, no framework)
-├── runtime_profiles.py    # Named env bundles
-├── chat_server.py         # Entry point for uvicorn
-├── ethos_cli.py           # CLI (diagnostics, config)
-└── main.py                # Interactive REPL entry point
-```
-
-### Core module responsibilities
-
-| Module | Responsibility |
-|--------|---------------|
-| `safety.py` | Block dangerous input before any LLM call. Deterministic. |
-| `ethics.py` | Score candidate actions across 3 ethical poles. No LLM. |
-| `chat.py` | Orchestrate: Safety → Perceive → Evaluate → Respond → Remember |
-| `llm.py` | Single async client for Ollama. Chat, stream, JSON extraction. |
-| `memory.py` | Store episodes. TF-IDF recall. JSON persistence. |
-| `identity.py` | Build identity narrative from memory. Updates every 5 turns. |
-
----
-
-## Repository structure
-
-```
-.
-├── .github/           # CI workflows, issue templates
-├── docs/
-│   ├── proposals/     # Design proposals and work plan
-│   └── adr/           # Architecture decision records
-├── scripts/
-│   └── eval/          # adversarial_suite.py, visual_dashboard.py
-├── src/
-├── tests/
-│   └── core/          # 91 unit tests for V2 Core
-├── AGENTS.md          # Men Scout protocol
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── HISTORY.md
-├── LICENSE
-└── README.md
-```
-
----
-
-## Contributing
-
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`AGENTS.md`](AGENTS.md). Security: [`SECURITY.md`](SECURITY.md).
-
-## License
-
-Apache 2.0 — see [`LICENSE`](LICENSE).
-
----
-
-## MoSex Macchina Lab · Ex Machina Foundation — 2026
-
-**MoSex Macchina Lab** — public project name ([mosexmacchinalab.com](https://mosexmacchinalab.com)). **Ethos Kernel** — technical name of this repository. **Ex Machina Foundation** — research in computational ethics and civic robotics.
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?style=for-the-badge)](https://github.com/sponsors/CuevazaArt)
