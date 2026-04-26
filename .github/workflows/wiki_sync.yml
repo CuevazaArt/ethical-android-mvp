@@ -7,6 +7,12 @@ on:
       - master-antigravity
     paths:
       - 'docs/**'
+      - 'LICENSING_STRATEGY.md'
+      - 'TRADEMARK.md'
+      - 'SECURITY.md'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'AGENTS.md'
   workflow_dispatch: # Manual trigger
 
 jobs:
@@ -39,11 +45,19 @@ jobs:
           mkdir -p wiki-repo/proposals
           cp -r source-repo/docs/proposals/*.md wiki-repo/proposals/ 2>/dev/null || true
           cp -r source-repo/docs/architecture/*.md wiki-repo/ 2>/dev/null || true
+          cp -r source-repo/docs/collaboration/*.md wiki-repo/ 2>/dev/null || true
+          cp source-repo/docs/*.md wiki-repo/ 2>/dev/null || true
           
           # Root docs (AGENTS.md, ONBOARDING.md) are also valuable
           cp source-repo/AGENTS.md wiki-repo/ 2>/dev/null || true
           cp source-repo/ONBOARDING.md wiki-repo/ 2>/dev/null || true
           cp source-repo/CONTRIBUTING.md wiki-repo/ 2>/dev/null || true
+          
+          # Licensing and policy documents
+          cp source-repo/LICENSING_STRATEGY.md wiki-repo/ 2>/dev/null || true
+          cp source-repo/TRADEMARK.md wiki-repo/ 2>/dev/null || true
+          cp source-repo/SECURITY.md wiki-repo/ 2>/dev/null || true
+          cp source-repo/README.md wiki-repo/Home.md 2>/dev/null || true
           
           # 3. Commit and Push
           cd wiki-repo

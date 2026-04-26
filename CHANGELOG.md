@@ -4,6 +4,17 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-26] Hybrid Licensing Strategy — Dual License Adoption
+### Antigravity (L1)
+- **Policy:** Adopted `LICENSING_STRATEGY.md` — formal dual-license model for all project layers.
+  - **Ethos Kernel** (`src/core/`, `src/server/`, `tests/`, docs, scripts): **Apache 2.0** — open, auditable, contributor-friendly.
+  - **Nomad Android SDK** (`src/clients/nomad_android/`): **BSL 1.1** — non-production use free; production/commercial requires a license during the first 36 months per release, then auto-converts to Apache 2.0.
+  - **Fine-tuned models / Cloud services:** Proprietary (separate commercial license).
+  - **Trademarks** ("Mos Ex Machina", "Ethos", "Nomad"): reserved — see `TRADEMARK.md`.
+- **Files created/updated:** `LICENSING_STRATEGY.md`, `src/clients/nomad_android/LICENSE_BSL`, `TRADEMARK.md`.
+- **Contributing rule:** All kernel contributions remain Apache 2.0. SDK contributions fall under BSL 1.1. DCO sign-off (`Developer Certificate of Origin`) required on every commit via `Signed-off-by:` footer.
+- **Wiki:** `LICENSING_STRATEGY.md`, `TRADEMARK.md`, and `SECURITY.md` now included in the automated wiki sync (`wiki_sync.yml`).
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

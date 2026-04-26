@@ -41,27 +41,27 @@ Canonical model and architecture references:
 **Layout note:** kernel work is **Python under `src/`**. See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). Add design notes under [`docs/proposals/README.md`](docs/proposals/README.md) (`PROPOSAL_*.md`).
 
 ### 3. Choose an area
-The modules are in `src/modules/`. Each one is independent:
+The V2 kernel modules live under `src/core/`. Each one is independent:
 
-| Module | Status | Needs |
-|--------|--------|-------|
-| `absolute_evil.py` | ✅ Functional | More AbsoluteEvil categories |
-| `buffer.py` | ✅ Functional | Additional protocols |
-| `weighted_ethics_scorer.py` | ✅ Functional | Mixture hyperparameters + bounded nudges; `bayesian_engine.py` is a compat shim ([ADR 0009](docs/adr/0009-ethical-mixture-scorer-naming.md)) |
-| `ethical_poles.py` | ✅ Functional | Expanded poles (creative, conciliatory) |
-| `sigmoid_will.py` | ✅ Functional | Empirical calibration |
-| `sympathetic.py` | ✅ Functional | State hysteresis |
-| `narrative.py` | ✅ Functional | Narrative compression, embeddings |
-| `uchi_soto.py` | ✅ Functional | NLP model for manipulation detection |
-| `locus.py` | ✅ Functional | More adjustment scenarios |
-| `psi_sleep.py` | ✅ Functional | Full Bayesian re-evaluation |
-| `mock_dao.py` | ✅ Functional | Migrate to smart contracts on testnet |
-| `variability.py` | ✅ Functional | Variability profiles by context |
-| `llm_layer.py` | ✅ Functional | Multi-model support, ethical fine-tuning |
-| `weakness_pole.py` | ✅ Complete (v5) | Additional weakness types |
-| `forgiveness.py` | ✅ Complete (v5) | Contextual decay rates |
-| `immortality.py` | ✅ Complete (v5) | Additional backup layers |
-| `augenesis.py` | ✅ Complete (v5) | More soul profiles |
+> **V1 note:** Legacy modules previously located in `src/modules/` were fully migrated to `src/core/` during the V2 Consolidation (block V2.22). The `src/modules/` path no longer exists. Historical names appear below for traceability; current file names are listed in [`CONTEXT.md`](CONTEXT.md) under *Key files*.
+
+| Core module (V2) | Status | Needs |
+|------------------|--------|-------|
+| `ethics.py` | ✅ Active | Expand CBR precedent coverage |
+| `safety.py` | ✅ Active | Additional absolute-evil categories |
+| `memory.py` | ✅ Active | Mixture hyperparameters + bounded nudges |
+| `perception.py` | ✅ Active | Expanded perception poles (creative, conciliatory) |
+| `identity.py` | ✅ Active | Empirical calibration of narrative archetypes |
+| `chat.py` | ✅ Active | State hysteresis, preemption logic |
+| `llm.py` | ✅ Active | Multi-model support, ethical fine-tuning |
+| `precedents.py` | ✅ Active | CBR case expansion (currently 36 cases) |
+| `sleep.py` | ✅ Active | Full Bayesian re-evaluation during Psi-Sleep |
+| `plugins.py` | ✅ Active | Additional plugin integrations |
+| `vault.py` | ✅ Active | Encrypted secret management improvements |
+| `roster.py` | ✅ Active | Person-card enrichment |
+| `user_model.py` | ✅ Active | Contextual decay rates, behavioral profiles |
+| `tts.py` / `stt.py` | ✅ Active | Voice quality, language packs |
+| `vision.py` | ✅ Active | Autonomous vision trigger improvements |
 
 ### 4. Pending modules (to build)
 - [ ] DAO calibration protocol (gradual parameter adjustment)
@@ -150,6 +150,22 @@ If your change breaks a test, fix the code, not the test.
 - **Never commit** API keys, Fernet keys, or `.env` files. Use [`.env.example`](.env.example) as a template only.
 - **LLM degradation / recovery:** multiple `KERNEL_*` keys can apply to the same process. Precedence (per-touchpoint overrides, verbal family, legacy keys) is documented for operators and implementers in [`docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md`](docs/proposals/PROPOSAL_LLM_TOUCHPOINT_DEGRADATION_MATRIX.md); see also [`docs/proposals/KERNEL_ENV_POLICY.md`](docs/proposals/KERNEL_ENV_POLICY.md) and [`docs/proposals/OPERATOR_QUICK_REF.md`](docs/proposals/OPERATOR_QUICK_REF.md).
 - **CI** reads no private API keys from the repository. Optional [Codecov](https://codecov.io) uploads use the repository secret `CODECOV_TOKEN` if you configure it in GitHub (**Settings → Secrets and variables → Actions**). Forks do not inherit secrets; coverage upload may be skipped without failing CI.
+
+## Licensing of contributions
+
+This project uses a **dual-license model** — see [`LICENSING_STRATEGY.md`](LICENSING_STRATEGY.md) for the full policy.
+
+| Area | License |
+|------|---------|
+| Ethos Kernel (`src/core/`, `src/server/`, `tests/`, docs, scripts) | **Apache 2.0** |
+| Nomad Android SDK (`src/clients/nomad_android/`) | **BSL 1.1** → Apache 2.0 after 36 months |
+| Fine-tuned models / Cloud services | Proprietary |
+| Trademarks ("Mos Ex Machina", "Ethos", "Nomad") | Reserved — see [`TRADEMARK.md`](TRADEMARK.md) |
+
+**By submitting a contribution you agree** that:
+1. Your contribution to the Kernel falls under **Apache 2.0**.
+2. Your contribution to the Android SDK falls under **BSL 1.1**.
+3. You provide a **Developer Certificate of Origin (DCO)** by adding `Signed-off-by: Your Name <email>` to every commit (`git commit -s`).
 
 ## Code of conduct
 
