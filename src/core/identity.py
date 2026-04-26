@@ -45,7 +45,7 @@ class Identity:
         self._profile: dict = {}
         self._journal: list[str] = []
         self._chronicle: list[str] = []  # V2.61: Distilled thematic history
-        self._archetype: str = ""        # V2.63: Core identity archetype
+        self._archetype: str = ""  # V2.63: Core identity archetype
         self._load()
 
     # ── Persistence ──────────────────────────────────────────────────────────
@@ -215,7 +215,7 @@ class Identity:
         Fuses the current archetype with a batch of chronicles to form an updated archetype.
         """
         context = "\n".join(f"- {e}" for e in entries)
-        
+
         if self._archetype:
             prompt = (
                 f"Tu arquetipo base actual es: '{self._archetype}'.\n\n"
@@ -234,7 +234,8 @@ class Identity:
 
         try:
             archetype = await llm_client.chat(
-                prompt, system_prompt="Eres un psicólogo destilando la esencia de una mente sintética."
+                prompt,
+                system_prompt="Eres un psicólogo destilando la esencia de una mente sintética.",
             )
             if archetype:
                 self._archetype = archetype.strip()
@@ -266,7 +267,7 @@ class Identity:
             parts.append(f"Reflexión reciente: {self._journal[-1]}")
 
         if parts:
-            return f"[Identidad Narrativa]\n" + "\n".join(f"- {p}" for p in parts)
+            return "[Identidad Narrativa]\n" + "\n".join(f"- {p}" for p in parts)
 
         # Fallback to stats-based template
         if avg > 0.65:

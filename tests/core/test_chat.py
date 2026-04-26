@@ -295,8 +295,6 @@ async def test_turn_count_increments(engine):
     assert engine._turn_count == 4
 
 
-
-
 # --- Additional Coverage Tests ---
 
 

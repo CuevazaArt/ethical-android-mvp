@@ -35,12 +35,12 @@ from src.core.identity import Identity
 from src.core.llm import OllamaClient
 from src.core.memory import Memory
 from src.core.perception import PerceptionClassifier
+from src.core.plugins import PluginRegistry
 from src.core.precedents import find_nearest_precedents
+from src.core.roster import Roster
 from src.core.safety import is_dangerous, sanitize
 from src.core.user_model import UserModelTracker
 from src.core.vault import SecureVault
-from src.core.plugins import PluginRegistry
-from src.core.roster import Roster
 
 _log = logging.getLogger(__name__)
 
@@ -263,7 +263,9 @@ class ChatEngine:
         system = self._build_system(user_message, signals, evaluation, vision_context)
         try:
             response = await self.llm.chat(
-                user_message, system, temperature=0.7,
+                user_message,
+                system,
+                temperature=0.7,
                 history=self._conversation[-4:] if self._conversation else None,
             )
             return response.strip()
@@ -288,7 +290,9 @@ class ChatEngine:
         system = self._build_system(user_message, signals, evaluation, vision_context)
         try:
             async for token in self.llm.chat_stream(
-                user_message, system, temperature=0.7,
+                user_message,
+                system,
+                temperature=0.7,
                 history=self._conversation[-4:] if self._conversation else None,
             ):
                 yield token
@@ -500,7 +504,9 @@ class ChatEngine:
             if web_query:
                 web_context = await asyncio.to_thread(self.plugins.execute, "Web", web_query)
                 latency["web"] = round((time.perf_counter() - t_web) * 1000, 2)
-                _log.info("[Web] Proactive search '%s' → %s", web_query[:40], (web_context or "")[:60])
+                _log.info(
+                    "[Web] Proactive search '%s' → %s", web_query[:40], (web_context or "")[:60]
+                )
                 if web_context:
                     plugin_used = "Web"
                     effective_user_message = (
@@ -511,7 +517,9 @@ class ChatEngine:
         full_response = []
         first_token = True
         plugin_triggered = False
-        async for token in self.respond_stream(effective_user_message, signals, evaluation, vision_context):
+        async for token in self.respond_stream(
+            effective_user_message, signals, evaluation, vision_context
+        ):
             if first_token:
                 latency["ttft"] = round((time.perf_counter() - t_start) * 1000, 2)
                 first_token = False
@@ -556,6 +564,7 @@ class ChatEngine:
         vault_key = None
         if "GET_VAULT:" in message:
             import re
+
             match = re.search(r"GET_VAULT:\s*([A-Za-z0-9_]+)", message)
             if match:
                 vault_key = match.group(1)
@@ -600,7 +609,7 @@ class ChatEngine:
             "context": signals.context,
             "blocked": False,
             "latency": latency,
-            "vault_key": vault_key,   # V2.71
+            "vault_key": vault_key,  # V2.71
             "plugin_used": plugin_used,  # V2.74: telemetry
         }
 

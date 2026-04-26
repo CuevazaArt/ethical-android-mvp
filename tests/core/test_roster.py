@@ -1,8 +1,7 @@
-import json
-import pytest
 from unittest.mock import AsyncMock
 
-from src.core.roster import PersonCard, Roster
+import pytest
+from src.core.roster import Roster
 
 
 @pytest.fixture
@@ -43,11 +42,11 @@ def test_get_context(roster):
 async def test_observe_turn(roster):
     llm = AsyncMock()
     # Mock LLM returning JSON
-    llm.chat.return_value = '''
+    llm.chat.return_value = """
     [
         {"name": "Pedro", "fact": "Tiene un perro llamado Bobby"}
     ]
-    '''
+    """
 
     await roster.observe_turn("Oye, Pedro tiene un perro llamado Bobby", llm)
     assert "Pedro" in roster.cards

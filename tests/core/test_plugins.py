@@ -10,8 +10,6 @@ from __future__ import annotations
 import re
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from src.core.plugins import (
     PLUGIN_PATTERN,
     Plugin,
@@ -21,8 +19,8 @@ from src.core.plugins import (
     WebPlugin,
 )
 
-
 # ── TimePlugin ────────────────────────────────────────────────────────────────
+
 
 class TestTimePlugin:
     def setup_method(self):
@@ -48,6 +46,7 @@ class TestTimePlugin:
 
     def test_execute_fast(self):
         import time
+
         t0 = time.perf_counter()
         self.plugin.execute()
         elapsed_ms = (time.perf_counter() - t0) * 1000
@@ -55,6 +54,7 @@ class TestTimePlugin:
 
 
 # ── SystemPlugin ──────────────────────────────────────────────────────────────
+
 
 class TestSystemPlugin:
     def setup_method(self):
@@ -70,11 +70,13 @@ class TestSystemPlugin:
 
     def test_execute_contains_platform(self):
         import platform
+
         result = self.plugin.execute()
         assert platform.system() in result
 
     def test_execute_fast(self):
         import time
+
         t0 = time.perf_counter()
         self.plugin.execute()
         elapsed_ms = (time.perf_counter() - t0) * 1000
@@ -82,6 +84,7 @@ class TestSystemPlugin:
 
 
 # ── WebPlugin ─────────────────────────────────────────────────────────────────
+
 
 class TestWebPlugin:
     def setup_method(self):
@@ -122,6 +125,7 @@ class TestWebPlugin:
 
     def test_falls_back_to_url_on_network_error(self):
         import urllib.error
+
         with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("timeout")):
             result = self.plugin.execute("temperatura Guadalajara")
         assert "duckduckgo.com" in result
@@ -138,6 +142,7 @@ class TestWebPlugin:
 
 
 # ── PluginRegistry ────────────────────────────────────────────────────────────
+
 
 class TestPluginRegistry:
     def setup_method(self):
@@ -179,6 +184,7 @@ class TestPluginRegistry:
         class EchoPlugin(Plugin):
             name = "Echo"
             description = "Echoes args"
+
             def execute(self, args: str = "") -> str:
                 return f"Echo: {args}"
 
@@ -197,6 +203,7 @@ class TestPluginRegistry:
 
 
 # ── Pattern Parser ────────────────────────────────────────────────────────────
+
 
 class TestPluginPattern:
     def test_basic_match(self):

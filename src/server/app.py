@@ -9,11 +9,11 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from src.core.chat import ChatEngine
 from src.core.memory import Memory
 from src.core.perception import SensoryBuffer
+from src.core.sleep import PsiSleepDaemon
 from src.core.stt import is_available as stt_available
 from src.core.stt import transcribe_pcm
-from src.core.vision import VisionEngine
 from src.core.tts import synthesize
-from src.core.sleep import PsiSleepDaemon
+from src.core.vision import VisionEngine
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -27,10 +27,12 @@ async def _safe_send(ws: WebSocket, data: dict) -> bool:
     except (WebSocketDisconnect, RuntimeError):
         return False
 
+
 async def _safe_send_tts(ws: WebSocket, event: dict, metadata: dict | None = None):
     msg = event.get("message", "")
     if msg:
         import base64
+
         pitch = "+0Hz"
         rate = "+0%"
         if metadata:
@@ -41,25 +43,28 @@ async def _safe_send_tts(ws: WebSocket, event: dict, metadata: dict | None = Non
                 rate = "-10%"
             elif urgency > 0.5:
                 rate = "+15%"
-                
+
         audio_bytes = await synthesize(msg, pitch=pitch, rate=rate)
         if audio_bytes:
-            b64 = base64.b64encode(audio_bytes).decode('utf-8')
+            b64 = base64.b64encode(audio_bytes).decode("utf-8")
             await _safe_send(ws, {"type": "tts_audio", "audio_b64": b64, "text": msg})
         else:
             await _safe_send(ws, {"type": "tts_audio", "audio_b64": None, "text": msg})
 
+
 app = FastAPI(title="Ethos Kernel Chat")
 
 STATIC_DIR = Path(__file__).parent / "static"
-NOMAD_DIR = Path(__file__).parent.parent / "clients" / "archive_nomad_pwa" # V2.77: Archived
+NOMAD_DIR = Path(__file__).parent.parent / "clients" / "archive_nomad_pwa"  # V2.77: Archived
 _start_time = time.time()
 _last_latency: dict | None = None  # V2.19: Store last latency globally
 _sleep_daemon = PsiSleepDaemon(idle_threshold_seconds=120)  # V2.76: Psi-Sleep
 
+
 @app.on_event("startup")
 async def startup_event():
     await _sleep_daemon.start()
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -275,11 +280,19 @@ async def websocket_endpoint(websocket: WebSocket):
                     _chat_vision = frame.get("payload")
                 elif frame_type == "chat_text":
                     # Explicit chat message from Nomad client
-                    text = (frame.get("payload") or frame).get("text", "").strip() if isinstance(frame, dict) else ""
+                    text = (
+                        (frame.get("payload") or frame).get("text", "").strip()
+                        if isinstance(frame, dict)
+                        else ""
+                    )
                     if text:
                         _log.info("[wsChat] User text: %s", text[:80])
                         await _run_turn_and_send(
-                            engine, websocket, text, _chat_vision, label="Pipeline",
+                            engine,
+                            websocket,
+                            text,
+                            _chat_vision,
+                            label="Pipeline",
                         )
                 elif frame_type == "vault_auth":
                     # Phase 19: Vault Authorization callback
@@ -293,7 +306,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             injection = f"[SISTEMA - ALTA PRIORIDAD]: Acceso concedido a la Bóveda. El valor de '{key}' es: {secret}. Procede a ayudar al usuario con esta información de forma natural."
                         else:
                             injection = f"[SISTEMA]: Acceso concedido, pero la bóveda indica que la llave '{key}' está vacía o no existe. Informa al usuario."
-                        
+
                         _log.info("[VAULT] Injecting secret for %s", key)
                         await _run_turn_and_send(
                             engine, websocket, injection, _chat_vision, label="Vault"
@@ -306,7 +319,11 @@ async def websocket_endpoint(websocket: WebSocket):
                     if text:
                         _log.info("[wsChat] Legacy text: %s", text[:80])
                         await _run_turn_and_send(
-                            engine, websocket, text, _chat_vision, label="Pipeline",
+                            engine,
+                            websocket,
+                            text,
+                            _chat_vision,
+                            label="Pipeline",
                         )
                 elif not frame:
                     # Plain string — user typed directly
@@ -314,18 +331,25 @@ async def websocket_endpoint(websocket: WebSocket):
                     if text:
                         _log.info("[wsChat] Plain text: %s", text[:80])
                         await _run_turn_and_send(
-                            engine, websocket, text, _chat_vision, label="Pipeline",
+                            engine,
+                            websocket,
+                            text,
+                            _chat_vision,
+                            label="Pipeline",
                         )
                 else:
                     _log.debug("wsChat ignoring unknown frame: %s", str(data)[:100])
             except Exception as e:
                 _log.error("Error during turn: %s", e)
-                await _safe_send(websocket, {
-                    "type": "done",
-                    "message": "Error interno del kernel.",
-                    "blocked": True,
-                    "reason": str(e),
-                })
+                await _safe_send(
+                    websocket,
+                    {
+                        "type": "done",
+                        "message": "Error interno del kernel.",
+                        "blocked": True,
+                        "reason": str(e),
+                    },
+                )
     except WebSocketDisconnect:
         _log.info("Client disconnected")
     finally:
@@ -402,10 +426,13 @@ async def websocket_nomad(websocket: WebSocket):
             if fused:
                 _log.info("[FUSION/AUTO] %s", fused[:120])
                 # V2.60: Only send a lightweight pulse — NO LLM, NO TTS
-                await _safe_send(websocket, {
-                    "type": "autonomous_pulse",
-                    "description": fused[:200],
-                })
+                await _safe_send(
+                    websocket,
+                    {
+                        "type": "autonomous_pulse",
+                        "description": fused[:200],
+                    },
+                )
 
     consolidation_task = asyncio.create_task(_consolidation_loop())
 
@@ -430,7 +457,11 @@ async def websocket_nomad(websocket: WebSocket):
                     if text:
                         _last_user_interaction = time.time()
                         await _run_turn_and_send(
-                            engine, websocket, text, _last_vision, label="Pipeline",
+                            engine,
+                            websocket,
+                            text,
+                            _last_vision,
+                            label="Pipeline",
                         )
 
                 elif msg_type == "user_speech":
@@ -442,7 +473,11 @@ async def websocket_nomad(websocket: WebSocket):
                         if fused:
                             _log.info("[FUSION/SPEECH] %s", fused[:120])
                             await _run_turn_and_send(
-                                engine, websocket, fused, _last_vision, label="Fusion",
+                                engine,
+                                websocket,
+                                fused,
+                                _last_vision,
+                                label="Fusion",
                             )
 
                 elif msg_type == "vision_frame":
@@ -451,18 +486,29 @@ async def websocket_nomad(websocket: WebSocket):
                         sig = vision.process_b64(b64)
                         if sig:
                             _last_vision = sig.to_dict()
-                            await _safe_send(websocket, {
-                                "type": "vision_signals",
-                                "payload": _last_vision,
-                            })
+                            await _safe_send(
+                                websocket,
+                                {
+                                    "type": "vision_signals",
+                                    "payload": _last_vision,
+                                },
+                            )
 
                             # Buffer vision triggers for potential fusion with speech
                             now = time.time()
                             if (now - _last_autonomous_turn) > 120.0:  # V2.60: 120s cooldown
                                 if sig.face_present or sig.motion > 0.05:
                                     _last_autonomous_turn = now
-                                    _log.info("Vision trigger -> buffer: Face=%s Motion=%.3f", sig.face_present, sig.motion)
-                                    desc = "una persona presente" if sig.face_present else f"movimiento detectado (intensidad {sig.motion:.2f})"
+                                    _log.info(
+                                        "Vision trigger -> buffer: Face=%s Motion=%.3f",
+                                        sig.face_present,
+                                        sig.motion,
+                                    )
+                                    desc = (
+                                        "una persona presente"
+                                        if sig.face_present
+                                        else f"movimiento detectado (intensidad {sig.motion:.2f})"
+                                    )
                                     sensory_buffer.add_event("vision", desc)
 
                 elif msg_type == "audio_pcm":
@@ -480,7 +526,11 @@ async def websocket_nomad(websocket: WebSocket):
                                     if fused:
                                         _log.info("[FUSION/WHISPER] %s", fused[:120])
                                         await _run_turn_and_send(
-                                            engine, websocket, fused, _last_vision, label="Fusion",
+                                            engine,
+                                            websocket,
+                                            fused,
+                                            _last_vision,
+                                            label="Fusion",
                                         )
                             except Exception as e:
                                 _log.warning("audio_pcm transcription error: %s", e)

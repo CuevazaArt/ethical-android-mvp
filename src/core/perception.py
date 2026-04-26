@@ -442,12 +442,15 @@ if __name__ == "__main__":
 
 # ── V2.55 Temporal Multimodal Fusion ─────────────────────────────────────────
 
+
 @dataclass
 class SensoryEvent:
     """An atomic sensory event with timestamp."""
+
     modality: str  # 'audio' or 'vision'
-    content: str   # The text content or visual summary
+    content: str  # The text content or visual summary
     timestamp: float
+
 
 class SensoryBuffer:
     """
@@ -455,6 +458,7 @@ class SensoryBuffer:
     Maintains a rolling window of sensory events to fuse concurrent audio and vision
     into a single cohesive semantic frame.
     """
+
     def __init__(self, window_seconds: float = 2.0):
         self.window_seconds = window_seconds
         self._events: list[SensoryEvent] = []
@@ -479,11 +483,13 @@ class SensoryBuffer:
         """True if the buffer contains any audio events (i.e., a human spoke)."""
         now = time.time()
         return any(
-            e.modality == 'audio' and (now - e.timestamp) <= self.window_seconds
+            e.modality == "audio" and (now - e.timestamp) <= self.window_seconds
             for e in self._events
         )
 
-    def get_fused_context(self, current_time: float | None = None, flush: bool = True) -> str | None:
+    def get_fused_context(
+        self, current_time: float | None = None, flush: bool = True
+    ) -> str | None:
         """
         Retrieves the fused context of all active events in the window.
         If flush is True, clears the retrieved events from the buffer.
@@ -491,26 +497,26 @@ class SensoryBuffer:
         now = current_time if current_time is not None else time.time()
         if not math.isfinite(now):
             now = time.time()
-            
+
         # Filter valid events within window
         valid_events = [e for e in self._events if (now - e.timestamp) <= self.window_seconds]
         expired_events = [e for e in self._events if (now - e.timestamp) > self.window_seconds]
-        
+
         if not valid_events:
             self._events = expired_events if not flush else []
             return None
 
-        audios = [e.content for e in valid_events if e.modality == 'audio']
-        visions = [e.content for e in valid_events if e.modality == 'vision']
-        
+        audios = [e.content for e in valid_events if e.modality == "audio"]
+        visions = [e.content for e in valid_events if e.modality == "vision"]
+
         if flush:
             self._events = expired_events
-        
+
         if audios and visions:
             return f"Escuché: {' '.join(audios)}. Simultáneamente vi: {' '.join(visions)}."
         elif audios:
             return " ".join(audios)
         elif visions:
             return f"Vi: {' '.join(visions)}."
-        
+
         return None

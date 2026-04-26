@@ -108,11 +108,12 @@ class OllamaClient:
             r.raise_for_status()
             data = r.json()
             text = data.get("message", {}).get("content", "").strip()
-            
+
             # V2.65: Remove <think> reasoning blocks from output
             import re
+
             text = re.sub(r"<think>.*?</think>\s*", "", text, flags=re.DOTALL).strip()
-            
+
             elapsed_ms = (time.perf_counter() - t0) * 1000
             _log.info("LLM chat: %.0fms, %d chars", elapsed_ms, len(text))
             return text
@@ -169,11 +170,11 @@ class OllamaClient:
             timeout=self.timeout,
         ) as response:
             response.raise_for_status()
-            
+
             # V2.65: State machine to filter <think> blocks in real-time
             in_think_block = False
             buffer = ""
-            
+
             async for line in response.aiter_lines():
                 if not line.strip():
                     continue
@@ -182,7 +183,7 @@ class OllamaClient:
                     token = chunk.get("message", {}).get("content", "")
                     if token:
                         buffer += token
-                        
+
                         while buffer:
                             if not in_think_block:
                                 if "<think>" in buffer:
@@ -215,9 +216,9 @@ class OllamaClient:
                                         buffer = buffer[last_lt:]
                                         break  # wait for next token
                                     else:
-                                        buffer = "" # discard thinking tokens
+                                        buffer = ""  # discard thinking tokens
                                         break
-                                        
+
                     if chunk.get("done"):
                         if buffer and not in_think_block:
                             yield buffer

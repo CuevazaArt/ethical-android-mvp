@@ -58,7 +58,9 @@ class Roster:
         p.parent.mkdir(parents=True, exist_ok=True)
         try:
             with open(p, "w", encoding="utf-8") as f:
-                json.dump({k: asdict(v) for k, v in self.cards.items()}, f, indent=2, ensure_ascii=False)
+                json.dump(
+                    {k: asdict(v) for k, v in self.cards.items()}, f, indent=2, ensure_ascii=False
+                )
         except Exception as e:
             _log.error("Failed to save roster: %s", e)
 
@@ -94,8 +96,8 @@ class Roster:
         words = user_message.split()
         if len(words) < 2:
             return
-            
-        has_potential_names = any(w[0].isupper() for w in words[1:] if re.sub(r'[^a-zA-Z]', '', w))
+
+        has_potential_names = any(w[0].isupper() for w in words[1:] if re.sub(r"[^a-zA-Z]", "", w))
         if not has_potential_names:
             return
 
@@ -130,7 +132,7 @@ class Roster:
 
         mentioned = []
         msg_lower = user_message.lower()
-        
+
         # Simple string matching for names
         for name, card in self.cards.items():
             if name.lower() in msg_lower:

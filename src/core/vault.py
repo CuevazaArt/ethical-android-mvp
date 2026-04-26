@@ -17,7 +17,7 @@ _log = logging.getLogger(__name__)
 
 class SecureVault:
     """
-    Manages sensitive user data. 
+    Manages sensitive user data.
     In production, this should wrap AES-256 encryption via OS Keychain.
     For V2.70, we implement the strict isolation boundary.
     """
@@ -35,7 +35,7 @@ class SecureVault:
         try:
             p = Path(self._path)
             if p.exists():
-                with open(p, "r", encoding="utf-8") as f:
+                with open(p, encoding="utf-8") as f:
                     self._store = json.load(f)
         except Exception as e:
             _log.warning("Could not load SecureVault: %s", e)
@@ -63,13 +63,13 @@ class SecureVault:
 
     def get_secret(self, key: str, reason: str) -> str | None:
         """
-        Retrieve a secret. 
+        Retrieve a secret.
         Requires an explicit 'reason' for audit logging.
         """
         if not self._is_unlocked:
             _log.warning("SECURITY ALERT: Attempted to read vault while locked (key: %s)", key)
             return None
-            
+
         _log.info("VAULT ACCESS: Granted read for '%s'. Reason: %s", key, reason)
         return self._store.get(key)
 
@@ -77,7 +77,7 @@ class SecureVault:
         """Store a new secret securely."""
         if not self._is_unlocked:
             return False
-            
+
         self._store[key] = value
         self._save()
         _log.info("VAULT WRITE: Stored new secret for '%s'", key)

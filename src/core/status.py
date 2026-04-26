@@ -97,8 +97,8 @@ def main() -> None:
 
     # Memory state
     try:
-        from src.core.memory import Memory
         from src.core.identity import Identity
+        from src.core.memory import Memory
         from src.core.user_model import UserModelTracker
         from src.core.vault import SecureVault
 
@@ -106,13 +106,17 @@ def main() -> None:
         ident = Identity()
         user_mod = UserModelTracker()
         vault = SecureVault()
-        
+
         print(f"  📝 Memory: {len(mem)} episodes stored")
-        print(f"  🧠 Identity: {len(ident._journal)} journal entries, {len(ident._chronicle)} chronicles")
+        print(
+            f"  🧠 Identity: {len(ident._journal)} journal entries, {len(ident._chronicle)} chronicles"
+        )
         if ident._archetype:
             print(f"  👑 Archetype: {ident._archetype}")
-            
-        print(f"  👤 User Model: Risk [{user_mod.risk_band.value}], Bias [{user_mod.cognitive_pattern.value}], Turns [{user_mod.turns_observed}]")
+
+        print(
+            f"  👤 User Model: Risk [{user_mod.risk_band.value}], Bias [{user_mod.cognitive_pattern.value}], Turns [{user_mod.turns_observed}]"
+        )
         print(f"  🔒 Vault: {len(vault.list_keys())} protected keys")
 
     except Exception:

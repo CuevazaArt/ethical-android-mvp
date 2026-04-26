@@ -62,6 +62,7 @@ class TimePlugin(Plugin):
 
     def execute(self, args: str = "") -> str:
         import datetime
+
         now = datetime.datetime.now()
         return (
             f"Son las {now.strftime('%H:%M:%S')} del {now.strftime('%A %d de %B de %Y')} "
@@ -78,6 +79,7 @@ class SystemPlugin(Plugin):
     def execute(self, args: str = "") -> str:
         try:
             import psutil  # optional dependency
+
             cpu = psutil.cpu_percent(interval=None)
             mem = psutil.virtual_memory()
             return (
@@ -174,10 +176,7 @@ class WebPlugin(Plugin):
             if isinstance(topic, dict) and topic.get("Text"):
                 return topic["Text"]
 
-        return (
-            f"No encontré una respuesta directa para '{query}'. "
-            f"Puedes buscar en: {fallback_url}"
-        )
+        return f"No encontré una respuesta directa para '{query}'. Puedes buscar en: {fallback_url}"
 
 
 class PluginRegistry:
@@ -268,12 +267,22 @@ class PluginRegistry:
     # Patterns that deterministically require real-time web data.
     # These bypass LLM tool-use and trigger proactive pre-injection.
     _WEB_TRIGGERS: list[re.Pattern] = [
-        re.compile(r"\b(qui[eé]n\s+gan[oó]|campe[oó]n|copa\s+del\s+mundo|mundial|champions)\b", re.I),
-        re.compile(r"\b(precio\s+de|cotizaci[oó]n|d[oó]lar|euro\s+a|tipo\s+de\s+cambio|bolsa)\b", re.I),
+        re.compile(
+            r"\b(qui[eé]n\s+gan[oó]|campe[oó]n|copa\s+del\s+mundo|mundial|champions)\b", re.I
+        ),
+        re.compile(
+            r"\b(precio\s+de|cotizaci[oó]n|d[oó]lar|euro\s+a|tipo\s+de\s+cambio|bolsa)\b", re.I
+        ),
         re.compile(r"\b(resultado\s+(de|del?)|marcador|score\s+de)\b", re.I),
         re.compile(r"\b(noticias?\s+(de|sobre|del?)|[uú]ltima\s+noticia|breaking\s+news)\b", re.I),
-        re.compile(r"\b(n[uú]mero\s+de\s+(tel[eé]fono|emergencia)|c[oó]mo\s+llegar|direcci[oó]n\s+de)\b", re.I),
-        re.compile(r"\b(accede\s+(a|al?)|obt[eé]n|trae|busca)\s+(los\s+)?(n[uú]meros?|informaci[oó]n)\s+de\b", re.I),
+        re.compile(
+            r"\b(n[uú]mero\s+de\s+(tel[eé]fono|emergencia)|c[oó]mo\s+llegar|direcci[oó]n\s+de)\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(accede\s+(a|al?)|obt[eé]n|trae|busca)\s+(los\s+)?(n[uú]meros?|informaci[oó]n)\s+de\b",
+            re.I,
+        ),
         re.compile(r"\b(vuelos?|avi[oó]n|aerol[ií]nea)\b", re.I),
         re.compile(r"\b(boletos?|voletos?|entradas?|conciertos?|eventos?)\b", re.I),
     ]

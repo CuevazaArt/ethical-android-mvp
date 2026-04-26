@@ -64,7 +64,11 @@ class PsiSleepDaemon:
             idle_time = now - self._last_activity
 
             if idle_time >= self.idle_threshold and self._unreflected_turns >= 3:
-                _log.info("[Psi-Sleep] Entering REM sleep (Idle for %.1fs, %d turns).", idle_time, self._unreflected_turns)
+                _log.info(
+                    "[Psi-Sleep] Entering REM sleep (Idle for %.1fs, %d turns).",
+                    idle_time,
+                    self._unreflected_turns,
+                )
                 try:
                     # Trigger reflection and memory consolidation
                     await self._identity.reflect(self._memory, self._llm)
