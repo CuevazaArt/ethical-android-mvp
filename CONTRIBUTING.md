@@ -43,25 +43,25 @@ Canonical model and architecture references:
 ### 3. Choose an area
 The V2 kernel modules live under `src/core/`. Each one is independent:
 
-> **V1 note:** Legacy modules previously located in `src/modules/` were fully migrated to `src/core/` during the V2 Consolidation (block V2.22). The `src/modules/` path no longer exists. Historical names appear below for traceability; current file names are listed in [`CONTEXT.md`](CONTEXT.md) under *Key files*.
+> **V1 note:** Legacy modules previously located in `src/modules/` were fully migrated to `src/core/` during the V2 Consolidation (block V2.22). The `src/modules/` path no longer exists. The table below maps V1 names to their V2 equivalents for traceability.
 
-| Core module (V2) | Status | Needs |
-|------------------|--------|-------|
-| `ethics.py` | ✅ Active | Expand CBR precedent coverage |
-| `safety.py` | ✅ Active | Additional absolute-evil categories |
-| `memory.py` | ✅ Active | Mixture hyperparameters + bounded nudges |
-| `perception.py` | ✅ Active | Expanded perception poles (creative, conciliatory) |
-| `identity.py` | ✅ Active | Empirical calibration of narrative archetypes |
-| `chat.py` | ✅ Active | State hysteresis, preemption logic |
-| `llm.py` | ✅ Active | Multi-model support, ethical fine-tuning |
-| `precedents.py` | ✅ Active | CBR case expansion (currently 36 cases) |
-| `sleep.py` | ✅ Active | Full Bayesian re-evaluation during Psi-Sleep |
-| `plugins.py` | ✅ Active | Additional plugin integrations |
-| `vault.py` | ✅ Active | Encrypted secret management improvements |
-| `roster.py` | ✅ Active | Person-card enrichment |
-| `user_model.py` | ✅ Active | Contextual decay rates, behavioral profiles |
-| `tts.py` / `stt.py` | ✅ Active | Voice quality, language packs |
-| `vision.py` | ✅ Active | Autonomous vision trigger improvements |
+| Core module (V2) | V1 name(s) | Status | Needs |
+|------------------|-----------|--------|-------|
+| `ethics.py` | `weighted_ethics_scorer.py`, `ethical_poles.py` | ✅ Active | Expand CBR precedent coverage |
+| `safety.py` | `absolute_evil.py`, `buffer.py` | ✅ Active | Additional absolute-evil categories |
+| `memory.py` | `narrative.py`, `psi_sleep.py` | ✅ Active | Mixture hyperparameters + bounded nudges |
+| `perception.py` | `sigmoid_will.py`, `sympathetic.py`, `locus.py` | ✅ Active | Expanded perception poles (creative, conciliatory) |
+| `identity.py` | `augenesis.py`, `immortality.py` | ✅ Active | Empirical calibration of narrative archetypes |
+| `chat.py` | `uchi_soto.py`, `variability.py` | ✅ Active | State hysteresis, preemption logic |
+| `llm.py` | `llm_layer.py` | ✅ Active | Multi-model support, ethical fine-tuning |
+| `precedents.py` | *(new in V2)* | ✅ Active | CBR case expansion (currently 36 cases) |
+| `sleep.py` | `psi_sleep.py` | ✅ Active | Full Bayesian re-evaluation during Psi-Sleep |
+| `plugins.py` | *(new in V2)* | ✅ Active | Additional plugin integrations |
+| `vault.py` | *(new in V2)* | ✅ Active | Encrypted secret management improvements |
+| `roster.py` | *(new in V2)* | ✅ Active | Person-card enrichment |
+| `user_model.py` | *(new in V2)* | ✅ Active | Contextual decay rates, behavioral profiles |
+| `tts.py` / `stt.py` | *(new in V2)* | ✅ Active | Voice quality, language packs |
+| `vision.py` | *(new in V2)* | ✅ Active | Autonomous vision trigger improvements |
 
 ### 4. Pending modules (to build)
 - [ ] DAO calibration protocol (gradual parameter adjustment)

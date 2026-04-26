@@ -30,7 +30,7 @@ For the full normative text, see [`LICENSING_STRATEGY.md`](../LICENSING_STRATEGY
 ## Business Source License 1.1 (Nomad Android SDK)
 
 - **Non-production use:** free (research, education, personal projects, evaluation).
-- **Production / commercial use:** requires a commercial license for the first **36 months** after each release date.
+- **Production / commercial use:** requires a commercial license for the first **36 months** after each individual version's release date (the timer resets per-version, not per-SDK).
 - **Auto-conversion:** each version automatically becomes **Apache 2.0** 36 months after its release.
 - License text: [`src/clients/nomad_android/LICENSE_BSL`](../src/clients/nomad_android/LICENSE_BSL).
 
@@ -74,4 +74,4 @@ This hybrid model follows proven patterns:
 
 ---
 
-*For questions on commercial licensing or trademark use, contact: [contact@mosexmachina.org]*
+For questions on commercial licensing or trademark use, contact [contact@mosexmachina.org](mailto:contact@mosexmachina.org).
