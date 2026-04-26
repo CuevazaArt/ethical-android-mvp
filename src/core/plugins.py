@@ -274,6 +274,8 @@ class PluginRegistry:
         re.compile(r"\b(noticias?\s+(de|sobre|del?)|[uú]ltima\s+noticia|breaking\s+news)\b", re.I),
         re.compile(r"\b(n[uú]mero\s+de\s+(tel[eé]fono|emergencia)|c[oó]mo\s+llegar|direcci[oó]n\s+de)\b", re.I),
         re.compile(r"\b(accede\s+(a|al?)|obt[eé]n|trae|busca)\s+(los\s+)?(n[uú]meros?|informaci[oó]n)\s+de\b", re.I),
+        re.compile(r"\b(vuelos?|avi[oó]n|aerol[ií]nea)\b", re.I),
+        re.compile(r"\b(boletos?|voletos?|entradas?|conciertos?|eventos?)\b", re.I),
     ]
 
     def detect_web_query(self, text: str) -> str | None:
