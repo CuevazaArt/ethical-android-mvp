@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Ethos Kernel — Open kernel for artificial ethical agency by MoSex Macchina Lab">
+  <meta name="description" content="Ethos 2.0 — Minimal ethical Android kernel with CBR reasoning, deterministic perception, and native Android SDK by MoSex Macchina Lab">
   <meta name="robots" content="index, follow">
-  <title>Ethos Kernel — MoSex Macchina Lab</title>
+  <title>Ethos 2.0 — MoSex Macchina Lab</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -198,6 +198,20 @@
     }
     footer a { color: var(--accent); text-decoration: none; }
 
+    /* ── Epoch badge ── */
+    .epoch-tag {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.3);
+      color: var(--purple);
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
     @media (max-width: 640px) {
       .nav-links { display: none; }
       .hero { padding: 3rem 1rem 2rem; }
@@ -207,12 +221,13 @@
 <body>
 
 <nav>
-  <div class="nav-logo">Ethos <span>Kernel</span></div>
+  <div class="nav-logo">Ethos <span>2.0</span></div>
   <ul class="nav-links">
     <li><a href="#what">What it does</a></li>
     <li><a href="#quickstart">Quick start</a></li>
     <li><a href="#architecture">Architecture</a></li>
     <li><a href="#history">History</a></li>
+    <li><a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/EPOCH_INDEX.md" target="_blank" rel="noopener">Epochs ↗</a></li>
     <li><a href="dashboard.html">Live Demo</a></li>
   </ul>
   <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener" class="nav-cta">GitHub →</a>
@@ -220,9 +235,9 @@
 
 <!-- ── Hero ── -->
 <div class="hero">
-  <div class="badge-pill">🔬 Research prototype · Apache 2.0</div>
-  <h1>Open kernel for<br><span class="grad">artificial ethical agency</span></h1>
-  <p>Traceable governance, narrative identity, LLM integration, and a real-time operator dashboard — all in Python.</p>
+  <div class="badge-pill">🔬 Ethos 2.0 · Apache 2.0 + BSL 1.1</div>
+  <h1>Minimal kernel for<br><span class="grad">ethical Android agents</span></h1>
+  <p>CBR ethics, deterministic perception, narrative identity, and a native Android SDK — all in Python + Kotlin. No cloud required.</p>
   <div class="hero-actions">
     <a href="#quickstart" class="btn-hero btn-hero-primary">Get started</a>
     <a href="dashboard.html" class="btn-hero btn-hero-ghost">Live dashboard ↗</a>
@@ -241,62 +256,62 @@
 <!-- ── Numbers ── -->
 <section>
   <div class="metric-grid">
-    <div class="metric-card"><div class="metric-value">800+</div><div class="metric-label">pytest tests (CI: Python 3.11 / 3.12)</div></div>
-    <div class="metric-card"><div class="metric-value">104</div><div class="metric-label">Academic references across 14 disciplines</div></div>
-    <div class="metric-card"><div class="metric-value">v12</div><div class="metric-label">Current version — etosocial hub &amp; DAO</div></div>
-    <div class="metric-card"><div class="metric-value">3</div><div class="metric-label">Ethical hypotheses: utilitarian · deontological · virtue</div></div>
+    <div class="metric-card"><div class="metric-value">203</div><div class="metric-label">tests passing (CI: Python 3.11 / 3.12)</div></div>
+    <div class="metric-card"><div class="metric-value">36</div><div class="metric-label">CBR precedent cases — ethics by reasoning, not rules</div></div>
+    <div class="metric-card"><div class="metric-value">V2.79</div><div class="metric-label">Active block — Parasite SDK &amp; Mesh Discovery</div></div>
+    <div class="metric-card"><div class="metric-value">&lt;1ms</div><div class="metric-label">Deterministic perception — no LLM in the hot path</div></div>
   </div>
 </section>
 
 <!-- ── What it does ── -->
 <section id="what">
   <h2>What it does</h2>
-  <p class="section-lead">A modular Python kernel that scores candidate actions using an explicit weighted mixture over three ethical viewpoints, with traceable governance, LLM perception, and real-time WebSocket chat.</p>
+  <p class="section-lead">A lean Python kernel that reasons over ethical precedents, perceives intent deterministically (&lt;1ms, no LLM), and runs on any Android device — local-first, no cloud required.</p>
   <div class="feature-grid">
     <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <h3>Case-Based Ethics (CBR)</h3>
+      <p>36 richly annotated precedent cases. Each decision is matched against real ethical scenarios — not a black-box score. Every answer is traceable to a case.</p>
+    </div>
+    <div class="feature-card">
       <div class="feature-icon">🧠</div>
-      <h3>Ethical scoring engine</h3>
-      <p>Weighted mixture (utilitarian · deontological · virtue) with configurable linear pole modulation. Not a black-box neural net — every decision is auditable.</p>
+      <h3>Deterministic perception</h3>
+      <p>Intent, risk, and hostility classified in &lt;1ms with zero LLM dependency in the hot path. The ethical gate is never slowed by model latency.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🔒</div>
       <h3>MalAbs safety gate</h3>
-      <p>Lexical + semantic (embedding) filter before any LLM input reaches the kernel. Optional LLM arbiter for ambiguous bands. Hash fallback when Ollama is unreachable.</p>
+      <p>Lexical absolute-evil filter before anything enters the kernel. Adversarial suite: 6/6 harmful blocked · 10/10 legitimate pass. Cannot be bypassed by prompt injection.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🌐</div>
       <h3>WebSocket chat server</h3>
-      <p>FastAPI + uvicorn; JSON over <code>/ws/chat</code>. Per-session kernel state, async timeout, and optional dedicated thread pool. Full observable JSON output.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🗂️</div>
-      <h3>Versioned persistence</h3>
-      <p>JSON / SQLite snapshots with schema migration, optional Fernet encryption, and conduct guide export for PC → edge handoff (nomadic bridge).</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">⚖️</div>
-      <h3>Governance (MockDAO)</h3>
-      <p>In-process simulation of quadratic DAO voting, constitution drafts, judicial escalation, hub audit, and LAN batch merge — not on-chain, explicitly marked as research.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📡</div>
-      <h3>Operator observability</h3>
-      <p>Prometheus metrics (<code>GET /metrics</code>), structured JSON logs, per-decision event lines, <code>GET /health</code> with LLM degradation map, and <code>ethos config</code> CLI cockpit.</p>
+      <p>FastAPI + uvicorn; streaming JSON over <code>/ws/chat</code>. Per-session kernel state, async timeout, and observable JSON output on every turn.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📱</div>
-      <h3>LAN / mobile client</h3>
-      <p>Serve <code>landing/public/</code> on the local network. Open <a href="mobile.html" style="color:var(--accent)">mobile.html</a> on a phone — lightweight WebSocket chat client.</p>
+      <h3>Native Android SDK</h3>
+      <p>Kotlin / Jetpack Compose foreground service. Exposes device capabilities (camera, mic, NPU) to the Ethos mesh. BSL 1.1 → Apache 2.0 after 36 months.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🛡️</div>
-      <h3>Guardian Angel (opt-in)</h3>
-      <p>Protective tone block injected into LLM layer. Does not change ethical policy. Optional care routines JSON. See <a href="guardian.html" style="color:var(--accent)">guardian.html</a>.</p>
+      <div class="feature-icon">🔌</div>
+      <h3>Extensible plugin system</h3>
+      <p>Built-in: Time, System, Weather (wttr.in), Web search (DuckDuckGo). Plugins run in the chat pipeline with full STM continuity — no context break.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>Secure Vault</h3>
+      <p>Encrypted secret store with WebSocket authorization pipeline. Sensitive state is isolated behind a runtime permission barrier.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🪞</div>
+      <h3>Narrative identity</h3>
+      <p>Evolving LLM journal with archetype distillation and Psi-Sleep REM consolidation. The kernel reflects on its own history every 120 s of idle.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
       <h3>Real-time dashboard</h3>
-      <p>Open <a href="dashboard.html" style="color:var(--accent)">dashboard.html</a> for live radar charts (ethical pole weights, perception confidence, governance state), chat, and health snapshot.</p>
+      <p>Open <a href="dashboard.html" style="color:var(--accent)">dashboard.html</a> for live ethical-pole radar charts, perception confidence, governance state, and chat.</p>
     </div>
   </div>
 </section>
@@ -304,7 +319,7 @@
 <!-- ── Quick start ── -->
 <section id="quickstart">
   <h2>Quick start</h2>
-  <p class="section-lead">Python 3.11+ recommended. CI runs on 3.11 and 3.12.</p>
+  <p class="section-lead">Python 3.11+ recommended. CI runs on 3.11 and 3.12. Ollama optional (heuristic fallback available).</p>
 
   <div class="code-block">
 <span class="comment"># 1. Clone and install</span>
@@ -317,7 +332,8 @@
   <div class="code-block">
 <span class="comment"># 2. Run the chat server</span>
 <span class="cmd">python -m src.chat_server</span>
-<span class="comment"># → http://127.0.0.1:8765/health   ws://127.0.0.1:8765/ws/chat</span></div>
+<span class="comment"># → http://127.0.0.1:8000/           WebSocket: ws://127.0.0.1:8000/ws/chat</span>
+<span class="comment"># → http://127.0.0.1:8000/dashboard  Real-time ethical dashboard</span></div>
 
   <div class="code-block">
 <span class="comment"># 3. Open the dashboard (no npm needed)</span>
@@ -327,76 +343,121 @@
 
   <div class="code-block">
 <span class="comment"># 4. Run the test suite</span>
-<span class="cmd">pytest tests/ -v</span>
+<span class="cmd">pytest tests/core/ -q</span>
+<span class="comment"># → 203 tests · 0 failures</span>
 <span class="cmd">python -m ruff check src tests</span>
 <span class="cmd">python -m mypy src</span></div>
 
   <div class="code-block">
-<span class="comment"># 5. Operator config cockpit (editable install required)</span>
-<span class="cmd">pip install -e .</span>
-<span class="cmd">ethos config --strict</span>
-<span class="cmd">python -m src.cli check-config</span></div>
+<span class="comment"># 5. GPU deploy (NVIDIA + Ollama sidecar)</span>
+<span class="cmd">docker compose -f docker-compose.gpu.yml up --build</span>
+<span class="comment"># → Ollama model pulled automatically; kernel uses GPU inference</span></div>
 </section>
 
 <!-- ── Architecture ── -->
 <section id="architecture">
   <h2>Architecture overview</h2>
-  <p class="section-lead">Every decision flows through a deterministic pipeline. LLM layers are optional accelerators, not the ethical authority.</p>
+  <p class="section-lead">V2 replaced the distributed tri-lobe event-bus with a direct sequential pipeline inside <code>ChatEngine</code>. Every decision is deterministic and traceable. LLM is an optional accelerator — never the ethical authority.</p>
   <div class="arch-block"><span class="hi">Input text</span>
   │
   ▼
-<span class="acc">MalAbs gate</span>  ←── Lexical substring filter
-  │           ←── Semantic embeddings (optional, hash fallback)
-  │           ←── LLM arbiter (optional, ambiguous band only)
+<span class="acc">MalAbs gate</span>  ←── Lexical absolute-evil filter (deterministic, &lt;1ms)
   │ PASS
   ▼
-<span class="pur">LLM Perception</span> ─── risk / hostility / calm [0,1], clamped
+<span class="pur">Deterministic perception</span>  ←── Intent · risk · hostility [0,1], no LLM
   │
   ▼
-<span class="hi">EthicalKernel.process()</span>
-  ├── Weighted mixture scorer  (utilitarian · deontological · virtue)
-  ├── Ethical poles            (linear modulation, configurable JSON)
-  ├── Sigmoid will             (continuous decision function)
-  ├── Narrative memory         (identity + forgiveness)
-  ├── Uchi-Soto                (trust circles)
-  ├── Psi Sleep Ψ              (retrospective audit + recalibration)
-  └── MockDAO / hub            (advisory governance, not on-chain)
-  │
+<span class="hi">CBR Ethics</span>  ←── 36 annotated precedent cases, cosine similarity match
+  │              Returns: action · confidence · matched_case
   ▼
-<span class="acc">LLM Communicate</span>  ─── verbal response (optional)
-  │
+<span class="acc">LLM respond</span>  ←── Optional: generates verbal reply from kernel decision
+  │              &lt;think&gt; tags silenced by state machine
   ▼
-<span class="hi">WebSocket JSON</span>   ─── streamed to client</div>
+<span class="pur">Memory / Identity / Roster</span>  ←── Hybrid embeddings + TF-IDF
+  │                               Narrative journal · PersonCard context
+  ▼
+<span class="hi">WebSocket JSON stream</span>  ←── plugin_used · ethics_case · latency · perception</div>
 
+  <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">
+    <strong style="color:var(--text)">Psi-Sleep daemon:</strong> After 120 s idle the kernel enters REM mode — consolidates memory, distills archetype narrative, prunes low-weight episodes.
+  </p>
   <p style="color:var(--muted); font-size:0.85rem;">
-    Runtime profiles (<code>lan_operational</code>, <code>moral_hub_extended</code>, <code>llm_integration_lab</code>, …) group <code>KERNEL_*</code> env vars into tested bundles.
-    See <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/src/runtime_profiles.py" target="_blank" rel="noopener" style="color:var(--accent)">src/runtime_profiles.py</a>
-    and <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/proposals/KERNEL_ENV_POLICY.md" target="_blank" rel="noopener" style="color:var(--accent)">KERNEL_ENV_POLICY.md</a>.
+    <strong style="color:var(--text)">Android SDK (V2.77+):</strong> Kotlin / Jetpack Compose foreground service (<code>src/clients/nomad_android/</code>). Exposes CameraX, AudioRecord (PCM 16kHz), and NPU inference to the Ethos mesh via P2P discovery (V2.79).
+    See <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/IDE_ANDROID_STUDIO_HANDOFF.md" target="_blank" rel="noopener" style="color:var(--accent)">Android Studio handoff guide</a>.
   </p>
 </section>
 
 <!-- ── History ── -->
 <section id="history">
-  <h2>Version history</h2>
-  <p class="section-lead">From a Bayesian sketch to a full-stack ethical agent runtime.</p>
+  <h2>Development epochs</h2>
+  <p class="section-lead">Three distinct eras. <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/EPOCH_INDEX.md" target="_blank" rel="noopener" style="color:var(--accent)">Full epoch index →</a></p>
   <div class="timeline">
-    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v1 — Conceptual phase</h3><p>40+ design docs, 7-layer architecture, 104 academic references, Spanish prototype.</p></div>
-    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v2 — Base kernel</h3><p>Absolute Evil, weighted scorer, ethical poles, sigmoid will, narrative memory. Single NumPy dependency.</p></div>
-    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v3 — Integrated kernel</h3><p>Uchi-Soto trust circles, locus of control, Psi Sleep Ψ, MockDAO, variability. 38 tests.</p></div>
-    <div class="tl-item"><div class="tl-date">March 2026</div><h3>v4 — LLM layer</h3><p>Natural language without breaking kernel/communication separation. Ollama + Anthropic adapters.</p></div>
-    <div class="tl-item"><div class="tl-date">March–April 2026</div><h3>v5–v8 — Persistence, sensors, hub</h3><p>Versioned snapshots, multi-modal trust, situated v8, LAN thin clients, V12 moral hub.</p></div>
-    <div class="tl-item"><div class="tl-date">April 2026</div><h3>v9–v12 — Governance stack + operator hardening</h3><p>Judicial escalation, reality verification, LAN governance merge, Prometheus metrics, tri-lobe architecture, RLHF foundations, 800+ tests.</p></div>
+
+    <!-- Epoch 0 -->
+    <div class="tl-item">
+      <div class="tl-date">Q1 2026 · Epoch 0</div>
+      <h3>Pre-Alpha — Conceptual phase</h3>
+      <p>40+ design docs, 7-layer cognitive architecture, 104 academic references (Bayesian inference, narrative identity, DAO governance). Spanish prototype <code>androide_etico_alpha_v1.0_2026.md</code>.</p>
+    </div>
+
+    <!-- Epoch 1 — V1 Series -->
+    <div class="tl-item">
+      <div class="tl-date">March 2026 · Epoch 1 — V1 Series <span class="epoch-tag">FROZEN · v15-archive-full-vision</span></div>
+      <h3>v1–v5 — Core modules</h3>
+      <p>Absolute Evil gate, weighted ethics scorer, ethical poles, sigmoid will, narrative memory, Uchi-Soto trust circles, Psi Sleep Ψ, MockDAO, variability. 51 tests. Single NumPy dependency.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">March–April 2026 · V1 continued</div>
+      <h3>v6–v12 — Runtime, governance, multimodal</h3>
+      <p>WebSocket chat server (FastAPI), versioned snapshots, Prometheus metrics, tri-lobe architecture (CorpusCallosum event bus), multi-team swarm (Cursor / Claude / Antigravity), 800+ tests, moral hub, judicial escalation.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">April 2026 · V1 peak</div>
+      <h3>v13–v15 — Distributed Nervous System</h3>
+      <p>Monolith guillotine: <code>src/kernel.py</code> split into 5 async mnemonic lobes. Nomadic autonomy, MotivationEngine, proactive daemon, voice synthesis. V1 archived at <code>v15-archive-full-vision</code>.</p>
+    </div>
+
+    <!-- Epoch 1 → 2 redirect -->
+    <div class="tl-item" style="border-left:2px solid var(--purple); padding-left:1.5rem; margin-left:-1.5rem;">
+      <div class="tl-date" style="color:var(--purple);">April 2026 · V1 → V2 Redirect</div>
+      <h3>Architectural restart</h3>
+      <p>3,200-line <code>chat_server.py</code> monolith, event-bus overhead, multi-team merge debt, and LLM in the perception hot path triggered a clean restart. V2 drops all scaffolding and rebuilds on <code>src/core/</code>.</p>
+    </div>
+
+    <!-- Epoch 2 — V2 Series -->
+    <div class="tl-item">
+      <div class="tl-date">April 2026 · Epoch 2 — V2 Series <span class="epoch-tag" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.3);color:var(--green);">ACTIVE</span></div>
+      <h3>V2.22–V2.46 — Core Minimal</h3>
+      <p>Complete rebuild on <code>src/core/</code>. CBR ethics engine (36 cases), deterministic perception (&lt;1ms), hybrid memory (embeddings + TF-IDF), narrative identity journal, GPU Docker, neural TTS.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">April 2026 · V2 continued</div>
+      <h3>V2.50–V2.66 — Sensory &amp; Intelligence</h3>
+      <p>Thalamic wake-word gate, acoustic echo shield, multimodal temporal fusion, field-tested audio feedback suppression, UserModelTracker, LLM reasoning suppression (<code>&lt;think&gt;</code> state machine), CBR legal doctrine injection.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">April 2026 · V2 continued</div>
+      <h3>V2.70–V2.76 — Secure &amp; Cognitive</h3>
+      <p>Secure Vault with WebSocket authorization pipeline, extensible plugin architecture, Web/Weather plugins with STM continuity, Narrative Roster (<code>PersonCard</code>), Psi-Sleep REM daemon. 203 tests.</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">April 2026 · Active</div>
+      <h3>V2.77–V2.79 — Native Android SDK &amp; Mesh</h3>
+      <p>PWA archived. Kotlin / Jetpack Compose foreground service (<code>src/clients/nomad_android/</code>). <strong>V2.79 active:</strong> P2P mesh discovery (WiFi Direct / Bluetooth / WebRTC), node capability profiling, local GGUF/NNAPI inference.</p>
+    </div>
+
   </div>
 </section>
 
 <footer>
   <p>
-    <strong>Ethos Kernel</strong> · MoSex Macchina Lab ·
+    <strong>Ethos 2.0</strong> · MoSex Macchina Lab ·
     <a href="https://github.com/CuevazaArt/ethical-android-mvp" target="_blank" rel="noopener">GitHub</a> ·
     <a href="ethos-transparency.html">Transparency</a> ·
+    <a href="https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/EPOCH_INDEX.md" target="_blank" rel="noopener">Epoch index</a> ·
     <a href="https://mosexmacchinalab.com" target="_blank" rel="noopener">mosexmacchinalab.com</a>
   </p>
-  <p style="margin-top:0.5rem">Apache 2.0 license · Research prototype — not a certified safety boundary</p>
+  <p style="margin-top:0.5rem">Kernel: Apache 2.0 · Nomad Android SDK: BSL 1.1 (→ Apache 2.0 after 36 months) · Research prototype — not a certified safety boundary</p>
 </footer>
 
 </body>
