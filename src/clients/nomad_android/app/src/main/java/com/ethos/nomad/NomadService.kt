@@ -15,6 +15,14 @@ import android.media.MediaPlayer
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import androidx.core.app.NotificationCompat
 
 class NomadService : Service(), RecognitionListener {
 
@@ -23,11 +31,29 @@ class NomadService : Service(), RecognitionListener {
     private var webSocket: WebSocket? = null
     private var mediaPlayer: MediaPlayer? = null
 
+    private val NOTIFICATION_ID = 1
+    private val CHANNEL_ID = "NomadServiceChannel"
+    private val handler = Handler(Looper.getMainLooper())
+    private val RECONNECT_DELAY_MS = 5000L
+
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Nomad Foreground Service Created")
+        createNotificationChannel()
         initWebSocket()
         initSpeechRecognizer()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val serviceChannel = NotificationChannel(
+                CHANNEL_ID,
+                "Ethos Nomad Service",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val manager = getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(serviceChannel)
+        }
     }
 
     private fun initWebSocket() {
@@ -54,8 +80,20 @@ class NomadService : Service(), RecognitionListener {
             }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 Log.e(TAG, "WebSocket Error", t)
+                scheduleReconnect()
+            }
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                Log.d(TAG, "WebSocket Closed: $reason")
+                scheduleReconnect()
             }
         })
+    }
+
+    private fun scheduleReconnect() {
+        Log.d(TAG, "Scheduling WebSocket reconnect in ${RECONNECT_DELAY_MS}ms")
+        handler.postDelayed({
+            initWebSocket()
+        }, RECONNECT_DELAY_MS)
     }
 
     private fun playBase64Audio(b64: String) {
@@ -140,7 +178,15 @@ class NomadService : Service(), RecognitionListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "Nomad Foreground Service Started")
-        // TODO: Start Foreground Notification here
+        
+        val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Ethos Kernel Active")
+            .setContentText("Nomad is listening and connected.")
+            .setSmallIcon(android.R.drawable.ic_btn_speak_now) // Default icon for now
+            .build()
+            
+        startForeground(NOTIFICATION_ID, notification)
+        
         return START_STICKY
     }
 

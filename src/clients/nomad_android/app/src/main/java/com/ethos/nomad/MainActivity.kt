@@ -58,7 +58,11 @@ class MainActivity : ComponentActivity() {
 
     private fun startNomadService() {
         val serviceIntent = Intent(this, NomadService::class.java)
-        startService(serviceIntent) // Use startForegroundService in prod
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
     }
 }
 
