@@ -28,6 +28,9 @@ python -m src.chat_server
 ### Architecture
 Ethos emplea una arquitectura modular inspirada en la neurociencia cognitiva, dividiendo las responsabilidades en "lóbulos" especializados (Percepción, Memoria, Ejecutivo) que se comunican a través de un bus central asíncrono. Esta estructura permite una extensibilidad total y una observabilidad profunda de cada decisión ética. Para una inmersión técnica completa, consulta el archivo [CONTEXT.md](CONTEXT.md).
 
+### Project epochs
+El proyecto ha evolucionado a través de tres eras de desarrollo bien diferenciadas. Consulta el **[Índice de Épocas](docs/EPOCH_INDEX.md)** para un mapa completo de la historia del proyecto (Pre-Alpha · Serie V1 · Serie V2 activa).
+
 ### Licensing
 El proyecto utiliza una estrategia de licencia dual para proteger la soberanía del kernel mientras se fomenta el ecosistema:
 - **Ethos Kernel:** [Apache 2.0](LICENSE)

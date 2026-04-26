@@ -6,6 +6,8 @@ and artifacts that were part of the journey.
 
 The open kernel + runtime is branded **Ethos Kernel** (April 2026 onward); earlier docs and mirrors may still say “Ethical Android MVP.” The GitHub repository slug may remain `ethical-android-mvp` until renamed.
 
+> **Epoch navigation:** [`docs/EPOCH_INDEX.md`](docs/EPOCH_INDEX.md) — structured index of all development eras (Pre-Alpha · V1 · V2) with per-epoch doc lists and cross-links.
+
 ---
 
 ## Current platform snapshot (April 2026)
@@ -263,6 +265,97 @@ Full decoupling of the monolithic `src/kernel.py` into 5 asynchronous mnemonic l
 ## v13.1 — April 2026 | Nomadic Autonomy & Morphological Readiness
 
 Transition to field-ready autonomous operation. Integrated the `MotivationEngine` and proactive intents (daemon loop). Hardened sensory feeds with BGR→RGB vision correction and dynamic Agility EMA smoothing. Implemented Zero-API voice responses via native Web Speech API in the Nomad frontline.
+
+> **End of V1 series.** The full codebase at peak V1 complexity is preserved at tag `v15-archive-full-vision` (frozen, do not modify). For the V1 → V2 redirect rationale, see the section below.
+
+---
+
+## V1 → V2 Redirect (April 2026)
+
+By V13–V15, the codebase had reached a complexity ceiling:
+
+- `chat_server.py` grew to **3,200+ lines** (monolith).
+- The distributed lobe system (`CorpusCallosum`, 5 async lobes) added orchestration overhead without a proportional improvement in ethical correctness.
+- Multi-team swarm merges produced significant import debt and test fragmentation across Antigravity / Cursor / Claude branches.
+- Perception still had LLM dependencies in some paths, making latency unpredictable.
+
+**Decision (L0 / Juan):** Complete architectural restart. The V1 kernel is archived. V2 begins with a clean `src/core/` minimal kernel, eliminating all legacy scaffolding.
+
+**V1 archive tag:** `v15-archive-full-vision` — read-only reference. Do not commit to it.
+
+---
+
+## V2 Series — April 2026 → Present | Ethos 2.0 Core Minimal
+
+> **This is the active epoch.** For the current operating state and active blocks, see [`CONTEXT.md`](CONTEXT.md).
+
+### Architectural pivot
+
+| Dimension | V1 | V2 |
+|-----------|----|----|
+| Module path | `src/modules/` | `src/core/` |
+| Orchestration | Event bus + async lobes | Direct sequential `ChatEngine` |
+| Chat server | 3,200-line monolith | ~350-line app factory |
+| Perception | Partial LLM dependency | Fully deterministic (<1ms, no LLM) |
+| Tests | Multi-team fragmented | 203 systematic, all in `tests/core/` |
+| Android client | PWA (archived in `src/clients/archive_nomad_pwa/`) | Native Kotlin / Jetpack Compose |
+
+### V2 kernel modules (`src/core/`)
+
+| Module | Role |
+|--------|------|
+| `chat.py` | `ChatEngine` — master pipeline: Safety → Perceive → Ethics → LLM → Memory |
+| `ethics.py` | CBR ethics engine with 36 precedent cases |
+| `safety.py` | MalAbs absolute evil gate (deterministic, lexical) |
+| `memory.py` | Hybrid semantic embeddings + TF-IDF memory |
+| `perception.py` | Deterministic perception classifier |
+| `identity.py` | Narrative journal + archetype distillation |
+| `llm.py` | LLM adapter with `<think>` state machine |
+| `precedents.py` | CBR case library |
+| `sleep.py` | `PsiSleepDaemon` — REM-mode memory consolidation |
+| `plugins.py` | Extensible plugin system (Time, System, Weather, Web) |
+| `vault.py` | Encrypted secret management (WebSocket authorization) |
+| `roster.py` | Known-person context (`PersonCard`) |
+| `user_model.py` | Behavioral profile tracker |
+| `tts.py` / `stt.py` | Voice I/O (`edge-tts`) |
+| `vision.py` | Autonomous vision trigger |
+| `status.py` | System health telemetry |
+
+### V2 block milestones
+
+| Block | Milestone |
+|-------|-----------|
+| V2.22 | Core Minimal consolidated — `src/core/` becomes sole source of truth |
+| V2.25 | Phase 16 complete — zero legacy imports, 91 tests |
+| V2.40–V2.46 | Perception, CBR, Pipeline, Embeddings, Identity, PWA HUD, Precedents expansion |
+| V2.47–V2.49 | GPU Docker, Multi-turn LLM, Neural TTS |
+| V2.50–V2.60 | Sensory expansion, Thalamic gate, Echo shield, Multimodal fusion, Field test |
+| V2.61–V2.66 | Narrative archetype, UserModelTracker, LLM reasoning suppression, CBR legal doctrine |
+| V2.70 | Secure Vault — tagged `v2.70-secure-vault` |
+| V2.71–V2.74 | Vault pipeline, Plugins architecture, Web/Weather plugins, STM continuity |
+| V2.75–V2.76 | Narrative Roster, Psi-Sleep daemon |
+| V2.77–V2.78 | Native Android scaffolding, Gradle/Compose core setup |
+| V2.79 | Parasite SDK & Mesh Discovery — **active** |
+
+### V2 health snapshot (2026-04-25)
+
+- **Tests:** 203/203 ✅
+- **Legacy imports:** 0
+- **Perception:** deterministic (no LLM, <1ms latency)
+- **Ethics:** CBR-based (36 cases)
+- **Memory:** hybrid (Semantic Embeddings + TF-IDF fallback)
+- **Identity:** narrative journal + archetype distillation
+- **Adversarial suite:** 6/6 blocked · 10/10 legitimate pass
+- **Field test:** Android PWA voice+vision confirmed (v22.3.3)
+
+### V2 reference docs
+
+- **Active state:** [`CONTEXT.md`](CONTEXT.md)
+- **Epoch navigation:** [`docs/EPOCH_INDEX.md`](docs/EPOCH_INDEX.md)
+- **Licensing:** [`LICENSING_STRATEGY.md`](LICENSING_STRATEGY.md)
+- **Android SDK:** [`src/clients/nomad_android/`](src/clients/nomad_android/)
+- **Android handoff:** [`docs/IDE_ANDROID_STUDIO_HANDOFF.md`](docs/IDE_ANDROID_STUDIO_HANDOFF.md)
+- **P2P threat model:** [`docs/proposals/SWARM_P2P_THREAT_MODEL.md`](docs/proposals/SWARM_P2P_THREAT_MODEL.md)
 
 ---
 
