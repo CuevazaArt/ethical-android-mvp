@@ -13,17 +13,21 @@
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
 
 ## Estado Actual (Abril 2026)
-- **Fase:** 23 (Nomad Native Android SDK Transition) - EN PROGRESO
-- **Logro:** PWA archivada tras descubrir límites duros de ejecución en 2do plano web. Arquitectura reorientada a Android nativo.
-- **Siguiente Paso:** Setup del entorno Android (Jetpack Compose, Foreground Services, OkHttp WebSocket).
+- **Fase:** 23 (Nomad Native Android SDK Transition) - COMPLETA ✅
+- **Logro:** Setup de Core Android (Gradle/Compose) y Servicios en primer plano funcionales.
+- **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
-- **V2.78: NATIVE ANDROID CORE SETUP**
-  - Inicializar proyecto Gradle / Jetpack Compose.
-  - Configurar permisos (`RECORD_AUDIO`, `INTERNET`, `FOREGROUND_SERVICE`).
-  - Crear `MainActivity` y `ForegroundService` base.
+- **V2.79: PARASITE SDK & MESH DISCOVERY**
+  - Implementar descubrimiento P2P (WiFi Direct / Bluetooth / WebRTC).
+  - Profiling de capacidades del nodo (CPU, RAM, Batería).
+  - Runtime de inferencia local (GGUF/NNAPI) integrado en el Daemon.
 
 ## Bloques Recientes
+- **V2.78: NATIVE ANDROID CORE SETUP** - CLOSED ✅
+  - Inicializado proyecto Gradle / Jetpack Compose.
+  - Configurados permisos (`RECORD_AUDIO`, `INTERNET`, `FOREGROUND_SERVICE`).
+  - Creados `MainActivity` y `ForegroundService` base para persistencia.
 - **V2.77: NATIVE ANDROID SCAFFOLDING** - CLOSED ✅
   - PWA archivada y código refactorizado hacia el SDK de Android.
   - Roadmap actualizado con enfoque Híbrido y Malla Física V2.
@@ -54,15 +58,14 @@
 - **V2.71: VAULT AUTHORIZATION PIPELINE** - CLOSED ✅
   - Flujo de solicitud `[GET_VAULT]` y autorización por WebSockets.
 
-## Roadmap Aspiracional (L0 Vision — 2026-04-25)
+> **Vision: Colonización Distribuida (Android Parasitization):**
+> No se trata de reemplazar Android (drivers propietarios), sino de parasitarlo como un "hipervisor social".
+> - **Capa Física:** Smartphones relegados (Android 8+) actuando como "sustrato biológico".
+> - **SDK Colonizador:** App-agente que expone capacidades (CPU/GPU/NPU) a una malla distribuida.
+> - **Protocolo de Malla:** P2P (libp2p/WebRTC) para descubrimiento y asignación de tareas.
+> - **Kernel de Modelo:** Inferencia fragmentada (modelos 1B-8B según RAM del nodo).
+> - **Multiplexor Físico:** Rack de laboratorio para clusters locales de alta densidad (ADB over USB).
 
-> **Plugin Tool-Use con LoRA / DAO refinement:**  
-> La arquitectura de plugins (V2.72) está funcional y probada. La rugosidad actual en la invocación de herramientas (el LLM a veces responde desde memoria en lugar del plugin) es inherente al modelo base (Llama 3.1 8B) y no del Kernel.  
->  
-> **Plan a largo plazo:**
-> - **DAO de refinamiento colectivo:** Datasets de conversaciones curadas por la comunidad donde el uso correcto de herramientas sea la respuesta esperada. Estos ejemplos enriquecen el fine-tuning base.
-> - **LoRAs como máscaras de interfaz:** Adapters ligeros (<100MB) entrenados específicamente sobre el protocolo `[PLUGIN: X]`, el formato de la Bóveda, y la identidad de Ethos. Se intercambian por contexto (ciudadano, médico, legal) sin reentrenar el modelo base.
-> - **Beneficio neto:** El Kernel V2 se vuelve el *runtime* estable; las LoRAs son la *personalidad / competencia específica*. El contrato entre ambos es el system prompt actual.
 
 ## Hoja de Ruta (Roadmap V2)
 
@@ -88,8 +91,7 @@
 
 ## Closed blocks
 
-| Block | Name | Status |
-|-------|------|--------|
+| V2.78 | Native Android Core Setup | ✅ |
 | V2.70 | Secure Vault (Isolation Boundary) | ✅ |
 | V2.66 | CBR Injection (Doctrina Legal) | ✅ |
 | V2.65 | LLM Reasoning Suppression (<think>) | ✅ |
@@ -136,7 +138,7 @@
 
 ## System health (2026-04-25)
 
-- **Tests:** 188/188 ✅
+- **Tests:** 203/203 ✅
 - **Legacy imports:** 0
 - **Perception:** Determinista (Sin LLM, latencia <1ms)
 - **Ethics:** Basada en precedentes (CBR, 36 casos)
