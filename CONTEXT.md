@@ -18,12 +18,16 @@
 - **Siguiente Paso:** Setup del entorno Android (Jetpack Compose, Foreground Services, OkHttp WebSocket).
 
 ## Bloques Activos
-- **V2.77: NATIVE ANDROID SCAFFOLDING**
-  - Mover `nomad_pwa` a `archive_nomad_pwa`.
-  - Crear estructura inicial `nomad_android`.
-  - Alinear roadmap y servidor para esperar PCM y webSockets nativos.
+- **V2.78: NATIVE ANDROID CORE SETUP**
+  - Inicializar proyecto Gradle / Jetpack Compose.
+  - Configurar permisos (`RECORD_AUDIO`, `INTERNET`, `FOREGROUND_SERVICE`).
+  - Crear `MainActivity` y `ForegroundService` base.
 
 ## Bloques Recientes
+- **V2.77: NATIVE ANDROID SCAFFOLDING** - CLOSED ✅
+  - PWA archivada y código refactorizado hacia el SDK de Android.
+  - Roadmap actualizado con enfoque Híbrido y Malla Física V2.
+
 - **V2.76: PSI-SLEEP COGNITIVE CONSOLIDATION** - CLOSED ✅
   - Creado `src/core/sleep.py` (`PsiSleepDaemon`).
   - Daemon acoplado a los eventos de `startup`/`shutdown` en `FastAPI` (`app.py`).
@@ -60,7 +64,27 @@
 > - **LoRAs como máscaras de interfaz:** Adapters ligeros (<100MB) entrenados específicamente sobre el protocolo `[PLUGIN: X]`, el formato de la Bóveda, y la identidad de Ethos. Se intercambian por contexto (ciudadano, médico, legal) sin reentrenar el modelo base.
 > - **Beneficio neto:** El Kernel V2 se vuelve el *runtime* estable; las LoRAs son la *personalidad / competencia específica*. El contrato entre ambos es el system prompt actual.
 
-Sensory expansion via hardware (Nomad camera/mic integration) is **FROZEN** until better resources/hardware are available. Development will now focus on higher-level conversational features and kernel logic via traditional chat interfaces.
+## Hoja de Ruta (Roadmap V2)
+
+### Corto Plazo (Fase 23: Mono-Smartphone Híbrido)
+- Inicializar proyecto en Android Studio con Jetpack Compose.
+- Implementar **Foreground Service** para persistencia en background (evitando muerte de proceso).
+- Reemplazar capturas WebRTC por acceso nativo `CameraX` y `AudioRecord` (PCM crudo 16kHz).
+- Crear el *Router Cognitivo* que delegue tareas de alta complejidad al Ethos Kernel (Python Backend) y tareas básicas a SLMs locales.
+- Integrar Wake Words on-device (e.g. Porcupine) para escucha pasiva de bajo consumo.
+
+### Medio Plazo (Delegación Sensorial y DAO)
+- Integración de biometría extendida desde Android (Acelerómetro, GPS, Batería, Luz ambiental) fluyendo hacia el `SensoryBuffer` del Kernel.
+- Acoplamiento con el sistema DAO para gobernanza de memoria.
+- Estabilidad de red offline y sincronización retardada de memorias (Psi-Sleep nativo).
+
+### Largo Plazo (Nomad Physical Mesh / Solarpunk Robotics)
+- Transición a hardware físico dedicado.
+- Conexión física USB-C/Thunderbolt de múltiples Android obsoletos en un chasis robótico para sumar potencia de cálculo en clúster local (Edge Mesh Swarm).
+- Autosuficiencia energética mediante puente a baterías motrices de alta capacidad.
+- Independencia total del Cloud (100% inferencia multi-nodo en el dispositivo robótico).
+
+
 
 ## Closed blocks
 
@@ -91,11 +115,7 @@ Sensory expansion via hardware (Nomad camera/mic integration) is **FROZEN** unti
 | V2.59 | Sensory-Context Perception — Multimodal pattern recognition | ✅ |
 | V2.60 | Audio Feedback Suppression — ScriptProcessor removed, SR text rescue, phantom turn kill | ✅ FIELD-TESTED |
 
-## Frozen blocks ❄️
 
-| Block | Name | Reason |
-|-------|------|--------|
-| SENSORY-HW | High-frequency continuous sensory hardware integration | SoC hardware limitations (Android media pipeline constraints) |
 
 ## Key files
 
