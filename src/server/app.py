@@ -52,7 +52,7 @@ async def _safe_send_tts(ws: WebSocket, event: dict, metadata: dict | None = Non
 app = FastAPI(title="Ethos Kernel Chat")
 
 STATIC_DIR = Path(__file__).parent / "static"
-NOMAD_DIR = Path(__file__).parent.parent / "clients" / "nomad_pwa"
+NOMAD_DIR = Path(__file__).parent.parent / "clients" / "archive_nomad_pwa" # V2.77: Archived
 _start_time = time.time()
 _last_latency: dict | None = None  # V2.19: Store last latency globally
 _sleep_daemon = PsiSleepDaemon(idle_threshold_seconds=120)  # V2.76: Psi-Sleep
@@ -73,7 +73,7 @@ async def get_index():
 
 @app.get("/nomad/")
 async def get_nomad():
-    """Serve the Nomad PWA (mobile client)."""
+    """Serve the Archived Nomad PWA (mobile client)."""
     return FileResponse(NOMAD_DIR / "index.html")
 
 

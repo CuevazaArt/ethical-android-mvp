@@ -13,12 +13,15 @@
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
 
 ## Estado Actual (Abril 2026)
-- **Fase:** 22 (Identity Roster & Psi-Sleep Consolidation) - COMPLETADA
-- **Logro:** Ethos ahora extrae Fichas de Identidad (Roster) de forma asíncrona, guarda episodios más largos en memoria, y consolida su identidad utilizando un daemon en segundo plano (Psi-Sleep) que se activa tras la inactividad, eliminando el bloqueo cada 5 turnos.
-- **Siguiente Paso:** Fase 23 (A definir con L0 - ¿Inmortalidad DAO/Soul Snapshot?).
+- **Fase:** 23 (Nomad Native Android SDK Transition) - EN PROGRESO
+- **Logro:** PWA archivada tras descubrir límites duros de ejecución en 2do plano web. Arquitectura reorientada a Android nativo.
+- **Siguiente Paso:** Setup del entorno Android (Jetpack Compose, Foreground Services, OkHttp WebSocket).
 
 ## Bloques Activos
-- Ninguno.
+- **V2.77: NATIVE ANDROID SCAFFOLDING**
+  - Mover `nomad_pwa` a `archive_nomad_pwa`.
+  - Crear estructura inicial `nomad_android`.
+  - Alinear roadmap y servidor para esperar PCM y webSockets nativos.
 
 ## Bloques Recientes
 - **V2.76: PSI-SLEEP COGNITIVE CONSOLIDATION** - CLOSED ✅
