@@ -270,6 +270,23 @@ async def websocket_endpoint(websocket: WebSocket):
                         await _run_turn_and_send(
                             engine, websocket, text, _chat_vision, label="Pipeline",
                         )
+                elif frame_type == "vault_auth":
+                    # Phase 19: Vault Authorization callback
+                    key = frame.get("key")
+                    approved = frame.get("approved")
+                    if approved and key:
+                        engine.vault.unlock("biometric_dummy")
+                        secret = engine.vault.get_secret(key, reason="User approved via UI")
+                        engine.vault.lock()
+                        if secret:
+                            injection = f"[SISTEMA - ALTA PRIORIDAD]: Acceso concedido a la Bóveda. El valor de '{key}' es: {secret}. Procede a ayudar al usuario con esta información de forma natural."
+                        else:
+                            injection = f"[SISTEMA]: Acceso concedido, pero la bóveda indica que la llave '{key}' está vacía o no existe. Informa al usuario."
+                        
+                        _log.info("[VAULT] Injecting secret for %s", key)
+                        await _run_turn_and_send(
+                            engine, websocket, injection, _chat_vision, label="Vault"
+                        )
                 elif frame_type:
                     _log.debug("wsChat ignoring typed frame: %s", frame_type)
                 elif frame and isinstance(frame, dict) and frame.get("text"):

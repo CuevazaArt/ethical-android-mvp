@@ -158,7 +158,7 @@ class OllamaClient:
             "stream": True,
             "options": {
                 "temperature": temperature,
-                "stop": ["Usuario:", "User:", "Tú:", "Assistant:"],
+                "stop": ["Usuario:", "User:"],
             },
         }
 

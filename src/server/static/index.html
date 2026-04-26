@@ -50,6 +50,22 @@
                     return;
                 }
 
+                if (data.type === 'clear_tokens') {
+                    // V2.72: Plugin triggered mid-stream — erase partial text
+                    if (currentMsgEl) {
+                        currentMsgEl.remove();
+                        currentMsgEl = null;
+                    }
+                    return;
+                }
+
+                if (data.type === 'auth_required') {
+                    const btnHtml = `<button onclick="authorizeVault('${data.vault_key}')" style="margin-top:10px;background:#d29922;color:white;border:none;border-radius:4px;padding:5px 10px;font-weight:bold;">🔐 Autorizar acceso a: ${data.vault_key}</button>`;
+                    log.innerHTML += `<div class="message" style="border:1px dashed #d29922; padding:10px; border-radius:5px; background: #21262d; margin-top:10px;">⚠️ Solicitud de Bóveda Segura<br>${btnHtml}</div>`;
+                    log.scrollTop = log.scrollHeight;
+                    return;
+                }
+
                 if (data.type === 'token') {
                     // Streaming: append token to current message
                     if (!currentMsgEl) {
@@ -68,13 +84,20 @@
                     const msgClass = data.blocked ? 'blocked-msg' : 'kernel-msg';
                     const ctxInfo = data.context ? `<span class="context-tag">[${data.context}]</span>` : '';
                     const reasonInfo = data.reason ? `<span class="context-tag">(${data.reason})</span>` : '';
-                    
+                    const pluginInfo = data.plugin_used ? `<span class="context-tag" style="background:#1f4f3a;color:#3fb950;">🔌 ${data.plugin_used}</span>` : '';
+
                     if (currentMsgEl && !data.blocked) {
                         // Streaming finished — add context tag to existing element
-                        currentMsgEl.innerHTML += ` ${ctxInfo}`;
+                        currentMsgEl.innerHTML += ` ${ctxInfo}${pluginInfo}`;
                     } else if (data.message) {
                         // Blocked or non-streamed — create new message
-                        log.innerHTML += `<div class="message ${msgClass}"><strong>Ethos:</strong> ${data.message} ${ctxInfo} ${reasonInfo}</div>`;
+                        log.innerHTML += `<div class="message ${msgClass}"><strong>Ethos:</strong> ${data.message} ${ctxInfo} ${pluginInfo} ${reasonInfo}</div>`;
+                    }
+
+                    
+                    if (data.vault_key) {
+                        const btnHtml = `<button onclick="authorizeVault('${data.vault_key}')" style="margin-top:10px;background:#d29922;color:white;border:none;border-radius:4px;padding:5px 10px;font-weight:bold;">🔐 Autorizar acceso a: ${data.vault_key}</button>`;
+                        log.innerHTML += `<div class="message" style="border:1px dashed #d29922; padding:10px; border-radius:5px; background: #21262d; margin-top:10px;">⚠️ Solicitud de Bóveda Segura<br>${btnHtml}</div>`;
                     }
                     
                     currentMsgEl = null;
@@ -114,6 +137,18 @@
                 e.preventDefault();
                 send();
             }
+        };
+
+        // Phase 19: Vault Authorization Function
+        window.authorizeVault = function(key) {
+            if (ws.readyState !== WebSocket.OPEN || streaming) return;
+            const payload = JSON.stringify({ type: "vault_auth", key: key, approved: true });
+            log.innerHTML += `<div class="message user-msg" style="color: #3fb950;"><strong>Sistema:</strong> 🔐 Autorización concedida para [${key}]. Desencriptando...</div>`;
+            log.scrollTop = log.scrollHeight;
+            ws.send(payload);
+            streaming = true;
+            btn.disabled = true;
+            input.disabled = true;
         };
 
         connect();

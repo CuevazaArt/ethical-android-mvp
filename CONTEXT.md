@@ -12,12 +12,39 @@
 
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
 
-## Active block
+## Estado Actual (Abril 2026)
+- **Fase:** 21 (Plugin STM Continuity + Telemetry) - COMPLETADA
+- **Logro:** Plugins con continuidad de memoria y telemetría visible en UI.
+- **Siguiente Paso:** Fase 22 (A definir con L0).
 
-- **V2.71: VAULT AUTHORIZATION PIPELINE (Phase 19)**: Conectando biometría/aprobación a la Bóveda Segura.
-  - [ ] Implementar herramienta de `Function Calling` para que el LLM dispare el trigger `UNLOCK_VAULT`.
-  - [ ] Implementar pausa de servidor y solicitud de biometría en Nomad PWA o CLI.
-  - [ ] Inyección efímera de la llave en un turno de respuesta.
+## Bloques Activos
+- Ninguno.
+
+## Bloques Recientes
+- **V2.74: PLUGIN STM CONTINUITY + TELEMETRY** - CLOSED ✅
+  - Fix: `web_context` siempre inicializado (bug de variable no declarada).
+  - STM ahora guarda `user_message + [dato obtenido vía Plugin: ...]` para continuidad.
+  - `plugin_used` expuesto en evento `done` + badge 🔌 verde en UI.
+  - **199/199 pasando.**
+- **V2.73: WEB SEARCH PLUGIN + WEATHER** - CLOSED ✅
+  - `WeatherPlugin` (wttr.in), `WebPlugin` (DuckDuckGo), detección determinista.
+  - Inyección en mensaje de usuario (no en system prompt) para superar RLHF bias.
+- **V2.72: EXTERNAL PLUGINS ARCHITECTURE** - CLOSED ✅
+  - `src/core/plugins.py` creado. Plugins: `Time`, `System`.
+  - `chat.py` intercepta `[PLUGIN: X]`, ejecuta, reinyecta, re-despacha al LLM.
+- **V2.71: VAULT AUTHORIZATION PIPELINE** - CLOSED ✅
+  - Flujo de solicitud `[GET_VAULT]` y autorización por WebSockets.
+
+## Roadmap Aspiracional (L0 Vision — 2026-04-25)
+
+> **Plugin Tool-Use con LoRA / DAO refinement:**  
+> La arquitectura de plugins (V2.72) está funcional y probada. La rugosidad actual en la invocación de herramientas (el LLM a veces responde desde memoria en lugar del plugin) es inherente al modelo base (Llama 3.1 8B) y no del Kernel.  
+>  
+> **Plan a largo plazo:**
+> - **DAO de refinamiento colectivo:** Datasets de conversaciones curadas por la comunidad donde el uso correcto de herramientas sea la respuesta esperada. Estos ejemplos enriquecen el fine-tuning base.
+> - **LoRAs como máscaras de interfaz:** Adapters ligeros (<100MB) entrenados específicamente sobre el protocolo `[PLUGIN: X]`, el formato de la Bóveda, y la identidad de Ethos. Se intercambian por contexto (ciudadano, médico, legal) sin reentrenar el modelo base.
+> - **Beneficio neto:** El Kernel V2 se vuelve el *runtime* estable; las LoRAs son la *personalidad / competencia específica*. El contrato entre ambos es el system prompt actual.
+
 Sensory expansion via hardware (Nomad camera/mic integration) is **FROZEN** until better resources/hardware are available. Development will now focus on higher-level conversational features and kernel logic via traditional chat interfaces.
 
 ## Closed blocks
@@ -74,7 +101,7 @@ Sensory expansion via hardware (Nomad camera/mic integration) is **FROZEN** unti
 
 ## System health (2026-04-25)
 
-- **Tests:** 165/165 ✅
+- **Tests:** 188/188 ✅
 - **Legacy imports:** 0
 - **Perception:** Determinista (Sin LLM, latencia <1ms)
 - **Ethics:** Basada en precedentes (CBR, 36 casos)

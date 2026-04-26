@@ -39,6 +39,7 @@ from src.core.precedents import find_nearest_precedents
 from src.core.safety import is_dangerous, sanitize
 from src.core.user_model import UserModelTracker
 from src.core.vault import SecureVault
+from src.core.plugins import PluginRegistry
 
 _log = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ _log = logging.getLogger(__name__)
 
 # The response prompt — generates what the agent says
 RESPONSE_PROMPT = """Eres Ethos, una IA ética cívica. Tu nombre es Ethos. Responde de forma natural, directa y empática en ESPAÑOL.
-Máximo dos frases. No uses JSON. No te expliques como IA. Solo habla como responderías a la persona.
+Sé conciso, pero proporciona el detalle necesario. No uses JSON. No te expliques como IA. Solo habla como responderías a la persona.
 IMPORTANTE: Limítate a UN turno de respuesta. NUNCA simules al 'Usuario:' ni continúes la conversación por él."""
 
 
@@ -142,6 +143,7 @@ class ChatEngine:
         self.identity = Identity()  # V2.15: evolves with each episode
         self.user_model = UserModelTracker()  # V2.62: cognitive bias & risk
         self.vault = SecureVault()  # V2.70: isolated secure storage
+        self.plugins = PluginRegistry()  # V2.72: external tool execution
         self._turn_count: int = 0  # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
 
@@ -168,8 +170,10 @@ class ChatEngine:
         vision_context: dict | None = None,
     ) -> str:
         """
-        Build the full system prompt: ethics + history + memory + vision.
-        Single source of truth — used by both respond() and respond_stream().
+        Build the full system prompt: ethics + memory + vision + plugins.
+        Single source of truth — used by respond() and respond_stream().
+        Real-time data (weather/web) is injected via effective_user_message in turn_stream,
+        NOT here, to bypass RLHF bias in small models.
         """
         system = f"{RESPONSE_PROMPT}\n\nIdentidad central moldeada por la experiencia:\n{self.memory.identity}"
 
@@ -193,10 +197,19 @@ class ChatEngine:
             if precedents:
                 system += f"\n\n[PRECEDENTE / DOCTRINA LEGAL]: {precedents[0].reasoning}"
 
-        # V2.70: Vault awareness
+        # V2.70: Vault awareness (Function Calling Stub)
         keys = self.vault.list_keys()
         if keys:
-            system += f"\n\n[SISTEMA VAULT]: Tienes datos encriptados disponibles: {keys}. Si necesitas acceder a ellos para responder al usuario, asume que el sistema los inyectará si están desbloqueados."
+            system += f"\n\n[SISTEMA VAULT]: Tienes una bóveda segura con las siguientes llaves protegidas: {keys}. NO TIENES LOS VALORES ACTUALMENTE. Si necesitas acceder imperativamente a uno de estos datos para ayudar al usuario, responde EXACTAMENTE con el texto 'GET_VAULT: nombre_de_la_llave' al inicio de tu mensaje y detente. Yo interceptaré eso y pediré autorización."
+
+        # V2.72: Reactive plugin awareness (Time + System only).
+        # Weather and Web are handled PROACTIVELY before the LLM is called.
+        system += (
+            "\n\n[HERRAMIENTAS REACTIVAS]:\n"
+            "- Time: Responde EXACTAMENTE '[PLUGIN: Time]' para preguntas de hora/fecha/día/mes/año.\n"
+            "- System: Responde EXACTAMENTE '[PLUGIN: System]' para preguntas de CPU/RAM/estado del sistema.\n"
+            "EJEMPLO: Usuario: '¿Qué hora es?' → Tu respuesta: [PLUGIN: Time]"
+        )
 
         # V2.13: Physical environment from Nomad vision
         if vision_context:
@@ -263,6 +276,7 @@ class ChatEngine:
         """
         Streaming variant of respond(). Yields text tokens as they arrive.
         Uses _build_system() — no duplication.
+        Real-time data is pre-injected into user_message by turn_stream before this is called.
         """
         system = self._build_system(user_message, signals, evaluation, vision_context)
         try:
@@ -454,18 +468,89 @@ class ChatEngine:
             else None,
         }
 
+        # V2.73b / V2.74: Proactive real-time data pre-fetch — Weather first, Web as fallback
+        # Strategy: inject into USER MESSAGE (not system prompt) to override RLHF bias.
+        # The LLM is trained to respond *to* messages, not to read system prompt as authority.
+        t_web = time.perf_counter()
+        effective_user_message = user_message
+        plugin_used: str | None = None  # V2.74: for telemetry
+        web_context: str | None = None  # V2.74: fix — always initialized
+        city = self.plugins.detect_weather_query(user_message)
+        if city:
+            web_context = await asyncio.to_thread(self.plugins.execute, "Weather", city)
+            latency["weather"] = round((time.perf_counter() - t_web) * 1000, 2)
+            _log.info("[Weather] Proactive fetch '%s' → %s", city[:30], (web_context or "")[:60])
+            if web_context:
+                plugin_used = "Weather"
+                effective_user_message = (
+                    f"[HERRAMIENTA CLIMA]: {web_context}\n"
+                    f"Basándote ÚNICAMENTE en el dato anterior, responde al usuario en español: {user_message}"
+                )
+        else:
+            web_query = self.plugins.detect_web_query(user_message)
+            if web_query:
+                web_context = await asyncio.to_thread(self.plugins.execute, "Web", web_query)
+                latency["web"] = round((time.perf_counter() - t_web) * 1000, 2)
+                _log.info("[Web] Proactive search '%s' → %s", web_query[:40], (web_context or "")[:60])
+                if web_context:
+                    plugin_used = "Web"
+                    effective_user_message = (
+                        f"[HERRAMIENTA WEB]: {web_context}\n"
+                        f"Basándote ÚNICAMENTE en el dato anterior, responde al usuario en español: {user_message}"
+                    )
+
         full_response = []
         first_token = True
-        async for token in self.respond_stream(user_message, signals, evaluation, vision_context):
+        plugin_triggered = False
+        async for token in self.respond_stream(effective_user_message, signals, evaluation, vision_context):
             if first_token:
                 latency["ttft"] = round((time.perf_counter() - t_start) * 1000, 2)
                 first_token = False
             full_response.append(token)
-            yield {"type": "token", "content": token}
+            combined_so_far = "".join(full_response)
+            if not plugin_triggered and self.plugins.has_plugin_call(combined_so_far):
+                # Plugin detected mid-stream: stop yielding tokens to client
+                plugin_triggered = True
+                yield {"type": "clear_tokens"}  # tell client to erase partial text
+            if not plugin_triggered:
+                yield {"type": "token", "content": token}
 
         latency["llm_total"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         message = "".join(full_response).strip()
+
+        # V2.73: Plugin interception — async-safe (Web uses network I/O)
+        plugin_name, plugin_result = await asyncio.to_thread(
+            self.plugins.parse_and_execute, message
+        )
+        if plugin_name and plugin_result:
+            _log.info("[Plugins] Intercepted [PLUGIN: %s] → %s", plugin_name, plugin_result[:80])
+            # Inject result into STM so LLM knows what the tool returned
+            tool_injection = f"[HERRAMIENTA {plugin_name.upper()}]: {plugin_result}"
+            self._conversation.append({"user": user_message, "assistant": tool_injection})
+            # Re-dispatch: ask LLM to formulate the final user-facing reply
+            final_tokens: list[str] = []
+            async for token in self.respond_stream(
+                f"[RESULTADO DE HERRAMIENTA {plugin_name}]: {plugin_result}. Ahora responde al usuario de forma natural y en español, usando esta información.",
+                signals,
+                evaluation,
+                vision_context,
+            ):
+                final_tokens.append(token)
+                yield {"type": "token", "content": token}
+            # Replace message with the LLM's natural reformulation
+            message = "".join(final_tokens).strip()
+            # Remove the temp STM entry; the real one is added below
+            self._conversation.pop()
+
+        # V2.71: Vault interception
+        vault_key = None
+        if "GET_VAULT:" in message:
+            import re
+            match = re.search(r"GET_VAULT:\s*([A-Za-z0-9_]+)", message)
+            if match:
+                vault_key = match.group(1)
+                _log.warning("Ethos requested vault key: %s", vault_key)
 
         # 4. Remember
         t_start = time.perf_counter()
@@ -484,8 +569,12 @@ class ChatEngine:
             # V2.42: Background reflection to avoid blocking response delivery
             asyncio.create_task(self.identity.reflect(self.memory, self.llm))
 
-        # 5. STM
-        self._conversation.append({"user": user_message, "assistant": message})
+        # 5. STM — V2.74: store original user message + plugin annotation for continuity
+        stm_user = user_message
+        if plugin_used and web_context:
+            # Annotate so next turn LLM knows what data was already retrieved
+            stm_user = f"{user_message} [dato obtenido vía {plugin_used}: {web_context[:120]}]"
+        self._conversation.append({"user": stm_user, "assistant": message})
         if len(self._conversation) > 10:
             self._conversation = self._conversation[-10:]
 
@@ -500,6 +589,8 @@ class ChatEngine:
             "context": signals.context,
             "blocked": False,
             "latency": latency,
+            "vault_key": vault_key,   # V2.71
+            "plugin_used": plugin_used,  # V2.74: telemetry
         }
 
     async def repl(self) -> None:
