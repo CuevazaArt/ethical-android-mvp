@@ -40,6 +40,7 @@ from src.core.safety import is_dangerous, sanitize
 from src.core.user_model import UserModelTracker
 from src.core.vault import SecureVault
 from src.core.plugins import PluginRegistry
+from src.core.roster import Roster
 
 _log = logging.getLogger(__name__)
 
@@ -144,6 +145,7 @@ class ChatEngine:
         self.user_model = UserModelTracker()  # V2.62: cognitive bias & risk
         self.vault = SecureVault()  # V2.70: isolated secure storage
         self.plugins = PluginRegistry()  # V2.72: external tool execution
+        self.roster = Roster()  # V2.75: Social graph / Identity cards
         self._turn_count: int = 0  # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
 
@@ -239,6 +241,11 @@ class ChatEngine:
         relational_guidance = self.user_model.guidance_for_communicate()
         if relational_guidance:
             system += f"\n\n{relational_guidance}"
+
+        # V2.75: Roster / Identity Cards
+        roster_context = self.roster.get_context(user_message)
+        if roster_context:
+            system += f"\n\n{roster_context}"
 
         return system
 
@@ -356,8 +363,9 @@ class ChatEngine:
         score = evaluation.score if evaluation else 0.0
         if not math.isfinite(score):
             score = 0.0
+        # V2.75: Guardar resúmenes más largos para nutrir la identidad narrativa
         self.memory.add(
-            summary=f"Usuario: {user_message[:80]} → Respondí: {message[:80]}",
+            summary=f"Usuario: {user_message[:250]}... → Respondí: {message[:250]}...",
             action=evaluation.chosen.name if evaluation else "casual_chat",
             score=score,
             context=signals.context,
@@ -367,6 +375,9 @@ class ChatEngine:
         if self._turn_count % 5 == 0:
             # V2.42: Background reflection to avoid blocking response delivery
             asyncio.create_task(self.identity.reflect(self.memory, self.llm))
+
+        # V2.75: Background roster extraction (every turn)
+        asyncio.create_task(self.roster.observe_turn(user_message, self.llm))
 
         # 5. Update STM
         self._conversation.append({"user": user_message, "assistant": message})
@@ -557,8 +568,9 @@ class ChatEngine:
         score = evaluation.score if evaluation else 0.0
         if not math.isfinite(score):
             score = 0.0
+        # V2.75: Guardar resúmenes más largos para nutrir la identidad narrativa
         self.memory.add(
-            summary=f"Usuario: {user_message[:80]} → Respondí: {message[:80]}",
+            summary=f"Usuario: {user_message[:250]}... → Respondí: {message[:250]}...",
             action=evaluation.chosen.name if evaluation else "casual_chat",
             score=score,
             context=signals.context,
@@ -568,6 +580,9 @@ class ChatEngine:
         if self._turn_count % 5 == 0:
             # V2.42: Background reflection to avoid blocking response delivery
             asyncio.create_task(self.identity.reflect(self.memory, self.llm))
+
+        # V2.75: Background roster extraction (every turn)
+        asyncio.create_task(self.roster.observe_turn(user_message, self.llm))
 
         # 5. STM — V2.74: store original user message + plugin annotation for continuity
         stm_user = user_message

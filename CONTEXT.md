@@ -13,12 +13,17 @@
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
 
 ## Estado Actual (Abril 2026)
-- **Fase:** 21 (Plugin STM Continuity + Telemetry) - COMPLETADA
-- **Logro:** Plugins con continuidad de memoria y telemetría visible en UI.
-- **Siguiente Paso:** Fase 22 (A definir con L0).
+- **Fase:** 22 (Identity Roster & Narrative Enrichment) - EN PROGRESO
+- **Logro:** Ethos ahora extrae "Fichas de Identidad" (Roster) asíncronamente y guarda episodios narrativos ricos (250 chars) en STM/Memory.
+- **Siguiente Paso:** Validar llenado de Fichas de Identidad mediante chat continuo.
 
 ## Bloques Activos
-- Ninguno.
+- **V2.75: NARRATIVE ROSTER & MEMORY ENRICHMENT**
+  - Creado `src/core/roster.py` (`Roster`, `PersonCard`).
+  - Extracción asíncrona vía `roster.observe_turn()` al procesar el mensaje del usuario.
+  - Inyección de contexto de rostros conocidos (`roster.get_context()`) en `_build_system()`.
+  - Ampliado `Memory.add()` a 250 caracteres por mensaje para preservar detalle episódico.
+  - Tests en `test_roster.py` pasando. 202/202 pasando globalmente.
 
 ## Bloques Recientes
 - **V2.74: PLUGIN STM CONTINUITY + TELEMETRY** - CLOSED ✅
