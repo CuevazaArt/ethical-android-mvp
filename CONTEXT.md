@@ -19,8 +19,8 @@
 
 ## Bloques Activos
 - **V2.80: MESH COLONIZATION & HYBRID COGNITION** - IN PROGRESS
-  - Done: `mesh_protocol_v1.md`, `CognitiveInterfaces.kt`, `AudioStreamer.kt`, `mesh_listener.py`, `mesh_models.py`, `test_mesh_models.py`.
-  - Pending: `NodeProfiler.kt` (Android hardware telemetry), integration testing.
+  - Done: `mesh_protocol_v1.md`, `CognitiveInterfaces.kt`, `AudioStreamer.kt`, `mesh_listener.py`, `mesh_models.py`, `test_mesh_models.py`, `NodeProfiler.kt`.
+  - Pending: `MeshServer` (Python FastAPI WebSocket) and `MeshClient` (Android OkHttp WebSocket).
 
 ## Bloques Recientes
 - **V2.79: PARASITE SDK & MESH DISCOVERY** - CLOSED ✅
