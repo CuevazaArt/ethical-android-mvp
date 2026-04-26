@@ -1,3 +1,6 @@
+// Copyright 2026 Juan Cuevaz / Mos Ex Machina
+// Licensed under the Business Source License 1.1
+// See LICENSE_BSL file for details.
 package com.ethos.nomad
 
 import android.app.Service
