@@ -1,3 +1,7 @@
+# Copyright 2026 Juan Cuevaz / Mos Ex Machina
+# Licensed under the Apache License, Version 2.0
+# See LICENSE file for details.
+
 """
 Ethos Core — Psi-Sleep Lifecycle (Cognitive Consolidation)
 V2.76: Async Maintenance Daemon
