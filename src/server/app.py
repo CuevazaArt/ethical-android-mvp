@@ -13,6 +13,7 @@ from src.core.stt import is_available as stt_available
 from src.core.stt import transcribe_pcm
 from src.core.vision import VisionEngine
 from src.core.tts import synthesize
+from src.core.sleep import PsiSleepDaemon
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -54,6 +55,15 @@ STATIC_DIR = Path(__file__).parent / "static"
 NOMAD_DIR = Path(__file__).parent.parent / "clients" / "nomad_pwa"
 _start_time = time.time()
 _last_latency: dict | None = None  # V2.19: Store last latency globally
+_sleep_daemon = PsiSleepDaemon(idle_threshold_seconds=120)  # V2.76: Psi-Sleep
+
+@app.on_event("startup")
+async def startup_event():
+    await _sleep_daemon.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await _sleep_daemon.stop()
 
 
 @app.get("/")
@@ -248,6 +258,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
+            _sleep_daemon.note_activity()  # V2.76: Wake up / reset sleep timer
             try:
                 # Try to parse as JSON for typed frames (vision_context, etc.)
                 import json as _json

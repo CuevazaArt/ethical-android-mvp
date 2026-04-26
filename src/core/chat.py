@@ -372,9 +372,7 @@ class ChatEngine:
         )
 
         self._turn_count += 1
-        if self._turn_count % 5 == 0:
-            # V2.42: Background reflection to avoid blocking response delivery
-            asyncio.create_task(self.identity.reflect(self.memory, self.llm))
+        # V2.76: Psi-Sleep Lifecycle handles reflection asynchronously when idle.
 
         # V2.75: Background roster extraction (every turn)
         asyncio.create_task(self.roster.observe_turn(user_message, self.llm))
@@ -577,9 +575,7 @@ class ChatEngine:
         )
 
         self._turn_count += 1
-        if self._turn_count % 5 == 0:
-            # V2.42: Background reflection to avoid blocking response delivery
-            asyncio.create_task(self.identity.reflect(self.memory, self.llm))
+        # V2.76: Psi-Sleep Lifecycle handles reflection asynchronously when idle.
 
         # V2.75: Background roster extraction (every turn)
         asyncio.create_task(self.roster.observe_turn(user_message, self.llm))

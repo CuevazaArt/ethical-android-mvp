@@ -95,7 +95,7 @@ class Roster:
         if len(words) < 2:
             return
             
-        has_potential_names = any(w[0].isupper() for w in words[1:] if w.isalpha())
+        has_potential_names = any(w[0].isupper() for w in words[1:] if re.sub(r'[^a-zA-Z]', '', w))
         if not has_potential_names:
             return
 

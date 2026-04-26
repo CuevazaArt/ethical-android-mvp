@@ -13,19 +13,26 @@
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
 
 ## Estado Actual (Abril 2026)
-- **Fase:** 22 (Identity Roster & Narrative Enrichment) - EN PROGRESO
-- **Logro:** Ethos ahora extrae "Fichas de Identidad" (Roster) asíncronamente y guarda episodios narrativos ricos (250 chars) en STM/Memory.
-- **Siguiente Paso:** Validar llenado de Fichas de Identidad mediante chat continuo.
+- **Fase:** 22 (Identity Roster & Psi-Sleep Consolidation) - COMPLETADA
+- **Logro:** Ethos ahora extrae Fichas de Identidad (Roster) de forma asíncrona, guarda episodios más largos en memoria, y consolida su identidad utilizando un daemon en segundo plano (Psi-Sleep) que se activa tras la inactividad, eliminando el bloqueo cada 5 turnos.
+- **Siguiente Paso:** Fase 23 (A definir con L0 - ¿Inmortalidad DAO/Soul Snapshot?).
 
 ## Bloques Activos
-- **V2.75: NARRATIVE ROSTER & MEMORY ENRICHMENT**
-  - Creado `src/core/roster.py` (`Roster`, `PersonCard`).
-  - Extracción asíncrona vía `roster.observe_turn()` al procesar el mensaje del usuario.
-  - Inyección de contexto de rostros conocidos (`roster.get_context()`) en `_build_system()`.
-  - Ampliado `Memory.add()` a 250 caracteres por mensaje para preservar detalle episódico.
-  - Tests en `test_roster.py` pasando. 202/202 pasando globalmente.
+- Ninguno.
 
 ## Bloques Recientes
+- **V2.76: PSI-SLEEP COGNITIVE CONSOLIDATION** - CLOSED ✅
+  - Creado `src/core/sleep.py` (`PsiSleepDaemon`).
+  - Daemon acoplado a los eventos de `startup`/`shutdown` en `FastAPI` (`app.py`).
+  - Sustituye la reflexión síncrona bloqueante (`self._turn_count % 5 == 0`) de `chat.py`.
+  - El sistema entra en modo REM tras 120s de inactividad, destilando y consolidando memorias de identidad.
+  - Tests en `test_sleep.py` pasando. 203/203 pruebas limpias.
+
+- **V2.75: NARRATIVE ROSTER & MEMORY ENRICHMENT** - CLOSED ✅
+  - Creado `src/core/roster.py` (`Roster`, `PersonCard`).
+  - Extracción asíncrona vía `roster.observe_turn()`.
+  - Inyección de contexto de rostros conocidos (`roster.get_context()`) en `_build_system()`.
+  - Ampliado `Memory.add()` a 250 caracteres por mensaje.
 - **V2.74: PLUGIN STM CONTINUITY + TELEMETRY** - CLOSED ✅
   - Fix: `web_context` siempre inicializado (bug de variable no declarada).
   - STM ahora guarda `user_message + [dato obtenido vía Plugin: ...]` para continuidad.

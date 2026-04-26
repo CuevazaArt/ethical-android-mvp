@@ -295,27 +295,6 @@ async def test_turn_count_increments(engine):
     assert engine._turn_count == 4
 
 
-@pytest.mark.asyncio
-async def test_identity_update_throttled_every_5_turns(engine):
-    from unittest.mock import AsyncMock, MagicMock, patch
-
-    with (
-        patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=True),
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
-        patch.object(engine.llm, "chat_stream", side_effect=_fake_stream_throttle),
-    ):
-        await engine.start()
-        engine.identity.update = MagicMock()
-        for i in range(4):
-            async for _ in engine.turn_stream(f"turno {i}"):
-                pass
-        engine.identity.update.assert_not_called()
-        async for _ in engine.turn_stream("turno 5"):
-            pass
-        import asyncio
-
-        await asyncio.sleep(0.05)  # V2.42: Wait for background reflection task
-    engine.identity.update.assert_called_once()
 
 
 # --- Additional Coverage Tests ---
