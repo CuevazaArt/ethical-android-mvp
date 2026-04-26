@@ -113,6 +113,7 @@ L0 uses minimal commands. L1 interprets and acts.
 | L0 says | L1 does |
 |---------|---------|
 | `siguiente` | Reads CONTEXT.md, generates next block prompt with `[MODELOS]` |
+| `asignar enjambre: [X] Flash, [Y] Sonnet...` | L0 allocates compute budget. L1 partitions the next milestone into exact tasks to fit this budget, generating parallel prompts. |
 | `dame prompt V2.X` | Generates prompt for specific block |
 | `review` | Audits last Men Scout output: checks demo, tests, file scope |
 | `merge` | Runs pre-commit checks, commits, syncs with origin/main |
@@ -163,6 +164,18 @@ When a Men Scout finishes a block, L0 reviews by saying `review`. L1 checks:
 5. **CONTEXT.md updated?** — Is the block marked as CLOSED with correct info?
 
 If all 5 pass → L0 says `merge`. If any fail → L0 says `el agente falló en X`.
+
+### Orchestrating a Swarm Cycle (Proactive Allocation)
+
+Instead of moving block by block, L0 can provision a "Compute Budget" for a cycle.
+1. **L0 says:** `asignar enjambre: 10 Flash, 2 Sonnet, 1 Opus`.
+2. **L1 designs the plan:** L1 analyzes the next major architectural milestone (e.g., "Parasite Mesh") and partitions the work.
+   - The 1 Opus prompt will be pure architecture (e.g., JSON schema definitions).
+   - The 2 Sonnet prompts will be complex implementations (e.g., Audio processing).
+   - The 10 Flash prompts will be mechanical (e.g., parsing, unit tests, logging, formatting).
+3. **L0 deploys:** L0 copy-pastes the generated prompts to the respective models in parallel.
+4. **L1 acts as Watchtower:** As L0 brings back the results, L1 constantly merges (micro-commits) to keep the state clean.
+5. **Conflict Resolution:** If an agent fails or causes a merge conflict, L1 generates a strict correction prompt. L0 prioritizes re-deploying this specific agent before continuing with the rest.
 
 ### Merge and sync flow
 
