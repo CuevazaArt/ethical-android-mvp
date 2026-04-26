@@ -18,6 +18,7 @@ from src.core.stt import is_available as stt_available
 from src.core.stt import transcribe_pcm
 from src.core.tts import synthesize
 from src.core.vision import VisionEngine
+from src.server.mesh_server import router as mesh_router
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ async def _safe_send_tts(ws: WebSocket, event: dict, metadata: dict | None = Non
 
 
 app = FastAPI(title="Ethos Kernel Chat")
+app.include_router(mesh_router)
 
 STATIC_DIR = Path(__file__).parent / "static"
 NOMAD_DIR = Path(__file__).parent.parent / "clients" / "archive_nomad_pwa"  # V2.77: Archived
