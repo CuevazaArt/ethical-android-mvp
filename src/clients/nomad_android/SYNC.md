@@ -65,7 +65,18 @@
 
 > Android Studio escribe aquí lo que hizo. Antigravity lo revisa en el siguiente `review`.
 
-_(Ningún reporte aún — Android Studio debe empezar a escribir aquí)_
+### 2026-04-26 22:38 — AS confirmó comprensión de arquitectura
+- **Estado:** Android Studio leyó AGENT_CONTEXT.md y entendió correctamente:
+  - Servidor FastAPI en PC → ws://10.0.2.2:8000/ws/chat
+  - CognitiveRouter para decisión local vs cloud
+  - NomadService.kt en background para /ws/nomad
+- **Necesito de Antigravity:** Aclaración sobre SLM on-device ✅ (ver abajo)
+
+### 2026-04-26 22:38 — [ANTIGRAVITY → AS] Aclaración crítica sobre SLM
+- **LocalModelClient** en `CognitiveInterfaces.kt` es SOLO un contrato/interface. No hay modelo real cargado.
+- **CognitiveRouter** siempre usa el path `CLOUD_PREFERRED` actualmente. El path LOCAL_ONLY es un stub.
+- **Conclusión para AS:** No intentes integrar ExecuTorch o MediaPipe en esta sesión. El objetivo es solo conectar `/ws/chat` y mostrar el chat. El SLM on-device es Fase futura.
+- **Flujo real de esta sesión:** Usuario escribe → ChatViewModel → /ws/chat → Ethos Python → tokens de vuelta → UI los muestra.
 
 <!-- TEMPLATE para Android Studio:
 ### [Fecha] — [Descripción breve]
