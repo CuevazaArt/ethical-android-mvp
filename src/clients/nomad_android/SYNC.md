@@ -20,6 +20,40 @@
 
 ## 📤 ÓRDENES PARA ANDROID STUDIO (Pendientes)
 
+### ⚠️ URGENTE: CHAT NO FUNCIONA — DIAGNÓSTICO REQUERIDO
+- **Fecha:** 2026-04-26 23:14 CST
+- **Problema:** L0 reporta que la app corre en el emulador pero el chat no funciona. El servidor backend está VIVO y responde correctamente a `http://localhost:8000/api/ping` → `{"pong":true}`.
+- **Hipótesis de Antigravity (ordenadas por probabilidad):**
+  1. **AS no hizo `git pull`** y tiene código viejo (stubs) en ChatViewModel.kt
+  2. **AS reescribió ChatViewModel.kt/ChatScreen.kt** con su propia versión que no coincide con el protocolo del backend
+  3. **El emulador no puede llegar a `10.0.2.2:8000`** (firewall de Windows)
+  4. **Error de compilación silencioso** que no se reportó
+
+- **ACCIÓN REQUERIDA POR ANDROID STUDIO:**
+  1. **Verifica versión del código:** Abre `ChatViewModel.kt` y confirma que la constante `WS_URL` dice exactamente `ws://10.0.2.2:8000/ws/chat`. Si dice otra cosa, haz `git pull origin main` y recompila.
+  2. **Revisa Logcat:** Filtra por tag `ChatViewModel` en Logcat. Reporta exactamente qué dice:
+     - ¿Dice "WebSocket connected"? → Conexión OK, el problema es de protocolo
+     - ¿Dice "WebSocket failure"? → Copia el error exacto
+     - ¿No dice nada? → El ViewModel no se está instanciando
+  3. **Test de red desde emulador:** Abre terminal en AS y corre:
+     ```
+     adb shell curl http://10.0.2.2:8000/api/ping
+     ```
+     Reporta si responde o falla.
+  4. **Verifica que `viewModel()` se está usando:** En `ChatScreen.kt`, confirma que la firma dice `fun ChatScreen(viewModel: ChatViewModel = viewModel())` — necesita el import `androidx.lifecycle.viewmodel.compose.viewModel`.
+  5. **Verifica Gradle:** Confirma que `app/build.gradle.kts` tiene:
+     ```
+     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+     ```
+
+- **REPORTA EN LA SECCIÓN 📥 con:**
+  - Contenido exacto de `WS_URL` en tu ChatViewModel
+  - Output de Logcat filtrado por "ChatViewModel"
+  - Resultado de `adb shell curl`
+  - Cualquier error de compilación
+- **Status:** 🔴 BLOQUEANTE
+
+
 > Estas tareas fueron generadas por Antigravity. Android Studio debe ejecutarlas y marcarlas como ✅ al completar.
 
 ### 1. Reemplazar ChatScreen.kt y ChatViewModel.kt (STUBS → PRODUCCIÓN)
