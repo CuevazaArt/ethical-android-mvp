@@ -71,35 +71,59 @@
 - **V2.71: VAULT AUTHORIZATION PIPELINE** - CLOSED ✅
   - Flujo de solicitud `[GET_VAULT]` y autorización por WebSockets.
 
-> **Visión Nómada (Canónica):** Ver `docs/VISION_NOMAD.md` para el documento completo.
-> Ethos es un individuo sintético portátil que habita el hardware disponible.
-> El usuario lo porta en la solapa; Ethos percibe, conversa, y asiste como un compañero autónomo.
-> **4 Modos:** Nómada (móvil) · Centinela (servidor) · Enjambre (mesh P2P) · Soberano (DAO/chain).
-> **3 Vectores de expansión pendientes:** Mesh · DAO/Blockchain · Servidores cognitivos remotos.
+> **Visión Nómada (Canónica):** Ver `docs/VISION_NOMAD.md` + `docs/ARCHITECTURE_NOMAD_V3.md`.
+> La visión es ASPIRACIONAL. La ejecución es INCREMENTAL y VERIFICADA EN CAMPO.
+> **Regla de oro:** Un bloque NO está cerrado hasta que funciona EN EL SISTEMA REAL, no solo en tests.
 
-## Hoja de Ruta (Roadmap V2)
+## ⚠️ Lecciones de V1 — NO REPETIR
 
-### Fase 24 — Autonomía On-Device (SIGUIENTE)
-- Integrar runtime SLM on-device (llama.cpp / MLC-LLM via JNI).
-- Portar kernel ético determinista a Kotlin (Perception + CBR, ~200 líneas, sin LLM).
-- Implementar Cognitive Snapshot: serialización/deserialización del estado completo para migración entre hardware.
-- CameraX con gating talámico (solo activa bajo wake-word o tap).
-- Wake-word on-device (Porcupine ONNX o equivalente abierto).
-- Psi-Sleep nativo: consolidación de memoria durante inactividad, sin servidor.
+1. **V1 murió por amplitud sin profundidad.** Cientos de archivos, abstracciones elegantes, nada funcionaba de punta a punta. V2 sobrevivió porque cada bloque se probó en campo antes de abrir el siguiente.
+2. **Tests verdes ≠ funciona.** 203 tests pasando no significa que el chat responde. Verificar integración real: levantar servidor, enviar mensaje, ver respuesta, confirmar en hardware.
+3. **No crear archivos sin que se usen.** Si `EthosPerception.kt` no es invocado por ningún código en producción, no existe. Un archivo que solo pasa tests unitarios es deuda técnica disfrazada de progreso.
+4. **Los docs aspiracionales no son deuda técnica.** `ARCHITECTURE_NOMAD_V3.md` es la brújula. No es un backlog. No hay presión por "cerrar" los 20 bloques.
+5. **Vertical > Horizontal.** Es mejor tener Safety+Perception portados Y FUNCIONANDO en la app real, que tener los 20 bloques "al 70%".
 
-### Fase 25 — Vigilia Contextual
-- Fusión sensorial continua: STT + GPS + acelerómetro + luz ambiental.
-- Conversación proactiva: Ethos comenta sobre el entorno sin ser preguntado (configurable).
-- Detección de contexto social y gestión inteligente de batería.
+## Definición de Done (Estricta)
 
-### Fase 26 — Expansión de Servicios
-- Plugin system portado a Kotlin para ejecución local.
-- Vault on-device con biometría Android.
+Un bloque se considera CLOSED ✅ solo si:
 
-### Fase 27+ — Mesh, DAO, Servidores (tres vectores independientes)
-- **Mesh:** Completar `MeshClient.kt`. Protocolo de descubrimiento y asignación.
-- **DAO:** Contrato de gobernanza de memoria. Hash de Cognitive Snapshots en cadena.
-- **Servidores:** API pública para servicios cognitivos remotos.
+| Criterio | Descripción |
+|----------|-------------|
+| **Tests** | Unit tests pasan (necesario pero no suficiente) |
+| **Integración** | El código es invocado por el sistema en producción (app.py o NomadService) |
+| **Demo** | Existe evidencia ejecutable: log, screenshot, o video del feature funcionando |
+| **Campo** | Si toca Android: probado en emulador O dispositivo real, no solo compilado |
+| **Regresión** | 203/203 backend tests siguen pasando. App sigue compilando. |
+| **Poda** | Si algo quedó obsoleto por el nuevo código, fue eliminado en el mismo bloque |
+
+## Hoja de Ruta (Roadmap V2) — Ejecución Incremental
+
+> Cada fase tiene un **integration gate**: un demo concreto que debe funcionar
+> antes de abrir la siguiente fase. Sin gate pasado, la fase no se cierra.
+
+### Fase 24a — Kernel Ético On-Device (SIGUIENTE)
+- Portar Safety + Perception + Ethics + Precedents a Kotlin.
+- Motor bayesiano (Python primero, Kotlin después).
+- **🚪 GATE:** Enviar "hay un herido" a EthosPerception.kt → recibir `Signals(context="medical_emergency")` EN LA APP ANDROID corriendo en emulador. Sin servidor. Sin LLM.
+
+### Fase 24b — Persistencia + SLM
+- Room DB para memoria, identidad, roster.
+- llama.cpp JNI para SLM on-device.
+- **🚪 GATE:** La app Android genera una respuesta de texto coherente a "Hola" usando SLM local, con memoria persistida entre reinicios. Sin red.
+
+### Fase 25 — Voice Pipeline
+- Sherpa-ONNX + Silero VAD para wake word.
+- TTS automático para toda respuesta.
+- Conversación de 3 turnos por voz sin tocar pantalla.
+- **🚪 GATE:** Decir "Ethos, ¿qué hora es?" por voz → escuchar la hora por TTS. Sin tocar la pantalla.
+
+### Fase 25+ — Proactividad y Sensores
+- SalienceDetector + ProactiveEngine.
+- GPS, acelerómetro, CameraX.
+- **🚪 GATE:** Ethos comenta proactivamente algo sobre el entorno sin que el usuario pregunte. En dispositivo real.
+
+### Fase 26+ — Cognitive Snapshot, Mesh, DAO, Servidores
+- Solo se abre cuando Fases 24-25 tienen gates pasados.
 
 
 
