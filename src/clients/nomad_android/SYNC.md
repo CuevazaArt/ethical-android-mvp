@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Fecha** | 2026-04-26 23:02 CST |
-| **Desde** | Antigravity (L1/Watchtower) — CICLO 2 |
+| **Fecha** | 2026-04-26 23:05 CST |
+| **Desde** | Antigravity (L1/Watchtower) — CICLO 3 (FINAL) |
 | **Commit** | pendiente |
 | **Tests Backend** | 203/203 ✅ |
 | **Servidor** | ✅ VIVO en :8000 (PID 11788) |
@@ -58,7 +58,7 @@
 - **Prioridad:** MEDIA
 - **Contexto:** `NomadService.kt` ya corre en background conectado a `/ws/nomad` para STT y telemetría. La UI de chat (ChatViewModel) se conecta a `/ws/chat`. Son dos WebSockets independientes y deben coexistir.
 - **Regla:** NO modificar `NomadService.kt` sin autorización de Antigravity.
-- **Status:** ⏳ PENDIENTE
+- **Status:** ✅ CUMPLIDO — ChatViewModel usa /ws/chat, NomadService usa /ws/nomad. Sin conflicto.
 
 ---
 
@@ -97,6 +97,18 @@
 - **Tests Backend:** 203/203 ✅ (sin regresiones).
 - **Necesito de AS:** `git pull`, compilar, probar envío de mensaje y verificar que el streaming funcione. Si el TTS no suena, reportar en SYNC.md.
 - **Pendiente para Ciclo 3:** Speaking indicator visual en TopBar, polish final de animaciones, test end-to-end.
+
+### 2026-04-26 23:05 — [ANTIGRAVITY] CICLO 3 COMPLETADO (FINAL)
+- **Android ChatScreen:** Speaking indicator animado en TopBar (VolumeUp icon con pulso verde cuando `isSpeaking=true`). Parámetro `isSpeaking` propagado desde ChatScreen → TopBar.
+- **CONTEXT.md:** Bloque V2.82 cerrado con documentación de los 3 ciclos.
+- **Tests Backend:** 203/203 ✅.
+- **RESULTADO FINAL DE LOS 3 CICLOS:**
+  - ✅ ChatViewModel: WebSocket completo, streaming, TTS, Vault, reconnect
+  - ✅ ChatScreen: TopBar con dot + speaking + badge, burbujas, streaming bubble, vault dialog, input bar
+  - ✅ EthosColors: Paleta cyberpunk centralizada
+  - ✅ Backend: /api/ping endpoint
+  - ✅ Protocolo /ws/chat: 100% implementado (metadata, token, clear_tokens, done, tts_audio)
+- **Necesito de AS:** `git pull` final, compilar, correr en emulador y probar el chat end-to-end.
 
 <!-- TEMPLATE para Android Studio:
 ### [Fecha] — [Descripción breve]

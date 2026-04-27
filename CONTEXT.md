@@ -18,10 +18,14 @@
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
-- **V2.81: NOMAD NATIVE CHAT UI & AGENTIC INTERFACE** - CLOSED ✅
-  - Files: `ChatScreen.kt`, `ChatViewModel.kt`, `MainActivity.kt`.
-  - Implemented Jetpack Compose conversational UI and MVVM architecture.
-  - Established WebSocket connectivity to `/ws/chat` for conversational persistence.
+- **V2.82: NOMAD CHAT PRODUCTION UI (3 Ciclos)** - CLOSED ✅
+  - Ciclo 1: ChatScreen + ChatViewModel producción, EthosColors, Gradle deps.
+  - Ciclo 2: TTS playback (MediaPlayer), Vault dialog (AlertDialog), /api/ping.
+  - Ciclo 3: Speaking indicator animado en TopBar, polish de animaciones.
+  - Files: `ui/ChatScreen.kt`, `ui/ChatViewModel.kt`, `ui/EthosColors.kt`, `app.py`.
+- **V2.81: NOMAD NATIVE CHAT UI & SYNC BRIDGE** - CLOSED ✅
+  - Stubs iniciales + AGENT_CONTEXT.md + SYNC.md + SESSION_PROMPT.md.
+  - Established bidirectional sync protocol between Antigravity and Android Studio.
 - **V2.80: MESH COLONIZATION & HYBRID COGNITION** - STASIS ⏸️
   - Done: `mesh_protocol_v1.md`, `CognitiveInterfaces.kt`, `AudioStreamer.kt`, `mesh_listener.py`, `mesh_models.py`, `test_mesh_models.py`, `NodeProfiler.kt`, `mesh_server.py`.
   - Pending: `MeshClient` (Android OkHttp WebSocket).

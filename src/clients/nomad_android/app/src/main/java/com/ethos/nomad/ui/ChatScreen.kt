@@ -66,7 +66,7 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
             .background(EthosColors.BgPrimary)
     ) {
         // ── Top Bar ──────────────────────────────────────────
-        TopBar(isConnected = isConnected, metadata = metadata)
+        TopBar(isConnected = isConnected, metadata = metadata, isSpeaking = isSpeaking)
 
         // ── Messages List ────────────────────────────────────
         LazyColumn(
@@ -127,7 +127,7 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
 // ── Top Bar ──────────────────────────────────────────────────────
 
 @Composable
-private fun TopBar(isConnected: Boolean, metadata: EthicsMetadata) {
+private fun TopBar(isConnected: Boolean, metadata: EthicsMetadata, isSpeaking: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -153,8 +153,24 @@ private fun TopBar(isConnected: Boolean, metadata: EthicsMetadata) {
         )
 
         // TTS speaking indicator
-        // Note: isSpeaking state is read from the parent scope via TopBar params
-        // For simplicity, we show the ethics badge only
+        if (isSpeaking) {
+            val speakAlpha by rememberInfiniteTransition(label = "speak").animateFloat(
+                initialValue = 0.4f,
+                targetValue = 1.0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(500, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "speakAlpha"
+            )
+            Icon(
+                Icons.Default.VolumeUp,
+                contentDescription = "Hablando",
+                tint = EthosColors.AccentGreen.copy(alpha = speakAlpha),
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
 
         // Ethics context badge
         if (metadata.context.isNotEmpty() && metadata.context != "everyday_ethics") {
