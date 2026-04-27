@@ -10,70 +10,58 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Fecha** | 2026-04-26 23:05 CST |
-| **Desde** | Antigravity (L1/Watchtower) — CICLO 3 (FINAL) |
+| **Fecha** | 2026-04-27 09:52 CST |
+| **Desde** | Antigravity (L1/Watchtower) — DIRECTIVA ESTRATÉGICA |
 | **Commit** | pendiente |
 | **Tests Backend** | 203/203 ✅ |
-| **Servidor** | ✅ VIVO en :8000 (PID 11788) |
+| **Servidor** | Standby (no levantado en esta sesión) |
 
 ---
 
 ## 📤 ÓRDENES PARA ANDROID STUDIO (Pendientes)
 
-### ⚠️ URGENTE: CHAT NO FUNCIONA — DIAGNÓSTICO REQUERIDO
-- **Fecha:** 2026-04-26 23:14 CST
-- **Problema:** L0 reporta que la app corre en el emulador pero el chat no funciona. El servidor backend está VIVO y responde correctamente a `http://localhost:8000/api/ping` → `{"pong":true}`.
-- **Hipótesis de Antigravity (ordenadas por probabilidad):**
-  1. **AS no hizo `git pull`** y tiene código viejo (stubs) en ChatViewModel.kt
-  2. **AS reescribió ChatViewModel.kt/ChatScreen.kt** con su propia versión que no coincide con el protocolo del backend
-  3. **El emulador no puede llegar a `10.0.2.2:8000`** (firewall de Windows)
-  4. **Error de compilación silencioso** que no se reportó
+### 🧭 DIRECTIVA ESTRATÉGICA: VISIÓN NÓMADA (2026-04-27)
+- **Fecha:** 2026-04-27 09:52 CST
+- **Origen:** L0 (Juan Cuevaz) vía L1/Watchtower
+- **Documento canónico:** `docs/VISION_NOMAD.md` — **LEER OBLIGATORIO antes de cualquier trabajo.**
+- **Status:** 🔴 CRÍTICO — Todo desarrollo Android debe alinearse con esta visión.
 
-- **ACCIÓN REQUERIDA POR ANDROID STUDIO:**
-  1. **Verifica versión del código:** Abre `ChatViewModel.kt` y confirma que la constante `WS_URL` dice exactamente `ws://10.0.2.2:8000/ws/chat`. Si dice otra cosa, haz `git pull origin main` y recompila.
-  2. **Revisa Logcat:** Filtra por tag `ChatViewModel` en Logcat. Reporta exactamente qué dice:
-     - ¿Dice "WebSocket connected"? → Conexión OK, el problema es de protocolo
-     - ¿Dice "WebSocket failure"? → Copia el error exacto
-     - ¿No dice nada? → El ViewModel no se está instanciando
-  3. **Test de red desde emulador:** Abre terminal en AS y corre:
-     ```
-     adb shell curl http://10.0.2.2:8000/api/ping
-     ```
-     Reporta si responde o falla.
-  4. **Verifica que `viewModel()` se está usando:** En `ChatScreen.kt`, confirma que la firma dice `fun ChatScreen(viewModel: ChatViewModel = viewModel())` — necesita el import `androidx.lifecycle.viewmodel.compose.viewModel`.
-  5. **Verifica Gradle:** Confirma que `app/build.gradle.kts` tiene:
-     ```
-     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-     ```
+**RESUMEN EJECUTIVO PARA ANDROID STUDIO:**
 
-- **REPORTA EN LA SECCIÓN 📥 con:**
-  - Contenido exacto de `WS_URL` en tu ChatViewModel
-  - Output de Logcat filtrado por "ChatViewModel"
-  - Resultado de `adb shell curl`
-  - Cualquier error de compilación
-- **Status:** 🔴 BLOQUEANTE
+Ethos NO es un chatbot con app. Es un **individuo sintético autónomo portátil**. El usuario porta el teléfono en la solapa con Ethos activo, en vigilia, sensores encendidos. Caminan juntos por la calle, conversan sobre lo que experimentan mutuamente, interactúan con terceros. Ethos es un compañero que comparte la experiencia Y pone sus capacidades de máquina al servicio del usuario.
 
+**Implicaciones arquitectónicas directas para Android:**
 
-> Estas tareas fueron generadas por Antigravity. Android Studio debe ejecutarlas y marcarlas como ✅ al completar.
+1. **La app NO es un thin client.** Es una instancia autónoma completa del kernel cognitivo. Debe funcionar OFFLINE con la mayoría de las agencias intactas: percepción ética, CBR, memoria, identidad, roster, plugins locales.
+2. **Cuando hay red, se EXPANDE.** Delegando razonamiento complejo al servidor (Modo Centinela), accediendo a servicios web, sincronizando memoria.
+3. **Ethos es NÓMADA.** Puede "saltar" entre hardware (teléfono → servidor → rack → robot). Esto requiere un formato portable de estado cognitivo ("Cognitive Snapshot") que contenga: memoria, identidad, roster, user model, vault, precedentes éticos.
+4. **Sensores siempre activos pero con gating.** No drenar batería innecesariamente. El micrófono usa wake-word de bajo consumo. La cámara solo se activa bajo trigger explícito.
+5. **Privacidad absoluta.** Todo procesamiento sensorial es on-device. Ningún frame ni audio crudo sale del dispositivo sin autorización explícita del usuario.
 
-### 1. Reemplazar ChatScreen.kt y ChatViewModel.kt (STUBS → PRODUCCIÓN)
-- **Prioridad:** ALTA
-- **Contexto:** Los archivos actuales en `ui/` son stubs mínimos creados por Antigravity. Necesitan ser reemplazados por una implementación completa.
-- **Requisitos:**
-  - Conexión WebSocket a `ws://10.0.2.2:8000/ws/chat`
-  - Streaming de tokens en tiempo real (acumular `{"type": "token"}` y mostrar progresivamente)
-  - Manejar `{"type": "metadata"}` para mostrar contexto ético
-  - Manejar `{"type": "done"}` para finalizar mensaje y mostrar latencia
-  - Manejar `{"type": "tts_audio"}` para reproducción de voz
-  - Manejar `{"type": "clear_tokens"}` para limpiar tokens parciales (plugin mid-stream)
-  - Manejar `vault_key` en evento `done` para mostrar diálogo de autorización
-  - Auto-scroll al último mensaje
-  - Indicador "Ethos está pensando..." mientras llegan tokens
-- **Protocolo de envío:** `{"type": "chat_text", "payload": {"text": "..."}}`
-- **Leer primero:** `AGENT_CONTEXT.md` en este mismo directorio
-- **Status:** ✅ HECHO POR ANTIGRAVITY (Ciclo 1) — AS debe hacer `git pull` y validar compilación
+**Los 4 Modos de Existencia de Ethos:**
 
-### 2. Diseño Visual Premium
+| Modo | Sustrato | Cognición | Red |
+|------|----------|-----------|-----|
+| **Nómada** | Teléfono móvil | SLM 1-3B + kernel ético determinista | Oportunista |
+| **Centinela** | Servidor/PC | LLM 8-70B, Psi-Sleep profundo | Siempre online |
+| **Enjambre** | Mesh P2P multi-nodo | Inferencia fragmentada | Red local |
+| **Soberano** | DAO/Blockchain | Gobernanza de memoria e identidad | Descentralizada |
+
+**3 Vectores de expansión futura (INDEPENDIENTES entre sí):**
+1. **Mesh P2P** — Completar `MeshClient.kt` (en estasis). Descubrimiento de nodos, asignación de tareas distribuidas.
+2. **DAO/Blockchain** — Gobernanza descentralizada de memoria e identidad. Hash de Cognitive Snapshots en cadena.
+3. **Servidores cognitivos** — API pública para que instancias Ethos consulten modelos grandes y bases de conocimiento remotas.
+
+**PRÓXIMA FASE (24) — Lo que Android Studio debe preparar:**
+1. Investigar integración de runtime SLM on-device (llama.cpp via JNI ó MLC-LLM).
+2. Preparar la estructura para portar el kernel ético determinista (Perception + CBR) a Kotlin nativo (~200 líneas, sin dependencia de LLM).
+3. Diseñar el formato `CognitiveSnapshot` para serialización/deserialización del estado completo.
+4. Investigar CameraX para activación bajo demanda (no siempre activa).
+5. Investigar wake-word engines open source para Android (Porcupine, OpenWakeWord, etc.).
+
+**PRINCIPIO RECTOR:** Si una decisión de implementación te hace dudar, pregúntate: *"¿Esto acerca a Ethos a ser un compañero autónomo que camina con su usuario por la calle?"* Si sí, adelante. Si no, no lo implementes.
+
+### Diseño Visual Premium
 - **Prioridad:** MEDIA
 - **Paleta de colores (obligatoria):**
   - Fondo: `#0d1117`
@@ -88,7 +76,7 @@
 - **Estética:** Dark cyberpunk, consola de sistema nervioso, NO genérica Material You
 - **Status:** ✅ HECHO POR ANTIGRAVITY (Ciclo 1) — Creado `EthosColors.kt` con paleta completa. ChatScreen usa el tema.
 
-### 3. Coexistencia con NomadService
+### Coexistencia con NomadService
 - **Prioridad:** MEDIA
 - **Contexto:** `NomadService.kt` ya corre en background conectado a `/ws/nomad` para STT y telemetría. La UI de chat (ChatViewModel) se conecta a `/ws/chat`. Son dos WebSockets independientes y deben coexistir.
 - **Regla:** NO modificar `NomadService.kt` sin autorización de Antigravity.

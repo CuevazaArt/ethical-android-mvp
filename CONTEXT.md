@@ -8,7 +8,8 @@
 - **Architecture:** `src/core/` → `src/server/` (zero legacy)
 - **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
-- **Last merge to main:** 2026-04-25 (V2.70 — `v2.70-secure-vault`)
+- **Last merge to main:** 2026-04-27 (sync + visión nómada consolidada)
+- **Visión canónica:** `docs/VISION_NOMAD.md`
 
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
 
@@ -70,34 +71,35 @@
 - **V2.71: VAULT AUTHORIZATION PIPELINE** - CLOSED ✅
   - Flujo de solicitud `[GET_VAULT]` y autorización por WebSockets.
 
-> **Vision: Colonización Distribuida (Android Parasitization):**
-> No se trata de reemplazar Android (drivers propietarios), sino de parasitarlo como un "hipervisor social".
-> - **Capa Física:** Smartphones relegados (Android 8+) actuando como "sustrato biológico".
-> - **SDK Colonizador:** App-agente que expone capacidades (CPU/GPU/NPU) a una malla distribuida.
-> - **Protocolo de Malla:** P2P (libp2p/WebRTC) para descubrimiento y asignación de tareas.
-> - **Kernel de Modelo:** Inferencia fragmentada (modelos 1B-8B según RAM del nodo).
-> - **Multiplexor Físico:** Rack de laboratorio para clusters locales de alta densidad (ADB over USB).
-
+> **Visión Nómada (Canónica):** Ver `docs/VISION_NOMAD.md` para el documento completo.
+> Ethos es un individuo sintético portátil que habita el hardware disponible.
+> El usuario lo porta en la solapa; Ethos percibe, conversa, y asiste como un compañero autónomo.
+> **4 Modos:** Nómada (móvil) · Centinela (servidor) · Enjambre (mesh P2P) · Soberano (DAO/chain).
+> **3 Vectores de expansión pendientes:** Mesh · DAO/Blockchain · Servidores cognitivos remotos.
 
 ## Hoja de Ruta (Roadmap V2)
 
-### Corto Plazo (Fase 23: Mono-Smartphone Híbrido)
-- Inicializar proyecto en Android Studio con Jetpack Compose.
-- Implementar **Foreground Service** para persistencia en background (evitando muerte de proceso).
-- Reemplazar capturas WebRTC por acceso nativo `CameraX` y `AudioRecord` (PCM crudo 16kHz).
-- Crear el *Router Cognitivo* que delegue tareas de alta complejidad al Ethos Kernel (Python Backend) y tareas básicas a SLMs locales.
-- Integrar Wake Words on-device (e.g. Porcupine) para escucha pasiva de bajo consumo.
+### Fase 24 — Autonomía On-Device (SIGUIENTE)
+- Integrar runtime SLM on-device (llama.cpp / MLC-LLM via JNI).
+- Portar kernel ético determinista a Kotlin (Perception + CBR, ~200 líneas, sin LLM).
+- Implementar Cognitive Snapshot: serialización/deserialización del estado completo para migración entre hardware.
+- CameraX con gating talámico (solo activa bajo wake-word o tap).
+- Wake-word on-device (Porcupine ONNX o equivalente abierto).
+- Psi-Sleep nativo: consolidación de memoria durante inactividad, sin servidor.
 
-### Medio Plazo (Delegación Sensorial y DAO)
-- Integración de biometría extendida desde Android (Acelerómetro, GPS, Batería, Luz ambiental) fluyendo hacia el `SensoryBuffer` del Kernel.
-- Acoplamiento con el sistema DAO para gobernanza de memoria.
-- Estabilidad de red offline y sincronización retardada de memorias (Psi-Sleep nativo).
+### Fase 25 — Vigilia Contextual
+- Fusión sensorial continua: STT + GPS + acelerómetro + luz ambiental.
+- Conversación proactiva: Ethos comenta sobre el entorno sin ser preguntado (configurable).
+- Detección de contexto social y gestión inteligente de batería.
 
-### Largo Plazo (Nomad Physical Mesh / Solarpunk Robotics)
-- Transición a hardware físico dedicado.
-- Conexión física USB-C/Thunderbolt de múltiples Android obsoletos en un chasis robótico para sumar potencia de cálculo en clúster local (Edge Mesh Swarm).
-- Autosuficiencia energética mediante puente a baterías motrices de alta capacidad.
-- Independencia total del Cloud (100% inferencia multi-nodo en el dispositivo robótico).
+### Fase 26 — Expansión de Servicios
+- Plugin system portado a Kotlin para ejecución local.
+- Vault on-device con biometría Android.
+
+### Fase 27+ — Mesh, DAO, Servidores (tres vectores independientes)
+- **Mesh:** Completar `MeshClient.kt`. Protocolo de descubrimiento y asignación.
+- **DAO:** Contrato de gobernanza de memoria. Hash de Cognitive Snapshots en cadena.
+- **Servidores:** API pública para servicios cognitivos remotos.
 
 
 
@@ -148,7 +150,7 @@
 | Dashboard | `http://localhost:8000/dashboard` |
 | Nomad | `https://[LAN-IP]:8443/nomad` (Archive) · `com.ethos.nomad` (Native) |
 
-## System health (2026-04-25)
+## System health (2026-04-27)
 
 - **Tests:** 203/203 ✅
 - **Legacy imports:** 0
