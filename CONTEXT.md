@@ -18,9 +18,13 @@
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
-- **V2.80: MESH COLONIZATION & HYBRID COGNITION** - IN PROGRESS
-  - Done: `mesh_protocol_v1.md`, `CognitiveInterfaces.kt`, `AudioStreamer.kt`, `mesh_listener.py`, `mesh_models.py`, `test_mesh_models.py`, `NodeProfiler.kt`.
-  - Pending: `MeshServer` (Python FastAPI WebSocket) and `MeshClient` (Android OkHttp WebSocket).
+- **V2.81: NOMAD NATIVE CHAT UI & AGENTIC INTERFACE** - CLOSED ✅
+  - Files: `ChatScreen.kt`, `ChatViewModel.kt`, `MainActivity.kt`.
+  - Implemented Jetpack Compose conversational UI and MVVM architecture.
+  - Established WebSocket connectivity to `/ws/chat` for conversational persistence.
+- **V2.80: MESH COLONIZATION & HYBRID COGNITION** - STASIS ⏸️
+  - Done: `mesh_protocol_v1.md`, `CognitiveInterfaces.kt`, `AudioStreamer.kt`, `mesh_listener.py`, `mesh_models.py`, `test_mesh_models.py`, `NodeProfiler.kt`, `mesh_server.py`.
+  - Pending: `MeshClient` (Android OkHttp WebSocket).
 
 ## Bloques Recientes
 - **V2.79: PARASITE SDK & MESH DISCOVERY** - CLOSED ✅
@@ -138,7 +142,7 @@
 | Run GPU | `docker compose -f docker-compose.gpu.yml up --build` |
 | Chat | `http://localhost:8000/` |
 | Dashboard | `http://localhost:8000/dashboard` |
-| Nomad | `https://[LAN-IP]:8443/nomad` |
+| Nomad | `https://[LAN-IP]:8443/nomad` (Archive) · `com.ethos.nomad` (Native) |
 
 ## System health (2026-04-25)
 

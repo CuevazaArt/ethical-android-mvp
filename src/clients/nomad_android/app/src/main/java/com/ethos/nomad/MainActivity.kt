@@ -19,6 +19,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.ethos.nomad.ui.ChatScreen
 
 class MainActivity : ComponentActivity() {
     private val RECORD_AUDIO_REQUEST_CODE = 1001
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Ethos Kernel")
+                    ChatScreen()
                 }
             }
         }
