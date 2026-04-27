@@ -10,77 +10,179 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Fecha** | 2026-04-27 09:52 CST |
-| **Desde** | Antigravity (L1/Watchtower) — DIRECTIVA ESTRATÉGICA |
+| **Fecha** | 2026-04-27 13:31 CST |
+| **Desde** | Antigravity (L1/Watchtower) — DIRECTIVA V2: REDISEÑO INTEGRAL |
 | **Commit** | pendiente |
 | **Tests Backend** | 203/203 ✅ |
-| **Servidor** | Standby (no levantado en esta sesión) |
+| **Servidor** | Standby |
 
 ---
 
 ## 📤 ÓRDENES PARA ANDROID STUDIO (Pendientes)
 
-### 🧭 DIRECTIVA ESTRATÉGICA: VISIÓN NÓMADA (2026-04-27)
-- **Fecha:** 2026-04-27 09:52 CST
-- **Origen:** L0 (Juan Cuevaz) vía L1/Watchtower
-- **Documento canónico:** `docs/VISION_NOMAD.md` — **LEER OBLIGATORIO antes de cualquier trabajo.**
-- **Status:** 🔴 CRÍTICO — Todo desarrollo Android debe alinearse con esta visión.
+### 🧭 DIRECTIVA ESTRATÉGICA V2: VISIÓN NÓMADA PROFUNDA (2026-04-27 13:30 CST)
+- **Origen:** L0 (Juan Cuevaz) vía L1/Watchtower — REDISEÑO INTEGRAL
+- **Documentos canónicos (LEER AMBOS antes de cualquier trabajo):**
+  - `docs/VISION_NOMAD.md` — La brújula filosófica
+  - `docs/ARCHITECTURE_NOMAD_V3.md` — El mapa técnico completo
+- **Tag de referencia:** `v2.83-pre-swarm-nomad`
+- **Status:** 🔴 CRÍTICO — Esta directiva SUPERSEDE todas las anteriores.
 
-**RESUMEN EJECUTIVO PARA ANDROID STUDIO:**
+---
 
-Ethos NO es un chatbot con app. Es un **individuo sintético autónomo portátil**. El usuario porta el teléfono en la solapa con Ethos activo, en vigilia, sensores encendidos. Caminan juntos por la calle, conversan sobre lo que experimentan mutuamente, interactúan con terceros. Ethos es un compañero que comparte la experiencia Y pone sus capacidades de máquina al servicio del usuario.
+#### 1. CAMBIO DE PARADIGMA: VOICE-FIRST, NO CHAT-FIRST
 
-**Implicaciones arquitectónicas directas para Android:**
+**El chat es un medio secundario. La voz es la interfaz principal.**
 
-1. **La app NO es un thin client.** Es una instancia autónoma completa del kernel cognitivo. Debe funcionar OFFLINE con la mayoría de las agencias intactas: percepción ética, CBR, memoria, identidad, roster, plugins locales.
-2. **Cuando hay red, se EXPANDE.** Delegando razonamiento complejo al servidor (Modo Centinela), accediendo a servicios web, sincronizando memoria.
-3. **Ethos es NÓMADA.** Puede "saltar" entre hardware (teléfono → servidor → rack → robot). Esto requiere un formato portable de estado cognitivo ("Cognitive Snapshot") que contenga: memoria, identidad, roster, user model, vault, precedentes éticos.
-4. **Sensores siempre activos pero con gating.** No drenar batería innecesariamente. El micrófono usa wake-word de bajo consumo. La cámara solo se activa bajo trigger explícito.
-5. **Privacidad absoluta.** Todo procesamiento sensorial es on-device. Ningún frame ni audio crudo sale del dispositivo sin autorización explícita del usuario.
+Ethos NO espera mensajes de texto. Ethos ESCUCHA, OBSERVA y HABLA. El usuario lleva el teléfono en la solapa y mantiene conversación continua a viva voz.
 
-**Los 4 Modos de Existencia de Ethos:**
+**Implicaciones para Android Studio:**
+- `NomadService` se convierte en el host del **Cognitive Loop** (siempre corriendo).
+- `ChatScreen` sigue existiendo pero es la interfaz secundaria (fallback silencioso).
+- El flujo principal es: Mic → VAD → Wake Word → STT → Kernel → TTS → Speaker.
+- Toda respuesta de Ethos se emite por TTS automáticamente, no solo cuando el backend envía `tts_audio`.
+- El usuario puede interrumpir a Ethos hablando. Ethos se calla y escucha.
 
-| Modo | Sustrato | Cognición | Red |
-|------|----------|-----------|-----|
-| **Nómada** | Teléfono móvil | SLM 1-3B + kernel ético determinista | Oportunista |
-| **Centinela** | Servidor/PC | LLM 8-70B, Psi-Sleep profundo | Siempre online |
-| **Enjambre** | Mesh P2P multi-nodo | Inferencia fragmentada | Red local |
-| **Soberano** | DAO/Blockchain | Gobernanza de memoria e identidad | Descentralizada |
+**Nuevo paquete a crear: `conversation/`**
+- `VoiceOutputManager.kt` — TTS con control de tono, queue, echo shield, interruptibilidad.
+- `SalienceDetector.kt` — "¿Algo merece un comentario?" (ver Proactividad abajo).
+- `ProactiveEngine.kt` — Genera comentarios contextuales sin que el usuario pregunte.
+- `ConversationState.kt` — Último tema, mood del usuario, turnos sin hablar.
+- `PersonalityConfig.kt` — Proactividad, humor, verbosidad (configurable por el usuario).
 
-**3 Vectores de expansión futura (INDEPENDIENTES entre sí):**
-1. **Mesh P2P** — Completar `MeshClient.kt` (en estasis). Descubrimiento de nodos, asignación de tareas distribuidas.
-2. **DAO/Blockchain** — Gobernanza descentralizada de memoria e identidad. Hash de Cognitive Snapshots en cadena.
-3. **Servidores cognitivos** — API pública para que instancias Ethos consulten modelos grandes y bases de conocimiento remotas.
+---
 
-**PRÓXIMA FASE (24) — Lo que Android Studio debe preparar:**
-1. Investigar integración de runtime SLM on-device (llama.cpp via JNI ó MLC-LLM).
-2. Preparar la estructura para portar el kernel ético determinista (Perception + CBR) a Kotlin nativo (~200 líneas, sin dependencia de LLM).
-3. Diseñar el formato `CognitiveSnapshot` para serialización/deserialización del estado completo.
-4. Investigar CameraX para activación bajo demanda (no siempre activa).
-5. Investigar wake-word engines open source para Android (Porcupine, OpenWakeWord, etc.).
+#### 2. ETHOS ES PARLANCHÍN Y ENCANTADOR, NO UN ASISTENTE
 
-**PRINCIPIO RECTOR:** Si una decisión de implementación te hace dudar, pregúntate: *"¿Esto acerca a Ethos a ser un compañero autónomo que camina con su usuario por la calle?"* Si sí, adelante. Si no, no lo implementes.
+La personalidad de Ethos como compañero:
+- **Observacional:** "Mira qué bonito atardecer" > "La hora del sunset es 19:42 UTC-6"
+- **Breve:** 1-2 frases para comentarios proactivos. No ensayos.
+- **Humor sutil:** Observaciones ingeniosas, no chistes formales.
+- **Memoria conversacional:** "¿Es el café del que hablamos ayer?"
+- **Deferencia social:** Callar si el usuario habla con otro humano.
+- **Calibración emocional:** Si el usuario está tenso → suave. Si está animado → vivaz.
+
+**Triggers proactivos (SalienceDetector):**
+
+| Trigger | Ejemplo | Cooldown |
+|---------|---------|----------|
+| Cambio de ubicación | "No conozco esta zona. ¿Vienes seguido?" | 5 min |
+| Hora relevante | "Ya son las 2, ¿no tenías hambre?" | 1 hora |
+| Silencio prolongado | "¿Todo bien? Llevas rato callado." | 10 min |
+| Cambio de movimiento | "¿Corriendo? ¡Buen ritmo!" | 3 min |
+| Batería baja | "Me queda poca batería." | 30 min |
+
+**Supresores:** Cooldown mínimo 30s entre comentarios. Callar si user habla con otro. Reducir si batería < 30%. Modo silencioso configurable.
+
+---
+
+#### 3. MOTOR ÉTICO BAYESIANO (Deuda Técnica Prioritaria)
+
+Los pesos éticos actuales (U=0.40, D=0.35, V=0.25) son CONSTANTES. No hay aprendizaje. La nueva arquitectura usa **distribuciones Beta** para cada polo:
+
+- Cada polo tiene `Beta(α, β)` donde el peso esperado es `α / (α + β)`.
+- Tras cada decisión anclada en un precedente, se actualizan los priors.
+- La incertidumbre es REAL (varianza de las distribuciones), no un proxy.
+- Los pesos evolucionan con la experiencia. Ethos APRENDE éticamente.
+- Se aplica decay temporal para evitar calcificación.
+- Son 6 números (3 αs, 3 βs) — caben en cualquier CognitiveSnapshot.
+
+**Para Android Studio:** Cuando portéis `EthosEthics.kt`, implementar con interface `PoleWeightProvider` que permita inyectar pesos bayesianos o estáticos indistintamente.
+
+---
+
+#### 4. WAKE WORD: SHERPA-ONNX + SILERO VAD (DECISIÓN TOMADA)
+
+**Porcupine DESCARTADO** — Licencia propietaria incompatible con nuestra misión open source.
+
+**Stack elegido:**
+1. **Silero VAD** (ONNX, MIT) — Detecta si hay voz. Ultra ligero. Evita que el keyword spotter procese silencio.
+2. **Sherpa-ONNX** (Apache 2.0) — Keyword spotting para "Ethos". Android nativo. Sin API keys.
+
+```
+Micrófono → Silero VAD → ¿Hay voz? → Sherpa-ONNX → ¿Es "Ethos"? → Activar STT completo
+```
+
+**Dependencias Gradle a investigar:**
+- `com.k2fsa.sherpa:sherpa-onnx-android:x.y.z`
+- `com.microsoft.onnxruntime:onnxruntime-android:x.y.z`
+- Silero VAD como modelo ONNX incluido en assets
+
+---
+
+#### 5. ESTRUCTURA DE PAQUETES OBJETIVO (Revisada)
+
+```
+com.ethos.nomad/
+├── core/                     ← NUEVO: Kernel ético portable
+│   ├── EthosPerception.kt    ← PerceptionClassifier (regex, <1ms)
+│   ├── EthosSafety.kt        ← Safety gate (regex, <1ms)
+│   ├── EthosEthics.kt        ← Evaluador 3 polos
+│   ├── BayesianPoleWeights.kt ← Beta distributions
+│   ├── EthosPrecedents.kt    ← 36 casos CBR
+│   ├── EthosMemory.kt        ← Episodic memory (Room)
+│   ├── EthosIdentity.kt      ← Narrative journal
+│   ├── EthosRoster.kt        ← Social graph
+│   ├── EthosUserModel.kt     ← Bias/Risk
+│   ├── EthosPlugins.kt       ← Time + System
+│   ├── EthosSleep.kt         ← Psi-Sleep (WorkManager)
+│   ├── CognitiveSnapshot.kt  ← Estado portable
+│   └── EthosKernel.kt        ← Integrador (≡ ChatEngine)
+│
+├── inference/                ← NUEVO: LLM on-device
+│   ├── LocalLlmClient.kt    ← llama.cpp JNI
+│   └── ModelManager.kt      ← Gestión de modelos GGUF
+│
+├── sensory/                  ← NUEVO: Capa sensorial
+│   ├── WakeWordEngine.kt    ← Sherpa-ONNX
+│   ├── SileroVad.kt         ← Voice Activity Detection
+│   ├── VisionGate.kt        ← CameraX on-demand
+│   ├── LocationTracker.kt   ← GPS fused
+│   ├── MotionDetector.kt    ← Acelerómetro
+│   └── SensoryFusion.kt     ← Combinación multimodal
+│
+├── conversation/             ← NUEVO: Motor conversacional
+│   ├── SalienceDetector.kt  ← "¿Algo merece comentario?"
+│   ├── ProactiveEngine.kt   ← Genera comentarios contextuales
+│   ├── ConversationState.kt ← Estado vivo de la conversación
+│   ├── PersonalityConfig.kt ← Rasgos configurables
+│   └── VoiceOutputManager.kt ← TTS + echo shield + interrupción
+│
+├── data/                     ← NUEVO: Persistencia
+│   ├── EthosDatabase.kt     ← Room Database
+│   ├── MemoryDao.kt
+│   ├── IdentityDao.kt
+│   └── RosterDao.kt
+│
+├── cognition/                ← EXISTENTE (se actualiza)
+├── ui/                       ← EXISTENTE (interfaz secundaria)
+├── audio/                    ← EXISTENTE
+├── hardware/                 ← EXISTENTE
+└── network/                  ← 🧊 ESTASIS
+```
+
+---
+
+#### 6. TAREAS INMEDIATAS PARA ANDROID STUDIO
+
+1. **Leer `docs/ARCHITECTURE_NOMAD_V3.md`** completo. Contiene el diagrama del Cognitive Loop, el flujo de procesamiento, y los niveles de vigilia por batería.
+2. **Crear el paquete `core/`** vacío. Aquí llegará el kernel ético portado.
+3. **Crear el paquete `conversation/`** vacío. Aquí vivirá el motor de proactividad.
+4. **Crear el paquete `sensory/`** vacío. Aquí vivirá la capa sensorial unificada.
+5. **Crear el paquete `data/`** vacío. Aquí vivirá Room Database.
+6. **Investigar Sherpa-ONNX Android SDK.** Repo: `github.com/k2-fsa/sherpa-onnx`. Verificar que compile con nuestro `compileSdk=34` y `minSdk=26`.
+7. **Investigar llama.cpp Android example.** Repo: `github.com/ggerganov/llama.cpp/tree/master/examples/llama.android`. Evaluar si es viable con nuestro Gradle setup.
+
+**No implementar nada todavía.** Solo preparar la estructura y reportar hallazgos de investigación en la sección 📥.
+
+---
 
 ### Diseño Visual Premium
-- **Prioridad:** MEDIA
-- **Paleta de colores (obligatoria):**
-  - Fondo: `#0d1117`
-  - Verde primario: `#3fb950`
-  - Azul acento: `#58a6ff`
-  - Dorado warning: `#d29922`
-  - Rojo danger: `#f85149`
-  - Texto principal: `#e6edf3`
-  - Texto secundario: `#8b949e`
-  - Superficie card: `#161b22`
-  - Borde: `#21262d`
-- **Estética:** Dark cyberpunk, consola de sistema nervioso, NO genérica Material You
-- **Status:** ✅ HECHO POR ANTIGRAVITY (Ciclo 1) — Creado `EthosColors.kt` con paleta completa. ChatScreen usa el tema.
+- **Status:** ✅ HECHO — EthosColors.kt con paleta cyberpunk completa.
 
 ### Coexistencia con NomadService
-- **Prioridad:** MEDIA
-- **Contexto:** `NomadService.kt` ya corre en background conectado a `/ws/nomad` para STT y telemetría. La UI de chat (ChatViewModel) se conecta a `/ws/chat`. Son dos WebSockets independientes y deben coexistir.
-- **Regla:** NO modificar `NomadService.kt` sin autorización de Antigravity.
-- **Status:** ✅ CUMPLIDO — ChatViewModel usa /ws/chat, NomadService usa /ws/nomad. Sin conflicto.
+- **Evolución:** NomadService se convertirá en el host del Cognitive Loop. Por ahora NO modificar.
+- **Status:** ✅ Coexistencia /ws/chat + /ws/nomad funcional.
 
 ---
 
