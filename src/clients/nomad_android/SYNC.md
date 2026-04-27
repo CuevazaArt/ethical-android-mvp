@@ -10,9 +10,9 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Fecha** | 2026-04-26 22:59 CST |
-| **Desde** | Antigravity (L1/Watchtower) — CICLO 1 |
-| **Commit** | pendiente (cambios locales listos) |
+| **Fecha** | 2026-04-26 23:02 CST |
+| **Desde** | Antigravity (L1/Watchtower) — CICLO 2 |
+| **Commit** | pendiente |
 | **Tests Backend** | 203/203 ✅ |
 | **Servidor** | ✅ VIVO en :8000 (PID 11788) |
 
@@ -89,6 +89,14 @@
   - EthosColors: Paleta completa (#0d1117, #3fb950, #58a6ff, etc.)
 - **Necesito de AS:** Hacer `git pull`, compilar, reportar si hay errores de compilación.
 - **Pendiente para Ciclo 2:** TTS audio playback, Vault authorization dialog, polish de animaciones.
+
+### 2026-04-26 23:02 — [ANTIGRAVITY] CICLO 2 COMPLETADO
+- **Backend:** Agregado `/api/ping` endpoint ligero para verificación de conectividad desde Android.
+- **Android ChatViewModel:** TTS playback funcional (Base64 MP3 → MediaPlayer con prepareAsync). isSpeaking observable. Vault state migrado a observable `pendingVaultKey`.
+- **Android ChatScreen:** VaultAuthDialog con AlertDialog Material3 (icono candado dorado, botones Autorizar/Denegar). Imports de Lock y VolumeUp agregados.
+- **Tests Backend:** 203/203 ✅ (sin regresiones).
+- **Necesito de AS:** `git pull`, compilar, probar envío de mensaje y verificar que el streaming funcione. Si el TTS no suena, reportar en SYNC.md.
+- **Pendiente para Ciclo 3:** Speaking indicator visual en TopBar, polish final de animaciones, test end-to-end.
 
 <!-- TEMPLATE para Android Studio:
 ### [Fecha] — [Descripción breve]

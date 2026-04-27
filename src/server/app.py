@@ -82,6 +82,12 @@ async def get_index():
     return FileResponse(STATIC_DIR / "index.html")
 
 
+@app.get("/api/ping")
+async def api_ping():
+    """Lightweight health check for Android connectivity verification."""
+    return JSONResponse({"pong": True, "uptime_s": int(time.time() - _start_time)})
+
+
 @app.get("/nomad/")
 async def get_nomad():
     """Serve the Archived Nomad PWA (mobile client)."""

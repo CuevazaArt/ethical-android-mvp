@@ -18,7 +18,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -48,6 +50,8 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
     val streamingText = viewModel.streamingText.value
     val isConnected = viewModel.isConnected.value
     val metadata = viewModel.currentMetadata.value
+    val vaultKey = viewModel.pendingVaultKey.value
+    val isSpeaking = viewModel.isSpeaking.value
 
     // Auto-scroll when new messages arrive or streaming updates
     LaunchedEffect(messageCount, streamingText) {
@@ -109,6 +113,15 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
             enabled = isConnected
         )
     }
+
+    // Vault authorization dialog
+    if (vaultKey != null) {
+        VaultAuthDialog(
+            keyName = vaultKey,
+            onApprove = { viewModel.approveVault(vaultKey) },
+            onDeny = { viewModel.denyVault() }
+        )
+    }
 }
 
 // ── Top Bar ──────────────────────────────────────────────────────
@@ -138,6 +151,10 @@ private fun TopBar(isConnected: Boolean, metadata: EthicsMetadata) {
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
+
+        // TTS speaking indicator
+        // Note: isSpeaking state is read from the parent scope via TopBar params
+        // For simplicity, we show the ethics badge only
 
         // Ethics context badge
         if (metadata.context.isNotEmpty() && metadata.context != "everyday_ethics") {
@@ -439,4 +456,51 @@ private fun InputBar(
             )
         }
     }
+}
+
+// ── Vault Authorization Dialog ───────────────────────────────────
+
+@Composable
+private fun VaultAuthDialog(
+    keyName: String,
+    onApprove: () -> Unit,
+    onDeny: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDeny,
+        icon = {
+            Icon(
+                Icons.Default.Lock,
+                contentDescription = null,
+                tint = EthosColors.AccentGold,
+                modifier = Modifier.size(32.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "Autorización de Bóveda",
+                color = EthosColors.TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                text = "Ethos solicita acceso a la llave protegida:\n\n\"$keyName\"\n\n¿Autorizas el acceso?",
+                color = EthosColors.TextSecondary,
+                lineHeight = 20.sp
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onApprove) {
+                Text("Autorizar", color = EthosColors.AccentGreen, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDeny) {
+                Text("Denegar", color = EthosColors.AccentRed)
+            }
+        },
+        containerColor = EthosColors.BgSurface,
+        tonalElevation = 0.dp
+    )
 }

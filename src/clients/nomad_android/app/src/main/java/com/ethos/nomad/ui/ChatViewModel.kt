@@ -3,12 +3,15 @@
 // See LICENSE_BSL file for details.
 package com.ethos.nomad.ui
 
+import android.media.MediaPlayer
+import android.util.Base64
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import okhttp3.*
 import org.json.JSONObject
+import java.io.File
 
 // ── Data Models ──────────────────────────────────────────────────
 
@@ -59,12 +62,19 @@ class ChatViewModel : ViewModel() {
     /** Current turn's ethics metadata */
     val currentMetadata = mutableStateOf(EthicsMetadata())
 
+    /** Vault key pending user authorization (null = no pending request) */
+    val pendingVaultKey = mutableStateOf<String?>(null)
+
+    /** True while TTS audio is playing */
+    val isSpeaking = mutableStateOf(false)
+
     // ── Private State ────────────────────────────────────────────
 
     private val client = OkHttpClient()
     private var webSocket: WebSocket? = null
-    private var pendingVaultKey: String? = null
     private val _streamBuffer = StringBuilder()
+    private var mediaPlayer: MediaPlayer? = null
+    private var tempAudioFile: File? = null
 
     // ── Lifecycle ────────────────────────────────────────────────
 
@@ -174,16 +184,16 @@ class ChatViewModel : ViewModel() {
 
                     // Vault authorization request
                     if (vaultKey.isNotEmpty()) {
-                        pendingVaultKey = vaultKey
-                        // TODO: Trigger vault auth dialog in UI (Cycle 3)
+                        pendingVaultKey.value = vaultKey
                     }
                 }
 
                 "tts_audio" -> {
-                    // Voice synthesis arrived — will be handled in Cycle 3
+                    // V2.82 Cycle 2: Play TTS audio from Base64 MP3
                     val b64 = json.optString("audio_b64", "")
                     if (b64.isNotEmpty()) {
                         Log.d(TAG, "TTS audio received (${b64.length} chars b64)")
+                        playBase64Audio(b64)
                     }
                 }
             }
@@ -228,15 +238,55 @@ class ChatViewModel : ViewModel() {
             put("approved", true)
         }
         webSocket?.send(payload.toString())
-        pendingVaultKey = null
+        pendingVaultKey.value = null
     }
 
     fun denyVault() {
-        pendingVaultKey = null
+        pendingVaultKey.value = null
+    }
+
+    // ── TTS Playback ────────────────────────────────────────────
+
+    private fun playBase64Audio(b64: String) {
+        try {
+            val audioData = Base64.decode(b64, Base64.DEFAULT)
+            // Write to temp file — MediaPlayer requires file or URI
+            val file = File.createTempFile("ethos_tts_", ".mp3")
+            file.deleteOnExit()
+            file.writeBytes(audioData)
+            tempAudioFile = file
+
+            mediaPlayer?.release()
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(file.absolutePath)
+                setOnPreparedListener {
+                    isSpeaking.value = true
+                    it.start()
+                }
+                setOnCompletionListener {
+                    isSpeaking.value = false
+                    it.release()
+                    mediaPlayer = null
+                    file.delete()
+                }
+                setOnErrorListener { _, what, extra ->
+                    Log.e(TAG, "MediaPlayer error: what=$what extra=$extra")
+                    isSpeaking.value = false
+                    true
+                }
+                prepareAsync()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "TTS playback error", e)
+            isSpeaking.value = false
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
+        mediaPlayer?.release()
+        mediaPlayer = null
+        tempAudioFile?.delete()
         webSocket?.close(1000, "ViewModel cleared")
     }
 }
