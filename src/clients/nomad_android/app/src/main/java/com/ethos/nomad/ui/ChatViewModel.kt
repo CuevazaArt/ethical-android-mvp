@@ -1,87 +1,240 @@
+// Copyright 2026 Juan Cuevaz / Mos Ex Machina
+// Licensed under the Business Source License 1.1
+// See LICENSE_BSL file for details.
 package com.ethos.nomad.ui
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import okhttp3.*
 import org.json.JSONObject
-import android.util.Log
+
+// ── Data Models ──────────────────────────────────────────────────
 
 data class ChatMessage(
     val text: String,
     val isUser: Boolean,
+    val isBlocked: Boolean = false,
+    val blockReason: String? = null,
+    val ethicsContext: String? = null,
+    val latencyMs: Long? = null,
+    val pluginUsed: String? = null,
     val timestamp: Long = System.currentTimeMillis()
 )
 
+data class EthicsMetadata(
+    val context: String = "",
+    val risk: Float = 0f,
+    val urgency: Float = 0f,
+    val hostility: Float = 0f,
+    val chosenAction: String = "",
+    val verdict: String = ""
+)
+
+// ── ViewModel ────────────────────────────────────────────────────
+
 class ChatViewModel : ViewModel() {
-    private val TAG = "ChatViewModel"
+
+    companion object {
+        private const val TAG = "ChatViewModel"
+        private const val WS_URL = "ws://10.0.2.2:8000/ws/chat"
+        private const val RECONNECT_DELAY_MS = 3000L
+    }
+
+    // ── Observable State ─────────────────────────────────────────
+
+    /** Full message history */
+    val messages = mutableStateListOf<ChatMessage>()
+
+    /** Accumulated streaming text from current Ethos response */
+    val streamingText = mutableStateOf("")
+
+    /** True while tokens are arriving */
+    val isThinking = mutableStateOf(false)
+
+    /** True when WebSocket is connected */
+    val isConnected = mutableStateOf(false)
+
+    /** Current turn's ethics metadata */
+    val currentMetadata = mutableStateOf(EthicsMetadata())
+
+    // ── Private State ────────────────────────────────────────────
+
     private val client = OkHttpClient()
     private var webSocket: WebSocket? = null
-    
-    val messages = mutableStateListOf<ChatMessage>()
-    
+    private var pendingVaultKey: String? = null
+    private val _streamBuffer = StringBuilder()
+
+    // ── Lifecycle ────────────────────────────────────────────────
+
     init {
         connect()
     }
-    
+
     private fun connect() {
-        val request = Request.Builder()
-            .url("ws://10.0.2.2:8000/ws/chat")
-            .build()
-            
+        val request = Request.Builder().url(WS_URL).build()
+
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                Log.d(TAG, "Chat WebSocket Connected")
+            override fun onOpen(ws: WebSocket, response: Response) {
+                Log.i(TAG, "WebSocket connected to $WS_URL")
+                isConnected.value = true
             }
-            
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                try {
-                    val json = JSONObject(text)
-                    val type = json.optString("type")
-                    
-                    when (type) {
-                        "chat_text" -> {
-                            val msg = json.optString("text")
-                            if (msg.isNotEmpty()) {
-                                addMessage(msg, false)
-                            }
-                        }
-                        "done" -> {
-                            // Optionally handle completion / thinking state
-                        }
-                        "metadata" -> {
-                            // Future: Update agentic status (ethics score, risk)
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error parsing message: $text", e)
-                }
+
+            override fun onMessage(ws: WebSocket, text: String) {
+                handleServerFrame(text)
             }
-            
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                Log.e(TAG, "WebSocket Failure", t)
-                // Implement retry logic if needed
+
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                Log.e(TAG, "WebSocket failure: ${t.message}")
+                isConnected.value = false
+                scheduleReconnect()
+            }
+
+            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
+                Log.i(TAG, "WebSocket closed: $reason")
+                isConnected.value = false
+                scheduleReconnect()
             }
         })
     }
-    
+
+    private fun scheduleReconnect() {
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            if (!isConnected.value) {
+                Log.d(TAG, "Attempting reconnect...")
+                connect()
+            }
+        }, RECONNECT_DELAY_MS)
+    }
+
+    // ── Frame Handler ────────────────────────────────────────────
+
+    private fun handleServerFrame(raw: String) {
+        try {
+            val json = JSONObject(raw)
+            when (json.optString("type")) {
+                "metadata" -> {
+                    // First event in a turn — ethics signals
+                    val signals = json.optJSONObject("signals")
+                    val evaluation = json.optJSONObject("evaluation")
+                    currentMetadata.value = EthicsMetadata(
+                        context = json.optString("context", ""),
+                        risk = signals?.optDouble("risk", 0.0)?.toFloat() ?: 0f,
+                        urgency = signals?.optDouble("urgency", 0.0)?.toFloat() ?: 0f,
+                        hostility = signals?.optDouble("hostility", 0.0)?.toFloat() ?: 0f,
+                        chosenAction = evaluation?.optString("chosen", "") ?: "",
+                        verdict = evaluation?.optString("verdict", "") ?: ""
+                    )
+                    // Start thinking state
+                    isThinking.value = true
+                    _streamBuffer.clear()
+                    streamingText.value = ""
+                }
+
+                "token" -> {
+                    // Streaming token — accumulate
+                    val content = json.optString("content", "")
+                    _streamBuffer.append(content)
+                    streamingText.value = _streamBuffer.toString()
+                }
+
+                "clear_tokens" -> {
+                    // Plugin intercepted mid-stream — clear partial output
+                    _streamBuffer.clear()
+                    streamingText.value = ""
+                }
+
+                "done" -> {
+                    // Turn complete
+                    isThinking.value = false
+                    val message = json.optString("message", "")
+                    val blocked = json.optBoolean("blocked", false)
+                    val reason = json.optString("reason", "")
+                    val latency = json.optJSONObject("latency")
+                    val totalMs = latency?.optLong("total") ?: 0L
+                    val pluginUsed = json.optString("plugin_used", "")
+                    val vaultKey = json.optString("vault_key", "")
+
+                    if (message.isNotEmpty()) {
+                        messages.add(
+                            ChatMessage(
+                                text = message,
+                                isUser = false,
+                                isBlocked = blocked,
+                                blockReason = if (blocked) reason else null,
+                                ethicsContext = currentMetadata.value.context,
+                                latencyMs = if (totalMs > 0) totalMs else null,
+                                pluginUsed = pluginUsed.ifEmpty { null }
+                            )
+                        )
+                    }
+                    streamingText.value = ""
+                    _streamBuffer.clear()
+
+                    // Vault authorization request
+                    if (vaultKey.isNotEmpty()) {
+                        pendingVaultKey = vaultKey
+                        // TODO: Trigger vault auth dialog in UI (Cycle 3)
+                    }
+                }
+
+                "tts_audio" -> {
+                    // Voice synthesis arrived — will be handled in Cycle 3
+                    val b64 = json.optString("audio_b64", "")
+                    if (b64.isNotEmpty()) {
+                        Log.d(TAG, "TTS audio received (${b64.length} chars b64)")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing server frame", e)
+        }
+    }
+
+    // ── Public API ───────────────────────────────────────────────
+
     fun sendMessage(text: String) {
-        if (text.isBlank()) return
-        
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+
+        // Add user message to UI immediately
+        messages.add(ChatMessage(text = trimmed, isUser = true))
+
+        // Send to server
         val payload = JSONObject().apply {
             put("type", "chat_text")
-            put("payload", JSONObject().put("text", text))
+            put("payload", JSONObject().put("text", trimmed))
         }
-        
-        if (webSocket?.send(payload.toString()) == true) {
-            addMessage(text, true)
+
+        val sent = webSocket?.send(payload.toString()) ?: false
+        if (!sent) {
+            Log.w(TAG, "Failed to send message — WebSocket not ready")
+            messages.add(
+                ChatMessage(
+                    text = "Error: Sin conexión con el kernel.",
+                    isUser = false,
+                    isBlocked = true,
+                    blockReason = "DISCONNECTED"
+                )
+            )
         }
     }
-    
-    private fun addMessage(text: String, isUser: Boolean) {
-        // Run on UI thread via state list
-        messages.add(ChatMessage(text, isUser))
+
+    fun approveVault(key: String) {
+        val payload = JSONObject().apply {
+            put("type", "vault_auth")
+            put("key", key)
+            put("approved", true)
+        }
+        webSocket?.send(payload.toString())
+        pendingVaultKey = null
     }
-    
+
+    fun denyVault() {
+        pendingVaultKey = null
+    }
+
     override fun onCleared() {
         super.onCleared()
         webSocket?.close(1000, "ViewModel cleared")
