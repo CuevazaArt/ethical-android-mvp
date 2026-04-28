@@ -101,26 +101,31 @@ class VoiceEngine(private val context: Context) {
     /**
      * Recursively copy model from assets to app-private internal storage.
      * Required because Sherpa-ONNX uses file-path API, not assets stream.
-     * Returns absolute path of the model dir, or null if not found.
+     * Returns absolute path of the model dir (the one containing .onnx files), or null.
      */
     private fun resolveModelDir(): String? {
         val assetModelDir = "kws_model"
         val internalDir = File(context.filesDir, assetModelDir)
 
-        // If already extracted and non-empty, reuse
-        if (internalDir.exists() && internalDir.walkTopDown().any { it.isFile }) {
-            Log.d(TAG, "Model cache hit: ${internalDir.absolutePath}")
-            return internalDir.absolutePath
+        // 1. Check if we need to extract
+        if (!internalDir.exists() || !internalDir.walkTopDown().any { it.isFile }) {
+            try {
+                copyAssetsRecursive(assetModelDir, internalDir)
+                Log.i(TAG, "Model extracted to: ${internalDir.absolutePath}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to extract model assets: ${e.message}", e)
+                return null
+            }
         }
 
-        return try {
-            copyAssetsRecursive(assetModelDir, internalDir)
-            Log.i(TAG, "Model extracted to: ${internalDir.absolutePath}")
-            internalDir.absolutePath
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to extract model assets: ${e.message}", e)
-            null
-        }
+        // 2. Discover the actual model root (the one containing tokens.txt or .onnx files)
+        // The Zipformer tarball often extracts into a versioned subdirectory.
+        val actualRoot = internalDir.walkTopDown().find { file ->
+            file.isDirectory && File(file, "tokens.txt").exists()
+        } ?: internalDir
+
+        Log.d(TAG, "Model root discovered at: ${actualRoot.absolutePath}")
+        return actualRoot.absolutePath
     }
 
     /**
