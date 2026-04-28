@@ -15,6 +15,7 @@ import okhttp3.*
 import org.json.JSONObject
 import android.util.Base64
 import android.media.MediaPlayer
+import android.media.AudioManager
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Locale
@@ -39,12 +40,31 @@ class NomadService : Service(), RecognitionListener {
     private val handler = Handler(Looper.getMainLooper())
     private val RECONNECT_DELAY_MS = 5000L
 
+    private var isMuted = false
+
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Nomad Foreground Service Created")
         createNotificationChannel()
         initWebSocket()
+        setSystemMute(true) // Mute immediately to silence the first beep
         initSpeechRecognizer()
+    }
+
+    private fun setSystemMute(mute: Boolean) {
+        if (isMuted == mute) return
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            audioManager.adjustStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                if (mute) AudioManager.ADJUST_MUTE else AudioManager.ADJUST_UNMUTE,
+                0
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.setStreamMute(AudioManager.STREAM_MUSIC, mute)
+        }
+        isMuted = mute
     }
 
     private fun createNotificationChannel() {
@@ -107,14 +127,17 @@ class NomadService : Service(), RecognitionListener {
             tempFile.deleteOnExit()
             FileOutputStream(tempFile).use { it.write(audioData) }
 
+            setSystemMute(false) // Unmute to hear Ethos speak
+
             mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(tempFile.absolutePath)
                 setOnCompletionListener {
                     it.release()
                     mediaPlayer = null
-                    // Resume listening after Ethos finishes speaking (Acoustic Echo Shield natively)
-                    // startListening() // V2.84: SILENCIADO TEMPORALMENTE (Evita beep molesto)
+                    // Resume listening after Ethos finishes speaking
+                    setSystemMute(true) // Re-mute before listening again
+                    startListening()
                 }
                 prepare()
                 start()
@@ -125,6 +148,7 @@ class NomadService : Service(), RecognitionListener {
             
         } catch (e: Exception) {
             Log.e(TAG, "Error playing audio", e)
+            setSystemMute(true)
             startListening() // fallback
         }
     }
@@ -133,7 +157,7 @@ class NomadService : Service(), RecognitionListener {
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
             speechRecognizer?.setRecognitionListener(this)
-            // startListening() // V2.84: SILENCIADO TEMPORALMENTE (Fase 25 usará Sherpa)
+            startListening()
         } else {
             Log.e(TAG, "Speech Recognition not available")
         }
@@ -162,13 +186,13 @@ class NomadService : Service(), RecognitionListener {
             webSocket?.send(payload.toString())
         }
         // Restart listening loop
-        // startListening() // V2.84: SILENCIADO TEMPORALMENTE
+        startListening()
     }
 
     override fun onError(error: Int) {
         Log.e(TAG, "Speech Error: $error")
         // Restart on error (e.g., timeout)
-        // startListening() // V2.84: SILENCIADO TEMPORALMENTE
+        startListening()
     }
 
     override fun onReadyForSpeech(params: Bundle?) {}
@@ -197,6 +221,7 @@ class NomadService : Service(), RecognitionListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        setSystemMute(false) // CRITICAL: Release volume control back to user
         speechRecognizer?.destroy()
         mediaPlayer?.release()
         webSocket?.close(1000, "Service destroyed")
