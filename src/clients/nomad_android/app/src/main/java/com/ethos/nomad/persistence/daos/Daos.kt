@@ -10,8 +10,14 @@ interface MemoryDao {
     @Insert
     suspend fun insert(memory: MemoryEntity)
 
+    @Query("SELECT * FROM memory ORDER BY timestamp DESC LIMIT :limit")
+    suspend fun getRecent(limit: Int = 50): List<MemoryEntity>
+
     @Query("SELECT * FROM memory ORDER BY timestamp DESC")
     suspend fun getAll(): List<MemoryEntity>
+
+    @Query("SELECT COUNT(*) FROM memory")
+    suspend fun count(): Int
 
     @Query("DELETE FROM memory")
     suspend fun deleteAll()

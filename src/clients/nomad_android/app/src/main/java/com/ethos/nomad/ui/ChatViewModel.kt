@@ -3,12 +3,16 @@
 // See LICENSE_BSL file for details.
 package com.ethos.nomad.ui
 
+import android.app.Application
 import android.media.MediaPlayer
 import android.util.Base64
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.ethos.nomad.persistence.MemoryBridge
+import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONObject
 import java.io.File
@@ -37,13 +41,15 @@ data class EthicsMetadata(
 
 // ── ViewModel ────────────────────────────────────────────────────
 
-class ChatViewModel : ViewModel() {
+class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val TAG = "ChatViewModel"
         private const val WS_URL = "ws://10.0.2.2:8000/ws/chat"
         private const val RECONNECT_DELAY_MS = 3000L
     }
+
+    private val memoryBridge = MemoryBridge(application)
 
     // ── Observable State ─────────────────────────────────────────
 
@@ -80,6 +86,23 @@ class ChatViewModel : ViewModel() {
 
     init {
         connect()
+        loadHistory()
+    }
+
+    private fun loadHistory() {
+        viewModelScope.launch {
+            val history = memoryBridge.loadRecent(50)
+            if (history.isNotEmpty()) {
+                messages.addAll(history)
+                Log.d(TAG, "Loaded ${history.size} messages from local memory.")
+            }
+        }
+    }
+
+    private fun persistMessage(message: ChatMessage) {
+        viewModelScope.launch {
+            memoryBridge.save(message)
+        }
     }
 
     private fun connect() {
@@ -168,17 +191,17 @@ class ChatViewModel : ViewModel() {
                     val vaultKey = if (rawVaultKey == "null") "" else rawVaultKey
 
                     if (message.isNotEmpty()) {
-                        messages.add(
-                            ChatMessage(
-                                text = message,
-                                isUser = false,
-                                isBlocked = blocked,
-                                blockReason = if (blocked) reason else null,
-                                ethicsContext = currentMetadata.value.context,
-                                latencyMs = if (totalMs > 0) totalMs else null,
-                                pluginUsed = pluginUsed.ifEmpty { null }
-                            )
+                        val assistantMsg = ChatMessage(
+                            text = message,
+                            isUser = false,
+                            isBlocked = blocked,
+                            blockReason = if (blocked) reason else null,
+                            ethicsContext = currentMetadata.value.context,
+                            latencyMs = if (totalMs > 0) totalMs else null,
+                            pluginUsed = pluginUsed.ifEmpty { null }
                         )
+                        messages.add(assistantMsg)
+                        persistMessage(assistantMsg)
                     }
                     streamingText.value = ""
                     _streamBuffer.clear()
@@ -210,7 +233,9 @@ class ChatViewModel : ViewModel() {
         if (trimmed.isEmpty()) return
 
         // Add user message to UI immediately
-        messages.add(ChatMessage(text = trimmed, isUser = true))
+        val userMsg = ChatMessage(text = trimmed, isUser = true)
+        messages.add(userMsg)
+        persistMessage(userMsg)
 
         // Send to server
         val payload = JSONObject().apply {

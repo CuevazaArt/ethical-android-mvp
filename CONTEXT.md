@@ -19,8 +19,12 @@
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
+- **V2.92: MEMORY CONTINUITY (Persistence ↔ Chat)** - CLOSED ✅
+  - Created `MemoryBridge.kt` (ChatMessage ↔ MemoryEntity converter).
+  - Wired into `ChatViewModel.kt` (now `AndroidViewModel`): loads history on init, persists every message.
+  - Added `getRecent(limit)` and `count()` to `MemoryDao`.
+- **V2.91: CI ECONOMY DIRECTIVE** - CLOSED ✅
 - **V2.90: HYBRID COGNITION & HARDWARE AWARENESS** - CLOSED ✅
-  - Created `HardwareProfiler.kt` for RAM-based model tiering (POCKET/NOMAD/CENTINELA).
   - Created `HybridInference.kt` orchestrator (Cloud/Ollama/Local).
   - Updated `ModelManager.kt` to enforce hardware-safe downloads.
   - Updated `sync_engine.py` with tiered Model Zoo metadata.
