@@ -5,11 +5,7 @@
 """Tests for src.core.swarm_telemetry — ScoutReport and SwarmLedger."""
 
 import json
-import math
-import tempfile
 from pathlib import Path
-
-import pytest
 
 from src.core.swarm_telemetry import ScoutReport, SwarmLedger
 
@@ -37,42 +33,56 @@ class TestScoutReport:
 
     def test_cost_efficiency(self) -> None:
         r = ScoutReport(
-            scout_id="test", model="test", task_summary="test",
-            tokens_out=1000, latency_s=10.0,
+            scout_id="test",
+            model="test",
+            task_summary="test",
+            tokens_out=1000,
+            latency_s=10.0,
         )
         assert abs(r.cost_efficiency - 100.0) < 0.01
 
     def test_cost_efficiency_zero_latency(self) -> None:
         r = ScoutReport(
-            scout_id="test", model="test", task_summary="test",
-            tokens_out=1000, latency_s=0.0,
+            scout_id="test",
+            model="test",
+            task_summary="test",
+            tokens_out=1000,
+            latency_s=0.0,
         )
         assert r.cost_efficiency == 0.0
 
     def test_anti_nan_quality(self) -> None:
         r = ScoutReport(
-            scout_id="test", model="test", task_summary="test",
+            scout_id="test",
+            model="test",
+            task_summary="test",
             quality_score=float("nan"),
         )
         assert r.quality_score == 0.0
 
     def test_anti_nan_latency(self) -> None:
         r = ScoutReport(
-            scout_id="test", model="test", task_summary="test",
+            scout_id="test",
+            model="test",
+            task_summary="test",
             latency_s=float("inf"),
         )
         assert r.latency_s == 0.0
 
     def test_quality_clamped(self) -> None:
         r = ScoutReport(
-            scout_id="test", model="test", task_summary="test",
+            scout_id="test",
+            model="test",
+            task_summary="test",
             quality_score=1.5,
         )
         assert r.quality_score == 1.0
 
     def test_quality_clamped_negative(self) -> None:
         r = ScoutReport(
-            scout_id="test", model="test", task_summary="test",
+            scout_id="test",
+            model="test",
+            task_summary="test",
             quality_score=-0.3,
         )
         assert r.quality_score == 0.0
@@ -101,7 +111,9 @@ class TestScoutReport:
 
     def test_to_dict(self) -> None:
         r = ScoutReport(
-            scout_id="test", model="test", task_summary="test",
+            scout_id="test",
+            model="test",
+            task_summary="test",
         )
         d = r.to_dict()
         assert isinstance(d, dict)
@@ -116,21 +128,39 @@ class TestSwarmLedger:
         """Create 3 test reports."""
         reports = [
             ScoutReport(
-                scout_id="Flash-1", model="gemini-flash", task_summary="t1",
-                tokens_in=100, tokens_out=500, latency_s=2.0,
-                quality_score=0.8, tests_passed=True, wave=3,
+                scout_id="Flash-1",
+                model="gemini-flash",
+                task_summary="t1",
+                tokens_in=100,
+                tokens_out=500,
+                latency_s=2.0,
+                quality_score=0.8,
+                tests_passed=True,
+                wave=3,
                 cycle="test-cycle",
             ),
             ScoutReport(
-                scout_id="Sonnet-1", model="claude-sonnet", task_summary="t2",
-                tokens_in=800, tokens_out=4000, latency_s=15.0,
-                quality_score=0.95, tests_passed=True, wave=2,
+                scout_id="Sonnet-1",
+                model="claude-sonnet",
+                task_summary="t2",
+                tokens_in=800,
+                tokens_out=4000,
+                latency_s=15.0,
+                quality_score=0.95,
+                tests_passed=True,
+                wave=2,
                 cycle="test-cycle",
             ),
             ScoutReport(
-                scout_id="Flash-2", model="gemini-flash", task_summary="t3",
-                tokens_in=200, tokens_out=1000, latency_s=3.0,
-                quality_score=0.7, tests_passed=False, wave=3,
+                scout_id="Flash-2",
+                model="gemini-flash",
+                task_summary="t3",
+                tokens_in=200,
+                tokens_out=1000,
+                latency_s=3.0,
+                quality_score=0.7,
+                tests_passed=False,
+                wave=3,
                 cycle="test-cycle",
             ),
         ]

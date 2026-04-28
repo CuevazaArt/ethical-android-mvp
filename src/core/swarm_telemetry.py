@@ -229,19 +229,21 @@ class SwarmLedger:
             print("No swarm reports found.")
             return
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  SWARM LEDGER {'— Cycle: ' + cycle if cycle else '— All Cycles'}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"  Scouts deployed:  {s['total_scouts']}")
         print(f"  Tokens (in/out):  {s['total_tokens_in']:,} / {s['total_tokens_out']:,}")
         print(f"  Total tokens:     {s['total_tokens']:,}")
         print(f"  Total latency:    {s['total_latency_s']:.1f}s")
         print(f"  Avg quality:      {s['avg_quality']:.3f}")
         print(f"  Tests:            ✅ {s['tests_passed']} passed, ❌ {s['tests_failed']} failed")
-        print(f"\n  By Model:")
+        print("\n  By Model:")
         for model, info in s.get("by_model", {}).items():
-            print(f"    {model}: {info['count']} scouts, {info['tokens_out']:,} tok_out, q={info['avg_quality']:.2f}")
-        print(f"\n  By Wave:")
+            print(
+                f"    {model}: {info['count']} scouts, {info['tokens_out']:,} tok_out, q={info['avg_quality']:.2f}"
+            )
+        print("\n  By Wave:")
         for wave, info in sorted(s.get("by_wave", {}).items()):
             print(f"    Wave {wave}: {info['count']} scouts, {info['tokens_out']:,} tok_out")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")

@@ -193,7 +193,7 @@ class _ZeroconfHandler(ServiceListener):
         with self._lock:
             # Linear scan; roster is small (O(N) is fine).
             victim_id: str | None = None
-            for dev_id, payload in self._roster.items():
+            for dev_id, _payload in self._roster.items():
                 # Service names are formatted as "<device_id>._ethos._tcp.local."
                 if name.startswith(dev_id):
                     victim_id = dev_id
@@ -357,7 +357,7 @@ class MeshListener:
                 self._roster.clear()
         _log.info("MeshListener: stopped. Roster cleared.")
 
-    def __enter__(self) -> "MeshListener":
+    def __enter__(self) -> MeshListener:
         self.start()
         return self
 

@@ -18,8 +18,9 @@ Standard dataclasses for mesh networking payloads.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, asdict
-from typing import Any, Optional
+
+from dataclasses import asdict, dataclass
+from typing import Any
 
 
 @dataclass
@@ -53,17 +54,14 @@ class DiscoveryPayload:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> DiscoveryPayload:
         caps_data = data.pop("capabilities")
-        return cls(
-            capabilities=DiscoveryCapabilities.from_dict(caps_data),
-            **data
-        )
+        return cls(capabilities=DiscoveryCapabilities.from_dict(caps_data), **data)
 
 
 @dataclass
 class BatteryInfo:
     level: float
     is_charging: bool
-    temperature_c: Optional[float] = None
+    temperature_c: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -76,7 +74,7 @@ class BatteryInfo:
 @dataclass
 class CpuInfo:
     temperature_c: float
-    load_percent: Optional[float] = None
+    load_percent: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -107,7 +105,7 @@ class TelemetryPayload:
     battery: BatteryInfo
     cpu: CpuInfo
     type: str = "telemetry"
-    memory: Optional[MemoryInfo] = None
+    memory: MemoryInfo | None = None
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
@@ -127,7 +125,7 @@ class TelemetryPayload:
             battery=BatteryInfo.from_dict(battery_data),
             cpu=CpuInfo.from_dict(cpu_data),
             memory=MemoryInfo.from_dict(memory_data) if memory_data else None,
-            **data
+            **data,
         )
 
 

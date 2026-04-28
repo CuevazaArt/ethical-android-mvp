@@ -30,9 +30,11 @@ _log = logging.getLogger("ethos.mesh")
 
 # ── Active Node Registry ───────────────────────────────────────
 
+
 @dataclass
 class MeshNode:
     """Runtime state for a connected mesh node."""
+
     device_id: str
     websocket: WebSocket
     connected_at: float = field(default_factory=time.time)
@@ -78,15 +80,23 @@ async def websocket_mesh(websocket: WebSocket) -> None:
                         device_id = data.get("device_id", "unknown")
                         node = MeshNode(device_id=device_id, websocket=websocket)
                         _active_nodes[device_id] = node
-                        _log.info("[MESH] Node registered: %s (total: %d)", device_id, len(_active_nodes))
+                        _log.info(
+                            "[MESH] Node registered: %s (total: %d)", device_id, len(_active_nodes)
+                        )
                     if node is not None:
                         node.last_telemetry = data
 
                 elif frame_type == "discovery":
-                    _log.info("[MESH] Discovery from %s: %s", data.get("device_id"), data.get("capabilities"))
+                    _log.info(
+                        "[MESH] Discovery from %s: %s",
+                        data.get("device_id"),
+                        data.get("capabilities"),
+                    )
 
                 elif frame_type == "ping":
-                    await websocket.send_json({"type": "pong", "timestamp_ms": int(time.time() * 1000)})
+                    await websocket.send_json(
+                        {"type": "pong", "timestamp_ms": int(time.time() * 1000)}
+                    )
 
                 else:
                     _log.debug("[MESH] Unknown text frame type '%s' from %s", frame_type, device_id)
@@ -107,6 +117,7 @@ async def websocket_mesh(websocket: WebSocket) -> None:
 
 
 # ── Frame Handlers ─────────────────────────────────────────────
+
 
 def _handle_telemetry(data: dict[str, Any], websocket: WebSocket) -> None:
     """Parse and log a telemetry frame."""
@@ -143,7 +154,9 @@ def _handle_audio_binary(raw: bytes, device_id: str | None, node: MeshNode | Non
     if header_length > 65536 or header_length > len(raw) - 4:
         _log.warning(
             "[MESH/AUDIO] Invalid header_length=%d (frame=%d bytes) from %s",
-            header_length, len(raw), device_id,
+            header_length,
+            len(raw),
+            device_id,
         )
         return
 
@@ -161,12 +174,17 @@ def _handle_audio_binary(raw: bytes, device_id: str | None, node: MeshNode | Non
     if pcm_len != header.pcm_length_bytes:
         _log.warning(
             "[MESH/AUDIO] PCM length mismatch: header says %d, got %d from %s",
-            header.pcm_length_bytes, pcm_len, device_id,
+            header.pcm_length_bytes,
+            pcm_len,
+            device_id,
         )
 
     _log.info(
         "[MESH/AUDIO] %s seq=%d — %d bytes PCM @ %dHz",
-        header.device_id, header.seq, pcm_len, header.sample_rate_hz,
+        header.device_id,
+        header.seq,
+        pcm_len,
+        header.sample_rate_hz,
     )
 
     if node is not None:
@@ -176,6 +194,7 @@ def _handle_audio_binary(raw: bytes, device_id: str | None, node: MeshNode | Non
 
 
 # ── Utility ────────────────────────────────────────────────────
+
 
 def get_active_nodes() -> list[dict[str, Any]]:
     """Returns a snapshot of all connected mesh nodes for telemetry/dashboard."""

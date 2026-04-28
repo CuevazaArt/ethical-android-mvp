@@ -12,31 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 from src.core.models.mesh_models import (
-    DiscoveryPayload,
-    DiscoveryCapabilities,
-    TelemetryPayload,
+    AudioChunkHeader,
     BatteryInfo,
     CpuInfo,
+    DiscoveryCapabilities,
+    DiscoveryPayload,
     MemoryInfo,
-    AudioChunkHeader
+    TelemetryPayload,
 )
 
 
 def test_discovery_payload_serialization():
     caps = DiscoveryCapabilities(
-        available_ram_mb=4096,
-        has_microphone=True,
-        has_camera=True,
-        slm_available=True
+        available_ram_mb=4096, has_microphone=True, has_camera=True, slm_available=True
     )
     payload = DiscoveryPayload(
         protocol_version="1.0",
         device_id="node-001",
         ip="192.168.1.50",
         port=8443,
-        capabilities=caps
+        capabilities=caps,
     )
 
     data = payload.to_dict()
@@ -61,7 +57,7 @@ def test_telemetry_payload_serialization():
         timestamp_ms=1620000000000,
         battery=battery,
         cpu=cpu,
-        memory=memory
+        memory=memory,
     )
 
     data = payload.to_dict()
@@ -86,12 +82,12 @@ def test_telemetry_payload_optional_memory():
         timestamp_ms=1620000000000,
         battery=battery,
         cpu=cpu,
-        memory=None
+        memory=None,
     )
 
     data = payload.to_dict()
     assert "memory" not in data or data["memory"] is None
-    
+
     restored = TelemetryPayload.from_dict(data)
     assert restored.memory is None
 
@@ -102,7 +98,7 @@ def test_audio_chunk_header_serialization():
         device_id="node-001",
         seq=42,
         pcm_length_bytes=3200,
-        timestamp_ms=1620000000100
+        timestamp_ms=1620000000100,
     )
 
     data = header.to_dict()

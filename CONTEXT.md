@@ -196,6 +196,7 @@ Un bloque se considera CLOSED ✅ solo si:
 
 ## Closed blocks
 
+- **V2.83e (Maintenance):** Estabilización de lint y formato (Ruff) en `src/core` y `tests`. Sincronización completa con la visión Nomad V3.
 - **V2.61 - V2.64 (Mente y Memoria):** Implementado el Arquetipo Narrativo (nivel 3 de destilación) en `Identity` y persistencia en disco del `UserModelTracker`. Modificado `llm.py` con máquina de estados para silenciar etiquetas `<think>`.
 - **V2.60 (Sensory Feedback Suppression):** Se eliminó el `AudioContext` de la PWA para evitar el "pulso rítmico" por conflicto de hardware. Se agregó una rutina de rescate de transcripción interina en `onend`.
 - **L1-AUDIT-PULSE (2026-04-24):** Resolución de conflictos de importación en tests tras la consolidación V2. Todo el kernel ahora importa exclusivamente de `src.core.*`.
