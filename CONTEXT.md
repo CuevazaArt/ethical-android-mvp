@@ -19,10 +19,15 @@
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
+- **V2.90: HYBRID COGNITION & HARDWARE AWARENESS** - CLOSED ✅
+  - Created `HardwareProfiler.kt` for RAM-based model tiering (POCKET/NOMAD/CENTINELA).
+  - Created `HybridInference.kt` orchestrator (Cloud/Ollama/Local).
+  - Updated `ModelManager.kt` to enforce hardware-safe downloads.
+  - Updated `sync_engine.py` with tiered Model Zoo metadata.
+  - **Evidencia:** Logcat reports: `Device Specs: RAM=4GB -> Tier=POCKET`.
+- **V2.87: LLAMA.CPP JNI SCAFFOLDING** - CLOSED ✅
+- **V2.86: NOMAD PERSISTENCE SETUP (ROOM DB)** - CLOSED ✅
 - **V2.85: ETHOS KERNEL ON-DEVICE (Fase 24a)** - CLOSED ✅
-  - Created `core/EthosSignals.kt`, `core/EthosPerception.kt`, `core/EthosSafety.kt`, `core/EthosKernelGate.kt`.
-  - Wired gate into `MainActivity.kt`. Removed SpeechRecognizer entirely from `NomadService.kt`.
-  - **🚪 GATE PASSED:** App runs clean in emulator — zero Speech Errors, zero beeps, WebSocket+TTS confirmed via Logcat.
 - **V2.84b-d: UX FIXES + RESEARCH** - CLOSED ✅
   - Fixed vault loop (backend `vault_key: null` → `""`).
   - Muted SpeechRecognizer beeps via AudioManager hack.
@@ -120,10 +125,13 @@ Un bloque se considera CLOSED ✅ solo si:
 - ✅ Verificado en emulador: app corre limpia, sin Speech Errors, sin beeps.
 - **🚪 GATE PASSED.**
 
-### Fase 24b — Persistencia + SLM (SIGUIENTE)
-- Room DB para memoria, identidad, roster.
-- llama.cpp JNI para SLM on-device.
-- Considerar FAISS para memoria vectorial si episodios > 500.
+### Fase 24b — Persistencia + SLM (EN PROGRESO)
+- ✅ Room DB para memoria, identidad, roster.
+- ✅ Hybrid Cognition & Hardware Awareness (Tiers: POCKET/NOMAD/CENTINELA).
+- ✅ Soporte para Cloud APIs (Claude) & LAN (Ollama) stubs.
+- 🚧 llama.cpp JNI Scaffolding (Bridge operacional).
+- ⬜ llama.cpp Inferencia real (Cargar GGUF).
+- ⬜ Considerar FAISS para memoria vectorial si episodios > 500.
 - **🚪 GATE:** La app Android genera una respuesta de texto coherente a "Hola" usando SLM local, con memoria persistida entre reinicios. Sin red.
 
 ### Fase 25 — Voice Pipeline

@@ -11,7 +11,11 @@ _log = logging.getLogger(__name__)
 
 
 async def synthesize(
-    text: str, voice: str = "es-MX-DaliaNeural", pitch: str = "+0Hz", rate: str = "+0%", volume: str = "+50%"
+    text: str,
+    voice: str = "es-MX-DaliaNeural",
+    pitch: str = "+0Hz",
+    rate: str = "+0%",
+    volume: str = "+50%",
 ) -> bytes | None:
     """
     Synthesize text to MP3 using edge-tts.

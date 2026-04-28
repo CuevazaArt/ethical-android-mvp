@@ -18,6 +18,8 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.ethos.nomad.core.EthosKernelGate
+import com.ethos.nomad.inference.JniGate
+import com.ethos.nomad.persistence.PersistenceGate
 import com.ethos.nomad.ui.ChatScreen
 
 class MainActivity : ComponentActivity() {
@@ -28,11 +30,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // ── Fase 24a: Ethos Kernel Integration Gate ──────────────────
-        // Runs 25+ on-device tests of Perception + Safety.
-        // Results visible in Logcat under tag "EthosKernelGate".
         val gateResult = EthosKernelGate.runGate()
         Log.d(TAG, "Ethos Kernel Gate: ${gateResult.passed}/${gateResult.total} " +
                 if (gateResult.allPassed) "✅ ALL PASSED" else "⚠️ ${gateResult.failed} FAILED")
+
+        // ── Fase 24b: Persistence Gate (Room DB) ─────────────────────
+        PersistenceGate.runGate(this)
+
+        // ── Fase 24b: JNI Gate (llama.cpp) ───────────────────────────
+        JniGate.runGate(this)
 
         checkPermissionsAndStartService()
 
