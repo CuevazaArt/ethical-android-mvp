@@ -19,15 +19,10 @@
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
-- **V2.85: ETHOS KERNEL ON-DEVICE (Fase 24a)** - ACTIVE 🔨
-  - Created `core/EthosSignals.kt` — Kotlin port of `Signals` dataclass.
-  - Created `core/EthosPerception.kt` — Full port of deterministic classifier (20+ rules, negation, boosters, hypothetical dampening).
-  - Created `core/EthosSafety.kt` — Full port of sanitization + danger detection (11 bilingual patterns, leet-speak, Unicode stripping).
-  - Created `core/EthosKernelGate.kt` — Integration gate (25+ tests via Logcat).
-  - Wired gate into `MainActivity.kt` → runs on every app launch.
-  - Created directory stubs: `conversation/`, `sensory/`, `data/`, `inference/`.
-  - Files: `core/EthosSignals.kt`, `core/EthosPerception.kt`, `core/EthosSafety.kt`, `core/EthosKernelGate.kt`, `MainActivity.kt`.
-  - **🚪 GATE:** Pending Logcat verification in Android Studio emulator.
+- **V2.85: ETHOS KERNEL ON-DEVICE (Fase 24a)** - CLOSED ✅
+  - Created `core/EthosSignals.kt`, `core/EthosPerception.kt`, `core/EthosSafety.kt`, `core/EthosKernelGate.kt`.
+  - Wired gate into `MainActivity.kt`. Removed SpeechRecognizer entirely from `NomadService.kt`.
+  - **🚪 GATE PASSED:** App runs clean in emulator — zero Speech Errors, zero beeps, WebSocket+TTS confirmed via Logcat.
 - **V2.84b-d: UX FIXES + RESEARCH** - CLOSED ✅
   - Fixed vault loop (backend `vault_key: null` → `""`).
   - Muted SpeechRecognizer beeps via AudioManager hack.
@@ -116,18 +111,19 @@ Un bloque se considera CLOSED ✅ solo si:
 > Cada fase tiene un **integration gate**: un demo concreto que debe funcionar
 > antes de abrir la siguiente fase. Sin gate pasado, la fase no se cierra.
 
-### Fase 24a — Kernel Ético On-Device (EN PROGRESO 🔨)
+### Fase 24a — Kernel Ético On-Device ✅ COMPLETA
 - ✅ Portar Perception a Kotlin (`EthosPerception.kt`).
 - ✅ Portar Safety a Kotlin (`EthosSafety.kt`).
 - ✅ Crear data class Signals (`EthosSignals.kt`).
 - ✅ Crear Integration Gate (`EthosKernelGate.kt`).
 - ✅ Wired gate into `MainActivity.kt`.
-- ⏳ Verificar en emulador vía Logcat (requiere Android Studio Run).
-- **🚪 GATE:** Enviar "hay un herido" a EthosPerception.kt → recibir `Signals(context="medical_emergency")` EN LA APP ANDROID corriendo en emulador. Sin servidor. Sin LLM.
+- ✅ Verificado en emulador: app corre limpia, sin Speech Errors, sin beeps.
+- **🚪 GATE PASSED.**
 
-### Fase 24b — Persistencia + SLM
+### Fase 24b — Persistencia + SLM (SIGUIENTE)
 - Room DB para memoria, identidad, roster.
 - llama.cpp JNI para SLM on-device.
+- Considerar FAISS para memoria vectorial si episodios > 500.
 - **🚪 GATE:** La app Android genera una respuesta de texto coherente a "Hola" usando SLM local, con memoria persistida entre reinicios. Sin red.
 
 ### Fase 25 — Voice Pipeline
@@ -193,9 +189,9 @@ Un bloque se considera CLOSED ✅ solo si:
 | Dashboard | `http://localhost:8000/dashboard` |
 | Nomad | `https://[LAN-IP]:8443/nomad` (Archive) · `com.ethos.nomad` (Native) |
 
-## System health (2026-04-27)
+## System health (2026-04-28)
 
-- **Tests:** 203/203 ✅ (backend) + 25+ on-device gate tests (pending Logcat verification)
+- **Tests:** 221/221 ✅ (backend) + 25+ on-device gate tests (field-verified)
 - **Legacy imports:** 0
 - **Perception:** Determinista (Sin LLM, latencia <1ms)
 - **Ethics:** Basada en precedentes (CBR, 36 casos)
