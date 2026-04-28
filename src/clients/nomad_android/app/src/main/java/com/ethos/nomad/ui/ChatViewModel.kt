@@ -164,7 +164,8 @@ class ChatViewModel : ViewModel() {
                     val latency = json.optJSONObject("latency")
                     val totalMs = latency?.optLong("total") ?: 0L
                     val pluginUsed = json.optString("plugin_used", "")
-                    val vaultKey = json.optString("vault_key", "")
+                    val rawVaultKey = json.optString("vault_key", "")
+                    val vaultKey = if (rawVaultKey == "null") "" else rawVaultKey
 
                     if (message.isNotEmpty()) {
                         messages.add(

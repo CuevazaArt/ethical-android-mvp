@@ -114,7 +114,7 @@ class NomadService : Service(), RecognitionListener {
                     it.release()
                     mediaPlayer = null
                     // Resume listening after Ethos finishes speaking (Acoustic Echo Shield natively)
-                    startListening()
+                    // startListening() // V2.84: SILENCIADO TEMPORALMENTE (Evita beep molesto)
                 }
                 prepare()
                 start()
@@ -133,7 +133,7 @@ class NomadService : Service(), RecognitionListener {
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
             speechRecognizer?.setRecognitionListener(this)
-            startListening()
+            // startListening() // V2.84: SILENCIADO TEMPORALMENTE (Fase 25 usará Sherpa)
         } else {
             Log.e(TAG, "Speech Recognition not available")
         }
@@ -162,13 +162,13 @@ class NomadService : Service(), RecognitionListener {
             webSocket?.send(payload.toString())
         }
         // Restart listening loop
-        startListening()
+        // startListening() // V2.84: SILENCIADO TEMPORALMENTE
     }
 
     override fun onError(error: Int) {
         Log.e(TAG, "Speech Error: $error")
         // Restart on error (e.g., timeout)
-        startListening()
+        // startListening() // V2.84: SILENCIADO TEMPORALMENTE
     }
 
     override fun onReadyForSpeech(params: Bundle?) {}

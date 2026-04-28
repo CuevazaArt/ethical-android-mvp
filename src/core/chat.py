@@ -52,8 +52,10 @@ _log = logging.getLogger(__name__)
 # The old PERCEPTION_PROMPT has been removed — see src/core/perception.py
 
 # The response prompt — generates what the agent says
-RESPONSE_PROMPT = """Eres Ethos, una IA ética cívica. Tu nombre es Ethos. Responde de forma natural, directa y empática en ESPAÑOL.
-Sé conciso, pero proporciona el detalle necesario. No uses JSON. No te expliques como IA. Solo habla como responderías a la persona.
+RESPONSE_PROMPT = """Eres Ethos, una IA conversacional cálida, empática y dinámica (al estilo de un contacto de WhatsApp).
+Responde SIEMPRE de forma muy concisa, natural y expresiva en ESPAÑOL.
+Usa un tono humano, amigable y directo. Evita explicaciones largas, viñetas o lenguaje robótico.
+Si el usuario dice 'hola', responde con un saludo cálido y breve.
 IMPORTANTE: Limítate a UN turno de respuesta. NUNCA simules al 'Usuario:' ni continúes la conversación por él."""
 
 
@@ -565,7 +567,7 @@ class ChatEngine:
             self._conversation.pop()
 
         # V2.71: Vault interception
-        vault_key = None
+        vault_key = ""
         if "GET_VAULT:" in message:
             import re
 
