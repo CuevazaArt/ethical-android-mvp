@@ -41,7 +41,7 @@ class NomadService : Service() {
     private val TAG = "NomadService"
     private var webSocket: WebSocket? = null
     private var mediaPlayer: MediaPlayer? = null
-    private val voiceEngine = VoiceEngine()
+    private val voiceEngine by lazy { VoiceEngine(this) }
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "NomadServiceChannel"
@@ -50,9 +50,28 @@ class NomadService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "Nomad Foreground Service Created (STT disabled until Fase 25)")
+        Log.d(TAG, "Nomad Foreground Service Created (Sherpa-ONNX KWS enabled)")
         createNotificationChannel()
         initWebSocket()
+        initVoiceEngine()
+    }
+
+    private fun initVoiceEngine() {
+        val ready = voiceEngine.initialize()
+        if (ready) {
+            voiceEngine.onKeywordDetected = { keyword ->
+                Log.i(TAG, "Wake word received: '$keyword' — triggering cognitive cycle")
+                // TODO Fase 25+: Trigger STT → HybridInference → TTS
+                // For now, send a WebSocket pulse to the backend
+                val payload = org.json.JSONObject().apply {
+                    put("type", "wake_word")
+                    put("keyword", keyword)
+                }
+                webSocket?.send(payload.toString())
+            }
+        } else {
+            Log.w(TAG, "VoiceEngine failed to initialize — Wake Word disabled.")
+        }
     }
 
     private fun createNotificationChannel() {
@@ -143,7 +162,7 @@ class NomadService : Service() {
 
         startForeground(NOTIFICATION_ID, notification)
         
-        // V2.94: Start continuous background listening
+        // V2.95: Start Sherpa-ONNX continuous background listening
         voiceEngine.startListening()
 
         return START_STICKY
@@ -153,7 +172,7 @@ class NomadService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        voiceEngine.stopListening()
+        voiceEngine.release()
         mediaPlayer?.release()
         webSocket?.close(1000, "Service destroyed")
         Log.d(TAG, "Nomad Foreground Service Destroyed")

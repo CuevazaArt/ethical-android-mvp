@@ -1,0 +1,11 @@
+{
+  "version": "1.13.0",
+  "type": "keyword_spotting",
+  "keywords": [
+    "ethos",
+    "etos",
+    "ethos nomad"
+  ],
+  "model_dir": "kws_model",
+  "note": "Zipformer wenetspeech 3.3M \u2014 smallest bilingual model available"
+}

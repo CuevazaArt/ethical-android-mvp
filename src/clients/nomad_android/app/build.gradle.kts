@@ -53,6 +53,12 @@ android {
         }
     }
     ndkVersion = "26.1.10909125" // Standard NDK for target 34
+
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs")
+        }
+    }
 }
 
 dependencies {
@@ -77,6 +83,11 @@ dependencies {
 
     // OkHttp for WebSockets
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Sherpa-ONNX (Wake Word / KWS engine)
+    // JAR placed in app/libs/ by scripts/nomad/sync_engine.py
+    // Native .so placed in app/src/main/jniLibs/ by the same script
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
