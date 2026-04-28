@@ -20,6 +20,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import com.ethos.nomad.audio.VoiceEngine
 
 /**
  * NomadService — Foreground service for persistent WebSocket + TTS playback.
@@ -40,6 +41,7 @@ class NomadService : Service() {
     private val TAG = "NomadService"
     private var webSocket: WebSocket? = null
     private var mediaPlayer: MediaPlayer? = null
+    private val voiceEngine = VoiceEngine()
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "NomadServiceChannel"
@@ -140,6 +142,9 @@ class NomadService : Service() {
             .build()
 
         startForeground(NOTIFICATION_ID, notification)
+        
+        // V2.94: Start continuous background listening
+        voiceEngine.startListening()
 
         return START_STICKY
     }
@@ -148,6 +153,7 @@ class NomadService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        voiceEngine.stopListening()
         mediaPlayer?.release()
         webSocket?.close(1000, "Service destroyed")
         Log.d(TAG, "Nomad Foreground Service Destroyed")

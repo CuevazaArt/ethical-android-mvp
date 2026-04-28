@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.ethos.nomad.audio.TtsEngine
 import com.ethos.nomad.persistence.MemoryBridge
 import kotlinx.coroutines.launch
 import okhttp3.*
@@ -50,6 +51,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private val memoryBridge = MemoryBridge(application)
+    private val ttsEngine = TtsEngine(application)
 
     // ── Observable State ─────────────────────────────────────────
 
@@ -202,6 +204,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         )
                         messages.add(assistantMsg)
                         persistMessage(assistantMsg)
+
+                        // V2.94: Auto-speak response if no base64 audio was provided
+                        if (!isSpeaking.value) {
+                            ttsEngine.speak(message)
+                        }
                     }
                     streamingText.value = ""
                     _streamBuffer.clear()
@@ -313,6 +320,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         mediaPlayer?.release()
         mediaPlayer = null
         tempAudioFile?.delete()
+        ttsEngine.release()
         webSocket?.close(1000, "ViewModel cleared")
     }
 }

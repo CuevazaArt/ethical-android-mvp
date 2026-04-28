@@ -21,6 +21,10 @@
 
 ## Bloques Activos
 
+- **V2.94: VOICE PIPELINE SCAFFOLDING (TTS + Listening)** - CLOSED ✅
+  - Created `TtsEngine.kt` (Android TTS) and `VoiceEngine.kt` (Continuous AudioRecord).
+  - Wired `ChatViewModel` for automatic vocal response.
+  - Background listening enabled in `NomadService`.
 - **V2.93: SLM ENGINE INFILTRATION (llama.cpp)** - CLOSED ✅
   - Automated `llama.cpp` source syncing and `CMakeLists.txt` generation.
   - Implemented real `llama_model`/`llama_context` lifecycle in `llama-jni.cpp`.
