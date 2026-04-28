@@ -5,28 +5,35 @@ package com.ethos.nomad
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.ethos.nomad.core.EthosKernelGate
 import com.ethos.nomad.ui.ChatScreen
 
 class MainActivity : ComponentActivity() {
+    private val TAG = "MainActivity"
     private val RECORD_AUDIO_REQUEST_CODE = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
+        // ── Fase 24a: Ethos Kernel Integration Gate ──────────────────
+        // Runs 25+ on-device tests of Perception + Safety.
+        // Results visible in Logcat under tag "EthosKernelGate".
+        val gateResult = EthosKernelGate.runGate()
+        Log.d(TAG, "Ethos Kernel Gate: ${gateResult.passed}/${gateResult.total} " +
+                if (gateResult.allPassed) "✅ ALL PASSED" else "⚠️ ${gateResult.failed} FAILED")
+
         checkPermissionsAndStartService()
 
         setContent {
@@ -70,18 +77,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Initializing $name...",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MaterialTheme {
-        Greeting("Android")
-    }
-}

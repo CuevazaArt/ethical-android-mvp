@@ -8,7 +8,7 @@
 - **Architecture:** `src/core/` → `src/server/` (zero legacy)
 - **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
 - **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
-- **Last merge to main:** 2026-04-27 (sync + visión nómada consolidada)
+- **Last merge to main:** 2026-04-28 (Fase 24a — Kernel Ético On-Device)
 - **Visión canónica:** `docs/VISION_NOMAD.md`
 
 ## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
@@ -19,6 +19,21 @@
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
 ## Bloques Activos
+- **V2.85: ETHOS KERNEL ON-DEVICE (Fase 24a)** - ACTIVE 🔨
+  - Created `core/EthosSignals.kt` — Kotlin port of `Signals` dataclass.
+  - Created `core/EthosPerception.kt` — Full port of deterministic classifier (20+ rules, negation, boosters, hypothetical dampening).
+  - Created `core/EthosSafety.kt` — Full port of sanitization + danger detection (11 bilingual patterns, leet-speak, Unicode stripping).
+  - Created `core/EthosKernelGate.kt` — Integration gate (25+ tests via Logcat).
+  - Wired gate into `MainActivity.kt` → runs on every app launch.
+  - Created directory stubs: `conversation/`, `sensory/`, `data/`, `inference/`.
+  - Files: `core/EthosSignals.kt`, `core/EthosPerception.kt`, `core/EthosSafety.kt`, `core/EthosKernelGate.kt`, `MainActivity.kt`.
+  - **🚪 GATE:** Pending Logcat verification in Android Studio emulator.
+- **V2.84b-d: UX FIXES + RESEARCH** - CLOSED ✅
+  - Fixed vault loop (backend `vault_key: null` → `""`).
+  - Muted SpeechRecognizer beeps via AudioManager hack.
+  - Injected Meta WhatsApp warm persona prompt.
+  - Boosted TTS volume +50%.
+  - Integrated external OSS tech review.
 - **V2.82: NOMAD CHAT PRODUCTION UI (3 Ciclos)** - CLOSED ✅
   - Ciclo 1: ChatScreen + ChatViewModel producción, EthosColors, Gradle deps.
   - Ciclo 2: TTS playback (MediaPlayer), Vault dialog (AlertDialog), /api/ping.
@@ -101,9 +116,13 @@ Un bloque se considera CLOSED ✅ solo si:
 > Cada fase tiene un **integration gate**: un demo concreto que debe funcionar
 > antes de abrir la siguiente fase. Sin gate pasado, la fase no se cierra.
 
-### Fase 24a — Kernel Ético On-Device (SIGUIENTE)
-- Portar Safety + Perception + Ethics + Precedents a Kotlin.
-- Motor bayesiano (Python primero, Kotlin después).
+### Fase 24a — Kernel Ético On-Device (EN PROGRESO 🔨)
+- ✅ Portar Perception a Kotlin (`EthosPerception.kt`).
+- ✅ Portar Safety a Kotlin (`EthosSafety.kt`).
+- ✅ Crear data class Signals (`EthosSignals.kt`).
+- ✅ Crear Integration Gate (`EthosKernelGate.kt`).
+- ✅ Wired gate into `MainActivity.kt`.
+- ⏳ Verificar en emulador vía Logcat (requiere Android Studio Run).
 - **🚪 GATE:** Enviar "hay un herido" a EthosPerception.kt → recibir `Signals(context="medical_emergency")` EN LA APP ANDROID corriendo en emulador. Sin servidor. Sin LLM.
 
 ### Fase 24b — Persistencia + SLM
@@ -176,7 +195,7 @@ Un bloque se considera CLOSED ✅ solo si:
 
 ## System health (2026-04-27)
 
-- **Tests:** 203/203 ✅
+- **Tests:** 203/203 ✅ (backend) + 25+ on-device gate tests (pending Logcat verification)
 - **Legacy imports:** 0
 - **Perception:** Determinista (Sin LLM, latencia <1ms)
 - **Ethics:** Basada en precedentes (CBR, 36 casos)
