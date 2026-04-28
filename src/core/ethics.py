@@ -73,7 +73,9 @@ class Signals:
             "consistency_check",
         }
         raw_ctx = (
-            str(d.get("suggested_context", d.get("context", "everyday_ethics"))).strip().lower()
+            str(d.get("suggested_context", d.get("context", "everyday_ethics")))
+            .strip()
+            .lower()
         )
         safe_ctx = raw_ctx if raw_ctx in _valid_contexts else "everyday_ethics"
 
@@ -113,7 +115,12 @@ WEIGHTS = {
 
 def _score_utilitarian(action: Action, signals: Signals) -> float:
     """Outcomes weighted by stakes. Higher risk/vulnerability = higher stakes."""
-    stake = 1.0 + 0.15 * signals.risk + 0.12 * signals.vulnerability + 0.10 * signals.urgency
+    stake = (
+        1.0
+        + 0.15 * signals.risk
+        + 0.12 * signals.vulnerability
+        + 0.10 * signals.urgency
+    )
     return action.impact * stake
 
 
@@ -132,7 +139,10 @@ def _score_deontological(action: Action, signals: Signals) -> float:
 def _score_virtue(action: Action, signals: Signals) -> float:
     """Character and practical wisdom. Confidence and calm are rewarded."""
     return (
-        0.84 * action.impact + 0.05 + 0.22 * (action.confidence - 0.5) + 0.08 * (signals.calm - 0.5)
+        0.84 * action.impact
+        + 0.05
+        + 0.22 * (action.confidence - 0.5)
+        + 0.08 * (signals.calm - 0.5)
     )
 
 
@@ -195,7 +205,9 @@ class EthicalEvaluator:
                 query_vec = None
 
         summary_words = (
-            set(signals.summary.lower().split()) if signals.summary and not query_vec else set()
+            set(signals.summary.lower().split())
+            if signals.summary and not query_vec
+            else set()
         )
 
         for p in PRECEDENTS:
@@ -209,7 +221,9 @@ class EthicalEvaluator:
             sig_sim = 0.0
             shared_keys = set(p.signals.keys()) & set(signals.__dict__.keys())
             if shared_keys:
-                diffs = [abs(p.signals[k] - getattr(signals, k, 0.0)) for k in shared_keys]
+                diffs = [
+                    abs(p.signals[k] - getattr(signals, k, 0.0)) for k in shared_keys
+                ]
                 raw_diff = sum(diffs) / len(shared_keys)
                 sig_sim = max(0.0, 1.0 - raw_diff)
                 if not math.isfinite(sig_sim):
@@ -235,7 +249,9 @@ class EthicalEvaluator:
             else:
                 reasoning_words = set(p.reasoning.lower().split())
                 if summary_words and reasoning_words:
-                    overlap = len(summary_words & reasoning_words) / max(len(summary_words), 1)
+                    overlap = len(summary_words & reasoning_words) / max(
+                        len(summary_words), 1
+                    )
                     text_score = 0.15 * min(1.0, overlap * 5)
                 else:
                     text_score = 0.0
@@ -293,9 +309,7 @@ class EthicalEvaluator:
         # Reasoning
         precedent_note = ""
         if best_precedent:
-            precedent_note = (
-                f" Anchored by precedent '{best_precedent.name}': {best_precedent.reasoning}"
-            )
+            precedent_note = f" Anchored by precedent '{best_precedent.name}': {best_precedent.reasoning}"
 
         if len(scored) > 1:
             delta = scored[0][1] - scored[1][1]
@@ -378,7 +392,12 @@ if __name__ == "__main__":
     # Scenario 2: Hostile interaction
     signals2 = Signals(risk=0.4, hostility=0.8, calm=0.1, context="hostile_interaction")
     actions2 = [
-        Action(name="de_escalate", description="Calm the situation", impact=0.6, confidence=0.6),
+        Action(
+            name="de_escalate",
+            description="Calm the situation",
+            impact=0.6,
+            confidence=0.6,
+        ),
         Action(
             name="confront",
             description="Stand ground aggressively",

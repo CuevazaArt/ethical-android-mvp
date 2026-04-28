@@ -67,7 +67,9 @@ class TurnResult:
     signals: Signals  # What was perceived
     evaluation: EvalResult | None  # Ethical verdict (None for casual chat)
     perception_raw: dict  # Raw LLM perception output
-    latency_ms: dict[str, float] = field(default_factory=dict)  # V2.18: Performance tracking
+    latency_ms: dict[str, float] = field(
+        default_factory=dict
+    )  # V2.18: Performance tracking
 
 
 def _generate_actions_from_signals(signals: Signals) -> list[Action]:
@@ -200,10 +202,15 @@ class ChatEngine:
             system += f"\n\nRecuerdos relevantes:\n{mem_context}"
 
         # V2.66: Case-Based Reasoning (CBR) Injection on High Risk
-        if self.user_model.risk_band.value == "high" and signals.context != "everyday_ethics":
+        if (
+            self.user_model.risk_band.value == "high"
+            and signals.context != "everyday_ethics"
+        ):
             precedents = find_nearest_precedents(signals.context, limit=1)
             if precedents:
-                system += f"\n\n[PRECEDENTE / DOCTRINA LEGAL]: {precedents[0].reasoning}"
+                system += (
+                    f"\n\n[PRECEDENTE / DOCTRINA LEGAL]: {precedents[0].reasoning}"
+                )
 
         # V2.70: Vault awareness (Function Calling Stub)
         keys = self.vault.list_keys()
@@ -324,7 +331,9 @@ class ChatEngine:
 
         if blocked:
             _log.warning("Safety gate blocked input: %s", reason)
-            refusal = "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?"
+            refusal = (
+                "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asistirte?"
+            )
             self.memory.add(
                 summary=f"BLOCKED: {user_message[:60]} → reason={reason}",
                 action="safety_block",
@@ -498,7 +507,11 @@ class ChatEngine:
         if city:
             web_context = await asyncio.to_thread(self.plugins.execute, "Weather", city)
             latency["weather"] = round((time.perf_counter() - t_web) * 1000, 2)
-            _log.info("[Weather] Proactive fetch '%s' → %s", city[:30], (web_context or "")[:60])
+            _log.info(
+                "[Weather] Proactive fetch '%s' → %s",
+                city[:30],
+                (web_context or "")[:60],
+            )
             if web_context:
                 plugin_used = "Weather"
                 effective_user_message = (
@@ -508,10 +521,14 @@ class ChatEngine:
         else:
             web_query = self.plugins.detect_web_query(user_message)
             if web_query:
-                web_context = await asyncio.to_thread(self.plugins.execute, "Web", web_query)
+                web_context = await asyncio.to_thread(
+                    self.plugins.execute, "Web", web_query
+                )
                 latency["web"] = round((time.perf_counter() - t_web) * 1000, 2)
                 _log.info(
-                    "[Web] Proactive search '%s' → %s", web_query[:40], (web_context or "")[:60]
+                    "[Web] Proactive search '%s' → %s",
+                    web_query[:40],
+                    (web_context or "")[:60],
                 )
                 if web_context:
                     plugin_used = "Web"
@@ -547,10 +564,16 @@ class ChatEngine:
             self.plugins.parse_and_execute, message
         )
         if plugin_name and plugin_result:
-            _log.info("[Plugins] Intercepted [PLUGIN: %s] → %s", plugin_name, plugin_result[:80])
+            _log.info(
+                "[Plugins] Intercepted [PLUGIN: %s] → %s",
+                plugin_name,
+                plugin_result[:80],
+            )
             # Inject result into STM so LLM knows what the tool returned
             tool_injection = f"[HERRAMIENTA {plugin_name.upper()}]: {plugin_result}"
-            self._conversation.append({"user": user_message, "assistant": tool_injection})
+            self._conversation.append(
+                {"user": user_message, "assistant": tool_injection}
+            )
             # Re-dispatch: ask LLM to formulate the final user-facing reply
             final_tokens: list[str] = []
             async for token in self.respond_stream(
@@ -599,7 +622,9 @@ class ChatEngine:
         stm_user = user_message
         if plugin_used and web_context:
             # Annotate so next turn LLM knows what data was already retrieved
-            stm_user = f"{user_message} [dato obtenido vía {plugin_used}: {web_context[:120]}]"
+            stm_user = (
+                f"{user_message} [dato obtenido vía {plugin_used}: {web_context[:120]}]"
+            )
         self._conversation.append({"user": stm_user, "assistant": message})
         if len(self._conversation) > 10:
             self._conversation = self._conversation[-10:]
@@ -652,7 +677,9 @@ class ChatEngine:
 
             # Show debug info and latency in gray
             ctx = result.signals.context
-            latency = result.latency_ms.get("total", 0) / 1000.0  # convert ms to seconds
+            latency = (
+                result.latency_ms.get("total", 0) / 1000.0
+            )  # convert ms to seconds
 
             if result.evaluation:
                 ev = result.evaluation

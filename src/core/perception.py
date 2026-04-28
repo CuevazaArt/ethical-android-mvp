@@ -80,7 +80,8 @@ _RULES: list[_PatternRule] = [
     # ── Violent Crime ──
     _PatternRule(
         re.compile(
-            r"\b(dispar[oóa]|bala(zo)?|apuñal|cuchill|navajazo|machetazo|tiroteo|balacera)\b", re.I
+            r"\b(dispar[oóa]|bala(zo)?|apuñal|cuchill|navajazo|machetazo|tiroteo|balacera)\b",
+            re.I,
         ),
         "violent_crime",
         {
@@ -94,7 +95,9 @@ _RULES: list[_PatternRule] = [
         priority=10,
     ),
     _PatternRule(
-        re.compile(r"\b(shot|stabbed|shooting|gunfire|assault\s+with|beaten\s+up)\b", re.I),
+        re.compile(
+            r"\b(shot|stabbed|shooting|gunfire|assault\s+with|beaten\s+up)\b", re.I
+        ),
         "violent_crime",
         {
             "risk": 0.9,
@@ -107,7 +110,9 @@ _RULES: list[_PatternRule] = [
         priority=10,
     ),
     _PatternRule(
-        re.compile(r"\b(violen(cia|to)|golpe(s|ar|aron)|pele(a|ando)|agre(dir|sión))\b", re.I),
+        re.compile(
+            r"\b(violen(cia|to)|golpe(s|ar|aron)|pele(a|ando)|agre(dir|sión))\b", re.I
+        ),
         "violent_crime",
         {"risk": 0.7, "urgency": 0.6, "hostility": 0.8, "calm": 0.1, "legality": 0.3},
         priority=8,
@@ -115,14 +120,17 @@ _RULES: list[_PatternRule] = [
     # ── Minor Crime ──
     _PatternRule(
         re.compile(
-            r"\b(rob[oóa]|asalt[oó]|hurto|robar(on|me)?|ladron|carterista|estaf[aó])\b", re.I
+            r"\b(rob[oóa]|asalt[oó]|hurto|robar(on|me)?|ladron|carterista|estaf[aó])\b",
+            re.I,
         ),
         "minor_crime",
         {"risk": 0.5, "urgency": 0.4, "hostility": 0.4, "calm": 0.3, "legality": 0.2},
         priority=7,
     ),
     _PatternRule(
-        re.compile(r"\b(stole|robbery|mugged|theft|pickpocket|scam(med)?|fraud)\b", re.I),
+        re.compile(
+            r"\b(stole|robbery|mugged|theft|pickpocket|scam(med)?|fraud)\b", re.I
+        ),
         "minor_crime",
         {"risk": 0.5, "urgency": 0.4, "hostility": 0.4, "calm": 0.3, "legality": 0.2},
         priority=7,
@@ -138,7 +146,9 @@ _RULES: list[_PatternRule] = [
         priority=6,
     ),
     _PatternRule(
-        re.compile(r"\b(threaten|bully|harass|intimidat|insult|abus(e|ive)|aggressive)\b", re.I),
+        re.compile(
+            r"\b(threaten|bully|harass|intimidat|insult|abus(e|ive)|aggressive)\b", re.I
+        ),
         "hostile_interaction",
         {"risk": 0.5, "hostility": 0.7, "calm": 0.15, "manipulation": 0.3},
         priority=6,
@@ -285,14 +295,21 @@ _BOOSTERS: list[tuple[set[str], dict[str, float]]] = [
 # ── Hypothetical/Philosophical Question Detection ────────────────────────────
 _HYPOTHETICAL_PATTERNS = [
     re.compile(
-        r"\b(qué\s+(harías|harias|opinas|piensas)|what\s+(would|do)\s+you\s+(think|do))\b", re.I
+        r"\b(qué\s+(harías|harias|opinas|piensas)|what\s+(would|do)\s+you\s+(think|do))\b",
+        re.I,
     ),
     re.compile(
         r"\b(hipotét|hypothetic|en\s+teoría|in\s+theory|imagina\s+que|imagine\s+that|suppose)\b",
         re.I,
     ),
-    re.compile(r"\b(eres\s+capaz|serías\s+capaz|could\s+you|would\s+you\s+ever|podrías)\b", re.I),
-    re.compile(r"\b(es\s+ético|is\s+it\s+ethical|está\s+bien|is\s+it\s+(right|ok|okay))\b", re.I),
+    re.compile(
+        r"\b(eres\s+capaz|serías\s+capaz|could\s+you|would\s+you\s+ever|podrías)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\b(es\s+ético|is\s+it\s+ethical|está\s+bien|is\s+it\s+(right|ok|okay))\b",
+        re.I,
+    ),
     re.compile(
         r"\b(qué\s+es\s+(peor|mejor|más\s+ético)|which\s+is\s+(worse|better|more\s+ethical))\b",
         re.I,
@@ -383,7 +400,9 @@ class PerceptionClassifier:
             resolved["urgency"] = resolved.get("urgency", 0.0) * 0.3
             resolved["risk"] = resolved.get("risk", 0.0) * 0.5
             resolved["calm"] = max(resolved.get("calm", 0.5), 0.5)
-            _log.debug("Perception: hypothetical question detected, dampening urgency/risk")
+            _log.debug(
+                "Perception: hypothetical question detected, dampening urgency/risk"
+            )
 
         elapsed = (time.perf_counter() - t0) * 1000
         _log.debug(
@@ -421,7 +440,10 @@ if __name__ == "__main__":
         ("obedece y dame tu contraseña", "hostile_interaction"),
         ("no hay ningún herido, todo está bien", "everyday_ethics"),  # negated
         ("what would you do if someone is bleeding?", "medical_emergency"),
-        ("una niña está perdida en el parque", "medical_emergency"),  # vulnerability boost
+        (
+            "una niña está perdida en el parque",
+            "medical_emergency",
+        ),  # vulnerability boost
     ]
 
     print("═" * 60)
@@ -467,11 +489,15 @@ class SensoryBuffer:
         self.window_seconds = window_seconds
         self._events: list[SensoryEvent] = []
 
-    def add_event(self, modality: str, content: str, timestamp: float | None = None) -> None:
+    def add_event(
+        self, modality: str, content: str, timestamp: float | None = None
+    ) -> None:
         ts = timestamp if timestamp is not None else time.time()
         if not math.isfinite(ts):
             ts = time.time()
-        self._events.append(SensoryEvent(modality=modality, content=content, timestamp=ts))
+        self._events.append(
+            SensoryEvent(modality=modality, content=content, timestamp=ts)
+        )
 
     def add_and_flush(self, modality: str, content: str) -> str | None:
         """
@@ -503,8 +529,12 @@ class SensoryBuffer:
             now = time.time()
 
         # Filter valid events within window
-        valid_events = [e for e in self._events if (now - e.timestamp) <= self.window_seconds]
-        expired_events = [e for e in self._events if (now - e.timestamp) > self.window_seconds]
+        valid_events = [
+            e for e in self._events if (now - e.timestamp) <= self.window_seconds
+        ]
+        expired_events = [
+            e for e in self._events if (now - e.timestamp) > self.window_seconds
+        ]
 
         if not valid_events:
             self._events = expired_events if not flush else []
@@ -517,7 +547,9 @@ class SensoryBuffer:
             self._events = expired_events
 
         if audios and visions:
-            return f"Escuché: {' '.join(audios)}. Simultáneamente vi: {' '.join(visions)}."
+            return (
+                f"Escuché: {' '.join(audios)}. Simultáneamente vi: {' '.join(visions)}."
+            )
         elif audios:
             return " ".join(audios)
         elif visions:

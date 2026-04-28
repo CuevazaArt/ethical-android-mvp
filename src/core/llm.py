@@ -122,7 +122,11 @@ class OllamaClient:
             _log.info("LLM chat: %.0fms, %d chars", elapsed_ms, len(text))
             return text
         except httpx.HTTPStatusError as e:
-            _log.error("Ollama HTTP error: %s %s", e.response.status_code, e.response.text[:200])
+            _log.error(
+                "Ollama HTTP error: %s %s",
+                e.response.status_code,
+                e.response.text[:200],
+            )
             raise
         except httpx.ConnectError:
             _log.error("Cannot connect to Ollama at %s — is it running?", self.base_url)
@@ -199,7 +203,9 @@ class OllamaClient:
                                 else:
                                     # Check if buffer ends with a partial "<think>"
                                     last_lt = buffer.rfind("<")
-                                    if last_lt != -1 and "<think>".startswith(buffer[last_lt:]):
+                                    if last_lt != -1 and "<think>".startswith(
+                                        buffer[last_lt:]
+                                    ):
                                         safe_part = buffer[:last_lt]
                                         if safe_part:
                                             yield safe_part
@@ -216,7 +222,9 @@ class OllamaClient:
                                 else:
                                     # Check if buffer ends with a partial "</think>"
                                     last_lt = buffer.rfind("<")
-                                    if last_lt != -1 and "</think>".startswith(buffer[last_lt:]):
+                                    if last_lt != -1 and "</think>".startswith(
+                                        buffer[last_lt:]
+                                    ):
                                         buffer = buffer[last_lt:]
                                         break  # wait for next token
                                     else:
@@ -269,7 +277,9 @@ if __name__ == "__main__":
 
         # Test 1: Simple chat
         print("Test 1: Simple chat")
-        response = await llm.chat("Di 'hola mundo' en español, en una sola frase corta.")
+        response = await llm.chat(
+            "Di 'hola mundo' en español, en una sola frase corta."
+        )
         print(f"  → {response}")
         print()
 

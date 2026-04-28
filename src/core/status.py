@@ -87,7 +87,9 @@ def main() -> None:
     # Sensory modules
     print("\nSensory modules:")
     sensory = ["src.core.stt", "src.core.tts"]
-    sensory_ok = all(_check(m.split(".")[-1], lambda m=m: _importable(m)) for m in sensory)
+    sensory_ok = all(
+        _check(m.split(".")[-1], lambda m=m: _importable(m)) for m in sensory
+    )
 
     # Tests
     print("\nTests:")

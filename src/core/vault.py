@@ -29,7 +29,9 @@ class SecureVault:
     DEFAULT_PATH = str(Path.home() / ".ethos" / "vault.json")
 
     def __init__(self, storage_path: str | None = None):
-        self._path = storage_path or os.environ.get("ETHOS_VAULT_PATH", self.DEFAULT_PATH)
+        self._path = storage_path or os.environ.get(
+            "ETHOS_VAULT_PATH", self.DEFAULT_PATH
+        )
         self._store: dict[str, str] = {}
         self._is_unlocked = False
         self._load()
@@ -71,7 +73,9 @@ class SecureVault:
         Requires an explicit 'reason' for audit logging.
         """
         if not self._is_unlocked:
-            _log.warning("SECURITY ALERT: Attempted to read vault while locked (key: %s)", key)
+            _log.warning(
+                "SECURITY ALERT: Attempted to read vault while locked (key: %s)", key
+            )
             return None
 
         _log.info("VAULT ACCESS: Granted read for '%s'. Reason: %s", key, reason)

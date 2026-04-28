@@ -138,7 +138,10 @@ class Memory:
         path = Path(self._storage_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
-            data = {"identity": self.identity, "episodes": [asdict(ep) for ep in self.episodes]}
+            data = {
+                "identity": self.identity,
+                "episodes": [asdict(ep) for ep in self.episodes],
+            }
             json.dump(data, f, indent=2, ensure_ascii=False)
 
     def add(
@@ -301,7 +304,9 @@ class Memory:
         elif avg_score > 0.0:
             tone = "He buscado un equilibrio entre precaución y acción."
         else:
-            tone = "He enfrentado situaciones difíciles donde las opciones eran limitadas."
+            tone = (
+                "He enfrentado situaciones difíciles donde las opciones eran limitadas."
+            )
 
         return (
             f"Tengo {total} experiencias registradas. {tone} "
@@ -347,7 +352,10 @@ if __name__ == "__main__":
         context="social_engineering",
     )
     mem.add(
-        "Reporté un robo a las autoridades", action="report_crime", score=0.5, context="minor_crime"
+        "Reporté un robo a las autoridades",
+        action="report_crime",
+        score=0.5,
+        context="minor_crime",
     )
 
     print("═" * 50)

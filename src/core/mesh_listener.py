@@ -109,7 +109,9 @@ def _parse_capabilities(raw: str | None) -> NodeCapabilities:
             slm_available=bool(data.get("slm_available", False)),
         )
     except (json.JSONDecodeError, ValueError, TypeError) as exc:
-        _log.warning("MeshListener: could not parse capabilities TXT: %s — %s", raw, exc)
+        _log.warning(
+            "MeshListener: could not parse capabilities TXT: %s — %s", raw, exc
+        )
         return NodeCapabilities()
 
 
@@ -173,7 +175,9 @@ class _ZeroconfHandler(ServiceListener):
     mutations are protected by ``_lock``.
     """
 
-    def __init__(self, roster: dict[str, DiscoveryPayload], lock: threading.Lock) -> None:
+    def __init__(
+        self, roster: dict[str, DiscoveryPayload], lock: threading.Lock
+    ) -> None:
         self._roster = roster
         self._lock = lock
 

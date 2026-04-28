@@ -4,6 +4,7 @@
 Install: copy to .git/hooks/pre-commit and chmod +x
 Or: pip install pre-commit && pre-commit install
 """
+
 import subprocess
 import sys
 

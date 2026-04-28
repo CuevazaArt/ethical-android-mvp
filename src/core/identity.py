@@ -45,7 +45,9 @@ class Identity:
     DEFAULT_PATH = str(Path.home() / ".ethos" / "identity.json")
 
     def __init__(self, storage_path: str | None = None) -> None:
-        self._path = storage_path or os.environ.get("ETHOS_IDENTITY_PATH", self.DEFAULT_PATH)
+        self._path = storage_path or os.environ.get(
+            "ETHOS_IDENTITY_PATH", self.DEFAULT_PATH
+        )
         self._profile: dict = {}
         self._journal: list[str] = []
         self._chronicle: list[str] = []  # V2.61: Distilled thematic history
@@ -100,7 +102,9 @@ class Identity:
         n = len(episodes)
 
         # Ethical tendency
-        scores = [ep.ethical_score for ep in episodes if math.isfinite(ep.ethical_score)]
+        scores = [
+            ep.ethical_score for ep in episodes if math.isfinite(ep.ethical_score)
+        ]
         avg_score = sum(scores) / len(scores) if scores else 0.0
         if not math.isfinite(avg_score):
             avg_score = 0.0
@@ -123,8 +127,12 @@ class Identity:
 
         # Recent trend (last 10 episodes vs overall)
         recent = episodes[-10:] if len(episodes) >= 10 else episodes
-        recent_scores = [ep.ethical_score for ep in recent if math.isfinite(ep.ethical_score)]
-        recent_avg = sum(recent_scores) / len(recent_scores) if recent_scores else avg_score
+        recent_scores = [
+            ep.ethical_score for ep in recent if math.isfinite(ep.ethical_score)
+        ]
+        recent_avg = (
+            sum(recent_scores) / len(recent_scores) if recent_scores else avg_score
+        )
         if not math.isfinite(recent_avg):
             recent_avg = avg_score
 
@@ -302,7 +310,9 @@ class Identity:
         else:
             actions = ""
 
-        return (f"[Identidad — {n} experiencias] {character}{trend_note}{domain}{actions}").strip()
+        return (
+            f"[Identidad — {n} experiencias] {character}{trend_note}{domain}{actions}"
+        ).strip()
 
     def as_dict(self) -> dict:
         """Return the raw profile for API/dashboard use."""

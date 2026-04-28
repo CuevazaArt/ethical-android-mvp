@@ -61,7 +61,9 @@ app = FastAPI(title="Ethos Kernel Chat")
 app.include_router(mesh_router)
 
 STATIC_DIR = Path(__file__).parent / "static"
-NOMAD_DIR = Path(__file__).parent.parent / "clients" / "archive_nomad_pwa"  # V2.77: Archived
+NOMAD_DIR = (
+    Path(__file__).parent.parent / "clients" / "archive_nomad_pwa"
+)  # V2.77: Archived
 _start_time = time.time()
 _last_latency: dict | None = None  # V2.19: Store last latency globally
 _sleep_daemon = PsiSleepDaemon(idle_threshold_seconds=120)  # V2.76: Psi-Sleep
@@ -282,7 +284,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 try:
                     frame = _json.loads(data)
-                    frame_type = frame.get("type", "") if isinstance(frame, dict) else ""
+                    frame_type = (
+                        frame.get("type", "") if isinstance(frame, dict) else ""
+                    )
                 except Exception:
                     frame = None
                     frame_type = ""
@@ -312,7 +316,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     approved = frame.get("approved")
                     if approved and key:
                         engine.vault.unlock("biometric_dummy")
-                        secret = engine.vault.get_secret(key, reason="User approved via UI")
+                        secret = engine.vault.get_secret(
+                            key, reason="User approved via UI"
+                        )
                         engine.vault.lock()
                         if secret:
                             injection = f"[SISTEMA - ALTA PRIORIDAD]: Acceso concedido a la Bóveda. El valor de '{key}' es: {secret}. Procede a ayudar al usuario con esta información de forma natural."
@@ -420,7 +426,9 @@ async def websocket_nomad(websocket: WebSocket):
     sensory_buffer = SensoryBuffer(window_seconds=2.0)
     _last_vision: dict | None = None
     _last_autonomous_turn: float = 0.0
-    _last_user_interaction: float = 0.0  # V2.60: suppress autonomous during conversation
+    _last_user_interaction: float = (
+        0.0  # V2.60: suppress autonomous during conversation
+    )
     _consolidation_running = True
 
     async def _consolidation_loop() -> None:
@@ -508,7 +516,9 @@ async def websocket_nomad(websocket: WebSocket):
 
                             # Buffer vision triggers for potential fusion with speech
                             now = time.time()
-                            if (now - _last_autonomous_turn) > 120.0:  # V2.60: 120s cooldown
+                            if (
+                                now - _last_autonomous_turn
+                            ) > 120.0:  # V2.60: 120s cooldown
                                 if sig.face_present or sig.motion > 0.05:
                                     _last_autonomous_turn = now
                                     _log.info(

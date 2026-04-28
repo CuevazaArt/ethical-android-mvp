@@ -41,7 +41,9 @@ class Roster:
     DEFAULT_PATH = str(Path.home() / ".ethos" / "roster.json")
 
     def __init__(self, storage_path: str | None = None) -> None:
-        self._path = storage_path or os.environ.get("ETHOS_ROSTER_PATH", self.DEFAULT_PATH)
+        self._path = storage_path or os.environ.get(
+            "ETHOS_ROSTER_PATH", self.DEFAULT_PATH
+        )
         self.cards: dict[str, PersonCard] = {}
         self._load()
 
@@ -63,7 +65,10 @@ class Roster:
         try:
             with open(p, "w", encoding="utf-8") as f:
                 json.dump(
-                    {k: asdict(v) for k, v in self.cards.items()}, f, indent=2, ensure_ascii=False
+                    {k: asdict(v) for k, v in self.cards.items()},
+                    f,
+                    indent=2,
+                    ensure_ascii=False,
                 )
         except Exception as e:
             _log.error("Failed to save roster: %s", e)
@@ -101,7 +106,9 @@ class Roster:
         if len(words) < 2:
             return
 
-        has_potential_names = any(w[0].isupper() for w in words[1:] if re.sub(r"[^a-zA-Z]", "", w))
+        has_potential_names = any(
+            w[0].isupper() for w in words[1:] if re.sub(r"[^a-zA-Z]", "", w)
+        )
         if not has_potential_names:
             return
 

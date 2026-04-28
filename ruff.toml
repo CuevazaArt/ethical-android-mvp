@@ -1,0 +1,25 @@
+# Ruff configuration for Ethos Nomad project
+# Enforced by CI: every push to main must pass `ruff check` and `ruff format --check`
+
+# Exclude third-party vendored sources — never lint these
+exclude = [
+    "src/clients/nomad_android/app/src/main/cpp/llama_cpp",
+    "src/clients/nomad_android/app/src/main/assets/kws_model",
+    "src/clients/nomad_android/app/src/main/jniLibs",
+    "src/clients/nomad_android/app/libs",
+]
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",    # Line length managed by formatter
+    "B905",    # zip() strict= — internal lists always equal length
+    "SIM102",  # nested-if — preserves readability of async guard clauses
+    "SIM105",  # contextlib.suppress — explicit try/except is clearer in service code
+    "SIM108",  # ternary — verbose form preserves inline comments
+    "W293",    # whitespace in blank lines inside embedded JS strings (not fixable)
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"

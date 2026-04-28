@@ -68,7 +68,9 @@ async def websocket_mesh(websocket: WebSocket) -> None:
                 try:
                     data = json.loads(raw_text)
                 except json.JSONDecodeError:
-                    _log.warning("[MESH] Malformed JSON from %s", device_id or "unknown")
+                    _log.warning(
+                        "[MESH] Malformed JSON from %s", device_id or "unknown"
+                    )
                     continue
 
                 frame_type = data.get("type", "")
@@ -81,7 +83,9 @@ async def websocket_mesh(websocket: WebSocket) -> None:
                         node = MeshNode(device_id=device_id, websocket=websocket)
                         _active_nodes[device_id] = node
                         _log.info(
-                            "[MESH] Node registered: %s (total: %d)", device_id, len(_active_nodes)
+                            "[MESH] Node registered: %s (total: %d)",
+                            device_id,
+                            len(_active_nodes),
                         )
                     if node is not None:
                         node.last_telemetry = data
@@ -99,7 +103,11 @@ async def websocket_mesh(websocket: WebSocket) -> None:
                     )
 
                 else:
-                    _log.debug("[MESH] Unknown text frame type '%s' from %s", frame_type, device_id)
+                    _log.debug(
+                        "[MESH] Unknown text frame type '%s' from %s",
+                        frame_type,
+                        device_id,
+                    )
 
             # ── Binary frame (Audio) ───────────────────────────
             elif msg_type == "websocket.receive" and "bytes" in message:
@@ -113,7 +121,9 @@ async def websocket_mesh(websocket: WebSocket) -> None:
     finally:
         if device_id and device_id in _active_nodes:
             del _active_nodes[device_id]
-            _log.info("[MESH] Node removed: %s (remaining: %d)", device_id, len(_active_nodes))
+            _log.info(
+                "[MESH] Node removed: %s (remaining: %d)", device_id, len(_active_nodes)
+            )
 
 
 # ── Frame Handlers ─────────────────────────────────────────────
@@ -122,7 +132,9 @@ async def websocket_mesh(websocket: WebSocket) -> None:
 def _handle_telemetry(data: dict[str, Any], websocket: WebSocket) -> None:
     """Parse and log a telemetry frame."""
     try:
-        payload = TelemetryPayload.from_dict(dict(data))  # defensive copy — from_dict pops keys
+        payload = TelemetryPayload.from_dict(
+            dict(data)
+        )  # defensive copy — from_dict pops keys
         _log.info(
             "[MESH/TELEM] %s — battery=%.0f%% charging=%s cpu=%.1f°C ram=%s/%sMB",
             payload.device_id,
@@ -136,7 +148,9 @@ def _handle_telemetry(data: dict[str, Any], websocket: WebSocket) -> None:
         _log.exception("[MESH/TELEM] Failed to parse telemetry")
 
 
-def _handle_audio_binary(raw: bytes, device_id: str | None, node: MeshNode | None) -> None:
+def _handle_audio_binary(
+    raw: bytes, device_id: str | None, node: MeshNode | None
+) -> None:
     """
     Decode an AudioChunkPayload binary frame.
 
@@ -146,7 +160,11 @@ def _handle_audio_binary(raw: bytes, device_id: str | None, node: MeshNode | Non
       [remaining bytes: raw PCM audio]
     """
     if len(raw) < 4:
-        _log.warning("[MESH/AUDIO] Binary frame too short (%d bytes) from %s", len(raw), device_id)
+        _log.warning(
+            "[MESH/AUDIO] Binary frame too short (%d bytes) from %s",
+            len(raw),
+            device_id,
+        )
         return
 
     header_length = struct.unpack("<I", raw[:4])[0]

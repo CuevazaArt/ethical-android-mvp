@@ -23,7 +23,9 @@ async def synthesize(
     """
     t0 = time.perf_counter()
     try:
-        communicate = edge_tts.Communicate(text, voice, pitch=pitch, rate=rate, volume=volume)
+        communicate = edge_tts.Communicate(
+            text, voice, pitch=pitch, rate=rate, volume=volume
+        )
         audio_data = bytearray()
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":

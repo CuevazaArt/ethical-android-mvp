@@ -23,22 +23,18 @@ import androidx.core.app.NotificationCompat
 import com.ethos.nomad.audio.VoiceEngine
 
 /**
- * NomadService — Foreground service for persistent WebSocket + TTS playback.
+ * NomadService — Foreground service for persistent cognition pipeline.
  *
- * V2.85: SpeechRecognizer COMPLETELY REMOVED.
- * Reason: Google's native STT produces an endless Error 7 loop in emulators
- * (no physical mic) and an annoying beep on real devices. The entire STT
- * subsystem will be replaced by Sherpa-ONNX in Fase 25, which runs silently
- * and locally without Google dependencies.
- *
- * What remains:
- *   - WebSocket bridge to /ws/nomad (receives TTS audio, autonomous pulses)
- *   - MediaPlayer for TTS playback
+ * V2.95 responsibilities:
+ *   - Sherpa-ONNX Wake Word detection (VoiceEngine, background AudioRecord)
+ *   - WebSocket bridge to /ws/nomad (TTS audio, autonomous pulses)
+ *   - MediaPlayer for server-side TTS audio playback (Base64 → MP3)
  *   - Foreground notification for Android process persistence
  */
 class NomadService : Service() {
 
     private val TAG = "NomadService"
+    private val okHttpClient = OkHttpClient()
     private var webSocket: WebSocket? = null
     private var mediaPlayer: MediaPlayer? = null
     private val voiceEngine by lazy { VoiceEngine(this) }
@@ -87,9 +83,8 @@ class NomadService : Service() {
     }
 
     private fun initWebSocket() {
-        val client = OkHttpClient()
         val request = Request.Builder().url("ws://10.0.2.2:8000/ws/nomad").build()
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
+        webSocket = okHttpClient.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Log.d(TAG, "WebSocket Opened")
             }
@@ -175,6 +170,7 @@ class NomadService : Service() {
         voiceEngine.release()
         mediaPlayer?.release()
         webSocket?.close(1000, "Service destroyed")
+        okHttpClient.dispatcher.executorService.shutdown()
         Log.d(TAG, "Nomad Foreground Service Destroyed")
     }
 }

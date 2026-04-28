@@ -146,5 +146,7 @@ if __name__ == "__main__":
     else:
         print("[!]  faster-whisper no instalado")
         print("     Instala con: pip install faster-whisper")
-        print("     Sin Whisper, el sistema usa Web Speech API del browser (ya funciona).")
+        print(
+            "     Sin Whisper, el sistema usa Web Speech API del browser (ya funciona)."
+        )
     print("\nSTT server-side es OPCIONAL. El sistema es funcional sin el.")

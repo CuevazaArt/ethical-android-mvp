@@ -54,9 +54,7 @@ SHERPA_KWS_MODEL_URL = (
     "https://github.com/k2-fsa/sherpa-onnx/releases/download/"
     "kws-models/sherpa-onnx-kws-zipformer-wenetspeech-3.3M-2024-01-01.tar.bz2"
 )
-SHERPA_KWS_MODEL_DEST = Path(
-    "src/clients/nomad_android/app/src/main/assets/kws_model"
-)
+SHERPA_KWS_MODEL_DEST = Path("src/clients/nomad_android/app/src/main/assets/kws_model")
 
 DEFAULT_TIER = "POCKET"
 # ---------------------
@@ -149,7 +147,9 @@ target_link_libraries(nomad_llama ${log-lib})
 
 def sync_sherpa_onnx() -> None:
     """Download official Sherpa-ONNX Android package and KWS model."""
-    log(f"Synchronizing Sherpa-ONNX v{SHERPA_ONNX_VERSION} (Wake Word Engine)...", "==>")
+    log(
+        f"Synchronizing Sherpa-ONNX v{SHERPA_ONNX_VERSION} (Wake Word Engine)...", "==>"
+    )
 
     # 1. Download android tarball (per-ABI .so + .jar)
     android_archive = Path("tmp_sherpa_android.tar.bz2")

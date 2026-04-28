@@ -49,7 +49,9 @@ class PsiSleepDaemon:
             return
         self._running = True
         self._task = asyncio.create_task(self._loop())
-        _log.info("[Psi-Sleep] Daemon started. Idle threshold: %ds", self.idle_threshold)
+        _log.info(
+            "[Psi-Sleep] Daemon started. Idle threshold: %ds", self.idle_threshold
+        )
 
     async def stop(self) -> None:
         self._running = False

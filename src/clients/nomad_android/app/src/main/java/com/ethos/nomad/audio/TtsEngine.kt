@@ -9,52 +9,67 @@ import java.util.Locale
 
 /**
  * TtsEngine — Manages the vocal identity of Ethos.
- * Currently uses Android's native TTS engine.
+ * Uses Android's native TTS engine (Google TTS).
  * Target: Transition to Sherpa-ONNX / Piper in Phase 25+.
+ *
+ * Language selection: prefers es-ES, falls back to en-US if Spanish
+ * language data is missing (common in emulators without full TTS packs).
  */
 class TtsEngine(context: Context) : TextToSpeech.OnInitListener {
     private val TAG = "EthosTTS"
     private var tts: TextToSpeech? = TextToSpeech(context, this)
-    private var isReady = false
+
+    // @Volatile: isReady may be checked from the IO thread (wake-word callback)
+    @Volatile private var isReady = false
 
     override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = tts?.setLanguage(Locale("es", "ES"))
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.e(TAG, "Spanish language not supported or missing data")
-            } else {
-                isReady = true
-                Log.i(TAG, "TTS Engine Initialized and Ready (Spanish).")
+        if (status != TextToSpeech.SUCCESS) {
+            Log.e(TAG, "TTS Initialization failed (status=$status).")
+            return
+        }
+        // Prefer Spanish (es-ES); fall back to en-US for emulators
+        val preferred = setLanguageSafe(Locale("es", "ES"))
+        if (!preferred) {
+            Log.w(TAG, "Spanish TTS not available — falling back to en-US.")
+            setLanguageSafe(Locale.US)
+        }
+    }
+
+    private fun setLanguageSafe(locale: Locale): Boolean {
+        val result = tts?.setLanguage(locale)
+        return when (result) {
+            TextToSpeech.LANG_MISSING_DATA, TextToSpeech.LANG_NOT_SUPPORTED -> {
+                Log.w(TAG, "Locale $locale not supported.")
+                false
             }
-        } else {
-            Log.e(TAG, "TTS Initialization failed.")
+            else -> {
+                isReady = true
+                Log.i(TAG, "TTS ready (locale: $locale).")
+                true
+            }
         }
     }
 
-    /**
-     * Convert text to audible speech.
-     */
+    /** Speak text. Safe to call from any thread. */
     fun speak(text: String) {
-        if (isReady && text.isNotEmpty()) {
-            Log.d(TAG, "Speaking: ${text.take(30)}...")
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "ethos_utterance")
-        } else {
-            Log.w(TAG, "TTS requested but engine not ready or text empty.")
+        if (!isReady) {
+            Log.w(TAG, "TTS not ready — dropping: '${text.take(20)}'")
+            return
         }
+        if (text.isBlank()) return
+        Log.d(TAG, "Speaking: ${text.take(40)}...")
+        tts?.speak(text.trim(), TextToSpeech.QUEUE_FLUSH, null, "ethos_utterance")
     }
 
-    /**
-     * Stop any ongoing speech.
-     */
+    /** Stop any ongoing speech immediately. */
     fun stop() {
         tts?.stop()
     }
 
-    /**
-     * Release resources.
-     */
+    /** Shutdown the TTS engine and release resources. */
     fun release() {
         tts?.shutdown()
         tts = null
+        isReady = false
     }
 }

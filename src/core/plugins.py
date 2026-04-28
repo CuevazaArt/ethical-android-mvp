@@ -228,7 +228,9 @@ class PluginRegistry:
         elapsed = (time.perf_counter() - t0) * 1000
         budget = 3000 if name.lower() == "web" else 50
         if elapsed > budget:
-            _log.warning("[Plugins] %s took %.1fms (>%dms budget)", name, elapsed, budget)
+            _log.warning(
+                "[Plugins] %s took %.1fms (>%dms budget)", name, elapsed, budget
+            )
         else:
             _log.debug("[Plugins] %s → %.1fms", name, elapsed)
         return result
@@ -272,13 +274,18 @@ class PluginRegistry:
     # These bypass LLM tool-use and trigger proactive pre-injection.
     _WEB_TRIGGERS: list[re.Pattern] = [
         re.compile(
-            r"\b(qui[eé]n\s+gan[oó]|campe[oó]n|copa\s+del\s+mundo|mundial|champions)\b", re.I
+            r"\b(qui[eé]n\s+gan[oó]|campe[oó]n|copa\s+del\s+mundo|mundial|champions)\b",
+            re.I,
         ),
         re.compile(
-            r"\b(precio\s+de|cotizaci[oó]n|d[oó]lar|euro\s+a|tipo\s+de\s+cambio|bolsa)\b", re.I
+            r"\b(precio\s+de|cotizaci[oó]n|d[oó]lar|euro\s+a|tipo\s+de\s+cambio|bolsa)\b",
+            re.I,
         ),
         re.compile(r"\b(resultado\s+(de|del?)|marcador|score\s+de)\b", re.I),
-        re.compile(r"\b(noticias?\s+(de|sobre|del?)|[uú]ltima\s+noticia|breaking\s+news)\b", re.I),
+        re.compile(
+            r"\b(noticias?\s+(de|sobre|del?)|[uú]ltima\s+noticia|breaking\s+news)\b",
+            re.I,
+        ),
         re.compile(
             r"\b(n[uú]mero\s+de\s+(tel[eé]fono|emergencia)|c[oó]mo\s+llegar|direcci[oó]n\s+de)\b",
             re.I,

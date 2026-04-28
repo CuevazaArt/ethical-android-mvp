@@ -48,7 +48,9 @@ class UserModelTracker:
     DEFAULT_PATH = str(Path.home() / ".ethos" / "user_model.json")
 
     def __init__(self, storage_path: str | None = None) -> None:
-        self._path = storage_path or os.environ.get("ETHOS_USER_MODEL_PATH", self.DEFAULT_PATH)
+        self._path = storage_path or os.environ.get(
+            "ETHOS_USER_MODEL_PATH", self.DEFAULT_PATH
+        )
 
         # Primary streaks
         self.frustration_streak: int = 0
@@ -136,7 +138,9 @@ class UserModelTracker:
         """Determine risk band based on multiple signals."""
         # Simple weighted score
         score = (
-            signals.risk * 0.4 + signals.manipulation * 0.3 + (self.frustration_streak / 10.0) * 0.3
+            signals.risk * 0.4
+            + signals.manipulation * 0.3
+            + (self.frustration_streak / 10.0) * 0.3
         )
 
         if score > 0.7:
