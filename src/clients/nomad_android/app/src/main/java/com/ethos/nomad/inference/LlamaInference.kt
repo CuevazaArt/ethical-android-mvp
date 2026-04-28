@@ -26,7 +26,6 @@ class LlamaInference {
     /**
      * Native methods for real llama.cpp interaction.
      */
-    external fun stringFromJNI(): String
     external fun loadModel(modelPath: String): Boolean
     external fun generateResponse(prompt: String): String
     external fun unloadModel()

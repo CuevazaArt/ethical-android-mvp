@@ -132,8 +132,7 @@ jobs:
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # ── Windows Smoke (CONDITIONAL) ─────────────────────────────────────
   # Skips when only docs/assets changed. Always runs on PRs and manual dispatch.

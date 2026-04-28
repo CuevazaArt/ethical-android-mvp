@@ -1,16 +1,20 @@
 cmake_minimum_required(VERSION 3.22.1)
 project("nomad_llama")
 
-# Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
+set(LLAMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp)
 
-# Add your native library
+# Minimal sources for inference
 add_library(nomad_llama SHARED
-        llama-jni.cpp)
+        llama-jni.cpp
+        ${LLAMA_DIR}/ggml.c
+        ${LLAMA_DIR}/ggml-alloc.c
+        ${LLAMA_DIR}/ggml-backend.c
+        ${LLAMA_DIR}/ggml-quants.c
+        ${LLAMA_DIR}/llama.cpp
+)
 
-# Locate Android logging library
+target_include_directories(nomad_llama PRIVATE ${LLAMA_DIR})
+
 find_library(log-lib log)
-
-# Link your native library with the logging library
-target_link_libraries(nomad_llama
-        ${log-lib})
+target_link_libraries(nomad_llama ${log-lib})

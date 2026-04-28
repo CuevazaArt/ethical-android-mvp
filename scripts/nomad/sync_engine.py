@@ -37,8 +37,11 @@ MODEL_ZOO = {
 DEFAULT_TIER = "POCKET"
 # ---------------------
 
-def log(msg, symbol="ℹ️"):
-    print(f"{symbol} {msg}")
+def log(msg, symbol="i"):
+    try:
+        print(f"{symbol} {msg}")
+    except UnicodeEncodeError:
+        print(f"[{symbol}] {msg}".encode('ascii', 'ignore').decode('ascii'))
 
 def download_file(url, dest):
     log(f"Downloading {url} to {dest}...", "📥")
