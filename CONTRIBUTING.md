@@ -123,7 +123,47 @@ When you merge meaningful behavior or operator-facing changes:
 
 **Cursor:** persistent guidance for agents lives in [`.cursor/rules/`](.cursor/rules/) (including `dev-efficiency-and-docs.mdc`).
 
-**Deprecated (historical only):** A multi-agent **Triad Handoff** experiment on branch `refactor/pipeline-trace-core` used extra Markdown buffers and keywords (**`juancheck`**, **`regroup`**). That protocol is **not** required on `main`; use normal Git + PR + tests above.
+### CI Economy — Mandatory Directive (2026-04-28)
+
+> **Priority:** IMMEDIATE. **Scope:** ALL contributors and agents. **Authority:** L0-approved.
+
+This project enforces **responsible, efficient, and effective use of CI resources**. GitHub Actions runners are a finite resource; every wasted minute is a minute stolen from real validation.
+
+#### When tests MUST run
+
+| Situation | Tests? | Rationale |
+|-----------|--------|-----------|
+| Push to `main` touching `src/`, `tests/`, or `scripts/` | ✅ Always | Core quality gate |
+| Push touching `requirements*.txt`, `pyproject.toml` | ✅ Always | Dependency changes can break anything |
+| Push touching `Dockerfile*` or `docker-compose*.yml` | ✅ Always | Infrastructure is executable code |
+| Push touching `.github/workflows/**` | ✅ Always | CI itself changed |
+| Pull Request from any contributor | ✅ Always | Trust boundary — never merge untested code |
+| Manual dispatch (`workflow_dispatch`) | ✅ Always | Explicitly requested |
+
+#### When tests are SKIPPED automatically
+
+| Situation | Tests? | Rationale |
+|-----------|--------|-----------|
+| Push touching ONLY `*.md`, `docs/`, `LICENSE*`, `TRADEMARK*` | ❌ Skipped | No executable code changed |
+| Push touching ONLY `landing/`, `.github/FUNDING.yml`, assets | ❌ Skipped | Static content only |
+| Tag creation (`v2.90-*`, etc.) | ❌ Skipped | The tagged commit was already validated |
+
+#### What ALWAYS runs regardless
+
+- **`compose-validate`** — Docker Compose YAML validation (<1 min, catches merge errors).
+
+#### Implementation
+
+The CI workflow (`.github/workflows/ci.yml`) uses [`dorny/paths-filter@v3`](https://github.com/dorny/paths-filter) to detect whether source code changed. The `quality` (3×Python matrix) and `windows-smoke` jobs are conditional on that detection.
+
+#### Swarm workflow: batch before push
+
+When running swarm cycles (multiple agents producing micro-commits), **accumulate commits locally** and push once per cycle. This reduces CI runs from N× to 1×. A single validated push is better than five redundant ones.
+
+#### Android validation (current policy)
+
+Kotlin/Android code is validated by on-device **Gate tests** (`EthosKernelGate`, `PersistenceGate`, `JniGate`) running in the emulator or on real hardware. Android emulator CI jobs are deferred until Fase 25 due to cost (~15 min, requires `macos-latest` runner).
+
 
 ### Git tags (named checkpoints and events)
 

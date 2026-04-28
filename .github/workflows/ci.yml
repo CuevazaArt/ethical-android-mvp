@@ -1,11 +1,18 @@
 # Quality gate: same dependency pins as local dev (requirements.txt + requirements-dev.txt).
 # Runs on pushes and PRs to main; matches local checks + optional pre-commit (see CONTRIBUTING.md).
 # Manual run: `gh workflow run CI --ref main`
+#
+# CI ECONOMY POLICY (Directive 2026-04-28, L0-approved):
+#   - Expensive jobs (quality matrix, windows-smoke) SKIP when only docs/assets change.
+#   - compose-validate ALWAYS runs (cheap, <1 min).
+#   - Tags do NOT trigger CI.
+#   - See CONTRIBUTING.md § CI Economy for full policy.
 name: CI
 
 on:
   push:
     branches: [main, "master-*", "feature-*"]
+    tags-ignore: ['**']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -14,6 +21,32 @@ permissions:
   contents: read
 
 jobs:
+  # ── Change Detection ────────────────────────────────────────────────
+  # Determines whether source code changed. Docs-only pushes skip tests.
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code_changed: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'tests/**'
+              - 'scripts/**'
+              - 'requirements*.txt'
+              - 'pyproject.toml'
+              - 'Dockerfile*'
+              - 'docker-compose*.yml'
+              - '.github/workflows/**'
+              - 'config/**'
+
+  # ── Docker Compose Validation (ALWAYS) ──────────────────────────────
+  # Cheap (<1 min). Catches YAML merge errors early.
   compose-validate:
     runs-on: ubuntu-latest
     steps:
@@ -28,8 +61,15 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.metrics.yml config --quiet
           docker compose -f docker-compose.yml -f docker-compose.prodish.yml --profile llm config --quiet
 
+  # ── Quality Gate (CONDITIONAL) ──────────────────────────────────────
+  # Skips when only docs/assets changed. Always runs on PRs and manual dispatch.
   quality:
     name: quality (Python ${{ matrix.python-version }})
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.code_changed == 'true'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -95,8 +135,14 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  # ── Windows Smoke (CONDITIONAL) ─────────────────────────────────────
+  # Skips when only docs/assets changed. Always runs on PRs and manual dispatch.
   windows-smoke:
-    # Static checks + core pytest on Windows to catch encoding/path issues.
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.code_changed == 'true'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -133,3 +179,4 @@ jobs:
         env:
           PYTHONHASHSEED: "0"
         run: python -m pytest tests/core/ -q --tb=short
+

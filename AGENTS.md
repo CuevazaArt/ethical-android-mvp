@@ -104,6 +104,12 @@ Los modelos "Thinking" (Opus/Sonnet) o "Pro Low" se reservan estrictamente para 
 - **Log, not essay.** Block closure is: files touched, test command, demo log. Not 3 paragraphs.
 - **Error = immediate fix.** Don't document the error and propose a plan. Just fix it.
 - **If stuck, implement the simplest solution that passes the test. Don't optimize.**
+- **CI Economy (Directive 2026-04-28).** Do NOT trigger wasteful CI runs:
+  - Batch commits locally during swarm cycles; push ONCE per cycle.
+  - Docs-only pushes automatically skip tests (via `dorny/paths-filter`).
+  - Tags never trigger CI. The tagged commit was already validated.
+  - See `CONTRIBUTING.md § CI Economy` for the full decision table.
+
 ## L0 Operations Protocol
 
 ### Short commands (L0 → L1)
