@@ -123,79 +123,81 @@ El backend corre en `src/server/app.py` como FastAPI + Uvicorn en `localhost:800
 
 ---
 
-## ESTADO ACTUAL DE LA APP ANDROID
+## ESTADO ACTUAL DE LA APP ANDROID (post-V2.83e — 2026-04-27)
 
 ### Estructura de archivos:
 ```
 src/clients/nomad_android/
 ├── LICENSE_BSL                    # Business Source License 1.1
-├── HYBRID_ARCHITECTURE.md         # Diagrama de arquitectura híbrida
+├── SYNC.md                        # 🔴 LEER SIEMPRE PRIMERO — buffer bidireccional
+├── AGENT_CONTEXT.md               # Este archivo — inducción profunda
 ├── build.gradle.kts               # Root Gradle
 ├── settings.gradle.kts
 └── app/
-    ├── build.gradle.kts           # compileSdk=34, minSdk=26, OkHttp, Compose
+    ├── build.gradle.kts           # compileSdk=34, minSdk=26
     └── src/main/
-        ├── AndroidManifest.xml    # INTERNET, RECORD_AUDIO, FOREGROUND_SERVICE
+        ├── AndroidManifest.xml    # INTERNET, RECORD_AUDIO, FOREGROUND_SERVICE, usesCleartextTraffic=true
         └── java/com/ethos/nomad/
-            ├── MainActivity.kt    # Entry point. Actualmente renderiza ChatScreen.
-            ├── NomadService.kt    # Foreground Service con STT + WebSocket a /ws/nomad
+            ├── MainActivity.kt    # Entry point. Renderiza ChatScreen + inicia NomadService.
+            ├── NomadService.kt    # Foreground Service: STT + /ws/nomad + TTS + Echo Shield
             ├── ui/
-            │   ├── ChatScreen.kt      # UI STUB — necesita mejorar
-            │   └── ChatViewModel.kt   # ViewModel STUB — necesita mejorar
+            │   ├── EthosColors.kt     # ✅ PRODUCCIÓN — Paleta cyberpunk centralizada
+            │   ├── ChatScreen.kt      # ✅ PRODUCCIÓN — TopBar, burbujas, streaming, vault dialog
+            │   └── ChatViewModel.kt   # ✅ PRODUCCIÓN — WebSocket /ws/chat, protocolo completo
             ├── audio/
-            │   └── AudioStreamer.kt    # Captura PCM 16kHz nativa (Flow<ByteArray>)
+            │   └── AudioStreamer.kt   # ✅ PCM 16kHz Flow<ByteArray>
             ├── cognition/
-            │   ├── CognitiveInterfaces.kt  # Contratos: ProcessingTier, CognitiveRequest, etc.
-            │   └── CognitiveRouter.kt      # Router híbrido local/cloud
+            │   ├── CognitiveInterfaces.kt  # ✅ Contratos sealed classes
+            │   └── CognitiveRouter.kt      # ⚠️ Básico — cloud-preferred siempre
             ├── hardware/
-            │   └── NodeProfiler.kt    # Battery, RAM, CPU temp snapshots
+            │   └── NodeProfiler.kt    # ✅ Battery, RAM, CPU temp
+            ├── core/                  # ⏳ CREAR AHORA — Kernel ético on-device
+            │   ├── EthosPerception.kt # ⏳ Fase 24a — Tarea 1
+            │   └── EthosSafety.kt    # ⏳ Fase 24a — Tarea 2
+            ├── conversation/          # ⏳ Esqueleto vacío — Fase 25
+            ├── sensory/               # ⏳ Esqueleto vacío — Fase 25
+            ├── data/                  # ⏳ Esqueleto vacío — Fase 24b
+            ├── inference/             # ⏳ Esqueleto vacío — Fase 24b
             └── network/
-                └── MeshClient.kt      # WebSocket a /ws/mesh (EN ESTASIS)
+                └── MeshClient.kt      # 🧊 ESTASIS — NO TOCAR
 ```
 
-### Lo que ya funciona:
-- ✅ `NomadService.kt`: Foreground service con STT nativo (SpeechRecognizer), conectado a `/ws/nomad`, reproducción de TTS (MediaPlayer + Base64 MP3), reconexión automática, Acoustic Echo Shield (para micrófono mientras habla).
-- ✅ `AudioStreamer.kt`: Captura PCM 16kHz/16-bit/Mono con Flow<ByteArray>.
-- ✅ `CognitiveInterfaces.kt`: Contratos completos (ProcessingTier, CognitiveRequest/Response, LocalModelClient, CloudModelClient, ComplexityEstimator).
-- ✅ `CognitiveRouter.kt`: Lógica básica de enrutamiento por complejidad.
-- ✅ `NodeProfiler.kt`: Battery, RAM, CPU temp readings.
-- ✅ `MeshClient.kt`: WebSocket a /ws/mesh con telemetría y audio binario (EN ESTASIS).
-- ⚠️ `ChatScreen.kt` / `ChatViewModel.kt`: **STUBS básicos** que necesitan ser reemplazados por una implementación completa.
+### Lo que ya funciona (✅ NO TOCAR):
+- ✅ `ChatScreen.kt` + `ChatViewModel.kt`: UI cyberpunk completa. WebSocket /ws/chat. Streaming, TTS, Vault dialog, Speaking indicator.
+- ✅ `EthosColors.kt`: Paleta completa (#0d1117, #3fb950, #58a6ff, #d29922).
+- ✅ `NomadService.kt`: STT nativo + /ws/nomad + TTS + Echo Shield + reconnect.
+- ✅ `AudioStreamer.kt`: PCM 16kHz/16-bit/Mono.
+- ✅ `CognitiveInterfaces.kt`: Contratos completos.
+- ✅ `NodeProfiler.kt`: Battery, RAM, CPU temp.
+- 🧊 `MeshClient.kt`: EN ESTASIS. NO TOCAR.
 
-### Lo que falta (tu misión):
-1. **Chat UI completo**: Reemplazar los stubs con una interfaz conversacional rica.
-   - Burbujas de chat diferenciadas (usuario vs Ethos).
-   - Streaming de tokens en tiempo real (animar la aparición de texto).
-   - Indicador de "escribiendo..." mientras llegan tokens.
-   - Mostrar metadata ética (contexto, riesgo, score) de forma sutil.
-   - Auto-scroll hacia el último mensaje.
-   - Soporte para mensajes bloqueados (safety gate) con tratamiento visual distinto.
-2. **Integración TTS**: Recibir `tts_audio` y reproducir audio MP3 sin conflicto con NomadService.
-3. **Vault UI**: Si llega `vault_key` en el evento `done`, mostrar un diálogo pidiendo autorización al usuario, y responder con `vault_auth`.
-4. **Integración con NomadService**: El servicio en background ya habla con `/ws/nomad`. La UI de chat debe hablar con `/ws/chat`. Ambos coexisten.
-5. **Diseño visual premium**: El tema de Ethos es oscuro, cyberpunk, con acentos en verde (#3fb950), azul (#58a6ff) y dorado (#d29922) sobre fondo negro (#0d1117). Inspirado en interfaces de ciencia ficción (consolas de nave, monitores de sistema nervioso).
+### Tu misión en ESTA SESIÓN (Fase 24a):
+1. **`core/EthosPerception.kt`** — Portar el clasificador de percepción ética de Python a Kotlin. Solo Regex. Sin dependencias externas. Ver SYNC.md sección "Referencia Rápida".
+2. **`core/EthosSafety.kt`** — Portar el safety gate de Python a Kotlin. Solo Regex.
+3. **Integration Gate en `MainActivity.kt`** — Agregar el bloque de Log.d con las pruebas de percepción y safety. Reportar Logcat en SYNC.md (SYNC-OMEGA).
+4. **Crear directorios vacíos** — `conversation/`, `sensory/`, `data/`, `inference/` con `.gitkeep`.
+5. **Escribir SYNC-ALPHA** en SYNC.md antes de empezar y **SYNC-OMEGA** al terminar.
 
 ---
 
-## DEPENDENCIAS GRADLE ACTUALES
+## DEPENDENCIAS GRADLE ACTUALES (post-V2.82)
 
 ```kotlin
 // app/build.gradle.kts
 implementation("androidx.core:core-ktx:1.12.0")
 implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")  // ← AGREGADO V2.82
 implementation("androidx.activity:activity-compose:1.8.2")
 implementation(platform("androidx.compose:compose-bom:2023.08.00"))
 implementation("androidx.compose.ui:ui")
 implementation("androidx.compose.ui:ui-graphics")
 implementation("androidx.compose.ui:ui-tooling-preview")
 implementation("androidx.compose.material3:material3")
+implementation("androidx.compose.material:material-icons-extended")     // ← AGREGADO V2.82
 implementation("com.squareup.okhttp3:okhttp:4.12.0")
 ```
 
-Si necesitas agregar `lifecycle-viewmodel-compose` para `viewModel()`, agrégalo:
-```kotlin
-implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-```
+**Para Fase 24a no se necesitan dependencias nuevas.** `EthosPerception.kt` y `EthosSafety.kt` solo usan `kotlin.text.Regex` (stdlib).
 
 ---
 
@@ -236,15 +238,19 @@ Estás construyendo la ventana al alma de Ethos. No una app de chat genérica.
 
 | Concepto | Valor |
 |----------|-------|
-| Proyecto | Ethos — Kernel Cognitivo Ético |
+| Proyecto | Ethos — Individuo Sintético Autónomo Portátil |
 | Creador | Juan Cuevaz / Mos Ex Machina |
 | Backend | Python FastAPI @ localhost:8000 |
 | App | Nomad Android (Kotlin, Jetpack Compose, Material3) |
-| WebSocket Chat | `/ws/chat` — JSON streaming (metadata → tokens → done → tts_audio) |
-| WebSocket Sensory | `/ws/nomad` — Ya funciona en NomadService.kt |
-| WebSocket Mesh | `/ws/mesh` — EN ESTASIS, NO TOCAR |
+| WebSocket Chat | `/ws/chat` — JSON streaming (metadata → tokens → done → tts_audio) ✅ Funcional |
+| WebSocket Sensory | `/ws/nomad` — Ya funciona en NomadService.kt ✅ |
+| WebSocket Mesh | `/ws/mesh` — 🧊 ESTASIS, NO TOCAR |
 | Licencia App | BSL 1.1 |
-| Tests Backend | 203/203 pasando |
-| Tema Visual | Dark cyberpunk: #0d1117 fondo, #3fb950 verde, #58a6ff azul, #d29922 dorado |
-| Emulador Host | `10.0.2.2:8000` |
-| Bloque Actual | V2.82+ — Chat UI Completo + Integración Agéntica |
+| Tests Backend | 203/203 ✅ |
+| Tema Visual | Dark cyberpunk: #0d1117, #3fb950, #58a6ff, #d29922 — **EthosColors.kt ya existe** |
+| Emulador Host | `ws://10.0.2.2:8000/ws/chat` |
+| Bloque Actual | **V2.84 — Fase 24a: Kernel Ético On-Device** |
+| Chat UI | ✅ PRODUCCIÓN — No tocar ChatScreen/ChatViewModel/EthosColors |
+| Próxima tarea | `core/EthosPerception.kt` + `core/EthosSafety.kt` + Integration Gate |
+| Protocolo sync | Escribir SYNC-ALPHA al iniciar y SYNC-OMEGA al terminar en SYNC.md |
+| Visión canónica | `docs/VISION_NOMAD.md` + `docs/ARCHITECTURE_NOMAD_V3.md` |
