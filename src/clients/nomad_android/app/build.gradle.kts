@@ -84,6 +84,9 @@ dependencies {
     // OkHttp for WebSockets
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+    // Coroutines (NomadService STT capture + Sherpa decode off main thread)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
     // Sherpa-ONNX (Wake Word / KWS engine)
     // JAR placed in app/libs/ by scripts/nomad/sync_engine.py
     // Native .so placed in app/src/main/jniLibs/ by the same script

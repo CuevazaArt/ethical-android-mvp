@@ -56,6 +56,13 @@ SHERPA_KWS_MODEL_URL = (
 )
 SHERPA_KWS_MODEL_DEST = Path("src/clients/nomad_android/app/src/main/assets/kws_model")
 
+# Offline ASR (STT): Whisper tiny multilingual (~110MB) — Spanish/English capable on-device
+SHERPA_STT_WHISPER_TINY_URL = (
+    "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/"
+    "sherpa-onnx-whisper-tiny.tar.bz2"
+)
+SHERPA_STT_MODEL_DEST = Path("src/clients/nomad_android/app/src/main/assets/stt_model")
+
 DEFAULT_TIER = "POCKET"
 # ---------------------
 
@@ -221,13 +228,39 @@ def sync_sherpa_onnx() -> None:
         if model_archive.exists():
             model_archive.unlink()
 
+    # 3b. Download offline Whisper STT (multilingual tiny)
+    stt_archive = Path("tmp_whisper_tiny.tar.bz2")
+    download_file(SHERPA_STT_WHISPER_TINY_URL, stt_archive, skip_if_exists=False)
+    if SHERPA_STT_MODEL_DEST.exists():
+        shutil.rmtree(SHERPA_STT_MODEL_DEST)
+    SHERPA_STT_MODEL_DEST.mkdir(parents=True, exist_ok=True)
+    log("Extracting Whisper tiny STT model...", ">>")
+    try:
+        with tarfile.open(stt_archive, "r:bz2") as tar:
+            tar.extractall(SHERPA_STT_MODEL_DEST)
+        log(f"STT model ready: {SHERPA_STT_MODEL_DEST}", "OK")
+    except Exception as e:
+        log(f"STT model extraction failed: {e}", "ERR")
+        log("Continuing — wake word works; STT falls back to Android SpeechRecognizer.", "!")
+    finally:
+        if stt_archive.exists():
+            stt_archive.unlink()
+
     # 4. Write runtime discovery metadata
     metadata = {
         "version": SHERPA_ONNX_VERSION,
-        "type": "keyword_spotting",
-        "keywords": ["ethos", "etos", "ethos nomad"],
-        "model_dir": "kws_model",
-        "note": "Zipformer wenetspeech 3.3M — smallest bilingual model available",
+        "kws": {
+            "type": "keyword_spotting",
+            "keywords": ["ethos", "etos", "ethos nomad"],
+            "model_dir": "kws_model",
+            "note": "Zipformer wenetspeech 3.3M — smallest bilingual model available",
+        },
+        "stt": {
+            "type": "whisper_tiny_offline",
+            "model_dir": "stt_model",
+            "source_url": SHERPA_STT_WHISPER_TINY_URL,
+            "note": "Whisper tiny multilingual ONNX (int8 preferred at runtime)",
+        },
     }
     meta_path = Path("src/clients/nomad_android/app/src/main/assets/sherpa_config.json")
     meta_path.parent.mkdir(parents=True, exist_ok=True)

@@ -25,6 +25,18 @@ All notable changes to this project are summarized here. For narrative context a
 - Added `user_speech` frame emission to `/ws/nomad`, enabling direct backend turn processing from spoken input.
 - Added robust recovery path to resume continuous KWS listening after STT completion or error.
 
+## [2026-04-30] Sherpa-ONNX Whisper STT on Nomad (offline + fallback)
+
+### Added
+
+- **`src/clients/nomad_android/app/src/main/java/com/ethos/nomad/audio/SherpaSttEngine.kt`:** Whisper offline recognizer using Sherpa-ONNX JNI; discovers encoder/decoder/tokens under `assets/stt_model/`.
+- **`scripts/nomad/sync_engine.py`:** downloads and extracts `sherpa-onnx-whisper-tiny.tar.bz2` into `app/src/main/assets/stt_model/` during `--only-sherpa` (or full sync); extends `sherpa_config.json` with `kws` + `stt` blocks.
+
+### Changed
+
+- **`NomadService.kt`:** after wake word, records 16 kHz mono PCM, runs Sherpa STT when ready, then falls back to `SpeechRecognizer`.
+- **`app/build.gradle.kts`:** explicit `kotlinx-coroutines-android` for the STT capture coroutine.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

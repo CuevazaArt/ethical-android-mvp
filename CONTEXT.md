@@ -60,7 +60,8 @@
 - ✅ TTS fallback and lifecycle hardening.
 - ✅ STT bridge implemented in `NomadService` using Android `SpeechRecognizer` after wake word.
 - ✅ Full vocal turn implemented (Wake Word → STT → `user_speech` `/ws/nomad` → backend inference → TTS).
-- ⬜ Sherpa-ONNX STT native replacement (current STT is production fallback bridge, Sherpa STT remains optimization target).
+- ✅ Sherpa-ONNX offline STT (Whisper tiny multilingual) in `SherpaSttEngine` + `sync_engine.py` → `assets/stt_model/`.
+- ✅ Android `SpeechRecognizer` remains as fallback when assets are missing or decode yields no text.
 - **🚪 GATE 1 PASSED:** Saying "Ethos" in the background triggers a server pulse via WebSocket and a local log confirmation.
 - **🚪 GATE 2 READY FOR VALIDATION:** Saying "Ethos" now triggers spoken capture + autonomous turn without touching the UI.
 
