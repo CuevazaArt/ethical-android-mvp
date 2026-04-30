@@ -4,6 +4,18 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-04-30] Operating model docs & GitHub Pages hub
+
+### Added
+
+- **`docs/operating-model/`:** canonical hub for the swarm/collaboration methodology plus `IMPORT_AND_ADOPTION.md` for portable rollout.
+- **`docs/index.md` + `docs/_config.yml`:** documentation portal scaffold for GitHub Pages (`/docs` on `main`).
+- **`docs/collaboration/SWARM_WORK_MODEL_MANIFESTO.md`** and **`docs/collaboration/WHITEPAPER_SWARM_OPERATING_MODEL.md`:** exportable methodology references.
+
+### Changed
+
+- **`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`:** links to manifesto and whitepaper.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

@@ -2,6 +2,11 @@
 
 This guide consolidates the shared collaboration method for **multi-origin local teams** and provides a reusable onboarding pack for any office working on this repository.
 
+For an exportable, executive-friendly version of the same operating model, see
+[`SWARM_WORK_MODEL_MANIFESTO.md`](SWARM_WORK_MODEL_MANIFESTO.md).
+For a formal long-form reference intended for cross-organization adoption, see
+[`WHITEPAPER_SWARM_OPERATING_MODEL.md`](WHITEPAPER_SWARM_OPERATING_MODEL.md).
+
 ## 1) Required reading pack (before implementation)
 
 Every contributor (human or agent) should review, in this order:
