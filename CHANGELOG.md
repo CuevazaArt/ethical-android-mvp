@@ -16,6 +16,15 @@ All notable changes to this project are summarized here. For narrative context a
 
 - **`docs/collaboration/COLLABORATIVE_METHOD_GENERALIZATION_GUIDE.md`:** links to manifesto and whitepaper.
 
+## [2026-04-30] Nomad voice turn closure (wake word -> STT -> inference -> TTS)
+
+### Changed
+
+- **`src/clients/nomad_android/app/src/main/java/com/ethos/nomad/NomadService.kt`:** replaced wake-word pulse-only behavior with full voice turn orchestration.
+- Added Android `SpeechRecognizer` integration after wake-word detection, with cooldown and safety timeout guards.
+- Added `user_speech` frame emission to `/ws/nomad`, enabling direct backend turn processing from spoken input.
+- Added robust recovery path to resume continuous KWS listening after STT completion or error.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

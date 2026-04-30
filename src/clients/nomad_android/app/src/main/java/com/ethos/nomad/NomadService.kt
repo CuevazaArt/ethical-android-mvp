@@ -19,8 +19,12 @@ import android.app.NotificationManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import androidx.core.app.NotificationCompat
 import com.ethos.nomad.audio.VoiceEngine
+import java.util.Locale
 
 /**
  * NomadService — Foreground service for persistent cognition pipeline.
@@ -38,17 +42,24 @@ class NomadService : Service() {
     private var webSocket: WebSocket? = null
     private var mediaPlayer: MediaPlayer? = null
     private val voiceEngine by lazy { VoiceEngine(this) }
+    private var speechRecognizer: SpeechRecognizer? = null
+    @Volatile private var sttInProgress = false
+    private var lastWakeWordAtMs = 0L
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "NomadServiceChannel"
     private val handler = Handler(Looper.getMainLooper())
     private val RECONNECT_DELAY_MS = 5000L
+    private val STT_TIMEOUT_MS = 8000L
+    private val WAKE_WORD_COOLDOWN_MS = 1500L
+    private var sttTimeoutRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Nomad Foreground Service Created (Sherpa-ONNX KWS enabled)")
         createNotificationChannel()
         initWebSocket()
+        initSpeechRecognizer()
         initVoiceEngine()
     }
 
@@ -56,18 +67,144 @@ class NomadService : Service() {
         val ready = voiceEngine.initialize()
         if (ready) {
             voiceEngine.onKeywordDetected = { keyword ->
-                Log.i(TAG, "Wake word received: '$keyword' — triggering cognitive cycle")
-                // TODO Fase 25+: Trigger STT → HybridInference → TTS
-                // For now, send a WebSocket pulse to the backend
-                val payload = org.json.JSONObject().apply {
-                    put("type", "wake_word")
-                    put("keyword", keyword)
-                }
-                webSocket?.send(payload.toString())
+                onWakeWordDetected(keyword)
             }
         } else {
             Log.w(TAG, "VoiceEngine failed to initialize — Wake Word disabled.")
         }
+    }
+
+    private fun initSpeechRecognizer() {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            Log.w(TAG, "SpeechRecognizer is not available on this device.")
+            return
+        }
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
+            setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: android.os.Bundle?) {
+                    Log.d(TAG, "STT ready for speech.")
+                }
+
+                override fun onBeginningOfSpeech() {
+                    Log.d(TAG, "STT speech started.")
+                }
+
+                override fun onRmsChanged(rmsdB: Float) = Unit
+                override fun onBufferReceived(buffer: ByteArray?) = Unit
+                override fun onEndOfSpeech() {
+                    Log.d(TAG, "STT speech ended.")
+                }
+
+                override fun onError(error: Int) {
+                    Log.w(TAG, "STT error: ${sttErrorName(error)} ($error)")
+                    completeSttAndResumeListening()
+                }
+
+                override fun onResults(results: android.os.Bundle?) {
+                    val text = results
+                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                        ?.firstOrNull()
+                        ?.trim()
+                        .orEmpty()
+                    if (text.isNotEmpty()) {
+                        Log.i(TAG, "STT transcript: \"$text\"")
+                        sendUserSpeech(text)
+                    } else {
+                        Log.d(TAG, "STT produced empty transcript.")
+                    }
+                    completeSttAndResumeListening()
+                }
+
+                override fun onPartialResults(partialResults: android.os.Bundle?) = Unit
+                override fun onEvent(eventType: Int, params: android.os.Bundle?) = Unit
+            })
+        }
+    }
+
+    private fun onWakeWordDetected(keyword: String) {
+        val now = System.currentTimeMillis()
+        if (sttInProgress) {
+            Log.d(TAG, "Wake word ignored while STT is running.")
+            return
+        }
+        if ((now - lastWakeWordAtMs) < WAKE_WORD_COOLDOWN_MS) {
+            Log.d(TAG, "Wake word ignored due to cooldown.")
+            return
+        }
+        lastWakeWordAtMs = now
+        Log.i(TAG, "Wake word received: '$keyword' — starting STT turn.")
+
+        // Pause KWS while STT uses the microphone.
+        voiceEngine.stopListening()
+
+        // Keep backward-compatible pulse for observability.
+        val pulse = JSONObject().apply {
+            put("type", "wake_word")
+            put("keyword", keyword)
+        }
+        webSocket?.send(pulse.toString())
+
+        val recognizer = speechRecognizer
+        if (recognizer == null) {
+            Log.w(TAG, "SpeechRecognizer unavailable; resuming wake-word listening.")
+            voiceEngine.startListening()
+            return
+        }
+
+        sttInProgress = true
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
+        }
+        recognizer.startListening(intent)
+
+        // Safety timeout so KWS always resumes even if callback is lost.
+        sttTimeoutRunnable = Runnable {
+            if (sttInProgress) {
+                Log.w(TAG, "STT timeout reached; forcing recovery.")
+                completeSttAndResumeListening()
+            }
+        }
+        handler.postDelayed(sttTimeoutRunnable!!, STT_TIMEOUT_MS)
+    }
+
+    private fun sendUserSpeech(text: String) {
+        val payload = JSONObject().apply {
+            put("type", "user_speech")
+            put("text", text)
+        }
+        val sent = webSocket?.send(payload.toString()) ?: false
+        if (!sent) {
+            Log.w(TAG, "Failed to send user_speech frame — WebSocket not ready.")
+        }
+    }
+
+    private fun completeSttAndResumeListening() {
+        if (!sttInProgress) return
+        sttInProgress = false
+        sttTimeoutRunnable?.let(handler::removeCallbacks)
+        sttTimeoutRunnable = null
+        // Small delay avoids immediate mic contention on some devices.
+        handler.postDelayed(
+            { voiceEngine.startListening() },
+            250L
+        )
+    }
+
+    private fun sttErrorName(code: Int): String = when (code) {
+        SpeechRecognizer.ERROR_AUDIO -> "ERROR_AUDIO"
+        SpeechRecognizer.ERROR_CLIENT -> "ERROR_CLIENT"
+        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "ERROR_INSUFFICIENT_PERMISSIONS"
+        SpeechRecognizer.ERROR_NETWORK -> "ERROR_NETWORK"
+        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "ERROR_NETWORK_TIMEOUT"
+        SpeechRecognizer.ERROR_NO_MATCH -> "ERROR_NO_MATCH"
+        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "ERROR_RECOGNIZER_BUSY"
+        SpeechRecognizer.ERROR_SERVER -> "ERROR_SERVER"
+        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "ERROR_SPEECH_TIMEOUT"
+        else -> "ERROR_UNKNOWN"
     }
 
     private fun createNotificationChannel() {
@@ -167,6 +304,9 @@ class NomadService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        speechRecognizer?.cancel()
+        speechRecognizer?.destroy()
+        speechRecognizer = null
         voiceEngine.release()
         mediaPlayer?.release()
         webSocket?.close(1000, "Service destroyed")

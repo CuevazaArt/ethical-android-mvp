@@ -58,9 +58,11 @@
 - ✅ Sherpa-ONNX v1.13.0 Integration (Native KWS).
 - ✅ Wake Word "Ethos" functional in background (Low latency, silent).
 - ✅ TTS fallback and lifecycle hardening.
-- ⬜ Sherpa-ONNX STT (Speech-to-Text) to replace WebSocket pulse.
-- ⬜ Full vocal turn (STT → Inference → TTS) without screen interaction.
+- ✅ STT bridge implemented in `NomadService` using Android `SpeechRecognizer` after wake word.
+- ✅ Full vocal turn implemented (Wake Word → STT → `user_speech` `/ws/nomad` → backend inference → TTS).
+- ⬜ Sherpa-ONNX STT native replacement (current STT is production fallback bridge, Sherpa STT remains optimization target).
 - **🚪 GATE 1 PASSED:** Saying "Ethos" in the background triggers a server pulse via WebSocket and a local log confirmation.
+- **🚪 GATE 2 READY FOR VALIDATION:** Saying "Ethos" now triggers spoken capture + autonomous turn without touching the UI.
 
 ### Fase 25+ — Proactividad y Sensores
 - ⬜ SalienceDetector + ProactiveEngine.
