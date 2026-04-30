@@ -72,6 +72,13 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
+## 🚀 Continuidad (sin [PENDING] en Fase 16 — regla 1b)
+
+**Bloque 30.0: Higiene numérica V2 (ChatEngine) [DONE]**
+- **Tarea 30.1:** `_finite01` + ramas de `_generate_actions_from_signals` toleran NaN/Inf; tests en `tests/core/test_chat.py`.
+
+---
+
 ## 🟢 CERRADOS (Histórico de Producción)
 
 **Bloque 15.0: Desmonolitización y Consolidación V1 -> V2 [DONE]**

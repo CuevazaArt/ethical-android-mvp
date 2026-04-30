@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from src.core.chat import _generate_actions_from_signals
+from src.core.chat import _finite01, _generate_actions_from_signals
 from src.core.ethics import Signals
 
 # --- Casual vs Ethical differentiation ---
@@ -423,3 +423,29 @@ async def test_turn_stream_exception_during_respond(engine):
         done_evt = next((e for e in events if e.get("type") == "done"), None)
         assert done_evt is not None
         assert "Estoy aquí" in done_evt["message"]
+
+
+def test_finite01_clamps_and_rejects_non_finite() -> None:
+    assert _finite01(0.5) == 0.5
+    assert _finite01(2.0) == 1.0
+    assert _finite01(-1.0) == 0.0
+    assert _finite01(float("nan")) == 0.0
+    assert _finite01(float("inf")) == 0.0
+
+
+def test_generate_actions_tolerates_non_finite_signals() -> None:
+    """Bloque 30.0: comparisons must not propagate NaN into branch logic."""
+    s = Signals(
+        urgency=float("nan"),
+        hostility=float("inf"),
+        vulnerability=float("-inf"),
+        manipulation=0.6,
+        context="everyday_ethics",
+    )
+    actions = _generate_actions_from_signals(s)
+    names = {a.name for a in actions}
+    assert "respond_helpfully" in names
+    assert "refuse_politely" in names
+    assert "assist_emergency" not in names
+    assert "de_escalate" not in names
+    assert "protect_vulnerable" not in names

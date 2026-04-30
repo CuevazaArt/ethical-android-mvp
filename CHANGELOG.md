@@ -19,6 +19,10 @@ All notable changes to this project are summarized here. For narrative context a
 - **Fase 16 CERRADA:** Todos los bloques (40.0, 40.1, 40.2) completados. Cero imports legacy. Bridge eliminado. 91 tests ✅.
 - **Arquitectura V2:** `src/core/` es la única fuente de verdad. `ChatEngine` orquesta todo el pipeline Safety→Perceive→Evaluate→Respond→Memory.
 
+## [2026-04-24] V2 continuity — Bloque 30.0 (signal hygiene)
+### Changed
+- **`src/core/chat.py`:** `_finite01()` clamps perceptual scalars to `[0,1]` with non-finite → safe default; `_generate_actions_from_signals` uses sanitized urgency/hostility/manipulation/vulnerability for branch thresholds.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

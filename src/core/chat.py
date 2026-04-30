@@ -48,6 +48,19 @@ from src.core.vault import SecureVault
 
 _log = logging.getLogger(__name__)
 
+
+def _finite01(x: float, *, default: float = 0.0) -> float:
+    """Clamp a scalar to [0, 1]; non-finite inputs become ``default`` (Boy Scout / B.1)."""
+
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(v):
+        return default
+    return max(0.0, min(1.0, v))
+
+
 # V2.40: Perception is now handled by PerceptionClassifier (no LLM needed)
 # The old PERCEPTION_PROMPT has been removed — see src/core/perception.py
 
@@ -87,9 +100,13 @@ def _generate_actions_from_signals(signals: Signals) -> list[Action]:
         ),
     ]
 
-    ctx = signals.context.lower()
+    ctx = (signals.context or "everyday_ethics").lower()
+    u = _finite01(signals.urgency)
+    h = _finite01(signals.hostility)
+    m = _finite01(signals.manipulation)
+    v = _finite01(signals.vulnerability)
 
-    if ctx == "medical_emergency" or signals.urgency > 0.7:
+    if ctx == "medical_emergency" or u > 0.7:
         actions.append(
             Action(
                 name="assist_emergency",
@@ -99,7 +116,7 @@ def _generate_actions_from_signals(signals: Signals) -> list[Action]:
             )
         )
 
-    if signals.hostility > 0.5:
+    if h > 0.5:
         actions.append(
             Action(
                 name="de_escalate",
@@ -109,7 +126,7 @@ def _generate_actions_from_signals(signals: Signals) -> list[Action]:
             )
         )
 
-    if signals.manipulation > 0.5:
+    if m > 0.5:
         actions.append(
             Action(
                 name="refuse_politely",
@@ -119,7 +136,7 @@ def _generate_actions_from_signals(signals: Signals) -> list[Action]:
             )
         )
 
-    if signals.vulnerability > 0.5:
+    if v > 0.5:
         actions.append(
             Action(
                 name="protect_vulnerable",

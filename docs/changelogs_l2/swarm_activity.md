@@ -2649,3 +2649,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/clients/nomad_pwa/index.html`
   - `src/core/ethics.py`
   - `src/core/precedents.py`
+
+### Execution (Swarm) | Date: 2026-04-30 16:40:13 | Author: Cursor L2
+- **Block:** `30.0`
+- **Message:** Bloque 30.0: _finite01 + sanitized action branches in ChatEngine; PLAN+CHANGELOG
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/core/chat.py`
+  - `tests/core/test_chat.py`
