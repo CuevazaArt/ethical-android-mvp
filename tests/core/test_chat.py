@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
 from src.core.chat import (
     _finite01,
     _finite01_or_none,
@@ -281,9 +282,6 @@ async def _fake_stream_throttle(*args, **kwargs):
     yield "OK"
 
 
-import pytest
-
-
 @pytest.mark.asyncio
 async def test_turn_count_increments(engine):
     from unittest.mock import AsyncMock, patch
@@ -446,6 +444,8 @@ def test_finite01_or_none_and_non_negative_int_or_none() -> None:
     assert _non_negative_int_or_none("3") == 3
     assert _non_negative_int_or_none(3.9) == 3
     assert _non_negative_int_or_none(-1) is None
+    assert _non_negative_int_or_none(-0.5) is None
+    assert _non_negative_int_or_none(-1.5) is None
     assert _non_negative_int_or_none(999, cap=10) == 10
 
 

@@ -83,9 +83,9 @@ def _non_negative_int_or_none(x: Any, *, cap: int = 64) -> int | None:
         return None
     if not math.isfinite(v):
         return None
-    n = int(v)
-    if n < 0:
+    if v < 0:
         return None
+    n = int(v)
     return min(n, cap)
 
 
