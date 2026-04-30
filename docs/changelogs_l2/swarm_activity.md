@@ -2658,3 +2658,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `src/core/chat.py`
   - `tests/core/test_chat.py`
+
+### Execution (Swarm) | Date: 2026-04-30 16:48:46 | Author: Cursor L2
+- **Block:** `30.2`
+- **Message:** Bloque 30.2: sanitize Nomad vision_context in ChatEngine._build_system; helpers + tests
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/core/chat.py`
+  - `tests/core/test_chat.py`

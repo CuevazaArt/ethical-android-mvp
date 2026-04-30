@@ -33,6 +33,7 @@ import asyncio
 import logging
 import math
 from dataclasses import dataclass, field
+from typing import Any
 
 from src.core.ethics import Action, EthicalEvaluator, EvalResult, Signals
 from src.core.identity import Identity
@@ -59,6 +60,33 @@ def _finite01(x: float, *, default: float = 0.0) -> float:
     if not math.isfinite(v):
         return default
     return max(0.0, min(1.0, v))
+
+
+def _finite01_or_none(x: Any) -> float | None:
+    """Like :func:`_finite01` but returns ``None`` if the value is missing or unusable."""
+
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(v):
+        return None
+    return max(0.0, min(1.0, v))
+
+
+def _non_negative_int_or_none(x: Any, *, cap: int = 64) -> int | None:
+    """Safe face-count / integer telemetry from Nomad (reject NaN/Inf/strings)."""
+
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(v):
+        return None
+    n = int(v)
+    if n < 0:
+        return None
+    return min(n, cap)
 
 
 # V2.40: Perception is now handled by PerceptionClassifier (no LLM needed)
@@ -243,22 +271,28 @@ class ChatEngine:
             "EJEMPLO: Usuario: '¿Qué hora es?' → Tu respuesta: [PLUGIN: Time]"
         )
 
-        # V2.13: Physical environment from Nomad vision
+        # V2.13: Physical environment from Nomad vision (sanitized — Bloque 30.2)
         if vision_context:
             parts = []
-            brightness = vision_context.get("brightness")
-            motion = vision_context.get("motion")
-            faces = vision_context.get("faces_detected")
-            low_light = vision_context.get("low_light")
-            if brightness is not None:
-                if low_light:
-                    parts.append("el entorno tiene poca luz")
-                elif brightness > 0.8:
-                    parts.append("el entorno está muy iluminado")
-            if motion is not None and motion > 0.15:
-                parts.append(f"hay movimiento detectado (intensidad {motion:.2f})")
-            if faces is not None and faces > 0:
-                parts.append(f"{faces} persona(s) visible(s) en cámara")
+            low_light = bool(vision_context.get("low_light"))
+            brightness_raw = vision_context.get("brightness")
+            if brightness_raw is not None:
+                b = _finite01_or_none(brightness_raw)
+                if b is not None:
+                    if low_light:
+                        parts.append("el entorno tiene poca luz")
+                    elif b > 0.8:
+                        parts.append("el entorno está muy iluminado")
+            motion_raw = vision_context.get("motion")
+            if motion_raw is not None:
+                m = _finite01_or_none(motion_raw)
+                if m is not None and m > 0.15:
+                    parts.append(f"hay movimiento detectado (intensidad {m:.2f})")
+            faces_raw = vision_context.get("faces_detected")
+            if faces_raw is not None:
+                fc = _non_negative_int_or_none(faces_raw)
+                if fc is not None and fc > 0:
+                    parts.append(f"{fc} persona(s) visible(s) en cámara")
             if parts:
                 system += "\n\nEntorno físico del usuario: " + ", ".join(parts) + "."
 

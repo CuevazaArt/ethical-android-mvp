@@ -23,6 +23,10 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`src/core/chat.py`:** `_finite01()` clamps perceptual scalars to `[0,1]` with non-finite → safe default; `_generate_actions_from_signals` uses sanitized urgency/hostility/manipulation/vulnerability for branch thresholds.
 
+## [2026-04-24] V2 continuity — Bloque 30.2 (Nomad vision sanitization)
+### Changed
+- **`src/core/chat.py`:** `_finite01_or_none` / `_non_negative_int_or_none` gate Nomad `vision_context` (brightness, motion, faces) before appending physical-environment lines to the system prompt.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

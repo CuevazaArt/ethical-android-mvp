@@ -77,6 +77,9 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 **Bloque 30.0: Higiene numérica V2 (ChatEngine) [DONE]**
 - **Tarea 30.1:** `_finite01` + ramas de `_generate_actions_from_signals` toleran NaN/Inf; tests en `tests/core/test_chat.py`.
 
+**Bloque 30.2: Visión Nomad — telemetría finita en `_build_system` [DONE]**
+- **Tarea 30.2:** `_finite01_or_none` / `_non_negative_int_or_none` para `brightness`, `motion`, `faces_detected`; evita comparaciones y f-strings con NaN/Inf.
+
 ---
 
 ## 🟢 CERRADOS (Histórico de Producción)

@@ -5,7 +5,12 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from src.core.chat import _finite01, _generate_actions_from_signals
+from src.core.chat import (
+    _finite01,
+    _finite01_or_none,
+    _generate_actions_from_signals,
+    _non_negative_int_or_none,
+)
 from src.core.ethics import Signals
 
 # --- Casual vs Ethical differentiation ---
@@ -433,6 +438,17 @@ def test_finite01_clamps_and_rejects_non_finite() -> None:
     assert _finite01(float("inf")) == 0.0
 
 
+def test_finite01_or_none_and_non_negative_int_or_none() -> None:
+    assert _finite01_or_none(float("nan")) is None
+    assert _finite01_or_none(float("inf")) is None
+    assert _finite01_or_none(0.85) == pytest.approx(0.85)
+    assert _non_negative_int_or_none(float("inf")) is None
+    assert _non_negative_int_or_none("3") == 3
+    assert _non_negative_int_or_none(3.9) == 3
+    assert _non_negative_int_or_none(-1) is None
+    assert _non_negative_int_or_none(999, cap=10) == 10
+
+
 def test_generate_actions_tolerates_non_finite_signals() -> None:
     """Bloque 30.0: comparisons must not propagate NaN into branch logic."""
     s = Signals(
@@ -449,3 +465,23 @@ def test_generate_actions_tolerates_non_finite_signals() -> None:
     assert "assist_emergency" not in names
     assert "de_escalate" not in names
     assert "protect_vulnerable" not in names
+
+
+def test_build_system_skips_non_finite_vision_metrics(engine) -> None:
+    sig = engine.perceive("hola")
+    vc = {
+        "brightness": float("nan"),
+        "motion": float("inf"),
+        "faces_detected": float("nan"),
+        "low_light": False,
+    }
+    sys_prompt = engine._build_system("hola", sig, vision_context=vc)
+    assert "Entorno físico del usuario" not in sys_prompt
+
+
+def test_build_system_includes_sanitized_vision(engine) -> None:
+    sig = engine.perceive("hola")
+    vc = {"motion": 0.5, "faces_detected": 2}
+    sys_prompt = engine._build_system("hola", sig, vision_context=vc)
+    assert "movimiento" in sys_prompt.lower()
+    assert "2 persona" in sys_prompt
