@@ -309,18 +309,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** updated readiness snapshot referencing latest `main` validations.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 100.7: Final closure pulse and tag recommendation [PENDING]**
+**Bloque 100.7: Final closure pulse and tag recommendation [DONE ✅]**
 - **Goal:** Publish final closure pulse for the corrective wave and recommend release tag criteria.
 - **Files:** `CONTEXT.md`, `CHANGELOG.md`.
 - **Demo:** closure criteria and tag recommendation documented after CI stabilization.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 100.8: Post-wave CI settle watch [PENDING]**
+- **Goal:** Confirm latest in-progress CI run reaches success and clear residual run confusion.
+- **Files:** CI run status observation + closure note.
+- **Demo:** final checkpoint states no blocking in-progress CI for the corrective wave.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 100.7 — Final closure pulse and tag recommendation
+[SIGUIENTE] Bloque 100.8 — Post-wave CI settle watch
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Consolidate closure criteria and release tagging decision after the 100.x corrective wave.
-[HECHO CUANDO] Closure pulse and tag recommendation are documented with objective pass conditions.
+[MOTIVO] Avoid premature closure while latest CI run is still in progress.
+[HECHO CUANDO] Corrective wave is declared fully green with no active blocking run.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

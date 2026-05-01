@@ -49,6 +49,17 @@
   - corrective wave is integrated and synchronized on `main`;
   - closure tagging should wait for queued/in-progress CI runs to settle green.
 
+### Execution pulse 100.7 (closure and tag recommendation)
+
+- Corrective wave status: `100.1` through `100.7` merged on `main`.
+- CI posture at this checkpoint:
+  - latest visible stable runs: `100.5` and `100.4` were `success`;
+  - `100.6` run was still `in_progress` at observation time;
+  - earlier `100.2` failure is superseded by later successful corrective runs.
+- Tag recommendation:
+  - create/update closure tag only after latest run for `HEAD` resolves `success`;
+  - use the latest successful `main` head as the only tag source for this wave.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
