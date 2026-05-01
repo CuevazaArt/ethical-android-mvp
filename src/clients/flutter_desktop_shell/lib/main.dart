@@ -1,122 +1,229 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
-  runApp(const MyApp());
+  runApp(const KernelDesktopApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class KernelDesktopApp extends StatelessWidget {
+  const KernelDesktopApp({super.key, this.startTransport = true});
 
-  // This widget is the root of your application.
+  final bool startTransport;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Ethos Desktop Shell',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: TransportStatusPage(startTransport: startTransport),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+enum KernelConnectionState { connecting, connected, retrying, offline }
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+class TransportStatusPage extends StatefulWidget {
+  const TransportStatusPage({super.key, required this.startTransport});
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  final bool startTransport;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<TransportStatusPage> createState() => _TransportStatusPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _TransportStatusPageState extends State<TransportStatusPage> {
+  static const String _defaultKernelUrl = String.fromEnvironment(
+    'KERNEL_BASE_URL',
+    defaultValue: 'http://127.0.0.1:8000',
+  );
+  static const Duration _heartbeatEvery = Duration(seconds: 2);
+  static const Duration _httpTimeout = Duration(seconds: 2);
+  static const Duration _maxBackoff = Duration(seconds: 8);
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  final http.Client _client = http.Client();
+
+  KernelConnectionState _connectionState = KernelConnectionState.connecting;
+  Timer? _heartbeatTimer;
+  Timer? _retryTimer;
+  int _retryCount = 0;
+  DateTime? _lastHeartbeatAt;
+  Map<String, dynamic>? _healthPayload;
+  String _lastMessage = 'Startup...';
+
+  Uri get _pingUri => Uri.parse('$_defaultKernelUrl/api/ping');
+  Uri get _statusUri => Uri.parse('$_defaultKernelUrl/api/status');
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.startTransport) {
+      _startTransport();
+    } else {
+      _lastMessage = 'Transport disabled for tests.';
+      _connectionState = KernelConnectionState.offline;
+    }
+  }
+
+  void _startTransport() {
+    _log('startup -> probing kernel at $_defaultKernelUrl');
+    _probeAndSchedule();
+  }
+
+  Future<void> _probeAndSchedule() async {
+    _retryTimer?.cancel();
+    await _probeOnce();
+    if (!mounted) {
+      return;
+    }
+    if (_connectionState == KernelConnectionState.connected) {
+      _startHeartbeatLoop();
+    } else {
+      _scheduleRetry();
+    }
+  }
+
+  void _startHeartbeatLoop() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(_heartbeatEvery, (_) {
+      unawaited(_probeOnce());
     });
+  }
+
+  Future<void> _probeOnce() async {
+    if (!mounted) {
+      return;
+    }
+    try {
+      final pingResponse = await _client.get(_pingUri).timeout(_httpTimeout);
+      if (pingResponse.statusCode != 200) {
+        throw Exception('Ping failed with HTTP ${pingResponse.statusCode}');
+      }
+
+      final healthResponse = await _client.get(_statusUri).timeout(_httpTimeout);
+      if (healthResponse.statusCode != 200) {
+        throw Exception('Status failed with HTTP ${healthResponse.statusCode}');
+      }
+
+      final dynamic decoded = jsonDecode(healthResponse.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw Exception('Invalid health payload shape');
+      }
+
+      setState(() {
+        _connectionState = KernelConnectionState.connected;
+        _lastHeartbeatAt = DateTime.now();
+        _retryCount = 0;
+        _healthPayload = decoded;
+        _lastMessage = 'connected';
+      });
+
+      _log('connected -> health payload received: ${jsonEncode(decoded)}');
+    } catch (error) {
+      _heartbeatTimer?.cancel();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _connectionState = KernelConnectionState.retrying;
+        _lastMessage = 'retrying after error: $error';
+      });
+      _log('connection lost -> scheduling retry, reason: $error');
+      _scheduleRetry();
+    }
+  }
+
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    _retryCount += 1;
+
+    final int exponent = (_retryCount - 1).clamp(0, 4);
+    final int delaySeconds = 1 << exponent;
+    final Duration delay = Duration(seconds: delaySeconds);
+    final Duration boundedDelay = delay > _maxBackoff ? _maxBackoff : delay;
+
+    _retryTimer = Timer(boundedDelay, () {
+      unawaited(_probeAndSchedule());
+    });
+  }
+
+  void _log(String message) {
+    debugPrint('[flutter-desktop-shell] $message');
+  }
+
+  @override
+  void dispose() {
+    _heartbeatTimer?.cancel();
+    _retryTimer?.cancel();
+    _client.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Ethos Desktop Shell'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            _statusRow('Kernel URL', _defaultKernelUrl),
+            const SizedBox(height: 8),
+            _statusRow('Connection', _connectionState.name),
+            const SizedBox(height: 8),
+            _statusRow('Retry count', _retryCount.toString()),
+            const SizedBox(height: 8),
+            _statusRow('Last heartbeat', _lastHeartbeatAt?.toIso8601String() ?? 'never'),
+            const SizedBox(height: 8),
+            _statusRow('Transport', _lastMessage),
+            const SizedBox(height: 16),
+            const Text(
+              'Health payload',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black26),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SingleChildScrollView(
+                  child: SelectableText(
+                    _healthPayload == null
+                        ? 'Waiting for /api/status payload...'
+                        : const JsonEncoder.withIndent('  ').convert(_healthPayload),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    );
+  }
+
+  Widget _statusRow(String label, String value) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 130,
+          child: Text(
+            '$label:',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+        Expanded(child: SelectableText(value)),
+      ],
     );
   }
 }

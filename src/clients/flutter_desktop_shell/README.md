@@ -1,17 +1,34 @@
-# flutter_desktop_shell
+# Flutter Desktop Shell (Block 50.1)
 
-A new Flutter project.
+Minimal desktop shell for Ethos Kernel with resilient transport:
 
-## Getting Started
+- Heartbeat: `GET /api/ping` every 2 seconds.
+- Health payload: `GET /api/status` on successful heartbeat.
+- Reconnect policy: exponential backoff with short bounded delay (1s, 2s, 4s, 8s max).
 
-This project is a starting point for a Flutter application.
+## Run
 
-A few resources to get you started if this is your first Flutter project:
+From this directory:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter pub get
+flutter run -d windows
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Optional kernel URL override:
+
+```bash
+flutter run -d windows --dart-define=KERNEL_BASE_URL=http://127.0.0.1:8000
+```
+
+## Local demo script
+
+1. Start backend:
+   - `uvicorn src.server.app:app --host 127.0.0.1 --port 8000`
+2. Start desktop shell:
+   - `flutter run -d windows`
+3. Verify startup log:
+   - `startup -> probing kernel`
+   - `connected -> health payload received`
+4. Stop backend for a few seconds and restart it:
+   - App shows `retrying` and reconnects automatically without crash.

@@ -7,6 +7,7 @@ All LLM calls are patched. No network calls.
 
 from __future__ import annotations
 
+import base64
 import json
 from unittest.mock import AsyncMock, patch
 
@@ -110,3 +111,74 @@ def test_ws_chat_safety_blocks_dangerous_input():
         assert done.get("blocked") is True, f"Expected blocked=True, got: {done}"
     finally:
         _stop_patches(patches)
+
+
+def _audio_contract_payload(*, audio_b64: str, sample_rate_hz: int = 16000) -> dict:
+    return {
+        "version": "1.0",
+        "contract": "audio_perception",
+        "request": {
+            "audio_b64": audio_b64,
+            "sample_rate_hz": sample_rate_hz,
+        },
+        "response": {},
+        "error": None,
+        "latency_ms": 0.0,
+    }
+
+
+def test_audio_perception_happy_path_returns_transcript_and_latency():
+    """POST /api/perception/audio returns contract success with transcript and latency."""
+    fake_pcm = (b"\x01\x00" * 2048)
+    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+
+    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value="hola mundo"):
+        with TestClient(app) as client:
+            resp = client.post("/api/perception/audio", json=payload)
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["version"] == "1.0"
+    assert data["contract"] == "audio_perception"
+    assert data["error"] is None
+    assert data["response"]["transcript"] == "hola mundo"
+    assert 0.0 <= data["response"]["confidence"] <= 1.0
+    assert data["latency_ms"] >= 0.0
+
+
+def test_audio_perception_invalid_sample_rate_returns_contract_error():
+    """Out-of-range sample rate must fail with a structured contract error."""
+    fake_pcm = (b"\x01\x00" * 2048)
+    payload = _audio_contract_payload(
+        audio_b64=base64.b64encode(fake_pcm).decode("utf-8"),
+        sample_rate_hz=4000,
+    )
+
+    with TestClient(app) as client:
+        resp = client.post("/api/perception/audio", json=payload)
+
+    assert resp.status_code == 400
+    data = resp.json()
+    assert data["contract"] == "audio_perception"
+    assert data["response"]["transcript"] == ""
+    assert data["error"]["code"] == "INVALID_SAMPLE_RATE"
+    assert data["error"]["retryable"] is False
+    assert data["latency_ms"] >= 0.0
+
+
+def test_audio_perception_stt_fallback_when_transcription_unavailable():
+    """Valid audio with unavailable STT keeps process stable and returns clear fallback."""
+    fake_pcm = (b"\x00\x00" * 2048)
+    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+
+    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value=None):
+        with TestClient(app) as client:
+            resp = client.post("/api/perception/audio", json=payload)
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["contract"] == "audio_perception"
+    assert data["response"]["transcript"] == ""
+    assert data["error"]["code"] == "STT_UNAVAILABLE"
+    assert data["error"]["retryable"] is True
+    assert data["latency_ms"] >= 0.0

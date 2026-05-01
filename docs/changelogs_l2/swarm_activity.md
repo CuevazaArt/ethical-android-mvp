@@ -2743,3 +2743,18 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/core/fixtures/contracts/invalid_payloads.json`
   - `tests/core/fixtures/contracts/valid_payloads.json`
   - `tests/core/test_desktop_contract_spine.py`
+
+### Execution (Swarm) | Date: 2026-04-30 19:42:39 | Author: Anonymous Agent
+- **Block:** `50.2`
+- **Message:** Audio perception vertical slice con latencia y fallback
+- **Files Modified:**
+  - `src/clients/flutter_desktop_shell/README.md`
+  - `src/clients/flutter_desktop_shell/lib/main.dart`
+  - `src/clients/flutter_desktop_shell/pubspec.lock`
+  - `src/clients/flutter_desktop_shell/pubspec.yaml`
+  - `src/clients/flutter_desktop_shell/test/widget_test.dart`
+  - `src/server/app.py`
+  - `src/server/desktop_audio_adapter.py`
+  - `src/server/desktop_video_adapter.py`
+  - `src/server/static/index.html`
+  - `tests/server/test_app_integration.py`

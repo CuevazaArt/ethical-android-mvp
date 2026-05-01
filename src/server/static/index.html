@@ -16,6 +16,14 @@
         textarea { width: 100%; height: 60px; margin-bottom: 0.5rem; padding: 0.5rem; box-sizing: border-box; }
         button { padding: 0.5rem 1rem; cursor: pointer; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .audio-panel { margin: 1rem 0; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem; }
+        .audio-panel h3 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+        .audio-panel p { margin: 0.2rem 0; font-size: 0.85rem; color: #555; }
+        .audio-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+        .audio-row button { padding: 0.4rem 0.8rem; }
+        .audio-status-ok { color: #1b5e20; }
+        .audio-status-warn { color: #b26a00; }
+        .audio-status-err { color: #b71c1c; }
     </style>
 </head>
 <body>
@@ -23,15 +31,171 @@
     <div id="chat-log"></div>
     <textarea id="msg-input" placeholder="Escribe un mensaje..."></textarea>
     <button id="send-btn">Enviar</button>
+    <div class="audio-panel">
+        <h3>Audio Perception (Desktop Slice)</h3>
+        <p id="audio-device-status" class="audio-status-warn">Mic: checking...</p>
+        <p id="audio-last-result">Last transcript: -</p>
+        <p id="audio-last-latency">Last latency_ms: -</p>
+        <div class="audio-row">
+            <button id="audio-capture-btn">Capture 1.2s and Send</button>
+            <button id="audio-fallback-btn">Send Fallback (No Mic)</button>
+        </div>
+    </div>
 
     <script>
         const log = document.getElementById('chat-log');
         const input = document.getElementById('msg-input');
         const btn = document.getElementById('send-btn');
+        const audioCaptureBtn = document.getElementById('audio-capture-btn');
+        const audioFallbackBtn = document.getElementById('audio-fallback-btn');
+        const audioDeviceStatus = document.getElementById('audio-device-status');
+        const audioLastResult = document.getElementById('audio-last-result');
+        const audioLastLatency = document.getElementById('audio-last-latency');
         
         let ws;
         let currentMsgEl = null;
         let streaming = false;
+        let audioContext = null;
+        let audioSource = null;
+        let audioProcessor = null;
+        let audioGainNode = null;
+        let micReady = false;
+        let micUnavailable = false;
+        let captureActive = false;
+        let recordedChunks = [];
+
+        function updateMicStatus(text, cssClass) {
+            audioDeviceStatus.textContent = `Mic: ${text}`;
+            audioDeviceStatus.className = cssClass;
+        }
+
+        async function initMic() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                micUnavailable = true;
+                updateMicStatus('browser does not expose microphone API', 'audio-status-err');
+                audioCaptureBtn.disabled = true;
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioSource = audioContext.createMediaStreamSource(stream);
+                audioProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+                audioGainNode = audioContext.createGain();
+                audioGainNode.gain.value = 0;
+
+                audioProcessor.onaudioprocess = (event) => {
+                    if (!captureActive) {
+                        return;
+                    }
+                    const inputCh = event.inputBuffer.getChannelData(0);
+                    recordedChunks.push(new Float32Array(inputCh));
+                };
+
+                audioSource.connect(audioProcessor);
+                audioProcessor.connect(audioGainNode);
+                audioGainNode.connect(audioContext.destination);
+
+                micReady = true;
+                micUnavailable = false;
+                updateMicStatus(`ready (${Math.round(audioContext.sampleRate)}Hz)`, 'audio-status-ok');
+            } catch (error) {
+                micReady = false;
+                micUnavailable = true;
+                updateMicStatus('unavailable (permission denied or no device)', 'audio-status-err');
+                audioCaptureBtn.disabled = true;
+            }
+        }
+
+        function mergeChunksToInt16(chunks) {
+            let total = 0;
+            for (const chunk of chunks) {
+                total += chunk.length;
+            }
+            const pcm = new Int16Array(total);
+            let offset = 0;
+            for (const chunk of chunks) {
+                for (let i = 0; i < chunk.length; i += 1) {
+                    const clamped = Math.max(-1, Math.min(1, chunk[i]));
+                    pcm[offset++] = clamped < 0 ? clamped * 32768 : clamped * 32767;
+                }
+            }
+            return pcm;
+        }
+
+        function int16ToBase64(int16Array) {
+            const bytes = new Uint8Array(int16Array.buffer);
+            let binary = '';
+            const chunkSize = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                const slice = bytes.subarray(i, i + chunkSize);
+                binary += String.fromCharCode(...slice);
+            }
+            return btoa(binary);
+        }
+
+        async function sendAudioPerceptionEnvelope(audioB64, sampleRateHz) {
+            const envelope = {
+                version: '1.0',
+                contract: 'audio_perception',
+                request: {
+                    audio_b64: audioB64,
+                    sample_rate_hz: sampleRateHz
+                },
+                response: {},
+                error: null,
+                latency_ms: 0
+            };
+
+            const resp = await fetch('/api/perception/audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(envelope)
+            });
+            const data = await resp.json();
+
+            const latency = Number.isFinite(Number(data.latency_ms)) ? Number(data.latency_ms).toFixed(2) : '-';
+            audioLastLatency.textContent = `Last latency_ms: ${latency}`;
+
+            if (data.error) {
+                audioLastResult.textContent = `Last transcript: fallback -> ${data.error.code} (${data.error.message})`;
+                log.innerHTML += `<div class="message blocked-msg"><strong>Audio:</strong> ${data.error.code} - ${data.error.message}</div>`;
+            } else {
+                const transcript = data.response?.transcript || '(empty transcript)';
+                audioLastResult.textContent = `Last transcript: ${transcript}`;
+                log.innerHTML += `<div class="message kernel-msg"><strong>Audio transcript:</strong> ${transcript} <span class="context-tag">[${latency}ms]</span></div>`;
+            }
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function captureAndSendAudio() {
+            if (!micReady || micUnavailable) {
+                updateMicStatus('not ready (using fallback)', 'audio-status-warn');
+                await sendAudioPerceptionEnvelope('', 16000);
+                return;
+            }
+            if (captureActive) {
+                return;
+            }
+
+            captureActive = true;
+            recordedChunks = [];
+            audioCaptureBtn.disabled = true;
+            updateMicStatus('capturing...', 'audio-status-warn');
+
+            await new Promise((resolve) => setTimeout(resolve, 1200));
+            captureActive = false;
+
+            const pcm = mergeChunksToInt16(recordedChunks);
+            const sampleRate = Math.round(audioContext?.sampleRate || 16000);
+            const b64 = int16ToBase64(pcm);
+
+            await sendAudioPerceptionEnvelope(b64, sampleRate);
+
+            updateMicStatus(`ready (${sampleRate}Hz)`, 'audio-status-ok');
+            audioCaptureBtn.disabled = false;
+        }
         
         function connect() {
             const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -151,6 +315,25 @@
             input.disabled = true;
         };
 
+        audioCaptureBtn.onclick = () => {
+            captureAndSendAudio().catch((error) => {
+                updateMicStatus('capture failed (see console)', 'audio-status-err');
+                audioLastResult.textContent = `Last transcript: capture failed (${String(error)})`;
+                audioCaptureBtn.disabled = false;
+            });
+        };
+
+        audioFallbackBtn.onclick = () => {
+            sendAudioPerceptionEnvelope('', 16000).catch((error) => {
+                audioLastResult.textContent = `Last transcript: fallback failed (${String(error)})`;
+            });
+        };
+
+        initMic().catch(() => {
+            micUnavailable = true;
+            updateMicStatus('init failed (using fallback)', 'audio-status-err');
+            audioCaptureBtn.disabled = true;
+        });
         connect();
     </script>
 </body>

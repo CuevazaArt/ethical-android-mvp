@@ -3,11 +3,13 @@
 # See LICENSE file for details.
 
 import asyncio
+import base64
 import logging
+import math
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from src.core.chat import ChatEngine
@@ -18,6 +20,13 @@ from src.core.stt import is_available as stt_available
 from src.core.stt import transcribe_pcm
 from src.core.tts import synthesize
 from src.core.vision import VisionEngine
+from src.server.desktop_audio_adapter import (
+    ContractError,
+    build_error_envelope,
+    build_success_envelope,
+    parse_audio_perception_payload,
+    safe_latency_ms,
+)
 from src.server.mesh_server import router as mesh_router
 
 logging.basicConfig(level=logging.INFO)
@@ -88,6 +97,110 @@ async def get_index():
 async def api_ping():
     """Lightweight health check for Android connectivity verification."""
     return JSONResponse({"pong": True, "uptime_s": int(time.time() - _start_time)})
+
+
+@app.post("/api/perception/audio")
+async def api_audio_perception(request: Request):
+    """
+    Desktop audio perception contract (Block 50.2).
+    Expects v1 envelope and returns transcript + latency telemetry.
+    """
+    t0 = time.perf_counter()
+    try:
+        payload = await request.json()
+    except Exception:
+        latency_ms = safe_latency_ms(t0)
+        envelope = build_error_envelope(
+            request_payload={},
+            error=ContractError(
+                code="INVALID_JSON",
+                message="Request body must be valid JSON.",
+                retryable=False,
+            ),
+            latency_ms=latency_ms,
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    parsed, parse_error = parse_audio_perception_payload(payload)
+    if parse_error:
+        latency_ms = safe_latency_ms(t0)
+        request_payload = payload.get("request", {}) if isinstance(payload, dict) else {}
+        envelope = build_error_envelope(
+            request_payload=request_payload if isinstance(request_payload, dict) else {},
+            error=parse_error,
+            latency_ms=latency_ms,
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    assert parsed is not None
+    try:
+        pcm_bytes = base64.b64decode(parsed.audio_b64, validate=True)
+    except Exception:
+        latency_ms = safe_latency_ms(t0)
+        envelope = build_error_envelope(
+            request_payload=parsed.request_payload,
+            error=ContractError(
+                code="INVALID_AUDIO_B64",
+                message="'audio_b64' is not valid base64.",
+                retryable=False,
+            ),
+            latency_ms=latency_ms,
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    if not pcm_bytes:
+        latency_ms = safe_latency_ms(t0)
+        envelope = build_error_envelope(
+            request_payload=parsed.request_payload,
+            error=ContractError(
+                code="AUDIO_DEVICE_UNAVAILABLE",
+                message="No audio bytes received. Microphone may be unavailable.",
+                retryable=True,
+            ),
+            latency_ms=latency_ms,
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    transcript = await transcribe_pcm(
+        pcm_bytes,
+        sample_rate=parsed.sample_rate_hz,
+    )
+    latency_ms = safe_latency_ms(t0)
+
+    if transcript is None:
+        envelope = build_error_envelope(
+            request_payload=parsed.request_payload,
+            error=ContractError(
+                code="STT_UNAVAILABLE",
+                message="Audio received but transcription is unavailable on this node.",
+                retryable=True,
+            ),
+            latency_ms=latency_ms,
+        )
+        _log.info(
+            "[AUDIO_PERCEPTION] fallback | sample_rate=%sHz | bytes=%s | latency_ms=%.2f",
+            parsed.sample_rate_hz,
+            len(pcm_bytes),
+            latency_ms,
+        )
+        return JSONResponse(envelope, status_code=200)
+
+    confidence = 0.85 if transcript.strip() else 0.0
+    if not math.isfinite(confidence):
+        confidence = 0.0
+    envelope = build_success_envelope(
+        request_payload=parsed.request_payload,
+        transcript=transcript.strip(),
+        confidence=confidence,
+        latency_ms=latency_ms,
+    )
+    _log.info(
+        "[AUDIO_PERCEPTION] ok | sample_rate=%sHz | bytes=%s | latency_ms=%.2f",
+        parsed.sample_rate_hz,
+        len(pcm_bytes),
+        latency_ms,
+    )
+    return JSONResponse(envelope, status_code=200)
 
 
 @app.get("/nomad/")
