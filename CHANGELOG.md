@@ -111,6 +111,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added per-event type badges in diagnostics timeline (`TRANSPORT`, `MANUAL`) for faster visual triage.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.7` as done and advanced sequence to `101.8`.
 
+## [2026-05-01] V2.101.8 — Flutter mini-wave stabilization checkpoint
+### Changed
+- **`CONTEXT.md`:** Added stabilization checkpoint pulse summarizing local green verification and CI progression after lane split.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `101.8` as done and advanced sequence to `101.9`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

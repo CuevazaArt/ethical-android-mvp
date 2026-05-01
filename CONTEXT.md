@@ -129,6 +129,16 @@
 - Visual grouping improves operator scan speed for triage during reconnect/probe flows.
 - No backend or contract changes introduced.
 
+### Execution pulse 101.8 (stabilization checkpoint)
+
+- Local verification remains green:
+  - `flutter test` passed for desktop shell.
+  - `verify_collaboration_invariants.py` passed.
+- CI progression after lane split:
+  - `101.6` completed `success`.
+  - newer runs (`101.7` and overlap with `101.5`) observed in-progress during checkpoint.
+- Checkpoint interpretation: mini-wave is stable locally and lane-split correction is taking effect in CI.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

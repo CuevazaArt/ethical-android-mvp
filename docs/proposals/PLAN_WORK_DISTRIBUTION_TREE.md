@@ -375,18 +375,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics events now render with type badges (`TRANSPORT` / `MANUAL`) for faster scanning.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 101.8: Flutter wave stabilization checkpoint [PENDING]**
+**Bloque 101.8: Flutter wave stabilization checkpoint [DONE ✅]**
 - **Goal:** Consolidate current 101.x UI slices and confirm no regressions in active shell behavior.
 - **Files:** Flutter shell tests + context/changelog pulse.
-- **Demo:** stable test/invariants run with a concise checkpoint summary.
+- **Demo:** local flutter tests + invariants pass; CI shows new lane-split success (`101.6`) with latest runs progressing on updated commits.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 101.9: Flutter diagnostics interaction polish [PENDING]**
+- **Goal:** Add one small interaction refinement to diagnostics panel while preserving current contracts.
+- **Files:** Flutter shell module + tests.
+- **Demo:** refined diagnostics interaction validated in widget tests.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.8 — Flutter wave stabilization checkpoint
+[SIGUIENTE] Bloque 101.9 — Flutter diagnostics interaction polish
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Close this mini-wave with a reliability checkpoint before adding further UI surface.
-[HECHO CUANDO] Current 101.x slices are verified stable and checkpointed in context/changelog.
+[MOTIVO] Continue incremental UX depth on diagnostics panel after stabilization checkpoint.
+[HECHO CUANDO] One additional diagnostics interaction improvement ships with tests and no contract drift.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
