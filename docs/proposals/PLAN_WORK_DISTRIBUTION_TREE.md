@@ -411,18 +411,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** checkpoint now captures local validation posture (`flutter test`, collaboration invariants) after severity rollout.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 102.4: Flutter diagnostics severity filter toggle [PENDING]**
+**Bloque 102.4: Flutter diagnostics severity filter toggle [DONE ✅]**
 - **Goal:** Add optional severity filter chips (`All`, `High`, `Med`, `Low`) to narrow incident triage quickly.
 - **Files:** Flutter shell module + widget tests.
-- **Demo:** diagnostics list can be filtered by severity without backend coupling.
+- **Demo:** diagnostics list now supports deterministic severity filtering while preserving existing type/depth controls.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 102.5: Flutter diagnostics severity counters [PENDING]**
+- **Goal:** Show compact `high/med/low` counters in diagnostics card for instant triage density.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** counter strip updates based on current event buffer and respects clear/reset interactions.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 102.4 — Flutter diagnostics severity filter toggle
+[SIGUIENTE] Bloque 102.5 — Flutter diagnostics severity counters
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Let operators focus only urgent diagnostics events during noisy retry windows.
-[HECHO CUANDO] Severity filter chips deterministically change the visible diagnostics list and tests cover baseline behavior.
+[MOTIVO] Give operators instant severity distribution before drilling into event list.
+[HECHO CUANDO] High/Med/Low counters render deterministically and tests cover baseline + manual probe delta.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

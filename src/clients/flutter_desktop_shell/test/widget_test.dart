@@ -5,6 +5,7 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_desktop_shell/main.dart';
@@ -27,6 +28,10 @@ void main() {
     expect(find.text('All'), findsOneWidget);
     expect(find.text('Transport'), findsOneWidget);
     expect(find.text('Manual'), findsOneWidget);
+    expect(find.text('Severity: All'), findsOneWidget);
+    expect(find.text('High'), findsOneWidget);
+    expect(find.text('Med'), findsOneWidget);
+    expect(find.text('Low'), findsOneWidget);
     expect(find.text('Clear timeline'), findsOneWidget);
     expect(find.text('Showing 0 event(s)'), findsOneWidget);
     expect(find.text('Copy snapshot'), findsOneWidget);
@@ -82,5 +87,11 @@ void main() {
 
     expect(find.text('MANUAL'), findsOneWidget);
     expect(find.text('MED'), findsOneWidget);
+
+    final Finder severityMedChip = find.widgetWithText(FilterChip, 'Med');
+    await tester.ensureVisible(severityMedChip);
+    await tester.tap(severityMedChip);
+    await tester.pump();
+    expect(find.text('Showing 1 event(s)'), findsOneWidget);
   });
 }

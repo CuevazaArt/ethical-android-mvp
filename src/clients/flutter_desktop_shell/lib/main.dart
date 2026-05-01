@@ -74,6 +74,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   String _diagnosticsActionMessage = 'No diagnostics export yet.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
+  _DiagnosticSeverityFilter _diagnosticSeverityFilter =
+      _DiagnosticSeverityFilter.all;
   _DiagnosticDepth _diagnosticDepth = _DiagnosticDepth.medium;
   Map<String, String> _readinessGates = <String, String>{
     'G1': 'unknown',
@@ -593,10 +595,16 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     final List<_DiagnosticEvent> visibleEvents = _diagnosticEvents.where((
       event,
     ) {
-      if (_diagnosticFilter == _DiagnosticFilter.all) {
+      final bool matchesType =
+          _diagnosticFilter == _DiagnosticFilter.all ||
+          event.type == _diagnosticFilter;
+      if (!matchesType) {
+        return false;
+      }
+      if (_diagnosticSeverityFilter == _DiagnosticSeverityFilter.all) {
         return true;
       }
-      return event.type == _diagnosticFilter;
+      return event.severity == _diagnosticSeverityFilter.severity;
     }).toList();
     return Card(
       elevation: 0,
@@ -651,6 +659,54 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   onSelected: (_) {
                     setState(() {
                       _diagnosticFilter = _DiagnosticFilter.manual;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilterChip(
+                  label: const Text('Severity: All'),
+                  selected:
+                      _diagnosticSeverityFilter == _DiagnosticSeverityFilter.all,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticSeverityFilter = _DiagnosticSeverityFilter.all;
+                    });
+                  },
+                ),
+                FilterChip(
+                  label: const Text('High'),
+                  selected: _diagnosticSeverityFilter ==
+                      _DiagnosticSeverityFilter.high,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticSeverityFilter = _DiagnosticSeverityFilter.high;
+                    });
+                  },
+                ),
+                FilterChip(
+                  label: const Text('Med'),
+                  selected: _diagnosticSeverityFilter ==
+                      _DiagnosticSeverityFilter.medium,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticSeverityFilter =
+                          _DiagnosticSeverityFilter.medium;
+                    });
+                  },
+                ),
+                FilterChip(
+                  label: const Text('Low'),
+                  selected:
+                      _diagnosticSeverityFilter == _DiagnosticSeverityFilter.low,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticSeverityFilter = _DiagnosticSeverityFilter.low;
                     });
                   },
                 ),
@@ -1446,6 +1502,17 @@ class _DiagnosticEvent {
 enum _DiagnosticFilter { all, transport, manual }
 
 enum _DiagnosticSeverity { high, medium, low }
+
+enum _DiagnosticSeverityFilter {
+  all(null),
+  high(_DiagnosticSeverity.high),
+  medium(_DiagnosticSeverity.medium),
+  low(_DiagnosticSeverity.low);
+
+  const _DiagnosticSeverityFilter(this.severity);
+
+  final _DiagnosticSeverity? severity;
+}
 
 enum _DiagnosticDepth {
   short(4),

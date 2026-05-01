@@ -143,6 +143,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added checkpoint pulse with local validation posture after `102.2`.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `102.3` as done and queued `102.4` (severity filter toggle).
 
+## [2026-05-01] V2.102.4 — Flutter diagnostics severity filter toggle
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added severity filter chips and combined type+severity filtering logic in diagnostics timeline.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for severity chips and interaction coverage for deterministic `Med` filtering.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `102.4` as done and queued `102.5`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

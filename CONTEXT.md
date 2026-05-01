@@ -175,6 +175,14 @@
   - `python scripts/eval/verify_collaboration_invariants.py`.
 - Sequence is ready for the next diagnostics usability slice (`102.4`: severity filter toggle).
 
+### Execution pulse 102.4 (severity filter toggle)
+
+- Added severity filter chips (`Severity: All`, `High`, `Med`, `Low`) on diagnostics timeline.
+- Event visibility now combines two deterministic filters:
+  - event type (`All` / `Transport` / `Manual`),
+  - severity (`All` / `High` / `Med` / `Low`).
+- Widget coverage now validates severity filter interaction path after manual probe.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
