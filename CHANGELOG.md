@@ -116,6 +116,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added stabilization checkpoint pulse summarizing local green verification and CI progression after lane split.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `101.8` as done and advanced sequence to `101.9`.
 
+## [2026-05-01] V2.101.9 — Flutter diagnostics interaction polish
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Clear timeline` action and visible diagnostics event counter.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for clear action and event-count indicator.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.9` as done and advanced sequence to `102.0`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

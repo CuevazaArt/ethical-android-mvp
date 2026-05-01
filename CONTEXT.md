@@ -139,6 +139,13 @@
   - newer runs (`101.7` and overlap with `101.5`) observed in-progress during checkpoint.
 - Checkpoint interpretation: mini-wave is stable locally and lane-split correction is taking effect in CI.
 
+### Execution pulse 101.9 (diagnostics interaction polish)
+
+- Added diagnostics interaction controls:
+  - `Clear timeline` action for fast reset during operator triage.
+  - explicit `Showing N event(s)` counter for immediate timeline depth awareness.
+- Interaction polish remains UI-only and does not alter backend contracts.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -644,6 +644,31 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _diagnosticEvents.isEmpty
+                      ? null
+                      : () {
+                          setState(() {
+                            _diagnosticEvents.clear();
+                          });
+                        },
+                  icon: const Icon(Icons.cleaning_services_rounded, size: 16),
+                  label: const Text('Clear timeline'),
+                ),
+                Text(
+                  'Showing ${visibleEvents.length} event(s)',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 ChoiceChip(
                   label: const Text('Short'),

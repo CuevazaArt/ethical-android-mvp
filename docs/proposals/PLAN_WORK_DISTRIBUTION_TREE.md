@@ -381,18 +381,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** local flutter tests + invariants pass; CI shows new lane-split success (`101.6`) with latest runs progressing on updated commits.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 101.9: Flutter diagnostics interaction polish [PENDING]**
+**Bloque 101.9: Flutter diagnostics interaction polish [DONE ✅]**
 - **Goal:** Add one small interaction refinement to diagnostics panel while preserving current contracts.
 - **Files:** Flutter shell module + tests.
-- **Demo:** refined diagnostics interaction validated in widget tests.
+- **Demo:** diagnostics panel now includes `Clear timeline` action and explicit visible-count indicator.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 102.0: Flutter wave handoff checkpoint [PENDING]**
+- **Goal:** Close 101.x mini-wave with a concise checkpoint and define next feature-depth objective.
+- **Files:** `CONTEXT.md`, `CHANGELOG.md`, plan handoff lines.
+- **Demo:** checkpoint states validated slices and next actionable block.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.9 — Flutter diagnostics interaction polish
+[SIGUIENTE] Bloque 102.0 — Flutter wave handoff checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Continue incremental UX depth on diagnostics panel after stabilization checkpoint.
-[HECHO CUANDO] One additional diagnostics interaction improvement ships with tests and no contract drift.
+[MOTIVO] Seal the 101.x diagnostics wave and transition cleanly to the next feature-depth objective.
+[HECHO CUANDO] Handoff checkpoint is documented and next block is explicitly defined.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
