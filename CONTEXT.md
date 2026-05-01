@@ -109,6 +109,13 @@
 - Operators can now isolate manual probe events from transport noise in real time.
 - Feature remains client-side and keeps server contracts unchanged.
 
+### Execution pulse 101.5 (CI lane split)
+
+- CI workflow now separates Python-impacting and Flutter-impacting changes.
+- Python-heavy jobs (`quality`, `windows-smoke`, `desktop-gate-report`) run only when Python lane changes.
+- Flutter lane changes trigger dedicated `flutter-desktop-smoke` job (`flutter test` in desktop shell module).
+- This removes false-red CI from historical Python typing debt when only Flutter UI changes are pushed.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

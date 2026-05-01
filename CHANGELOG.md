@@ -93,6 +93,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for filter controls in diagnostics card.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.4` as done and advanced sequence to `101.5`.
 
+## [2026-05-01] V2.101.5 — CI lane split (Python vs Flutter)
+### Changed
+- **`.github/workflows/ci.yml`:** Split change detection into `python_changed` and `flutter_changed` outputs.
+- **`.github/workflows/ci.yml`:** Scoped Python jobs (`quality`, `windows-smoke`, `desktop-gate-report`) to Python-impacting changes.
+- **`.github/workflows/ci.yml`:** Added `flutter-desktop-smoke` job for Flutter lane changes (`flutter pub get` + `flutter test`).
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.5` as done and advanced sequence to `101.6`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

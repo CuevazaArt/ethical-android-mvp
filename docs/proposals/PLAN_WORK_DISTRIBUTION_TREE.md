@@ -357,7 +357,13 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics timeline now provides `All`, `Transport`, and `Manual` filter controls.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 101.5: Flutter diagnostics retention tuning [PENDING]**
+**Bloque 101.5: CI split for Python vs Flutter lane [DONE ✅]**
+- **Goal:** Prevent false-red CI on Flutter-only changes while preserving strict Python quality gates.
+- **Files:** `.github/workflows/ci.yml`.
+- **Demo:** `quality/windows-smoke/desktop-gate-report` run only on Python-affecting changes; Flutter-only changes run `flutter-desktop-smoke`.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 101.6: Flutter diagnostics retention tuning [PENDING]**
 - **Goal:** Expose compact retention controls for diagnostics timeline depth (short/medium) without backend changes.
 - **Files:** Flutter shell module + tests.
 - **Demo:** operator can change visible diagnostics depth from UI controls with deterministic behavior.
@@ -365,9 +371,9 @@ Use this fixed structure in each planning handoff:
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.5 — Flutter diagnostics retention tuning
+[SIGUIENTE] Bloque 101.6 — Flutter diagnostics retention tuning
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Improve observability ergonomics by letting operators adjust timeline depth quickly.
+[MOTIVO] Continue improving diagnostics ergonomics on the active desktop surface.
 [HECHO CUANDO] Diagnostics timeline depth can be adjusted from UI and remains stable across transport states.
 
 ### Re-entry gates (authoritative checklist)
