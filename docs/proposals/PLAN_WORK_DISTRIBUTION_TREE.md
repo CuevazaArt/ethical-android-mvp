@@ -285,7 +285,7 @@ Use this fixed structure in each planning handoff:
 - **Demo:** one command sequence that any operator can run to validate checkpoint readiness.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 100.3: End-to-end CI smoke for desktop path [PENDING]**
+**Bloque 100.3: End-to-end CI smoke for desktop path [DONE ✅]**
 - **Goal:** Add a minimal CI-enforced integration check for desktop critical cycle contracts.
 - **Files:** `.github/workflows/ci.yml`, `tests/server/`, optional `scripts/eval/`.
 - **Demo:** CI fails when critical desktop cycle contract breaks.
@@ -298,11 +298,6 @@ Use this fixed structure in each planning handoff:
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
 ### Next prompts (mandatory format)
-
-[SIGUIENTE] Bloque 100.3 — End-to-end CI smoke for desktop path
-[POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Protect the MVP path against silent regressions in core desktop contracts.
-[HECHO CUANDO] CI has a dedicated failing test path for critical desktop cycle breakage.
 
 [SIGUIENTE] Bloque 100.4 — Documentation pruning index and active set
 [POTENCIA SUGERIDA] B (Auto equilibrado)

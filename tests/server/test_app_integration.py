@@ -106,6 +106,40 @@ def test_api_status_returns_all_fields():
         _stop_patches(patches)
 
 
+def test_desktop_mvp_status_contract_smoke() -> None:
+    """Desktop MVP smoke: /api/status must keep core contract keys stable."""
+    patches = _apply_patches()
+    try:
+        with TestClient(app) as client:
+            resp = client.get("/api/status")
+        assert resp.status_code == 200
+        data = resp.json()
+
+        required_top_level = {
+            "status",
+            "voice_turn_state",
+            "voice_turn_state_at",
+            "reentry_gates",
+            "reentry_gates_details",
+        }
+        assert required_top_level.issubset(data.keys())
+        assert data["status"] == "online"
+        assert data["voice_turn_state"] in {
+            "mic_off",
+            "listening",
+            "transcribing",
+            "responding",
+        }
+        gates = data["reentry_gates"]
+        gate_details = data["reentry_gates_details"]
+        assert isinstance(gates, dict)
+        assert isinstance(gate_details, dict)
+        assert set(gates.keys()) == {"G1", "G2", "G3", "G4", "G5"}
+        assert set(gate_details.keys()) == {"G1", "G2", "G3", "G4", "G5"}
+    finally:
+        _stop_patches(patches)
+
+
 def test_ws_chat_receives_done_event():
     """WS /ws/chat: plain text must produce a 'done' event with blocked=false."""
     patches = _apply_patches()

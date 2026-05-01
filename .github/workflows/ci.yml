@@ -199,6 +199,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Desktop MVP status contract smoke
+        run: python -m pytest tests/server/test_app_integration.py::test_desktop_mvp_status_contract_smoke -q --tb=short
+
       - name: Generate re-entry gate reports
         run: |
           set -euo pipefail

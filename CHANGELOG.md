@@ -23,6 +23,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/README.md`:** Added a runbook section that mirrors the same checkpoint commands and validation checklist.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.2` as done and synchronized execution pulse state.
 
+## [2026-05-01] V2.100.3 — CI smoke gate for desktop MVP status contract
+### Changed
+- **`tests/server/test_app_integration.py`:** Added `test_desktop_mvp_status_contract_smoke` to lock the desktop status contract shape (`voice_turn_state`, `reentry_gates`, `reentry_gates_details`).
+- **`.github/workflows/ci.yml`:** Added a dedicated CI step in `desktop-gate-report` to run the desktop MVP status smoke test before generating gate artifacts.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.3` as done and advanced next prompt focus to `100.4`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
