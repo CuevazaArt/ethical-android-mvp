@@ -122,6 +122,17 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for clear action and event-count indicator.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.9` as done and advanced sequence to `102.0`.
 
+## [2026-05-01] V2.102.0 — Flutter wave handoff checkpoint
+### Changed
+- **`CONTEXT.md`:** Added handoff checkpoint confirming closure of the 101.x diagnostics mini-wave and latest CI green posture.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `102.0` as done and opened `102.1` diagnostics snapshot export objective.
+
+## [2026-05-01] V2.102.1 — Flutter diagnostics snapshot export
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Copy snapshot` action in diagnostics card with deterministic export feedback and snapshot payload builder.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for diagnostics snapshot export controls and default feedback text.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `102.1` as done and advanced sequence to `102.2`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

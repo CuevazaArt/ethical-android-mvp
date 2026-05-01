@@ -71,6 +71,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   bool _hasServerVoiceState = false;
   bool _payloadHasFocus = false;
   String _payloadActionMessage = 'No payload action yet.';
+  String _diagnosticsActionMessage = 'No diagnostics export yet.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
   _DiagnosticDepth _diagnosticDepth = _DiagnosticDepth.medium;
@@ -663,7 +664,21 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    unawaited(_copyDiagnosticsSnapshot(visibleEvents));
+                  },
+                  icon: const Icon(Icons.copy_all_rounded, size: 16),
+                  label: const Text('Copy snapshot'),
+                ),
               ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _diagnosticsActionMessage,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -882,6 +897,48 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         _payloadActionMessage = 'Unable to copy payload on this platform.';
       });
     }
+  }
+
+  Future<void> _copyDiagnosticsSnapshot(List<_DiagnosticEvent> events) async {
+    final String snapshot = _buildDiagnosticsSnapshot(events);
+    try {
+      await Clipboard.setData(ClipboardData(text: snapshot));
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'Diagnostics snapshot copied.';
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'Unable to copy diagnostics snapshot.';
+      });
+    }
+  }
+
+  String _buildDiagnosticsSnapshot(List<_DiagnosticEvent> events) {
+    final String connection = _connectionState.name;
+    final String voice = _voiceUiState.name;
+    final String gateSource = _gateSource;
+    final List<String> eventLines = events
+        .map((event) => '- ${event.at.toIso8601String()} :: ${event.message}')
+        .toList();
+    final String eventsSection = eventLines.isEmpty
+        ? '- no events'
+        : eventLines.join('\n');
+    return [
+      'Ethos Flutter diagnostics snapshot',
+      'connection: $connection',
+      'voice_state: $voice',
+      'retry_count: $_retryCount',
+      'gate_source: $gateSource',
+      'visible_events: ${events.length}',
+      'events:',
+      eventsSection,
+    ].join('\n');
   }
 
   Widget _buildVoiceCard(ThemeData theme) {

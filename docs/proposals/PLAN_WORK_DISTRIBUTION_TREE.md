@@ -387,18 +387,30 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics panel now includes `Clear timeline` action and explicit visible-count indicator.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 102.0: Flutter wave handoff checkpoint [PENDING]**
+**Bloque 102.0: Flutter wave handoff checkpoint [DONE ✅]**
 - **Goal:** Close 101.x mini-wave with a concise checkpoint and define next feature-depth objective.
 - **Files:** `CONTEXT.md`, `CHANGELOG.md`, plan handoff lines.
-- **Demo:** checkpoint states validated slices and next actionable block.
+- **Demo:** latest 101.6..101.9 CI runs green and handoff objective documented.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 102.1: Flutter diagnostics snapshot export [DONE ✅]**
+- **Goal:** Add one-click export of current diagnostics timeline summary for operator incident notes.
+- **Files:** Flutter shell module + tests.
+- **Demo:** diagnostics card now provides `Copy snapshot` and deterministic export feedback line.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 102.2: Flutter diagnostics severity hinting [PENDING]**
+- **Goal:** Add lightweight severity hinting for diagnostics events to prioritize operator attention.
+- **Files:** Flutter shell module + tests.
+- **Demo:** diagnostics events show deterministic severity labels without backend changes.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 102.0 — Flutter wave handoff checkpoint
+[SIGUIENTE] Bloque 102.2 — Flutter diagnostics severity hinting
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Seal the 101.x diagnostics wave and transition cleanly to the next feature-depth objective.
-[HECHO CUANDO] Handoff checkpoint is documented and next block is explicitly defined.
+[MOTIVO] Improve triage speed by exposing quick severity cues in diagnostics stream.
+[HECHO CUANDO] Severity hints are rendered with deterministic rules and validated in tests.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

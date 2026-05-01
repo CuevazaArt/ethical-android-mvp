@@ -29,6 +29,8 @@ void main() {
     expect(find.text('Manual'), findsOneWidget);
     expect(find.text('Clear timeline'), findsOneWidget);
     expect(find.text('Showing 0 event(s)'), findsOneWidget);
+    expect(find.text('Copy snapshot'), findsOneWidget);
+    expect(find.text('No diagnostics export yet.'), findsOneWidget);
     expect(find.text('Short'), findsOneWidget);
     expect(find.text('Medium'), findsOneWidget);
     expect(find.text('No diagnostics events yet.'), findsOneWidget);

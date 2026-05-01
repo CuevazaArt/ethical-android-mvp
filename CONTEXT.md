@@ -146,6 +146,20 @@
   - explicit `Showing N event(s)` counter for immediate timeline depth awareness.
 - Interaction polish remains UI-only and does not alter backend contracts.
 
+### Execution pulse 102.0 (wave handoff checkpoint)
+
+- Flutter diagnostics mini-wave (`101.1`..`101.9`) is closed.
+- CI confirmation:
+  - `101.6`, `101.7`, `101.8`, `101.9` all completed `success`.
+- Handoff objective opened:
+  - `102.1` focuses on diagnostics snapshot export for faster operator incident notes.
+
+### Execution pulse 102.1 (diagnostics snapshot export)
+
+- Added one-click diagnostics snapshot export in Flutter timeline card (`Copy snapshot`).
+- Snapshot output includes connection, voice state, retry count, gate source, and visible events.
+- Export path includes deterministic user feedback (`copied` / fallback failure message).
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
