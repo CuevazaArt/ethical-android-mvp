@@ -255,6 +255,26 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     return _DiagnosticSeverity.low;
   }
 
+  void _focusHighSeverityDiagnostics() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _diagnosticFilter = _DiagnosticFilter.all;
+      _diagnosticSeverityFilter = _DiagnosticSeverityFilter.high;
+    });
+  }
+
+  void _resetDiagnosticsFilters() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _diagnosticFilter = _DiagnosticFilter.all;
+      _diagnosticSeverityFilter = _DiagnosticSeverityFilter.all;
+    });
+  }
+
   void _updateVoiceStateFromHealth(Map<String, dynamic> payload) {
     final dynamic explicitState =
         payload['voice_state'] ??
@@ -676,6 +696,62 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: highSeverityCount == 0
+                      ? null
+                      : _focusHighSeverityDiagnostics,
+                  icon: const Icon(Icons.priority_high_rounded, size: 16),
+                  label: const Text('Focus high'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _resetDiagnosticsFilters,
+                  icon: const Icon(Icons.filter_alt_off_rounded, size: 16),
+                  label: const Text('Reset filters'),
+                ),
+              ],
+            ),
+            if (highSeverityCount > 0) ...[
+              const SizedBox(height: 8),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.colorScheme.error.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        size: 16,
+                        color: theme.colorScheme.error,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '$highSeverityCount high-severity event(s) require triage.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,

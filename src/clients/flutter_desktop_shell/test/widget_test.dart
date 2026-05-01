@@ -29,6 +29,9 @@ void main() {
     expect(find.text('High: 0'), findsOneWidget);
     expect(find.text('Med: 0'), findsOneWidget);
     expect(find.text('Low: 0'), findsOneWidget);
+    expect(find.text('Focus high'), findsOneWidget);
+    expect(find.text('Reset filters'), findsOneWidget);
+    expect(find.text('high-severity event(s) require triage.'), findsNothing);
     expect(find.text('All'), findsOneWidget);
     expect(find.text('Transport'), findsOneWidget);
     expect(find.text('Manual'), findsOneWidget);
@@ -100,5 +103,24 @@ void main() {
     expect(find.text('High: 1'), findsOneWidget);
     expect(find.text('Med: 1'), findsOneWidget);
     expect(find.text('Low: 0'), findsOneWidget);
+    expect(find.text('1 high-severity event(s) require triage.'), findsOneWidget);
+
+    final Finder focusHighButton = find.widgetWithText(
+      OutlinedButton,
+      'Focus high',
+    );
+    await tester.ensureVisible(focusHighButton);
+    await tester.tap(focusHighButton);
+    await tester.pump();
+    expect(find.text('Showing 1 event(s)'), findsOneWidget);
+
+    final Finder resetFiltersButton = find.widgetWithText(
+      OutlinedButton,
+      'Reset filters',
+    );
+    await tester.ensureVisible(resetFiltersButton);
+    await tester.tap(resetFiltersButton);
+    await tester.pump();
+    expect(find.text('Showing 2 event(s)'), findsOneWidget);
   });
 }

@@ -197,6 +197,24 @@
   - `python scripts/eval/verify_collaboration_invariants.py`.
 - Sequence opened for next diagnostics UX planning checkpoint (`103.0`).
 
+### Execution pulse 103.0 (next-wave planning checkpoint)
+
+- Next-wave objective defined: accelerate operator triage loop with low-friction, deterministic controls.
+- Scope guard: keep changes in Flutter desktop shell and widget-test lane only.
+
+### Execution pulse 103.1 (quick triage actions)
+
+- Added one-click diagnostics actions:
+  - `Focus high`: jumps filters to urgent-only view,
+  - `Reset filters`: restores broad diagnostics view.
+- Interaction behavior is deterministic and covered in widget tests.
+
+### Execution pulse 103.2 (high-alert strip)
+
+- Added high-severity warning strip in diagnostics card.
+- Strip appears only when high-severity events exist and shows current urgent-event count.
+- This widens sprint throughput (planning + actions + alerting) while preserving green local validation.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

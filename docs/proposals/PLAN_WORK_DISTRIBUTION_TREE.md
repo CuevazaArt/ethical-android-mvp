@@ -429,18 +429,36 @@ Use this fixed structure in each planning handoff:
 - **Demo:** checkpoint now records triage capabilities and refreshed local validation (`flutter test` + collaboration invariants).
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 103.0: Flutter diagnostics next-wave planning checkpoint [PENDING]**
+**Bloque 103.0: Flutter diagnostics next-wave planning checkpoint [DONE ✅]**
 - **Goal:** Open the next diagnostics UX wave with a compact, test-first target definition.
 - **Files:** plan handoff line + `CONTEXT.md`.
-- **Demo:** next block objective and acceptance criteria are explicit and non-ambiguous.
+- **Demo:** next-wave scope anchored around operator triage acceleration with deterministic UI behavior.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 103.1: Flutter diagnostics quick triage actions [DONE ✅]**
+- **Goal:** Add one-click triage actions to focus urgent events and reset filter state quickly.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** `Focus high` and `Reset filters` actions update visible diagnostics deterministically.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 103.2: Flutter diagnostics high-alert strip [DONE ✅]**
+- **Goal:** Surface a clear high-severity warning strip whenever urgent diagnostics are present.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** high-alert strip appears with count and operator wording once high-severity events exist.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 103.3: Perception hardware readiness brief [PENDING]**
+- **Goal:** Define minimal hardware shortlist and go/no-go criteria for basic perception pilot.
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** shortlist and acceptance criteria are explicit without blocking Flutter UX progression.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 103.0 — Flutter diagnostics next-wave planning checkpoint
+[SIGUIENTE] Bloque 103.3 — Perception hardware readiness brief
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Start the next UX wave with explicit scope discipline after triage milestone closure.
-[HECHO CUANDO] Next objective and done-criteria are captured in one deterministic handoff entry.
+[MOTIVO] Start hardware discovery in parallel while keeping Flutter MVP delivery lane unblocked.
+[HECHO CUANDO] A basic hardware shortlist and acceptance criteria are documented for pilot execution.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

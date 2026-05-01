@@ -160,6 +160,22 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added checkpoint pulse confirming closure of diagnostics triage mini-wave (`102.2` to `102.5`) and current local validation posture.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `102.6` as done and opened `103.0` planning checkpoint for the next UX wave.
 
+## [2026-05-01] V2.103.0 — Diagnostics next-wave planning checkpoint
+### Changed
+- **`CONTEXT.md`:** Captured next-wave objective and scope guard for broader sprint execution.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.0` as done and opened wider `103.x` implementation sequence.
+
+## [2026-05-01] V2.103.1 — Diagnostics quick triage actions
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Focus high` and `Reset filters` actions for fast operator triage control.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added interaction coverage for quick-triage buttons and deterministic event count transitions.
+
+## [2026-05-01] V2.103.2 — Diagnostics high-alert strip
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added a conditional high-severity warning strip with urgent-event count.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for high-alert strip visibility after diagnostic error events.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `103.1` and `103.2` as done and queued `103.3` hardware-readiness brief.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
