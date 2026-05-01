@@ -2922,3 +2922,19 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/eval/test_capture_voice_turn_latency.py`
   - `tests/eval/test_freeze_lane_monthly_report.py`
   - `tests/eval/test_run_demo_reliability_checklist.py`
+
+### Execution (Swarm) | Date: 2026-04-30 22:30:56 | Author: Codex
+- **Block:** `100.1`
+- **Message:** Enforce Flutter-first truth sync and purge tracked runtime artifacts
+- **Files Modified:**
+  - `.gitignore`
+  - `.pytest_full.log`
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `README.md`
+  - `_run_pytest_capture.py`
+  - `audit_trail.db`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `pytest_failures.txt`
+  - `pytest_output.txt`
+  - `test_persistence.db`

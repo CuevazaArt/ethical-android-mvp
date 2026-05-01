@@ -261,6 +261,59 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `desktop-gate-report` runs on `schedule`, emits `reentry-gates-snapshot.json`, and enforces stale-gate failure.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+---
+
+## 🚀 FASE 27: FLUTTER MVP EXECUTION CORRIDOR (V2.100.x)
+
+**Directive:** prioritize one product surface (Flutter Desktop + Python kernel), remove repository drift, and prove end-to-end reproducibility before any new expansion.
+
+**Bloque 100.0: Repository truth sync (README/CONTEXT) [DONE ✅]**
+- **Goal:** Align public project narrative with active runtime reality (Flutter-first MVP + kernel authority).
+- **Files:** `README.md`, `CONTEXT.md`.
+- **Demo:** docs clearly state active surface, freeze-lane policy, and quality truth source.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 100.1: Artifact hygiene pass (tracked binaries/logs/db) [DONE ✅]**
+- **Goal:** Remove non-source execution artifacts from main branch and guard against reintroduction.
+- **Files:** `.gitignore`, repository root tracked artifacts.
+- **Demo:** `git status` clean after removing tracked runtime logs/db leftovers.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 100.2: Flutter MVP checkpoint contract [PENDING]**
+- **Goal:** Define single executable MVP checkpoint (operator-run scenario) with explicit pass/fail criteria.
+- **Files:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`, `src/clients/flutter_desktop_shell/README.md`.
+- **Demo:** one command sequence that any operator can run to validate checkpoint readiness.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 100.3: End-to-end CI smoke for desktop path [PENDING]**
+- **Goal:** Add a minimal CI-enforced integration check for desktop critical cycle contracts.
+- **Files:** `.github/workflows/ci.yml`, `tests/server/`, optional `scripts/eval/`.
+- **Demo:** CI fails when critical desktop cycle contract breaks.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 100.4: Documentation pruning index and active set [PENDING]**
+- **Goal:** Define active-doc index and archive policy to reduce navigation entropy.
+- **Files:** `docs/INDEX.md` (new), `docs/proposals/INDEX.md`, archive pointers.
+- **Demo:** active documentation tree reduced to an explicit, auditable set.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+### Next prompts (mandatory format)
+
+[SIGUIENTE] Bloque 100.2 — Flutter MVP checkpoint contract
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Convert strategy into one reproducible operator-run checkpoint with explicit pass/fail.
+[HECHO CUANDO] Desktop checkpoint instructions execute end-to-end and map to G1..G5 evidence.
+
+[SIGUIENTE] Bloque 100.3 — End-to-end CI smoke for desktop path
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Protect the MVP path against silent regressions in core desktop contracts.
+[HECHO CUANDO] CI has a dedicated failing test path for critical desktop cycle breakage.
+
+[SIGUIENTE] Bloque 100.4 — Documentation pruning index and active set
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Reduce contributor and agent confusion from oversized documentation surface.
+[HECHO CUANDO] Active docs have a single index and non-active docs are clearly archived.
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.

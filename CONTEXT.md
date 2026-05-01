@@ -1,116 +1,45 @@
-# Session Context — Ethos 2.0
+# Session Context — Ethos
 
-> Read THIS file first. Only read AGENTS.md if you need clarification on rules.
+> Read this file first. It defines the active product scope and execution constraints.
 
-## Current state
+## Current state (authoritative)
 
-- **Version:** Ethos V2 Core Minimal (Fase 17 COMPLETA)
-- **Architecture:** `src/core/` → `src/server/` (zero legacy)
-- **LLM:** Ollama local (llama3.2:1b default; gemma3, devstral available)
-- **V1 archive tag:** `v15-archive-full-vision` (frozen reference, do not modify)
-- **Last merge to main:** 2026-04-28 (Fase 25 — Voice Pipeline Hardened / Sherpa-ONNX)
-- **Visión canónica:** `docs/VISION_NOMAD.md`
+- **Active product:** Flutter Desktop MVP backed by the Python kernel server.
+- **Business-logic authority:** `src/core/` only.
+- **Server boundary:** `src/server/` contracts consumed by Flutter.
+- **Mobile status:** freeze-lane for net-new features (security/health maintenance only).
+- **Canonical roadmap:** `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`.
 
-## Fase α ✅ · Fase β ✅ · Fase γ ✅ · Fase δ ✅ · Fase 16 ✅ · Fase 17 ✅ · Fase 18 ✅
+## Strategic amendment (V2.100)
 
-## Estado Actual (Abril 2026)
+- Ethos execution is now explicitly **Flutter-first for MVP completion**.
+- Desktop is the single active client surface until MVP evidence is complete.
+- Android work remains frozen except critical fixes.
+- Product progress is measured by reproducible end-to-end behavior, not block count.
 
-- **Fase:** 23 (Nomad Native Android SDK Transition) - COMPLETA ✅
-- **Logro:** Setup de Core Android (Gradle/Compose) y Servicios en primer plano funcionales.
-- **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
+## Re-entry gates (mobile/web reopen)
 
-## Strategic Pivot (L1 Watchtower, 2026-04-30)
-
-- **Execution focus changed:** Desktop-first Flutter convergence for the next delivery wave.
-- **Freeze rule:** Mobile Nomad and browser dashboards are frozen for net-new features; only security/health maintenance is allowed.
-- **Commercial priority:** Mature audio perception, video perception, and voice loop in a controlled desktop environment before reopening cross-platform expansion.
-- **Non-negotiable architecture rule:** `src/core/` remains platform-agnostic and is the only business-logic authority.
-- **Re-entry condition:** Mobile/web expansion resumes only when desktop readiness gates (stability, latency, demo reliability, packaging) are met and documented.
-
-### Re-entry gates (mobile/web reopen)
 - **G1 Stability:** 14 consecutive days without critical desktop crash in smoke cycle.
 - **G2 Voice latency:** p95 full voice turn under 2500 ms on target desktop hardware.
-- **G3 Contract no-drift:** 0 failures in freeze-lane envelope checks for one calendar month.
-- **G4 Demo reliability:** 10/10 successful scripted demos across audio/video/voice.
+- **G3 Contract no-drift:** 0 failures in freeze-lane checks for one full calendar month.
+- **G4 Demo reliability:** 10/10 scripted demos across audio, video, and voice.
 - **G5 Ops readiness:** Windows packaging + artifact manifest + rollback checklist validated.
-- **Freshness policy:** stale gate evidence is treated as DEGRADED until refreshed within SLA.
-- **Automation runner (51.x):** `python scripts/eval/desktop_gate_runner.py` evaluates G1/G2/G4 from versioned evidence files.
+- **Freshness policy:** stale evidence is treated as `DEGRADED` until refreshed inside SLA.
 
-### Desktop migration pulse status (50.x)
-- **Done:** 50.0 contract spine, 50.1 desktop shell, 50.2 audio slice, 50.3 video slice, 50.4 voice full-turn, 50.5 commercial packaging hardening, 50.6 freeze lane, 50.7 re-entry gates.
-- **Control artifact:** Gate audit proofpack tracked in `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`.
-- **Continuity pulse 51.x:** stability ledger automation, voice latency benchmark harness, and demo reliability checklist runner integrated with test coverage.
-- **CI continuity (51.3):** workflow `CI` now publishes `desktop-gate-report` artifact from automated G1/G2/G4 evaluation.
-- **CI visibility (51.4):** gate job publishes a human-readable PASS/FAIL table in `GITHUB_STEP_SUMMARY`.
-- **Execution pulse 52.x:** G3 monthly drift report automation, G1 daily ledger append tooling, G2 live capture harness, G4 executable demo checklist, and Flutter readiness-gates panel.
-- **Execution pulse 52.5:** `/api/status` now emits `reentry_gates` (G1..G5), enabling server-bound readiness badges in Flutter desktop.
-- **Execution pulse 52.6-52.9:** backend now emits `reentry_gates_details`, Flutter renders gate metadata/freshness, CI publishes detailed snapshot artifacts, and tests lock gate-schema drift.
-- **Execution pulse 53.0:** freshness SLA policy formalized; stale evidence now treated as DEGRADED for reopen decisions.
-- **Execution pulse 53.1:** CI now runs scheduled daily freshness audits and fails if any gate evidence becomes stale.
+## Product checkpoint (must-pass)
 
-## Desktop Migration Progress (Block 50.1, 2026-04-30)
+- **Checkpoint:** a reproducible desktop session with a full interaction cycle and auditable logs.
+- **Operational question:** can a non-author operator run the desktop cycle without manual debugging?
+- **Rule:** no new client expansion before this checkpoint is consistently reproducible.
 
-- **Status:** CLOSED ✅
-- **Deliverable:** `src/clients/flutter_desktop_shell` boots as a desktop shell and shows live kernel connection state.
-- **Transport baseline:** Heartbeat via `GET /api/ping` and health payload retrieval via `GET /api/status`.
-- **Resilience proof:** On backend outage the client enters retry mode and reconnects automatically after server restart (bounded short backoff).
-- **Validation:** `flutter analyze` + `flutter test` (desktop shell module) passed locally.
+## Active execution wave
 
-## Bloques Activos
+- **Wave:** V2.100.x — repository truth sync + hygiene + Flutter MVP depth.
+- **Immediate objective:** align public docs with runtime reality and remove non-source artifacts from `main`.
+- **Validation basis:** CI + local reproducible checks; no manual “green” claims in docs.
 
-- **V2.95-V2.97: SHERPA-ONNX WAKE WORD & VOICE HARDENING** - CLOSED ✅
-  - Integrated Sherpa-ONNX v1.13.0 (4 ABIs, .so + API JAR).
-  - Implemented real `VoiceEngine.kt` with continuous background KWS (Wake word: "Ethos").
-  - Hardened `TtsEngine.kt` with emulator fallbacks (es-ES → en-US).
-  - Fixed resource leaks (OkHttpClient) and race conditions (@Volatile) in `NomadService.kt`.
-  - Automated binary sync in `sync_engine.py` and project-wide formatting with `ruff.toml`.
-  - **Evidencia:** `Logcat: WAKE WORD DETECTED: 'ethos' -> Triggering cognitive cycle`.
+## System references
 
-- **V2.94: VOICE PIPELINE SCAFFOLDING (TTS + Listening)** - CLOSED ✅
-  - Created `TtsEngine.kt` (Android TTS) and `VoiceEngine.kt` (Continuous AudioRecord).
-  - Wired `ChatViewModel` for automatic vocal response.
-  - Background listening enabled in `NomadService`.
-
-- **V2.93: SLM ENGINE INFILTRATION (llama.cpp)** - CLOSED ✅
-  - Automated `llama.cpp` source syncing and `CMakeLists.txt` generation.
-  - Implemented real `llama_model`/`llama_context` lifecycle in `llama-jni.cpp`.
-  - Tokenization and decoding loop ready for local GGUF execution.
-
-- **V2.92: MEMORY CONTINUITY (Persistence ↔ Chat)** - CLOSED ✅
-- **V2.91: CI ECONOMY DIRECTIVE** - CLOSED ✅
-- **V2.90: HYBRID COGNITION & HARDWARE AWARENESS** - CLOSED ✅
-- **V2.87: LLAMA.CPP JNI SCAFFOLDING** - CLOSED ✅
-- **V2.86: NOMAD PERSISTENCE SETUP (ROOM DB)** - CLOSED ✅
-- **V2.85: ETHOS KERNEL ON-DEVICE (Fase 24a)** - CLOSED ✅
-
-## Hoja de Ruta (Roadmap V2) — Ejecución Incremental
-
-### Fase 24b — Persistencia + SLM ✅ COMPLETA
-- ✅ Room DB para memoria, identidad, roster.
-- ✅ Hybrid Cognition & Hardware Awareness (Tiers: POCKET/NOMAD/CENTINELA).
-- ✅ llama.cpp Inferencia real (Backend NDK completo).
-- **🚪 GATE PASSED:** La app Android soporta el ciclo completo de inferencia nativa vía llama.cpp.
-
-### Fase 25 — Voice Pipeline (IN PROGRESS)
-- ✅ Sherpa-ONNX v1.13.0 Integration (Native KWS).
-- ✅ Wake Word "Ethos" functional in background (Low latency, silent).
-- ✅ TTS fallback and lifecycle hardening.
-- ⬜ Sherpa-ONNX STT (Speech-to-Text) to replace WebSocket pulse.
-- ⬜ Full vocal turn (STT → Inference → TTS) without screen interaction.
-- **🚪 GATE 1 PASSED:** Saying "Ethos" in the background triggers a server pulse via WebSocket and a local log confirmation.
-
-### Fase 25+ — Proactividad y Sensores
-- ⬜ SalienceDetector + ProactiveEngine.
-- ⬜ GPS, acelerómetro, CameraX.
-- **🚪 GATE:** Ethos comenta proactivamente algo sobre el entorno sin que el usuario pregunte. En dispositivo real.
-
-## System health (2026-04-28)
-
-- **Tests:** 221/221 ✅ (backend) + 25+ on-device gate tests (field-verified)
-- **Ruff:** Clean (`ruff check: 0`)
-- **Voice:** Sherpa-ONNX v1.13.0 KWS (Local) + Native Android TTS (Hardened)
-- **Ethics:** Basada en precedentes (CBR, 36 casos)
-- **Memory:** Híbrida (Semantic Embeddings + TF-IDF fallback)
-- **Pipeline:** Single-Call Hardened (Fase 24a complete)
-
-> **Visión Nómada (Canónica):** Ver `docs/VISION_NOMAD.md`.
+- **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
+- **CI gate runner:** `scripts/eval/desktop_gate_runner.py`
+- **Primary quality command set:** see `README.md` and `CONTRIBUTING.md`

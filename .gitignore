@@ -18,6 +18,7 @@ logs/
 
 # Runtime SQLite ledger (MockDAO / orchestrator; not a source artifact)
 audit_trail.db
+test_persistence.db
 
 # Testing
 tests/test_pruning.db
@@ -30,6 +31,9 @@ coverage.xml
 _mypy_exclude_test.toml
 htmlcov/
 junit.xml
+pytest_output.txt
+pytest_failures.txt
+.pytest_full.log
 
 # Local env (never commit secrets)
 .env

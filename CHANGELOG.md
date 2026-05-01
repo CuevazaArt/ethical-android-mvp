@@ -4,6 +4,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-01] V2.100.0 — Repository truth sync for Flutter-first MVP
+### Changed
+- **`README.md`:** Reframed project scope to the active product reality (Flutter Desktop MVP + Python kernel), removed stale Android-primary messaging, and documented current quality verification commands.
+- **`CONTEXT.md`:** Replaced contradictory phase narrative with one authoritative state model: active surface, freeze-lane policy, re-entry gates, and V2.100.x objective.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Added Fase 27 with V2.100.x execution corridor and standardized next prompts in mandatory `[SIGUIENTE]` format.
+
+## [2026-05-01] V2.100.1 — Artifact hygiene and source-of-truth cleanup
+### Changed
+- **`.gitignore`:** Added explicit ignores for `test_persistence.db`, `pytest_output.txt`, `pytest_failures.txt`, and `.pytest_full.log`.
+
+### Removed
+- Runtime and ad-hoc artifacts from repository root (`audit_trail.db`, `test_persistence.db`, `pytest_output.txt`, `pytest_failures.txt`, `.pytest_full.log`, `_run_pytest_capture.py`).
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
