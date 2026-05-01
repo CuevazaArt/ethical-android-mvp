@@ -41,6 +41,8 @@ void main() {
     expect(find.text('fallback (waiting for reentry_gates)'), findsOneWidget);
     expect(find.text('No gate metadata available yet.'), findsOneWidget);
     expect(find.text('Health payload'), findsOneWidget);
+    expect(find.text('Copy JSON'), findsOneWidget);
+    expect(find.text('No payload action yet.'), findsOneWidget);
     expect(find.text('Waiting for /api/status payload...'), findsOneWidget);
   });
 

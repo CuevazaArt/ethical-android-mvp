@@ -75,6 +75,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added coverage for manual-probe UI elements in baseline render.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.1` as done and advanced sequence to `101.2`.
 
+## [2026-05-01] V2.101.2 — Flutter payload ergonomics pass
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added payload quick action `Copy JSON` with deterministic user feedback in the health payload panel.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for payload diagnostics action and feedback text.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.2` as done and advanced sequence to `101.3`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

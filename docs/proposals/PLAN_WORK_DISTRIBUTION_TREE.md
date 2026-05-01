@@ -339,18 +339,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** status card includes manual `Check now` probe action with explicit probe timestamp and no regression in gate/voice panels.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 101.2: Flutter payload ergonomics pass [PENDING]**
+**Bloque 101.2: Flutter payload ergonomics pass [DONE ✅]**
 - **Goal:** Improve status payload usability (quick diagnostics actions) without changing backend contracts.
 - **Files:** `src/clients/flutter_desktop_shell/lib/main.dart`, targeted widget tests.
-- **Demo:** operator can perform diagnostics action directly from payload panel with deterministic UI feedback.
+- **Demo:** payload panel now exposes `Copy JSON` action with deterministic feedback text.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 101.3: Flutter diagnostics timeline slice [PENDING]**
+- **Goal:** Surface compact diagnostics timeline in UI from existing client-side state transitions.
+- **Files:** Flutter shell module + tests.
+- **Demo:** operator can see latest transport/voice/gate events without scanning full payload.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.2 — Flutter payload ergonomics pass
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Increase operator speed for diagnostics from the active desktop surface.
-[HECHO CUANDO] Payload panel exposes one direct diagnostics action with test coverage and stable offline behavior.
+[SIGUIENTE] Bloque 101.3 — Flutter diagnostics timeline slice
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Improve operational observability in desktop shell without adding backend complexity.
+[HECHO CUANDO] Timeline card renders deterministic recent events and stays stable offline/online.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

@@ -91,6 +91,12 @@
 - UI now records and renders `Last manual probe` timestamp for traceable diagnostics steps.
 - Existing contract surfaces (`voice_turn_state`, `reentry_gates`, `reentry_gates_details`) remain unchanged.
 
+### Execution pulse 101.2 (payload ergonomics)
+
+- Added `Copy JSON` quick action in Flutter payload card for faster operator diagnostics.
+- Added explicit deterministic feedback line after payload action (success/fallback message).
+- No backend contract changes; improvement remains UI-only on active surface.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

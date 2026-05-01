@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -69,6 +70,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   DateTime? _lastVoiceStateAt;
   bool _hasServerVoiceState = false;
   bool _payloadHasFocus = false;
+  String _payloadActionMessage = 'No payload action yet.';
   Map<String, String> _readinessGates = <String, String>{
     'G1': 'unknown',
     'G2': 'unknown',
@@ -565,6 +567,27 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               ),
             ),
             const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    unawaited(_copyPayloadToClipboard(payloadText));
+                  },
+                  icon: const Icon(Icons.content_copy_rounded, size: 16),
+                  label: const Text('Copy JSON'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _payloadActionMessage,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
             Expanded(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -615,6 +638,25 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _copyPayloadToClipboard(String payloadText) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: payloadText));
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _payloadActionMessage = 'Payload copied to clipboard.';
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _payloadActionMessage = 'Unable to copy payload on this platform.';
+      });
+    }
   }
 
   Widget _buildVoiceCard(ThemeData theme) {
