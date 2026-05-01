@@ -65,7 +65,9 @@ def evaluate_stability_gate(ledger_path: Path, *, days: int = 14) -> GateResult:
     rows = _read_jsonl(ledger_path)
     in_window = []
     for row in rows:
-        ts = datetime.fromisoformat(str(row["date"]).replace("Z", "+00:00"))
+        ts = _parse_iso_utc(str(row.get("date", "")))
+        if ts is None:
+            continue
         if ts >= cutoff:
             in_window.append(row)
     unique_days = {row["date"][:10] for row in in_window}
@@ -256,6 +258,11 @@ def main() -> int:
         type=Path,
         default=Path("docs/collaboration/evidence"),
     )
+    p_snapshot.add_argument(
+        "--require-all-pass",
+        action="store_true",
+        help="Return non-zero exit code unless all gates are PASS.",
+    )
 
     args = parser.parse_args()
 
@@ -269,7 +276,9 @@ def main() -> int:
         snapshot = build_gate_snapshot(evidence_dir=args.evidence_dir)
         print(json.dumps(snapshot, ensure_ascii=True, indent=2))
         gate_statuses = [gate["status"] for gate in snapshot["gates"].values()]
-        return 0 if all(status == "pass" for status in gate_statuses) else 1
+        if args.require_all_pass:
+            return 0 if all(status == "pass" for status in gate_statuses) else 1
+        return 0
 
     _print_result(result)
     return 0 if result.passed else 1

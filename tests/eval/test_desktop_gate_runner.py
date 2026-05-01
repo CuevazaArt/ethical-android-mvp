@@ -115,3 +115,22 @@ def test_snapshot_includes_gate_details_shape(tmp_path: Path) -> None:
         assert isinstance(detail["source"], str)
         assert "summary" in detail
         assert isinstance(detail["stale"], bool)
+
+
+def test_snapshot_marks_stale_when_updated_at_missing(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence"
+    evidence.mkdir(parents=True, exist_ok=True)
+    _write_jsonl(
+        evidence / "DESKTOP_STABILITY_LEDGER.jsonl",
+        [{"date": "bad-date", "status": "pass", "cycle": "desktop-smoke"}],
+    )
+    _write_jsonl(evidence / "VOICE_TURN_LATENCY_SAMPLES.jsonl", [])
+    _write_jsonl(evidence / "G3_CONTRACT_NO_DRIFT_HISTORY.jsonl", [])
+    (evidence / "DEMO_RELIABILITY_CHECKLIST.json").write_text(
+        json.dumps({"items": []}),
+        encoding="utf-8",
+    )
+
+    snapshot = build_gate_snapshot(evidence_dir=evidence)
+
+    assert snapshot["gates"]["G1"]["stale"] is True

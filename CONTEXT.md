@@ -46,6 +46,7 @@
 - **Execution pulse 52.5:** `/api/status` now emits `reentry_gates` (G1..G5), enabling server-bound readiness badges in Flutter desktop.
 - **Execution pulse 52.6-52.9:** backend now emits `reentry_gates_details`, Flutter renders gate metadata/freshness, CI publishes detailed snapshot artifacts, and tests lock gate-schema drift.
 - **Execution pulse 53.0:** freshness SLA policy formalized; stale evidence now treated as DEGRADED for reopen decisions.
+- **Execution pulse 53.1:** CI now runs scheduled daily freshness audits and fails if any gate evidence becomes stale.
 
 ## Desktop Migration Progress (Block 50.1, 2026-04-30)
 

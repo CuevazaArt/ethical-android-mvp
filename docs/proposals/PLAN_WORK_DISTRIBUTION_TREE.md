@@ -255,6 +255,12 @@ Use this fixed structure in each planning handoff:
 - **Demo:** freeze guardrail tests assert freshness policy markers exist.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 53.1: Scheduled freshness enforcement in CI [DONE ✅]**
+- **Goal:** Audit gate freshness daily and fail CI when evidence is stale.
+- **Files:** `.github/workflows/ci.yml`, `scripts/eval/desktop_gate_runner.py`.
+- **Demo:** `desktop-gate-report` runs on `schedule`, emits `reentry-gates-snapshot.json`, and enforces stale-gate failure.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.

@@ -103,6 +103,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`tests/server/test_app_integration.py` + `tests/eval/test_desktop_gate_runner.py`:** Added schema-lock assertions for reentry gate detail contract and snapshot structure.
 - **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md` + `tests/test_freeze_lane_guardrails.py`:** Introduced evidence freshness SLA policy; stale evidence now forces DEGRADED reopen posture.
 
+## [2026-04-30] Scheduled freshness enforcement (53.1)
+### Changed
+- **`.github/workflows/ci.yml`:** `desktop-gate-report` now runs on daily `schedule` and fails when any gate in `reentry-gates-snapshot.json` is stale.
+- **`scripts/eval/desktop_gate_runner.py`:** Snapshot mode now supports non-strict exit by default and strict `--require-all-pass` opt-in.
+- **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md` + `CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Registered scheduled cadence as an active operational control.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

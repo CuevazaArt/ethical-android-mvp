@@ -57,6 +57,11 @@ If any check fails, status is **DEGRADED** and only remediation work is allowed.
 
 If a gate evidence snapshot is stale beyond SLA, its status is treated as **DEGRADED** for reopen decisions.
 
+### Cadence automation
+
+- Daily freshness audit now runs in CI (`desktop-gate-report` via `schedule` trigger).
+- CI fails when any gate is marked `stale=true` in `reentry-gates-snapshot.json`.
+
 ## Gate Audit Proofpack (50.7B)
 
 | Gate | What is required | Source of truth | Current status |

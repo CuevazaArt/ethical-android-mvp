@@ -16,6 +16,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "15 14 * * *" # Daily cadence for gate freshness audit (UTC)
 
 permissions:
   contents: read
@@ -187,6 +189,7 @@ jobs:
       needs.detect-changes.outputs.code_changed == 'true'
       || github.event_name == 'pull_request'
       || github.event_name == 'workflow_dispatch'
+      || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -203,7 +206,22 @@ jobs:
           python scripts/eval/desktop_gate_runner.py stability --ledger docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl --days 14 > gate-reports/g1-stability.json
           python scripts/eval/desktop_gate_runner.py latency --samples docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl --target-p95-ms 2500 > gate-reports/g2-latency.json
           python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10 > gate-reports/g4-demo.json
-          python scripts/eval/desktop_gate_runner.py snapshot --evidence-dir docs/collaboration/evidence > gate-reports/reentry-gates-snapshot.json || true
+          python scripts/eval/desktop_gate_runner.py snapshot --evidence-dir docs/collaboration/evidence > gate-reports/reentry-gates-snapshot.json
+          python scripts/eval/freeze_lane_monthly_report.py --allow-in-progress > gate-reports/g3-monthly-report.json
+
+      - name: Enforce freshness SLA
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          snapshot = json.loads(Path("gate-reports/reentry-gates-snapshot.json").read_text(encoding="utf-8"))
+          gates = snapshot.get("gates", {})
+          stale = [gate for gate, details in gates.items() if details.get("stale") is True]
+          if stale:
+            raise SystemExit(f"Freshness SLA violation in gates: {', '.join(sorted(stale))}")
+          print("Freshness SLA check: PASS")
+          PY
 
       - name: Publish gate summary
         run: |
