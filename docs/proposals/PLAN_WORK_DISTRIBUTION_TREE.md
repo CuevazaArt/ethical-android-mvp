@@ -159,6 +159,24 @@ Use this fixed structure in each planning handoff:
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 - **Evidence (50.7A/50.7B):** Re-entry gates documented in `CONTEXT.md` + gate audit proofpack in `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`.
 
+**Bloque 51.0: Stability ledger automation [DONE ✅]**
+- **Goal:** Automate auditable evidence for G1 (14-day no-crash desktop smoke).
+- **Files:** `scripts/eval/desktop_gate_runner.py`, `docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl`.
+- **Demo:** `python scripts/eval/desktop_gate_runner.py stability --ledger docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl --days 14`.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 51.1: Voice latency benchmark harness [DONE ✅]**
+- **Goal:** Compute p95 full-turn voice latency against re-entry threshold.
+- **Files:** `scripts/eval/desktop_gate_runner.py`, `docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl`.
+- **Demo:** `python scripts/eval/desktop_gate_runner.py latency --samples docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl --target-p95-ms 2500`.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 51.2: Demo reliability checklist runner [DONE ✅]**
+- **Goal:** Evaluate scripted demo reliability (10/10) from versioned checklist evidence.
+- **Files:** `scripts/eval/desktop_gate_runner.py`, `docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json`.
+- **Demo:** `python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10`.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.

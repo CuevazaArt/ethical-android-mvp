@@ -33,10 +33,12 @@
 - **G3 Contract no-drift:** 0 failures in freeze-lane envelope checks for one calendar month.
 - **G4 Demo reliability:** 10/10 successful scripted demos across audio/video/voice.
 - **G5 Ops readiness:** Windows packaging + artifact manifest + rollback checklist validated.
+- **Automation runner (51.x):** `python scripts/eval/desktop_gate_runner.py` evaluates G1/G2/G4 from versioned evidence files.
 
 ### Desktop migration pulse status (50.x)
 - **Done:** 50.0 contract spine, 50.1 desktop shell, 50.2 audio slice, 50.3 video slice, 50.4 voice full-turn, 50.5 commercial packaging hardening, 50.6 freeze lane, 50.7 re-entry gates.
 - **Control artifact:** Gate audit proofpack tracked in `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`.
+- **Continuity pulse 51.x:** stability ledger automation, voice latency benchmark harness, and demo reliability checklist runner integrated with test coverage.
 
 ## Desktop Migration Progress (Block 50.1, 2026-04-30)
 

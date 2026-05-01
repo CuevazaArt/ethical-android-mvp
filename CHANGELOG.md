@@ -55,6 +55,16 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`:** Added gate-audit proofpack table and marked G5 ops readiness PASS after local release build evidence.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Closed 50.4/50.5 as DONE and synchronized 50.x execution status.
 
+## [2026-04-30] Re-entry gates evidence automation (51.0/51.1/51.2)
+### Added
+- **`scripts/eval/desktop_gate_runner.py`:** New CLI evaluator for desktop re-entry gates: G1 stability (`stability`), G2 voice latency p95 (`latency`), and G4 demo reliability (`demo`).
+- **`docs/collaboration/evidence/`:** Versioned evidence payloads for stability ledger, voice latency samples, and demo reliability checklist.
+- **`tests/eval/test_desktop_gate_runner.py`:** Unit coverage for gate computations and threshold behavior.
+
+### Changed
+- **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`:** G1/G2/G4 now include executable proof commands and are marked PASS under the 51.x tooling.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Registered continuity pulse 51.x and synchronized the automation deliverables with potency guidance.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

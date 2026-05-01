@@ -2815,3 +2815,17 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `scripts/build_windows_desktop_release.ps1`
   - `tests/fixtures/freeze_lane/smoke_payloads.json`
   - `tests/test_freeze_lane_guardrails.py`
+
+### Execution (Swarm) | Date: 2026-04-30 20:38:33 | Author: Cursor Codex
+- **Block:** `51.2`
+- **Message:** Add desktop re-entry gate automation (51.0/51.1/51.2)
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
+  - `docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json`
+  - `docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl`
+  - `docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/desktop_gate_runner.py`
+  - `tests/eval/test_desktop_gate_runner.py`

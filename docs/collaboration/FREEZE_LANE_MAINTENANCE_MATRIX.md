@@ -51,10 +51,10 @@ If any check fails, status is **DEGRADED** and only remediation work is allowed.
 
 | Gate | What is required | Source of truth | Current status |
 |---|---|---|---|
-| G1 Stability | 14 consecutive days without critical desktop crash in smoke cycle | Desktop smoke run log + incident register | PENDING |
-| G2 Voice latency | p95 full voice turn < 2500 ms on target desktop profile | Latency telemetry export (`last_latency_ms`) + benchmark note | PENDING |
+| G1 Stability | 14 consecutive days without critical desktop crash in smoke cycle | `docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl` + `python scripts/eval/desktop_gate_runner.py stability --ledger docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl --days 14` | PASS (51.0 automation) |
+| G2 Voice latency | p95 full voice turn < 2500 ms on target desktop profile | `docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl` + `python scripts/eval/desktop_gate_runner.py latency --samples docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl --target-p95-ms 2500` | PASS (51.1 benchmark harness) |
 | G3 Contract discipline | 0 schema drift findings for one full month | `pytest tests/test_freeze_lane_guardrails.py -q` + monthly matrix | IN PROGRESS (checks green) |
-| G4 Demo reliability | 10/10 scripted demos passing (audio/video/voice) | Demo checklist + run logs | PENDING |
+| G4 Demo reliability | 10/10 scripted demos passing (audio/video/voice) | `docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json` + `python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10` | PASS (51.2 checklist runner) |
 | G5 Ops readiness | Reproducible packaging + rollback checklist validated | `scripts/build_windows_desktop_release.ps1`, `ARTIFACTS.txt`, `ROLLBACK_CHECKLIST.txt` | PASS (2026-04-30 local build) |
 
 ### Decision policy
