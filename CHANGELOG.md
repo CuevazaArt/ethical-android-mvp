@@ -17,6 +17,12 @@ All notable changes to this project are summarized here. For narrative context a
 ### Removed
 - Runtime and ad-hoc artifacts from repository root (`audit_trail.db`, `test_persistence.db`, `pytest_output.txt`, `pytest_failures.txt`, `.pytest_full.log`, `_run_pytest_capture.py`).
 
+## [2026-05-01] V2.100.2 — Flutter MVP checkpoint contract
+### Changed
+- **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`:** Added an executable MVP checkpoint contract with operator sequence, pass criteria, and fail criteria.
+- **`src/clients/flutter_desktop_shell/README.md`:** Added a runbook section that mirrors the same checkpoint commands and validation checklist.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.2` as done and synchronized execution pulse state.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

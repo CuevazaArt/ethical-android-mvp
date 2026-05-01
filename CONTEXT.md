@@ -35,7 +35,7 @@
 ## Active execution wave
 
 - **Wave:** V2.100.x — repository truth sync + hygiene + Flutter MVP depth.
-- **Immediate objective:** align public docs with runtime reality and remove non-source artifacts from `main`.
+- **Completed now:** repository truth sync (`100.0`), tracked artifact hygiene (`100.1`), and MVP checkpoint contract runbook (`100.2`).
 - **Validation basis:** CI + local reproducible checks; no manual “green” claims in docs.
 
 ## System references

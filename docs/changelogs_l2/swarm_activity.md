@@ -2938,3 +2938,13 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `pytest_failures.txt`
   - `pytest_output.txt`
   - `test_persistence.db`
+
+### Execution (Swarm) | Date: 2026-04-30 22:33:56 | Author: Codex
+- **Block:** `100.2`
+- **Message:** Define executable Flutter MVP checkpoint contract and operator runbook
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/clients/flutter_desktop_shell/README.md`

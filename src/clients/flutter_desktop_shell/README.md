@@ -34,6 +34,36 @@ flutter run -d windows --dart-define=KERNEL_BASE_URL=http://127.0.0.1:8000
 4. Stop backend for a few seconds and restart it:
    - App shows `retrying` and reconnects automatically without crash.
 
+## MVP checkpoint runbook (100.2)
+
+This is the required product-minimum proof for the active Flutter-first lane.
+
+### Commands
+
+From repository root:
+
+```bash
+python -m src.server.app
+```
+
+From `src/clients/flutter_desktop_shell`:
+
+```bash
+flutter pub get
+flutter run -d windows --dart-define=KERNEL_BASE_URL=http://127.0.0.1:8000
+```
+
+### Validation checklist
+
+1. Connected status appears in the shell.
+2. Health payload from `/api/status` is visible.
+3. Temporary backend outage triggers retry state.
+4. Backend restart restores connected state without restarting the app.
+5. Gate snapshot command succeeds:
+   - `python scripts/eval/desktop_gate_runner.py snapshot --evidence-dir docs/collaboration/evidence`
+
+If any step fails, checkpoint status is `FAIL` and expansion work remains blocked.
+
 ## Voice state binding (50.4C)
 
 The desktop UI now reads backend voice state from `/api/status`:

@@ -72,6 +72,40 @@ If a gate evidence snapshot is stale beyond SLA, its status is treated as **DEGR
 | G4 Demo reliability | 10/10 scripted demos passing (audio/video/voice) | `python scripts/eval/run_demo_reliability_checklist.py --output docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json` + `python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10` | PASS (52.3 executable checklist runner) |
 | G5 Ops readiness | Reproducible packaging + rollback checklist validated | `scripts/build_windows_desktop_release.ps1`, `ARTIFACTS.txt`, `ROLLBACK_CHECKLIST.txt` | PASS (2026-04-30 local build) |
 
+## Flutter MVP checkpoint contract (100.2)
+
+This checkpoint defines the minimum product evidence required before any new client expansion.
+
+### Operator-run sequence
+
+1. Start backend:
+   - `python -m src.server.app`
+2. Start desktop shell from `src/clients/flutter_desktop_shell`:
+   - `flutter run -d windows --dart-define=KERNEL_BASE_URL=http://127.0.0.1:8000`
+3. Verify baseline connection:
+   - UI reaches connected state.
+   - `/api/status` payload renders.
+4. Run outage resilience check:
+   - Stop backend for at least 5 seconds.
+   - Confirm shell moves to retry mode.
+   - Restart backend and confirm reconnection without app restart.
+5. Capture gate evidence snapshot:
+   - `python scripts/eval/desktop_gate_runner.py snapshot --evidence-dir docs/collaboration/evidence`
+
+### Pass criteria
+
+- Backend and desktop shell complete the sequence without crash.
+- Shell recovers from temporary backend outage automatically.
+- Snapshot contains all gates (`G1..G5`) and no schema parsing error.
+- Any stale gate is explicitly treated as `DEGRADED` (not hidden).
+
+### Fail criteria
+
+- Desktop shell crashes during normal startup or retry loop.
+- Reconnection requires manual app restart.
+- Snapshot generation fails or omits mandatory gate structure.
+- Operator cannot reproduce steps from this document on a clean machine.
+
 ### Decision policy
 
 Reopen mobile/web feature work only when **all gates are PASS** in the same review cycle and all evidence is within freshness SLA.

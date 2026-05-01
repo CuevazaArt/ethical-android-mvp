@@ -279,7 +279,7 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `git status` clean after removing tracked runtime logs/db leftovers.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 100.2: Flutter MVP checkpoint contract [PENDING]**
+**Bloque 100.2: Flutter MVP checkpoint contract [DONE ✅]**
 - **Goal:** Define single executable MVP checkpoint (operator-run scenario) with explicit pass/fail criteria.
 - **Files:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`, `src/clients/flutter_desktop_shell/README.md`.
 - **Demo:** one command sequence that any operator can run to validate checkpoint readiness.
@@ -298,11 +298,6 @@ Use this fixed structure in each planning handoff:
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
 ### Next prompts (mandatory format)
-
-[SIGUIENTE] Bloque 100.2 — Flutter MVP checkpoint contract
-[POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Convert strategy into one reproducible operator-run checkpoint with explicit pass/fail.
-[HECHO CUANDO] Desktop checkpoint instructions execute end-to-end and map to G1..G5 evidence.
 
 [SIGUIENTE] Bloque 100.3 — End-to-end CI smoke for desktop path
 [POTENCIA SUGERIDA] B (Auto equilibrado)
