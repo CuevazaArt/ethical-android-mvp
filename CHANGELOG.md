@@ -106,6 +106,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for diagnostics depth controls.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.6` as done and advanced sequence to `101.7`.
 
+## [2026-05-01] V2.101.7 — Flutter diagnostics UX polish pass
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added per-event type badges in diagnostics timeline (`TRANSPORT`, `MANUAL`) for faster visual triage.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.7` as done and advanced sequence to `101.8`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

@@ -123,6 +123,12 @@
   - `Medium` mode keeps 8 recent events.
 - Retention is applied client-side with deterministic truncation behavior.
 
+### Execution pulse 101.7 (diagnostics UX polish)
+
+- Diagnostics timeline now includes per-event type badges (`TRANSPORT`, `MANUAL`).
+- Visual grouping improves operator scan speed for triage during reconnect/probe flows.
+- No backend or contract changes introduced.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

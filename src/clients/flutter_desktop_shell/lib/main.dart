@@ -681,13 +681,26 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: visibleEvents.map((event) {
+                  final _StatusBadgeData eventBadge = _diagnosticEventBadgeData(
+                    event.type,
+                    theme,
+                  );
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      '${event.at.toIso8601String()}  •  ${event.message}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _ConnectionBadge(data: eventBadge),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${event.at.toIso8601String()}  •  ${event.message}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }).toList(),
@@ -696,6 +709,32 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         ),
       ),
     );
+  }
+
+  _StatusBadgeData _diagnosticEventBadgeData(
+    _DiagnosticFilter type,
+    ThemeData theme,
+  ) {
+    switch (type) {
+      case _DiagnosticFilter.manual:
+        return _StatusBadgeData(
+          label: 'MANUAL',
+          textColor: theme.colorScheme.secondary,
+          bgColor: theme.colorScheme.secondary.withValues(alpha: 0.16),
+        );
+      case _DiagnosticFilter.transport:
+        return _StatusBadgeData(
+          label: 'TRANSPORT',
+          textColor: theme.colorScheme.primary,
+          bgColor: theme.colorScheme.primary.withValues(alpha: 0.16),
+        );
+      case _DiagnosticFilter.all:
+        return _StatusBadgeData(
+          label: 'EVENT',
+          textColor: theme.colorScheme.onSurfaceVariant,
+          bgColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.14),
+        );
+    }
   }
 
   Widget _buildPayloadCard(ThemeData theme) {

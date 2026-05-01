@@ -369,18 +369,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics timeline now includes `Short` (4 events) and `Medium` (8 events) depth controls.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 101.7: Flutter diagnostics UX polish pass [PENDING]**
+**Bloque 101.7: Flutter diagnostics UX polish pass [DONE ✅]**
 - **Goal:** Improve diagnostics card readability and operator affordance with minimal UI polish.
 - **Files:** Flutter shell module + tests.
-- **Demo:** diagnostics card presents clearer event grouping cues without contract changes.
+- **Demo:** diagnostics events now render with type badges (`TRANSPORT` / `MANUAL`) for faster scanning.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 101.8: Flutter wave stabilization checkpoint [PENDING]**
+- **Goal:** Consolidate current 101.x UI slices and confirm no regressions in active shell behavior.
+- **Files:** Flutter shell tests + context/changelog pulse.
+- **Demo:** stable test/invariants run with a concise checkpoint summary.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.7 — Flutter diagnostics UX polish pass
+[SIGUIENTE] Bloque 101.8 — Flutter wave stabilization checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Raise operator scan speed after adding filters and depth controls.
-[HECHO CUANDO] Diagnostics panel readability improves with stable tests and no contract impact.
+[MOTIVO] Close this mini-wave with a reliability checkpoint before adding further UI surface.
+[HECHO CUANDO] Current 101.x slices are verified stable and checkpointed in context/changelog.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
