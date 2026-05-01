@@ -287,3 +287,37 @@ def test_audio_perception_stt_fallback_when_transcription_unavailable():
     assert data["error"]["code"] == "STT_UNAVAILABLE"
     assert data["error"]["retryable"] is True
     assert data["latency_ms"] >= 0.0
+
+
+def test_audio_perception_success_updates_voice_turn_state() -> None:
+    """Successful transcription should surface `responding` in /api/status."""
+    fake_pcm = (b"\x01\x00" * 2048)
+    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+
+    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value="hola"):
+        with TestClient(app) as client:
+            resp = client.post("/api/perception/audio", json=payload)
+            assert resp.status_code == 200
+            status = client.get("/api/status")
+
+    assert status.status_code == 200
+    data = status.json()
+    assert data["voice_turn_state"] == "responding"
+    assert isinstance(data["voice_turn_state_at"], (float, int))
+    assert data["voice_turn_state_at"] > 0
+
+
+def test_audio_perception_fallback_resets_voice_turn_state() -> None:
+    """STT unavailable path should reset status state back to `mic_off`."""
+    fake_pcm = (b"\x00\x00" * 2048)
+    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+
+    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value=None):
+        with TestClient(app) as client:
+            resp = client.post("/api/perception/audio", json=payload)
+            assert resp.status_code == 200
+            status = client.get("/api/status")
+
+    assert status.status_code == 200
+    data = status.json()
+    assert data["voice_turn_state"] == "mic_off"

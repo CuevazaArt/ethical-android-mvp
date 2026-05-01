@@ -82,6 +82,23 @@ $artifactLines = @(
 )
 $artifactLines | Set-Content -Path $artifactManifest -Encoding UTF8
 
+$rollbackChecklist = Join-Path $outPath "ROLLBACK_CHECKLIST.txt"
+$rollbackLines = @(
+    "Ethos Desktop Shell - Rollback Checklist",
+    "Generated: $(Get-Date -Format o)",
+    "",
+    "1) Stop running desktop shell process.",
+    "2) Backup current release folder (if any).",
+    "3) Restore last known-good artifact folder.",
+    "4) Launch flutter_desktop_shell.exe and verify /api/ping + /api/status.",
+    "5) If health check fails, revert to previous backup and log incident.",
+    "",
+    "Verification command (from artifact folder):",
+    ".\flutter_desktop_shell.exe --dart-define=KERNEL_BASE_URL=http://127.0.0.1:8000"
+)
+$rollbackLines | Set-Content -Path $rollbackChecklist -Encoding UTF8
+
 Step "Build baseline ready"
 Write-Host "Release folder: $outPath" -ForegroundColor Green
 Write-Host "Artifact manifest: $artifactManifest" -ForegroundColor Green
+Write-Host "Rollback checklist: $rollbackChecklist" -ForegroundColor Green

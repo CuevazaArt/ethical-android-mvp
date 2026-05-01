@@ -46,3 +46,17 @@ A freeze lane is **HEALTHY** for a month only if all are true:
 - No net-new feature merged in frozen lane paths
 
 If any check fails, status is **DEGRADED** and only remediation work is allowed.
+
+## Gate Audit Proofpack (50.7B)
+
+| Gate | What is required | Source of truth | Current status |
+|---|---|---|---|
+| G1 Stability | 14 consecutive days without critical desktop crash in smoke cycle | Desktop smoke run log + incident register | PENDING |
+| G2 Voice latency | p95 full voice turn < 2500 ms on target desktop profile | Latency telemetry export (`last_latency_ms`) + benchmark note | PENDING |
+| G3 Contract discipline | 0 schema drift findings for one full month | `pytest tests/test_freeze_lane_guardrails.py -q` + monthly matrix | IN PROGRESS (checks green) |
+| G4 Demo reliability | 10/10 scripted demos passing (audio/video/voice) | Demo checklist + run logs | PENDING |
+| G5 Ops readiness | Reproducible packaging + rollback checklist validated | `scripts/build_windows_desktop_release.ps1`, `ARTIFACTS.txt`, `ROLLBACK_CHECKLIST.txt` | PASS (2026-04-30 local build) |
+
+### Decision policy
+
+Reopen mobile/web feature work only when **all gates are PASS** in the same review cycle.

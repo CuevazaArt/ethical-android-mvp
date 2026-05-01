@@ -61,6 +61,17 @@ pwsh -File scripts/build_windows_desktop_release.ps1 -OutDir dist/desktop/window
 
 The script writes release artifacts and `ARTIFACTS.txt` manifest into the output directory.
 
+### Rollback procedure (release ops)
+
+1. Stop the running desktop shell process.
+2. Keep a backup of the current release directory.
+3. Restore the last known-good artifact package.
+4. Start `flutter_desktop_shell.exe` and verify kernel connectivity (`/api/ping`, `/api/status`).
+5. If verification fails, revert to the previous backup and register incident notes.
+
+When a release is built with `scripts/build_windows_desktop_release.ps1`, a
+`ROLLBACK_CHECKLIST.txt` file is emitted alongside artifacts.
+
 ## Voice UX demo (Block 50.4A)
 
 - The app now includes a dark voice panel named `Voice loop surface`.

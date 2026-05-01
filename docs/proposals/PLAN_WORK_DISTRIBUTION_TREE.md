@@ -131,19 +131,19 @@ Use this fixed structure in each planning handoff:
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 - **Evidence (2026-04-30):** `DesktopVideoAdapter` + ws chat integration + non-finite/malformed guards with tests.
 
-**Bloque 50.4: Voice full-turn loop (STT -> core -> TTS) [IN PROGRESS ⚙️]**
+**Bloque 50.4: Voice full-turn loop (STT -> core -> TTS) [DONE ✅]**
 - **Goal:** End-to-end conversational loop with interruption safety and retry policy.
 - **Files:** desktop voice orchestration layer + test harness.
 - **Demo:** successful wake/utter/respond cycle and one controlled failure path.
 - **[POTENCIA SUGERIDA]:** C (Auto premium) for first pass; B once contracts stabilize.
-- **Progress (50.4A/50.4C):** Dark voice UX surface + backend status binding via `/api/status` (`voice_turn_state`, `voice_turn_state_at`).
+- **Evidence (50.4A/50.4C/50.4D):** Dark voice UX + backend status binding via `/api/status` (`voice_turn_state`, `voice_turn_state_at`) + explicit success/fallback transition tests.
 
-**Bloque 50.5: Commercial hardening for desktop [IN PROGRESS ⚙️]**
+**Bloque 50.5: Commercial hardening for desktop [DONE ✅]**
 - **Goal:** Packaging, auto-update strategy, telemetry minimum, and crash recovery.
 - **Files:** release scripts + runtime health instrumentation.
 - **Demo:** install -> run -> update smoke sequence on target desktop OS.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
-- **Progress (50.5A/50.5B, 2026-04-30):** Windows packaging baseline + hardened PowerShell build flow with checked command execution and release manifest.
+- **Evidence (50.5A/50.5B/50.5C, 2026-04-30):** Windows packaging baseline + hardened PowerShell build flow with checked command execution, artifact manifest, and rollback checklist generation.
 
 **Bloque 50.6: Freeze-lane maintenance for web/mobile [DONE ✅]**
 - **Goal:** Keep frozen platforms healthy without feature expansion.
@@ -157,7 +157,7 @@ Use this fixed structure in each planning handoff:
 - **Files:** `CONTEXT.md` + roadmap docs.
 - **Demo:** signed gate checklist with metrics from desktop production-like usage.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
-- **Evidence (2026-04-30):** Re-entry gates documented in `CONTEXT.md` and this roadmap section.
+- **Evidence (50.7A/50.7B):** Re-entry gates documented in `CONTEXT.md` + gate audit proofpack in `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

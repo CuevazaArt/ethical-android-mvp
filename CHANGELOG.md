@@ -48,6 +48,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **`scripts/build_windows_desktop_release.ps1`:** Hardened build flow with checked command invocation and clearer precondition failures.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Synchronized 50.x block status and formalized objective mobile/web re-entry gates.
 
+## [2026-04-30] Desktop migration closure pulse (50.4D/50.5C/50.7B)
+### Changed
+- **`tests/server/test_app_integration.py`:** Added explicit voice-state transition assertions for audio success (`responding`) and STT fallback (`mic_off`) via `/api/status`.
+- **`scripts/build_windows_desktop_release.ps1` + Flutter desktop docs:** Added rollback checklist artifact and documented rollback runbook.
+- **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`:** Added gate-audit proofpack table and marked G5 ops readiness PASS after local release build evidence.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Closed 50.4/50.5 as DONE and synchronized 50.x execution status.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

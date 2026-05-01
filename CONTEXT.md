@@ -35,8 +35,8 @@
 - **G5 Ops readiness:** Windows packaging + artifact manifest + rollback checklist validated.
 
 ### Desktop migration pulse status (50.x)
-- **Done:** 50.0 contract spine, 50.1 desktop shell, 50.2 audio slice, 50.3 video slice, 50.6 freeze lane, 50.7 re-entry gates.
-- **In progress:** 50.4 voice full-turn hardening, 50.5 commercial packaging hardening.
+- **Done:** 50.0 contract spine, 50.1 desktop shell, 50.2 audio slice, 50.3 video slice, 50.4 voice full-turn, 50.5 commercial packaging hardening, 50.6 freeze lane, 50.7 re-entry gates.
+- **Control artifact:** Gate audit proofpack tracked in `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`.
 
 ## Desktop Migration Progress (Block 50.1, 2026-04-30)
 
