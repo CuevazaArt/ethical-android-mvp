@@ -2958,3 +2958,13 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `CONTEXT.md`
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `tests/server/test_app_integration.py`
+
+### Execution (Swarm) | Date: 2026-04-30 22:39:15 | Author: Codex
+- **Block:** `100.4`
+- **Message:** Create active docs index and prune proposal index to authoritative set
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/INDEX.md`
+  - `docs/proposals/INDEX.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`

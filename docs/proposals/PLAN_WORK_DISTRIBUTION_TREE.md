@@ -291,18 +291,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** CI fails when critical desktop cycle contract breaks.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 100.4: Documentation pruning index and active set [PENDING]**
+**Bloque 100.4: Documentation pruning index and active set [DONE ✅]**
 - **Goal:** Define active-doc index and archive policy to reduce navigation entropy.
 - **Files:** `docs/INDEX.md` (new), `docs/proposals/INDEX.md`, archive pointers.
 - **Demo:** active documentation tree reduced to an explicit, auditable set.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
+**Bloque 100.5: Public naming and scope alignment pass [PENDING]**
+- **Goal:** Align public-facing naming and scope language with Flutter-first MVP reality.
+- **Files:** `README.md`, selected top-level docs with conflicting Android-primary claims.
+- **Demo:** no top-level active docs describe Android as the primary active product surface.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 100.4 — Documentation pruning index and active set
+[SIGUIENTE] Bloque 100.5 — Public naming and scope alignment pass
 [POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Reduce contributor and agent confusion from oversized documentation surface.
-[HECHO CUANDO] Active docs have a single index and non-active docs are clearly archived.
+[MOTIVO] Remove residual naming ambiguity between historical Android lane and current Flutter-first execution.
+[HECHO CUANDO] Top-level active docs consistently present Flutter desktop + Python kernel as the current MVP scope.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

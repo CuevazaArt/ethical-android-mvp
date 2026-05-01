@@ -29,6 +29,14 @@ All notable changes to this project are summarized here. For narrative context a
 - **`.github/workflows/ci.yml`:** Added a dedicated CI step in `desktop-gate-report` to run the desktop MVP status smoke test before generating gate artifacts.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.3` as done and advanced next prompt focus to `100.4`.
 
+## [2026-05-01] V2.100.4 — Active documentation index pruning
+### Added
+- **`docs/INDEX.md`:** New repository-level active documentation index defining authoritative docs and archive policy.
+
+### Changed
+- **`docs/proposals/INDEX.md`:** Reduced to active proposal-lane sources and explicit archive behavior.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.4` as done and advanced next prompt focus to `100.5`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
