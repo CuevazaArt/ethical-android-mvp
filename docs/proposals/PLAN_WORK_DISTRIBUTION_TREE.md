@@ -459,18 +459,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** first-run checklist now defines timed steps, pass/fail criteria, and rollback in one operator flow (<30 minutes).
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 103.5: Perception pilot evidence template [PENDING]**
+**Bloque 103.5: Perception pilot evidence template [DONE ✅]**
 - **Goal:** Define a compact evidence template for pilot runs (inputs, metrics, decision, incidents).
 - **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
-- **Demo:** operators can produce a repeatable pilot report with zero ambiguity.
+- **Demo:** evidence template now enforces mandatory sections and deterministic `GO`/`NO-GO` decision fields.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 103.6: Perception pilot readiness checkpoint [PENDING]**
+- **Goal:** Consolidate readiness artifacts (`103.3`-`103.5`) and declare pilot start gate.
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** checkpoint states exact entry conditions to run pilot-1 without further document drift.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 103.5 — Perception pilot evidence template
+[SIGUIENTE] Bloque 103.6 — Perception pilot readiness checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Ensure perception pilots leave consistent evidence before scaling hardware spend.
-[HECHO CUANDO] A reusable evidence template is documented with mandatory metrics and go/no-go decision fields.
+[MOTIVO] Freeze pilot preconditions before first hardware run and avoid ad-hoc procedure drift.
+[HECHO CUANDO] Readiness checkpoint explicitly confirms shortlist, checklist, and evidence template are all active.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

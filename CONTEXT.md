@@ -238,6 +238,21 @@
   5. **Rollback drill (3 min):** disable perception path and confirm return to transport-only diagnostics view.
 - Pilot is accepted only when all five stages complete with explicit PASS and no unresolved blocker.
 
+### Execution pulse 103.5 (perception pilot evidence template)
+
+- Standard evidence template for each pilot run:
+  1. **Run metadata:** date/time, operator, desktop profile, hardware IDs (mic/cam/headset).
+  2. **Input conditions:** room noise level (qualitative), lighting condition, desk distance, sample duration.
+  3. **Core metrics (mandatory):**
+     - capture disconnect count,
+     - dropped/invalid frame observations,
+     - operator-rated speech intelligibility (1-5),
+     - observed turn-latency envelope (within/outside target band),
+     - rollback success (`PASS`/`FAIL`).
+  4. **Incidents:** concise list of anomalies with timestamp and suspected trigger.
+  5. **Decision:** `GO`, `GO-WITH-CONSTRAINTS`, or `NO-GO`, plus next action owner.
+- Any pilot run without all five sections is considered invalid evidence for hardware scaling decisions.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -186,6 +186,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added one-operator, sub-30-minute perception pilot checklist with staged execution and pass/fail gates.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.4` as done and queued `103.5` pilot evidence template.
 
+## [2026-05-01] V2.103.5 — Perception pilot evidence template
+### Changed
+- **`CONTEXT.md`:** Added reusable pilot evidence template with mandatory metadata, metrics, incidents, and deterministic decision fields.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.5` as done and queued `103.6` readiness checkpoint.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
