@@ -37,6 +37,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/proposals/INDEX.md`:** Reduced to active proposal-lane sources and explicit archive behavior.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.4` as done and advanced next prompt focus to `100.5`.
 
+## [2026-05-01] V2.100.5 — Public naming and scope alignment (Flutter-first)
+### Changed
+- **`CONTRIBUTING.md`:** Replaced Android-centric validation section with a Flutter-first client validation policy and explicit frozen status for the legacy Android lane.
+- **`CONTRIBUTING.md`:** Normalized ethical invariants wording from “android” to “agent” to match current product scope language.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.5` as done and queued `100.6` readiness checkpoint.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

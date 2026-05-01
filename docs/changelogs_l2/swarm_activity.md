@@ -2968,3 +2968,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/INDEX.md`
   - `docs/proposals/INDEX.md`
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### Execution (Swarm) | Date: 2026-04-30 22:42:04 | Author: Codex
+- **Block:** `100.5`
+- **Message:** Align active docs language with Flutter-first MVP scope
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `CONTRIBUTING.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`

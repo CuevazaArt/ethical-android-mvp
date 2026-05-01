@@ -160,9 +160,17 @@ The CI workflow (`.github/workflows/ci.yml`) uses [`dorny/paths-filter@v3`](http
 
 When running swarm cycles (multiple agents producing micro-commits), **accumulate commits locally** and push once per cycle. This reduces CI runs from N× to 1×. A single validated push is better than five redundant ones.
 
-#### Android validation (current policy)
+#### Client validation policy (Flutter-first)
 
-Kotlin/Android code is validated by on-device **Gate tests** (`EthosKernelGate`, `PersistenceGate`, `JniGate`) running in the emulator or on real hardware. Android emulator CI jobs are deferred until Fase 25 due to cost (~15 min, requires `macos-latest` runner).
+The active product surface is the Flutter desktop shell. Primary validation is:
+
+- Backend CI quality gates (`ruff`, `mypy`, `pytest`).
+- Desktop contract smoke in CI (`tests/server/test_app_integration.py::test_desktop_mvp_status_contract_smoke`).
+- Operator-run Flutter MVP checkpoint documented in:
+  - `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
+  - `src/clients/flutter_desktop_shell/README.md`
+
+Legacy Kotlin/Android lane remains frozen for net-new features and only accepts security/health maintenance.
 
 
 ### Git tags (named checkpoints and events)
@@ -180,7 +188,7 @@ The suite under `tests/` includes `tests/test_ethical_properties.py` and integra
 - **Absolute Evil** is always blocked
 - The **same action** is chosen in ≥90% of runs with variability
 - **Human life** always takes priority over missions
-- The android **never** attacks aggressors nor accepts kidnapper orders
+- The agent **never** attacks aggressors nor accepts kidnapper orders
 - The **buffer** is immutable (8 principles, always active, weight 1.0)
 
 If your change breaks a test, fix the code, not the test.
@@ -194,7 +202,7 @@ If your change breaks a test, fix the code, not the test.
 ## Code of conduct
 
 This project follows a simple principle: the ethics we program
-into the android is the same ethics we practice among ourselves.
+into the agent is the same ethics we practice among ourselves.
 
 - Respect and compassion in every interaction
 - Transparency in technical decisions

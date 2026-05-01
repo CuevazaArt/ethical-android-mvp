@@ -35,7 +35,7 @@
 ## Active execution wave
 
 - **Wave:** V2.100.x — repository truth sync + hygiene + Flutter MVP depth.
-- **Completed now:** repository truth sync (`100.0`), tracked artifact hygiene (`100.1`), MVP checkpoint contract runbook (`100.2`), CI desktop status smoke gate (`100.3`), and active-doc index pruning (`100.4`).
+- **Completed now:** repository truth sync (`100.0`), tracked artifact hygiene (`100.1`), MVP checkpoint contract runbook (`100.2`), CI desktop status smoke gate (`100.3`), active-doc index pruning (`100.4`), and public naming/scope alignment (`100.5`).
 - **Validation basis:** CI + local reproducible checks; no manual “green” claims in docs.
 
 ## System references

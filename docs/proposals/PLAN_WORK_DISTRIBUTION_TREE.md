@@ -297,18 +297,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** active documentation tree reduced to an explicit, auditable set.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 100.5: Public naming and scope alignment pass [PENDING]**
+**Bloque 100.5: Public naming and scope alignment pass [DONE ✅]**
 - **Goal:** Align public-facing naming and scope language with Flutter-first MVP reality.
 - **Files:** `README.md`, selected top-level docs with conflicting Android-primary claims.
 - **Demo:** no top-level active docs describe Android as the primary active product surface.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
+**Bloque 100.6: CI observation and release-readiness checkpoint [PENDING]**
+- **Goal:** Confirm post-enmienda CI behavior and summarize release readiness after the 100.x corrective wave.
+- **Files:** GitHub Actions run status + `CONTEXT.md` pulse.
+- **Demo:** updated readiness snapshot referencing latest `main` validations.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 100.5 — Public naming and scope alignment pass
-[POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Remove residual naming ambiguity between historical Android lane and current Flutter-first execution.
-[HECHO CUANDO] Top-level active docs consistently present Flutter desktop + Python kernel as the current MVP scope.
+[SIGUIENTE] Bloque 100.6 — CI observation and release-readiness checkpoint
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Close the corrective wave with explicit verification pulse after merged 100.x actions.
+[HECHO CUANDO] Current `main` status and CI posture are documented as a single readiness checkpoint.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
