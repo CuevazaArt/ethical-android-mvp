@@ -2838,3 +2838,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `CHANGELOG.md`
   - `CONTEXT.md`
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+
+### Execution (Swarm) | Date: 2026-04-30 20:50:41 | Author: Cursor Codex
+- **Block:** `51.4`
+- **Message:** Add gate summary output to CI desktop gate report job
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`

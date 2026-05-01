@@ -70,6 +70,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`.github/workflows/ci.yml`:** Added conditional job `desktop-gate-report` to run `desktop_gate_runner.py` for G1/G2/G4 and upload JSON evidence as `desktop-gate-report` artifact.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Logged CI continuity step and closed block 51.3 with executable evidence path.
 
+## [2026-04-30] Re-entry gate summary in workflow UI (51.4)
+### Changed
+- **`.github/workflows/ci.yml`:** `desktop-gate-report` now writes a markdown PASS/FAIL table to `GITHUB_STEP_SUMMARY` for direct operator visibility in Actions runs.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Registered CI visibility follow-up and closed block 51.4.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

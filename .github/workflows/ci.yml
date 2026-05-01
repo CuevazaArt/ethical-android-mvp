@@ -204,6 +204,35 @@ jobs:
           python scripts/eval/desktop_gate_runner.py latency --samples docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl --target-p95-ms 2500 > gate-reports/g2-latency.json
           python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10 > gate-reports/g4-demo.json
 
+      - name: Publish gate summary
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          files = [
+              ("G1 Stability", "gate-reports/g1-stability.json"),
+              ("G2 Voice latency", "gate-reports/g2-latency.json"),
+              ("G4 Demo reliability", "gate-reports/g4-demo.json"),
+          ]
+          lines = [
+              "## Desktop Re-entry Gate Report",
+              "",
+              "| Gate | Status | Summary |",
+              "|---|---|---|",
+          ]
+          for label, path in files:
+              data = json.loads(Path(path).read_text(encoding="utf-8"))
+              status = "PASS" if data["passed"] else "FAIL"
+              lines.append(f"| {label} | {status} | {data['summary']} |")
+          summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_file:
+              Path(summary_file).write_text("\n".join(lines) + "\n", encoding="utf-8")
+          else:
+              print("\n".join(lines))
+          PY
+
       - name: Upload gate report artifact
         uses: actions/upload-artifact@v4
         if: always()

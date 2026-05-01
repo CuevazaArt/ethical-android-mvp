@@ -183,6 +183,12 @@ Use this fixed structure in each planning handoff:
 - **Demo:** CI job `desktop-gate-report` uploads `desktop-gate-report` artifact with G1/G2/G4 JSON outputs.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 51.4: CI gate summary visibility [DONE ✅]**
+- **Goal:** Surface G1/G2/G4 pass-fail summary directly in workflow run UI.
+- **Files:** `.github/workflows/ci.yml`.
+- **Demo:** `desktop-gate-report` writes markdown table to `GITHUB_STEP_SUMMARY`.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.
