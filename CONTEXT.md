@@ -38,6 +38,17 @@
 - **Completed now:** repository truth sync (`100.0`), tracked artifact hygiene (`100.1`), MVP checkpoint contract runbook (`100.2`), CI desktop status smoke gate (`100.3`), active-doc index pruning (`100.4`), and public naming/scope alignment (`100.5`).
 - **Validation basis:** CI + local reproducible checks; no manual “green” claims in docs.
 
+### Execution pulse 100.6 (readiness checkpoint)
+
+- Latest merged blocks: `100.1` to `100.5` on `main`.
+- CI observation after corrective wave:
+  - `100.4` CI run: `success`.
+  - `100.5` CI run: `queued` at observation time.
+  - Prior `100.3` run remained `in_progress` at observation time.
+- Readiness interpretation:
+  - corrective wave is integrated and synchronized on `main`;
+  - closure tagging should wait for queued/in-progress CI runs to settle green.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

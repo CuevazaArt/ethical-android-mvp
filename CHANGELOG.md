@@ -43,6 +43,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTRIBUTING.md`:** Normalized ethical invariants wording from “android” to “agent” to match current product scope language.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked block `100.5` as done and queued `100.6` readiness checkpoint.
 
+## [2026-05-01] V2.100.6 — CI observation and readiness checkpoint
+### Changed
+- **`CONTEXT.md`:** Added execution pulse `100.6` summarizing post-corrective-wave CI posture and readiness interpretation.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `100.6` as done and queued `100.7` final closure/tag recommendation pulse.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

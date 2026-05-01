@@ -303,18 +303,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** no top-level active docs describe Android as the primary active product surface.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 100.6: CI observation and release-readiness checkpoint [PENDING]**
+**Bloque 100.6: CI observation and release-readiness checkpoint [DONE ✅]**
 - **Goal:** Confirm post-enmienda CI behavior and summarize release readiness after the 100.x corrective wave.
 - **Files:** GitHub Actions run status + `CONTEXT.md` pulse.
 - **Demo:** updated readiness snapshot referencing latest `main` validations.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 100.7: Final closure pulse and tag recommendation [PENDING]**
+- **Goal:** Publish final closure pulse for the corrective wave and recommend release tag criteria.
+- **Files:** `CONTEXT.md`, `CHANGELOG.md`.
+- **Demo:** closure criteria and tag recommendation documented after CI stabilization.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 100.6 — CI observation and release-readiness checkpoint
+[SIGUIENTE] Bloque 100.7 — Final closure pulse and tag recommendation
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Close the corrective wave with explicit verification pulse after merged 100.x actions.
-[HECHO CUANDO] Current `main` status and CI posture are documented as a single readiness checkpoint.
+[MOTIVO] Consolidate closure criteria and release tagging decision after the 100.x corrective wave.
+[HECHO CUANDO] Closure pulse and tag recommendation are documented with objective pass conditions.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
