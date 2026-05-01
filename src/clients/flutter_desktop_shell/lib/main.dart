@@ -64,6 +64,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   VoiceUiState _voiceUiState = VoiceUiState.micOff;
   String _voiceEventSource = 'placeholder';
   DateTime? _lastVoiceStateAt;
+  bool _payloadHasFocus = false;
 
   Uri get _pingUri => Uri.parse('$_defaultKernelUrl/api/ping');
   Uri get _statusUri => Uri.parse('$_defaultKernelUrl/api/status');
@@ -356,6 +357,39 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             const SizedBox(height: 14),
             _ConnectionBadge(data: badge),
             const SizedBox(height: 14),
+            Text(
+              'Connection states',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _ConnectionBadge(
+                  data: _statusBadgeForState(
+                    KernelConnectionState.connected,
+                    theme,
+                  ),
+                ),
+                _ConnectionBadge(
+                  data: _statusBadgeForState(
+                    KernelConnectionState.retrying,
+                    theme,
+                  ),
+                ),
+                _ConnectionBadge(
+                  data: _statusBadgeForState(
+                    KernelConnectionState.offline,
+                    theme,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             _statusRow('Kernel URL', _defaultKernelUrl),
             const SizedBox(height: 10),
             _statusRow('Connection', badge.label),
@@ -409,20 +443,41 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                 decoration: BoxDecoration(
                   color: const Color(0xFF0B0F14),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                  border: Border.all(
+                    color: _payloadHasFocus
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outlineVariant,
+                    width: _payloadHasFocus ? 1.4 : 1,
+                  ),
                 ),
-                child: Scrollbar(
-                  controller: _payloadScrollController,
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    controller: _payloadScrollController,
-                    padding: const EdgeInsets.all(14),
-                    child: SelectableText(
-                      payloadText,
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 13,
-                        height: 1.35,
+                child: Focus(
+                  onFocusChange: (bool hasFocus) {
+                    if (!mounted) {
+                      return;
+                    }
+                    setState(() {
+                      _payloadHasFocus = hasFocus;
+                    });
+                  },
+                  child: Semantics(
+                    label: 'Health JSON payload panel',
+                    hint: 'Scrollable and selectable status payload',
+                    textField: true,
+                    readOnly: true,
+                    child: Scrollbar(
+                      controller: _payloadScrollController,
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        controller: _payloadScrollController,
+                        padding: const EdgeInsets.all(14),
+                        child: SelectableText(
+                          payloadText,
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 13,
+                            height: 1.35,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -516,15 +571,23 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton.icon(
-                  onPressed: _advanceVoicePlaceholder,
-                  icon: const Icon(Icons.skip_next_rounded, size: 16),
-                  label: const Text('Next state'),
+                Tooltip(
+                  message: 'Cycle voice machine state placeholder',
+                  child: FilledButton.icon(
+                    onPressed: _advanceVoicePlaceholder,
+                    style: _voiceActionButtonStyle(theme),
+                    icon: const Icon(Icons.skip_next_rounded, size: 16),
+                    label: const Text('Next state'),
+                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: _resetVoicePlaceholder,
-                  icon: const Icon(Icons.restart_alt_rounded, size: 16),
-                  label: const Text('Reset'),
+                Tooltip(
+                  message: 'Reset voice machine state to mic off',
+                  child: OutlinedButton.icon(
+                    onPressed: _resetVoicePlaceholder,
+                    style: _voiceActionButtonStyle(theme),
+                    icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                    label: const Text('Reset'),
+                  ),
                 ),
               ],
             ),
@@ -595,6 +658,24 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     }
   }
 
+  ButtonStyle _voiceActionButtonStyle(ThemeData theme) {
+    return ButtonStyle(
+      side: WidgetStateProperty.resolveWith<BorderSide?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.focused)) {
+          return BorderSide(color: theme.colorScheme.primary, width: 1.5);
+        }
+        if (states.contains(WidgetState.hovered)) {
+          return BorderSide(
+            color: theme.colorScheme.primary.withValues(alpha: 0.7),
+          );
+        }
+        return BorderSide(color: theme.colorScheme.outlineVariant);
+      }),
+    );
+  }
+
   Widget _statusRow(String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -647,28 +728,31 @@ class _ConnectionBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: data.bgColor,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: data.textColor.withValues(alpha: 0.35)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.circle, size: 10, color: data.textColor),
-            const SizedBox(width: 8),
-            Text(
-              data.label,
-              style: TextStyle(
-                color: data.textColor,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
+    return Semantics(
+      label: 'Connection status ${data.label}',
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: data.bgColor,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: data.textColor.withValues(alpha: 0.35)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.circle, size: 10, color: data.textColor),
+              const SizedBox(width: 8),
+              Text(
+                data.label,
+                style: TextStyle(
+                  color: data.textColor,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

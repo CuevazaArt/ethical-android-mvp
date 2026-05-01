@@ -45,3 +45,86 @@ flutter run -d windows --dart-define=KERNEL_BASE_URL=http://127.0.0.1:8000
   - `voice_ui -> listening (placeholder)`
   - `voice_ui -> transcribing (placeholder)`
   - `voice_ui -> responding (placeholder)`
+
+## Windows Packaging Baseline (Block 50.5A)
+
+Windows-first reproducible release flow is now standardized through:
+
+- Script: `scripts/build_windows_desktop_release.ps1`
+- App module: `src/clients/flutter_desktop_shell`
+- Output baseline: `dist/desktop/windows`
+
+### Reproducible build (release)
+
+From repository root (PowerShell):
+
+```powershell
+.\scripts\build_windows_desktop_release.ps1
+```
+
+Optional flags:
+
+```powershell
+.\scripts\build_windows_desktop_release.ps1 -SkipClean
+.\scripts\build_windows_desktop_release.ps1 -OutDir "dist/desktop/windows_candidate"
+```
+
+What the script does:
+
+1. Verifies `flutter` exists in `PATH`.
+2. Runs `flutter --version`.
+3. Runs app prep and validation:
+   - `flutter clean` (unless `-SkipClean`)
+   - `flutter pub get`
+   - `flutter test`
+   - `flutter build windows --release`
+4. Copies runner release payload into `dist/desktop/windows`.
+5. Writes `ARTIFACTS.txt` with expected files and launch hint.
+
+### Expected artifacts registry
+
+After a successful build, expect these artifacts under `dist/desktop/windows`:
+
+- `flutter_desktop_shell.exe`
+- `data/` directory (Flutter assets, `icudtl.dat`, runtime assets)
+- `flutter_windows.dll`
+- Runtime DLLs (`vcruntime*.dll`, `msvcp*.dll`) depending on machine/runtime
+- `ARTIFACTS.txt` (generated build manifest)
+
+### Smoke checklist (install / run / update)
+
+Manual operator checklist for Windows baseline validation:
+
+1. **Install baseline**
+   - Copy `dist/desktop/windows` to a clean machine folder, for example `C:\EthosDesktop`.
+2. **Run baseline**
+   - Launch backend:
+     - `uvicorn src.server.app:app --host 127.0.0.1 --port 8000`
+   - Launch app:
+     - `C:\EthosDesktop\flutter_desktop_shell.exe`
+3. **Startup smoke**
+   - Verify app opens without crash.
+   - Verify status eventually reaches `Connected`.
+   - Verify payload panel renders `/api/status` JSON.
+4. **Transport resilience smoke**
+   - Stop backend temporarily.
+   - Verify UI state moves to retry behavior (`Retrying` / `Offline`) without app crash.
+   - Restart backend and verify auto-recovery to `Connected`.
+5. **Manual update smoke**
+   - Build a new release with the script.
+   - Replace old app folder with new `dist/desktop/windows` payload.
+   - Relaunch app and repeat startup smoke to confirm update viability.
+
+### Operational notes
+
+- This baseline is intentionally manual-first (no installer/updater automation yet).
+- Keep `KERNEL_BASE_URL` defaulted to `http://127.0.0.1:8000` unless operator topology requires override.
+- Do not alter backend contracts during packaging iterations.
+
+## Dark Theme QA + Accessibility Checklist (Block 50.1C)
+
+- Contrast pass for dark cards, badges, and status text in `Connected`, `Retrying`, and `Offline`.
+- Connection badges expose semantic labels (`Connection status ...`) for assistive technologies.
+- Health payload panel is marked as a readable/scrollable semantic region with visible focus border.
+- Voice action buttons include tooltip hints and visible keyboard focus state.
+- Widget tests cover dark-shell baseline and key voice-state transitions.

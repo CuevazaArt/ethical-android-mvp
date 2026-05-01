@@ -18,6 +18,9 @@ void main() {
     expect(find.text('Ethos Desktop Shell'), findsOneWidget);
     expect(find.text('Offline'), findsWidgets);
     expect(find.text('Transport disabled for tests.'), findsOneWidget);
+    expect(find.text('Connection states'), findsOneWidget);
+    expect(find.text('Connected'), findsWidgets);
+    expect(find.text('Retrying'), findsWidgets);
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
     expect(find.text('Next state'), findsOneWidget);

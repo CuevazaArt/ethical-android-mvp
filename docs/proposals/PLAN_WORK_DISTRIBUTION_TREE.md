@@ -139,6 +139,7 @@ Use this fixed structure in each planning handoff:
 - **Files:** release scripts + runtime health instrumentation.
 - **Demo:** install -> run -> update smoke sequence on target desktop OS.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+- **Progress (50.5A, 2026-04-30):** Windows packaging baseline script and manual smoke checklist documented (`scripts/build_windows_desktop_release.ps1`, `src/clients/flutter_desktop_shell/README.md`).
 
 **Bloque 50.6: Freeze-lane maintenance for web/mobile [PENDING]**
 - **Goal:** Keep frozen platforms healthy without feature expansion.

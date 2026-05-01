@@ -2797,3 +2797,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/clients/flutter_desktop_shell/README.md`
   - `src/clients/flutter_desktop_shell/lib/main.dart`
   - `src/clients/flutter_desktop_shell/test/widget_test.dart`
+
+### Execution (Swarm) | Date: 2026-04-30 20:09:01 | Author: Anonymous Agent
+- **Block:** `50.1C`
+- **Message:** Dark theme QA/accessibility pass completado
+- **Files Modified:**
+  - `scripts/build_windows_desktop_release.ps1`
+  - `src/clients/flutter_desktop_shell/README.md`
+  - `src/clients/flutter_desktop_shell/lib/main.dart`
+  - `src/clients/flutter_desktop_shell/test/widget_test.dart`
