@@ -17,11 +17,12 @@ function Ensure-Command([string]$name) {
     }
 }
 
-function Run-Or-Throw([string]$command) {
-    Write-Host "[cmd] $command" -ForegroundColor DarkGray
-    Invoke-Expression $command
+function Invoke-Checked([string]$exe, [string[]]$cliArgs) {
+    $rendered = "$exe " + ($cliArgs -join " ")
+    Write-Host "[cmd] $rendered" -ForegroundColor DarkGray
+    & $exe @cliArgs
     if ($LASTEXITCODE -ne 0) {
-        throw "Command failed (exit=$LASTEXITCODE): $command"
+        throw "Command failed (exit=$LASTEXITCODE): $rendered"
     }
 }
 
@@ -31,19 +32,22 @@ Ensure-Command "flutter"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $appPath = Resolve-Path (Join-Path $repoRoot $AppDir)
 $outPath = Join-Path $repoRoot $OutDir
+if (-not (Test-Path $appPath)) {
+    throw "Flutter app directory not found: $appPath"
+}
 
 Step "Tool versions"
-Run-Or-Throw "flutter --version"
+Invoke-Checked "flutter" @("--version")
 
 Step "Preparing Flutter desktop app"
 Push-Location $appPath
 try {
     if (-not $SkipClean) {
-        Run-Or-Throw "flutter clean"
+        Invoke-Checked "flutter" @("clean")
     }
-    Run-Or-Throw "flutter pub get"
-    Run-Or-Throw "flutter test"
-    Run-Or-Throw "flutter build windows --release"
+    Invoke-Checked "flutter" @("pub", "get")
+    Invoke-Checked "flutter" @("test")
+    Invoke-Checked "flutter" @("build", "windows", "--release")
 }
 finally {
     Pop-Location

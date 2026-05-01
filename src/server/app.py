@@ -77,6 +77,15 @@ NOMAD_DIR = (
 _start_time = time.time()
 _last_latency: dict | None = None  # V2.19: Store last latency globally
 _sleep_daemon = PsiSleepDaemon(idle_threshold_seconds=120)  # V2.76: Psi-Sleep
+_voice_turn_state = "mic_off"
+_voice_turn_state_at = time.time()
+
+
+def _set_voice_turn_state(state: str) -> None:
+    """Track coarse voice-loop state for desktop status polling."""
+    global _voice_turn_state, _voice_turn_state_at
+    _voice_turn_state = state
+    _voice_turn_state_at = time.time()
 
 
 @app.on_event("startup")
@@ -162,6 +171,7 @@ async def api_audio_perception(request: Request):
         )
         return JSONResponse(envelope, status_code=400)
 
+    _set_voice_turn_state("transcribing")
     transcript = await transcribe_pcm(
         pcm_bytes,
         sample_rate=parsed.sample_rate_hz,
@@ -169,6 +179,7 @@ async def api_audio_perception(request: Request):
     latency_ms = safe_latency_ms(t0)
 
     if transcript is None:
+        _set_voice_turn_state("mic_off")
         envelope = build_error_envelope(
             request_payload=parsed.request_payload,
             error=ContractError(
@@ -195,6 +206,7 @@ async def api_audio_perception(request: Request):
         confidence=confidence,
         latency_ms=latency_ms,
     )
+    _set_voice_turn_state("responding")
     _log.info(
         "[AUDIO_PERCEPTION] ok | sample_rate=%sHz | bytes=%s | latency_ms=%.2f",
         parsed.sample_rate_hz,
@@ -250,6 +262,8 @@ async def api_status():
             "status": "online",
             "stt_available": stt_available(),
             "last_latency_ms": _last_latency,
+            "voice_turn_state": _voice_turn_state,
+            "voice_turn_state_at": _voice_turn_state_at,
         }
     )
 
@@ -644,10 +658,12 @@ async def websocket_nomad(websocket: WebSocket):
                     # V2.60: Immediate flush — fuse with concurrent vision, zero delay
                     text = msg.get("text", "").strip()
                     if text:
+                        _set_voice_turn_state("transcribing")
                         _last_user_interaction = time.time()
                         fused = sensory_buffer.add_and_flush("audio", text)
                         if fused:
                             _log.info("[FUSION/SPEECH] %s", fused[:120])
+                            _set_voice_turn_state("responding")
                             await _run_turn_and_send(
                                 engine,
                                 websocket,
@@ -697,12 +713,14 @@ async def websocket_nomad(websocket: WebSocket):
                         b64 = (msg.get("payload") or {}).get("audio_b64", "")
                         if b64:
                             try:
+                                _set_voice_turn_state("transcribing")
                                 pcm_bytes = base64.b64decode(b64)
                                 text = await transcribe_pcm(pcm_bytes)
                                 if text:
                                     fused = sensory_buffer.add_and_flush("audio", text)
                                     if fused:
                                         _log.info("[FUSION/WHISPER] %s", fused[:120])
+                                        _set_voice_turn_state("responding")
                                         await _run_turn_and_send(
                                             engine,
                                             websocket,
@@ -711,6 +729,7 @@ async def websocket_nomad(websocket: WebSocket):
                                             label="Fusion",
                                         )
                             except Exception as e:
+                                _set_voice_turn_state("mic_off")
                                 _log.warning("audio_pcm transcription error: %s", e)
 
                 elif msg_type == "vad_event":

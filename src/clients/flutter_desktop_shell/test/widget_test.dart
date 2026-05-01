@@ -23,31 +23,23 @@ void main() {
     expect(find.text('Retrying'), findsWidgets);
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
-    expect(find.text('Next state'), findsOneWidget);
+    expect(find.text('Waiting for backend to emit voice_turn_state.'), findsOneWidget);
     expect(find.text('Health payload'), findsOneWidget);
     expect(find.text('Waiting for /api/status payload...'), findsOneWidget);
   });
 
-  testWidgets('voice panel cycles machine states with placeholder control', (
+  testWidgets('voice panel shows backend binding status text', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
-
-    final Finder nextStateButton = find.text('Next state');
-    expect(find.text('Mic off'), findsWidgets);
-    await tester.ensureVisible(nextStateButton);
-    await tester.pumpAndSettle();
-
-    await tester.tap(nextStateButton);
-    await tester.pump();
-    expect(find.text('Listening'), findsWidgets);
-
-    await tester.tap(nextStateButton);
-    await tester.pump();
-    expect(find.text('Transcribing'), findsWidgets);
-
-    await tester.tap(nextStateButton);
-    await tester.pump();
-    expect(find.text('Responding'), findsWidgets);
+    expect(find.text('Voice source:'), findsOneWidget);
+    expect(
+      find.text('fallback (waiting for backend voice state)'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Waiting for backend to emit voice_turn_state.'),
+      findsOneWidget,
+    );
   });
 }

@@ -34,6 +34,33 @@ flutter run -d windows --dart-define=KERNEL_BASE_URL=http://127.0.0.1:8000
 4. Stop backend for a few seconds and restart it:
    - App shows `retrying` and reconnects automatically without crash.
 
+## Voice state binding (50.4C)
+
+The desktop UI now reads backend voice state from `/api/status`:
+
+- `voice_turn_state` (`mic_off`, `listening`, `transcribing`, `responding`)
+- `voice_turn_state_at` (epoch timestamp)
+
+When the backend exposes these fields, the Voice panel switches from fallback mode
+to server-bound mode automatically.
+
+## Windows packaging baseline (50.5B)
+
+From repository root:
+
+```powershell
+pwsh -File scripts/build_windows_desktop_release.ps1
+```
+
+Common options:
+
+```powershell
+pwsh -File scripts/build_windows_desktop_release.ps1 -SkipClean
+pwsh -File scripts/build_windows_desktop_release.ps1 -OutDir dist/desktop/windows
+```
+
+The script writes release artifacts and `ARTIFACTS.txt` manifest into the output directory.
+
 ## Voice UX demo (Block 50.4A)
 
 - The app now includes a dark voice panel named `Voice loop surface`.

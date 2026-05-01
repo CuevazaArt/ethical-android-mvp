@@ -67,6 +67,8 @@ def test_api_status_returns_all_fields():
             "identity_profile",
             "last_latency_ms",
             "stt_available",
+            "voice_turn_state",
+            "voice_turn_state_at",
         ):
             assert field in data, f"Missing field: {field}"
         assert data["status"] == "online"

@@ -27,6 +27,17 @@
 - **Non-negotiable architecture rule:** `src/core/` remains platform-agnostic and is the only business-logic authority.
 - **Re-entry condition:** Mobile/web expansion resumes only when desktop readiness gates (stability, latency, demo reliability, packaging) are met and documented.
 
+### Re-entry gates (mobile/web reopen)
+- **G1 Stability:** 14 consecutive days without critical desktop crash in smoke cycle.
+- **G2 Voice latency:** p95 full voice turn under 2500 ms on target desktop hardware.
+- **G3 Contract no-drift:** 0 failures in freeze-lane envelope checks for one calendar month.
+- **G4 Demo reliability:** 10/10 successful scripted demos across audio/video/voice.
+- **G5 Ops readiness:** Windows packaging + artifact manifest + rollback checklist validated.
+
+### Desktop migration pulse status (50.x)
+- **Done:** 50.0 contract spine, 50.1 desktop shell, 50.2 audio slice, 50.3 video slice, 50.6 freeze lane, 50.7 re-entry gates.
+- **In progress:** 50.4 voice full-turn hardening, 50.5 commercial packaging hardening.
+
 ## Desktop Migration Progress (Block 50.1, 2026-04-30)
 
 - **Status:** CLOSED ✅

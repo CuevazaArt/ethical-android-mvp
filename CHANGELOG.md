@@ -41,6 +41,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Replaced template counter test with desktop-shell render smoke test.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked block 50.1 as done and attached execution evidence.
 
+## [2026-04-30] Desktop migration pulse — coherence + hardening (50.4C/50.5B/50.6B/50.7A)
+### Changed
+- **`src/server/app.py`:** Exposes backend voice loop status in `GET /api/status` (`voice_turn_state`, `voice_turn_state_at`) and updates state transitions in audio ingestion paths.
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Voice panel now binds to backend status payload and shows fallback mode when server state is unavailable (manual placeholder controls removed).
+- **`scripts/build_windows_desktop_release.ps1`:** Hardened build flow with checked command invocation and clearer precondition failures.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Synchronized 50.x block status and formalized objective mobile/web re-entry gates.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

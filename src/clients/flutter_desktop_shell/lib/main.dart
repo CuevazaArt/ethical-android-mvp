@@ -64,6 +64,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   VoiceUiState _voiceUiState = VoiceUiState.micOff;
   String _voiceEventSource = 'placeholder';
   DateTime? _lastVoiceStateAt;
+  bool _hasServerVoiceState = false;
   bool _payloadHasFocus = false;
 
   Uri get _pingUri => Uri.parse('$_defaultKernelUrl/api/ping');
@@ -187,8 +188,18 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         _voiceUiState = parsed;
         _voiceEventSource = 'server';
         _lastVoiceStateAt = DateTime.now();
+        _hasServerVoiceState = true;
       });
       return;
+    }
+
+    if (_hasServerVoiceState) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _hasServerVoiceState = false;
+      });
     }
 
     if (!sttAvailable && _voiceUiState != VoiceUiState.micOff) {
@@ -222,34 +233,6 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       default:
         return null;
     }
-  }
-
-  void _advanceVoicePlaceholder() {
-    const List<VoiceUiState> cycle = <VoiceUiState>[
-      VoiceUiState.micOff,
-      VoiceUiState.listening,
-      VoiceUiState.transcribing,
-      VoiceUiState.responding,
-    ];
-    final int currentIndex = cycle.indexOf(_voiceUiState);
-    final int nextIndex = currentIndex == -1
-        ? 0
-        : (currentIndex + 1) % cycle.length;
-    setState(() {
-      _voiceUiState = cycle[nextIndex];
-      _voiceEventSource = 'placeholder';
-      _lastVoiceStateAt = DateTime.now();
-    });
-    _log('voice_ui -> ${_voiceUiState.name} (placeholder)');
-  }
-
-  void _resetVoicePlaceholder() {
-    setState(() {
-      _voiceUiState = VoiceUiState.micOff;
-      _voiceEventSource = 'placeholder';
-      _lastVoiceStateAt = DateTime.now();
-    });
-    _log('voice_ui -> ${_voiceUiState.name} (placeholder reset)');
   }
 
   @override
@@ -559,7 +542,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   ? 'server event'
                   : _voiceEventSource == 'health_fallback'
                   ? 'health fallback (stt unavailable)'
-                  : 'placeholder (manual cycle)',
+                  : 'fallback (waiting for backend voice state)',
             ),
             const SizedBox(height: 8),
             _statusRow(
@@ -567,26 +550,26 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               _lastVoiceStateAt?.toIso8601String() ?? 'never',
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Row(
               children: [
-                Tooltip(
-                  message: 'Cycle voice machine state placeholder',
-                  child: FilledButton.icon(
-                    onPressed: _advanceVoicePlaceholder,
-                    style: _voiceActionButtonStyle(theme),
-                    icon: const Icon(Icons.skip_next_rounded, size: 16),
-                    label: const Text('Next state'),
-                  ),
+                Icon(
+                  _hasServerVoiceState
+                      ? Icons.cloud_done_rounded
+                      : Icons.cloud_off_rounded,
+                  size: 16,
+                  color: _hasServerVoiceState
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
                 ),
-                Tooltip(
-                  message: 'Reset voice machine state to mic off',
-                  child: OutlinedButton.icon(
-                    onPressed: _resetVoicePlaceholder,
-                    style: _voiceActionButtonStyle(theme),
-                    icon: const Icon(Icons.restart_alt_rounded, size: 16),
-                    label: const Text('Reset'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _hasServerVoiceState
+                        ? 'Voice state is bound to backend status payload.'
+                        : 'Waiting for backend to emit voice_turn_state.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -656,24 +639,6 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           accent: theme.colorScheme.tertiary,
         );
     }
-  }
-
-  ButtonStyle _voiceActionButtonStyle(ThemeData theme) {
-    return ButtonStyle(
-      side: WidgetStateProperty.resolveWith<BorderSide?>((
-        Set<WidgetState> states,
-      ) {
-        if (states.contains(WidgetState.focused)) {
-          return BorderSide(color: theme.colorScheme.primary, width: 1.5);
-        }
-        if (states.contains(WidgetState.hovered)) {
-          return BorderSide(
-            color: theme.colorScheme.primary.withValues(alpha: 0.7),
-          );
-        }
-        return BorderSide(color: theme.colorScheme.outlineVariant);
-      }),
-    );
   }
 
   Widget _statusRow(String label, String value) {

@@ -103,11 +103,12 @@ Use this fixed structure in each planning handoff:
 
 ## 🧩 BACKLOG ABIERTO: DESKTOP MIGRATION WAVE (Swarm-ready)
 
-**Bloque 50.0: Contract spine for desktop migration [PENDING]**
+**Bloque 50.0: Contract spine for desktop migration [DONE ✅]**
 - **Goal:** Define canonical contracts for `audio_perception`, `video_perception`, and `voice_turn` with error envelopes and latency telemetry.
 - **Files:** `docs/architecture/`, `src/core/` interfaces only if required.
 - **Demo:** contract validation test + example payload fixtures.
 - **[POTENCIA SUGERIDA]:** C (Auto premium) — architecture contract quality determines all downstream work.
+- **Evidence (2026-04-30):** `docs/architecture/DESKTOP_CONTRACT_SPINE_V1.md` + contract fixtures and validation tests integrated.
 
 **Bloque 50.1: Flutter desktop shell + kernel transport [DONE ✅]**
 - **Goal:** Bootstrap Flutter desktop app shell with resilient connection to existing kernel server.
@@ -116,42 +117,54 @@ Use this fixed structure in each planning handoff:
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 - **Evidence (2026-04-30):** New module `src/clients/flutter_desktop_shell` starts on desktop, reaches `/api/ping` + `/api/status`, and recovers after server restart with bounded retry backoff.
 
-**Bloque 50.2: Audio perception vertical slice [PENDING]**
+**Bloque 50.2: Audio perception vertical slice [DONE ✅]**
 - **Goal:** Desktop microphone capture -> kernel perception endpoint -> UI feedback with latency.
 - **Files:** desktop audio adapter + integration boundary tests.
 - **Demo:** reproducible log with bounded latency and graceful fallback on missing devices.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+- **Evidence (2026-04-30):** `/api/perception/audio` contract endpoint with success/fallback envelopes and integration tests.
 
-**Bloque 50.3: Video perception vertical slice [PENDING]**
+**Bloque 50.3: Video perception vertical slice [DONE ✅]**
 - **Goal:** Desktop camera frame pipeline -> kernel vision context -> UI state update.
 - **Files:** desktop video adapter + core boundary validation.
 - **Demo:** one deterministic scenario with motion/faces rendering and finite metric guards.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+- **Evidence (2026-04-30):** `DesktopVideoAdapter` + ws chat integration + non-finite/malformed guards with tests.
 
-**Bloque 50.4: Voice full-turn loop (STT -> core -> TTS) [PENDING]**
+**Bloque 50.4: Voice full-turn loop (STT -> core -> TTS) [IN PROGRESS ⚙️]**
 - **Goal:** End-to-end conversational loop with interruption safety and retry policy.
 - **Files:** desktop voice orchestration layer + test harness.
 - **Demo:** successful wake/utter/respond cycle and one controlled failure path.
 - **[POTENCIA SUGERIDA]:** C (Auto premium) for first pass; B once contracts stabilize.
+- **Progress (50.4A/50.4C):** Dark voice UX surface + backend status binding via `/api/status` (`voice_turn_state`, `voice_turn_state_at`).
 
-**Bloque 50.5: Commercial hardening for desktop [PENDING]**
+**Bloque 50.5: Commercial hardening for desktop [IN PROGRESS ⚙️]**
 - **Goal:** Packaging, auto-update strategy, telemetry minimum, and crash recovery.
 - **Files:** release scripts + runtime health instrumentation.
 - **Demo:** install -> run -> update smoke sequence on target desktop OS.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
-- **Progress (50.5A, 2026-04-30):** Windows packaging baseline script and manual smoke checklist documented (`scripts/build_windows_desktop_release.ps1`, `src/clients/flutter_desktop_shell/README.md`).
+- **Progress (50.5A/50.5B, 2026-04-30):** Windows packaging baseline + hardened PowerShell build flow with checked command execution and release manifest.
 
-**Bloque 50.6: Freeze-lane maintenance for web/mobile [PENDING]**
+**Bloque 50.6: Freeze-lane maintenance for web/mobile [DONE ✅]**
 - **Goal:** Keep frozen platforms healthy without feature expansion.
 - **Files:** smoke tests, dependency maintenance notes, CI health checks.
 - **Demo:** monthly smoke matrix with pass/fail report.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+- **Evidence (2026-04-30):** freeze matrix + fixture-driven schema guardrails (`tests/test_freeze_lane_guardrails.py`).
 
-**Bloque 50.7: Re-entry plan to mobile/web [PENDING]**
+**Bloque 50.7: Re-entry plan to mobile/web [DONE ✅]**
 - **Goal:** Define objective readiness gates for reopening mobile and web feature work.
 - **Files:** `CONTEXT.md` + roadmap docs.
 - **Demo:** signed gate checklist with metrics from desktop production-like usage.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+- **Evidence (2026-04-30):** Re-entry gates documented in `CONTEXT.md` and this roadmap section.
+
+### Re-entry gates (authoritative checklist)
+- **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
+- **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.
+- **Gate G3 (contract discipline):** 0 schema drift findings in freeze-lane contract checks for one full month.
+- **Gate G4 (demo reliability):** 10/10 successful scripted demos (audio + video + voice) under operator checklist.
+- **Gate G5 (ops readiness):** reproducible packaging flow + release manifest + rollback instructions validated.
 
 ---
 
