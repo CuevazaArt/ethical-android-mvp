@@ -405,18 +405,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics events now render deterministic severity badges (`HIGH`, `MED`, `LOW`) from message heuristics.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 102.3: Flutter diagnostics wave checkpoint [PENDING]**
+**Bloque 102.3: Flutter diagnostics wave checkpoint [DONE ✅]**
 - **Goal:** Record a concise checkpoint after severity rollout and confirm no regressions.
 - **Files:** `CONTEXT.md`, `CHANGELOG.md`, plan handoff line.
-- **Demo:** checkpoint pulse reflects implemented slices and current validation posture.
+- **Demo:** checkpoint now captures local validation posture (`flutter test`, collaboration invariants) after severity rollout.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 102.4: Flutter diagnostics severity filter toggle [PENDING]**
+- **Goal:** Add optional severity filter chips (`All`, `High`, `Med`, `Low`) to narrow incident triage quickly.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** diagnostics list can be filtered by severity without backend coupling.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 102.3 — Flutter diagnostics wave checkpoint
+[SIGUIENTE] Bloque 102.4 — Flutter diagnostics severity filter toggle
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Consolidate the diagnostics export+severity wave before opening another feature slice.
-[HECHO CUANDO] Checkpoint is documented with current local/CI validation status.
+[MOTIVO] Let operators focus only urgent diagnostics events during noisy retry windows.
+[HECHO CUANDO] Severity filter chips deterministically change the visible diagnostics list and tests cover baseline behavior.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
