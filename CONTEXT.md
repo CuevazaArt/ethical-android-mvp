@@ -97,6 +97,12 @@
 - Added explicit deterministic feedback line after payload action (success/fallback message).
 - No backend contract changes; improvement remains UI-only on active surface.
 
+### Execution pulse 101.3 (diagnostics timeline)
+
+- Added `Diagnostics timeline` card to Flutter shell for recent local transport/UI events.
+- Timeline keeps a bounded recent history for quick operator triage without payload scanning.
+- Empty-state diagnostics message is explicit and covered by widget tests.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -345,18 +345,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** payload panel now exposes `Copy JSON` action with deterministic feedback text.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 101.3: Flutter diagnostics timeline slice [PENDING]**
+**Bloque 101.3: Flutter diagnostics timeline slice [DONE ✅]**
 - **Goal:** Surface compact diagnostics timeline in UI from existing client-side state transitions.
 - **Files:** Flutter shell module + tests.
-- **Demo:** operator can see latest transport/voice/gate events without scanning full payload.
+- **Demo:** new `Diagnostics timeline` card renders recent events (or empty-state message) in desktop shell.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 101.4: Flutter diagnostics filtering pass [PENDING]**
+- **Goal:** Add lightweight event filtering/controls for faster operator triage in diagnostics timeline.
+- **Files:** Flutter shell module + tests.
+- **Demo:** operator can restrict diagnostics view to transport-critical events.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.3 — Flutter diagnostics timeline slice
-[POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Improve operational observability in desktop shell without adding backend complexity.
-[HECHO CUANDO] Timeline card renders deterministic recent events and stays stable offline/online.
+[SIGUIENTE] Bloque 101.4 — Flutter diagnostics filtering pass
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Increase triage speed by reducing noise in timeline events.
+[HECHO CUANDO] Diagnostics card supports focused view for transport-critical entries.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

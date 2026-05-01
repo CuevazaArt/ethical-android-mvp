@@ -71,6 +71,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   bool _hasServerVoiceState = false;
   bool _payloadHasFocus = false;
   String _payloadActionMessage = 'No payload action yet.';
+  final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   Map<String, String> _readinessGates = <String, String>{
     'G1': 'unknown',
     'G2': 'unknown',
@@ -204,6 +205,22 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
 
   void _log(String message) {
     debugPrint('[flutter-desktop-shell] $message');
+    _recordDiagnosticEvent(message);
+  }
+
+  void _recordDiagnosticEvent(String message) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _diagnosticEvents.insert(
+        0,
+        _DiagnosticEvent(at: DateTime.now(), message: message),
+      );
+      if (_diagnosticEvents.length > 8) {
+        _diagnosticEvents.removeLast();
+      }
+    });
   }
 
   void _updateVoiceStateFromHealth(Map<String, dynamic> payload) {
@@ -388,6 +405,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             builder: (BuildContext context, BoxConstraints constraints) {
               final bool isWide = constraints.maxWidth >= 1050;
               final Widget statusCard = _buildStatusCard(theme, badge);
+              final Widget diagnosticsCard = _buildDiagnosticsCard(theme);
               final Widget voiceCard = _buildVoiceCard(theme);
               final Widget gatesCard = _buildGateReadinessCard(theme);
               final Widget payloadCard = _buildPayloadCard(theme);
@@ -401,6 +419,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                       child: Column(
                         children: [
                           statusCard,
+                          const SizedBox(height: 16),
+                          diagnosticsCard,
                           const SizedBox(height: 16),
                           voiceCard,
                           const SizedBox(height: 16),
@@ -419,6 +439,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     statusCard,
+                    const SizedBox(height: 16),
+                    diagnosticsCard,
                     const SizedBox(height: 16),
                     voiceCard,
                     const SizedBox(height: 16),
@@ -531,6 +553,60 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiagnosticsCard(ThemeData theme) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Diagnostics timeline',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Most recent transport and UI events.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_diagnosticEvents.isEmpty)
+              Text(
+                'No diagnostics events yet.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _diagnosticEvents.map((event) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      '${event.at.toIso8601String()}  •  ${event.message}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
           ],
         ),
       ),
@@ -1098,6 +1174,13 @@ class _GateDetailData {
   final String summary;
   final DateTime? updatedAt;
   final bool stale;
+}
+
+class _DiagnosticEvent {
+  const _DiagnosticEvent({required this.at, required this.message});
+
+  final DateTime at;
+  final String message;
 }
 
 class _ConnectionBadge extends StatelessWidget {
