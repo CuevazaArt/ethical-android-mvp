@@ -60,6 +60,13 @@
   - create/update closure tag only after latest run for `HEAD` resolves `success`;
   - use the latest successful `main` head as the only tag source for this wave.
 
+### Execution pulse 100.8 (CI settle watch)
+
+- Latest run for `100.7` (`25202632860`) completed `success`.
+- `100.6`, `100.5`, and `100.4` runs are also `success`.
+- No active blocking in-progress run remains for the corrective wave closure checkpoint.
+- Historical `100.3` failure is superseded by subsequent successful runs on newer commits.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

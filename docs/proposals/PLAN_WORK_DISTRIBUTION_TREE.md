@@ -315,18 +315,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** closure criteria and tag recommendation documented after CI stabilization.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 100.8: Post-wave CI settle watch [PENDING]**
+**Bloque 100.8: Post-wave CI settle watch [DONE ✅]**
 - **Goal:** Confirm latest in-progress CI run reaches success and clear residual run confusion.
 - **Files:** CI run status observation + closure note.
 - **Demo:** final checkpoint states no blocking in-progress CI for the corrective wave.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 100.9: Formal phase close packet [PENDING]**
+- **Goal:** Produce the final close packet for this corrective wave (status, deltas, next command).
+- **Files:** `CONTEXT.md`, `CHANGELOG.md`.
+- **Demo:** one concise closure packet ready for operator handoff.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 100.8 — Post-wave CI settle watch
+[SIGUIENTE] Bloque 100.9 — Formal phase close packet
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Avoid premature closure while latest CI run is still in progress.
-[HECHO CUANDO] Corrective wave is declared fully green with no active blocking run.
+[MOTIVO] Consolidate all corrective actions into a final handoff-ready closure artifact.
+[HECHO CUANDO] Closure packet summarizes what changed, what is green, and what is next.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

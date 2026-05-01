@@ -53,6 +53,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added closure pulse with explicit tag recommendation policy tied to latest `HEAD` CI success.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `100.7` as done and opened `100.8` as final CI settle watch.
 
+## [2026-05-01] V2.100.8 — Post-wave CI settle checkpoint
+### Changed
+- **`CONTEXT.md`:** Added CI settle pulse confirming latest `HEAD` run success and no active blocking in-progress run.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `100.8` as done and queued `100.9` formal phase close packet.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
