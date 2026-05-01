@@ -228,6 +228,16 @@
   - **Signal quality:** intelligible speech at normal desk distance and face detection reliability in baseline lighting.
   - **Rollback safety:** operator can disable perception hardware path and return to transport-only mode in one step.
 
+### Execution pulse 103.4 (perception pilot execution checklist)
+
+- Deterministic first-pilot flow (<30 min, one operator):
+  1. **Setup (5 min):** connect starter hardware (USB mic, UVC cam, wired headset), verify OS device availability.
+  2. **Baseline transport check (3 min):** run desktop shell transport probe and confirm no regression before perception inputs.
+  3. **Capture run (10 min):** execute speech + face-presence routine under normal desk conditions; observe disconnects, clipping, and frame stability.
+  4. **Validation gate (7 min):** classify pass/fail for stability, latency envelope, and signal quality against 103.3 criteria.
+  5. **Rollback drill (3 min):** disable perception path and confirm return to transport-only diagnostics view.
+- Pilot is accepted only when all five stages complete with explicit PASS and no unresolved blocker.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -453,18 +453,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** shortlist and acceptance criteria are explicit and decoupled from Flutter sprint lane.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 103.4: Perception pilot execution checklist [PENDING]**
+**Bloque 103.4: Perception pilot execution checklist [DONE ✅]**
 - **Goal:** Convert readiness brief into a deterministic first-pilot checklist (setup, capture, validation, rollback).
 - **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
-- **Demo:** pilot checklist can be executed by one operator in <30 minutes with clear pass/fail outputs.
+- **Demo:** first-run checklist now defines timed steps, pass/fail criteria, and rollback in one operator flow (<30 minutes).
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 103.5: Perception pilot evidence template [PENDING]**
+- **Goal:** Define a compact evidence template for pilot runs (inputs, metrics, decision, incidents).
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** operators can produce a repeatable pilot report with zero ambiguity.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 103.4 — Perception pilot execution checklist
+[SIGUIENTE] Bloque 103.5 — Perception pilot evidence template
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Move from shortlist theory to operator-ready pilot execution without introducing backend coupling yet.
-[HECHO CUANDO] A first-run checklist is documented with deterministic pass/fail gates and rollback notes.
+[MOTIVO] Ensure perception pilots leave consistent evidence before scaling hardware spend.
+[HECHO CUANDO] A reusable evidence template is documented with mandatory metrics and go/no-go decision fields.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

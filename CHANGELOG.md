@@ -181,6 +181,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added starter hardware shortlist (mic/camera/audio-out) and explicit go/no-go acceptance criteria for the first perception pilot.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.3` as done and queued `103.4` pilot execution checklist.
 
+## [2026-05-01] V2.103.4 — Perception pilot execution checklist
+### Changed
+- **`CONTEXT.md`:** Added one-operator, sub-30-minute perception pilot checklist with staged execution and pass/fail gates.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.4` as done and queued `103.5` pilot evidence template.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
