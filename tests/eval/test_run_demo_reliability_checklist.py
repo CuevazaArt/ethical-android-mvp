@@ -8,4 +8,3 @@ def test_default_demo_checklist_defines_10_checks() -> None:
     assert len(checks) == 10
     assert checks[0].id == "A1"
     assert checks[-1].id == "T4"
-

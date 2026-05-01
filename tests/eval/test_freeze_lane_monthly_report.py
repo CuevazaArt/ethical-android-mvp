@@ -29,7 +29,9 @@ def test_monthly_status_passes_with_required_distinct_days(tmp_path: Path) -> No
     assert snapshot.covered_days == 28
 
 
-def test_monthly_status_stays_in_progress_with_insufficient_days(tmp_path: Path) -> None:
+def test_monthly_status_stays_in_progress_with_insufficient_days(
+    tmp_path: Path,
+) -> None:
     history = tmp_path / "g3.jsonl"
     rows = [
         {
@@ -44,4 +46,3 @@ def test_monthly_status_stays_in_progress_with_insufficient_days(tmp_path: Path)
 
     assert snapshot.status == "IN_PROGRESS"
     assert snapshot.failed_runs == 0
-

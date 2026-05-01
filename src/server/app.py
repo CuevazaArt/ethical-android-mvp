@@ -266,9 +266,7 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
 
     g4_source = "docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json"
     g4_payload = _read_json(_EVIDENCE_DIR / "DEMO_RELIABILITY_CHECKLIST.json")
-    g4_items = [
-        item for item in g4_payload.get("items", []) if isinstance(item, dict)
-    ]
+    g4_items = [item for item in g4_payload.get("items", []) if isinstance(item, dict)]
     g4_passed = [item for item in g4_items if bool(item.get("passed"))]
     if len(g4_items) >= 10 and len(g4_items) == len(g4_passed):
         g4 = "pass"

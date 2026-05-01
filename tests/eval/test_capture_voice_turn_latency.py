@@ -20,4 +20,3 @@ def test_coerce_non_negative_ms_blocks_non_finite_values() -> None:
     assert coerce_non_negative_ms(-1) == 0.0
     assert coerce_non_negative_ms(float("inf")) == 0.0
     assert coerce_non_negative_ms("bad") == 0.0
-

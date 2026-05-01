@@ -2912,3 +2912,13 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `scripts/eval/desktop_gate_runner.py`
   - `tests/eval/test_desktop_gate_runner.py`
+
+### Execution (Swarm) | Date: 2026-04-30 21:45:39 | Author: Codex
+- **Block:** `53.2`
+- **Message:** Fix Ruff formatting drift to restore CI quality gate
+- **Files Modified:**
+  - `src/server/app.py`
+  - `tests/eval/test_append_stability_ledger.py`
+  - `tests/eval/test_capture_voice_turn_latency.py`
+  - `tests/eval/test_freeze_lane_monthly_report.py`
+  - `tests/eval/test_run_demo_reliability_checklist.py`

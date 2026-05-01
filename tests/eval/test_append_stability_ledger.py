@@ -9,7 +9,11 @@ from scripts.eval.append_stability_ledger import append_stability_entry
 
 
 def _read_jsonl(path: Path) -> list[dict[str, object]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
 
 
 def test_append_stability_entry_rejects_duplicate_day(tmp_path: Path) -> None:
@@ -54,4 +58,3 @@ def test_append_stability_entry_can_replace_day(tmp_path: Path) -> None:
     assert len(rows) == 1
     assert rows[0]["status"] == "fail"
     assert str(rows[0]["date"]).startswith("2026-05-01")
-
