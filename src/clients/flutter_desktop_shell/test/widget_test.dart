@@ -16,7 +16,9 @@ void main() {
     await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
 
     expect(find.text('Ethos Desktop Shell'), findsOneWidget);
+    expect(find.text('Offline'), findsWidgets);
     expect(find.text('Transport disabled for tests.'), findsOneWidget);
     expect(find.text('Health payload'), findsOneWidget);
+    expect(find.text('Waiting for /api/status payload...'), findsOneWidget);
   });
 }

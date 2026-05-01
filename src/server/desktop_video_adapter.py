@@ -8,6 +8,16 @@ from typing import Any
 from src.core.vision import VisionEngine
 
 
+def _safe_non_negative_int(value: Any, *, default: int = 0) -> int:
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return default
+    if not math.isfinite(numeric) or numeric < 0.0:
+        return default
+    return int(numeric)
+
+
 def _finite01(value: Any) -> float | None:
     try:
         numeric = float(value)
@@ -35,6 +45,24 @@ def _finite_non_negative_int(value: Any) -> int | None:
     return int(finite)
 
 
+def _strict_bool_or_none(value: Any) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)) and math.isfinite(float(value)):
+        if float(value) == 1.0:
+            return True
+        if float(value) == 0.0:
+            return False
+        return None
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes", "y"}:
+            return True
+        if normalized in {"false", "0", "no", "n", ""}:
+            return False
+    return None
+
+
 @dataclass
 class VideoPerceptionResult:
     envelope: dict[str, Any]
@@ -60,8 +88,10 @@ class DesktopVideoAdapter:
         motion = _finite01(motion_raw)
         faces_detected = _finite_non_negative_int(faces_raw)
         latency_ms = _finite_non_negative(latency_raw)
-        low_light = bool(payload.get("low_light", False))
-        face_present = bool(payload.get("face_present", False))
+        low_light_raw = payload.get("low_light", False)
+        face_present_raw = payload.get("face_present", False)
+        low_light = _strict_bool_or_none(low_light_raw)
+        face_present = _strict_bool_or_none(face_present_raw)
 
         if brightness_raw is not None and brightness is None:
             return None
@@ -70,6 +100,8 @@ class DesktopVideoAdapter:
         if faces_raw is not None and faces_detected is None:
             return None
         if latency_raw is not None and latency_ms is None:
+            return None
+        if low_light is None or face_present is None:
             return None
 
         if brightness is None and motion is None and faces_detected is None:
@@ -102,8 +134,8 @@ class DesktopVideoAdapter:
         request = payload if isinstance(payload, dict) else {}
         frame_b64 = request.get("image_b64") or request.get("frame_b64") or ""
         frame_format = str(request.get("frame_format", "jpeg")).lower()
-        width = int(request.get("width", 0) or 0)
-        height = int(request.get("height", 0) or 0)
+        width = _safe_non_negative_int(request.get("width", 0), default=0)
+        height = _safe_non_negative_int(request.get("height", 0), default=0)
 
         if not isinstance(frame_b64, str) or not frame_b64.strip():
             return VideoPerceptionResult(
@@ -178,8 +210,8 @@ class DesktopVideoAdapter:
         request_envelope = {
             "frame_b64": str(request.get("image_b64") or request.get("frame_b64") or ""),
             "frame_format": str(request.get("frame_format", "jpeg")).lower(),
-            "width": int(request.get("width", 0) or 0),
-            "height": int(request.get("height", 0) or 0),
+            "width": _safe_non_negative_int(request.get("width", 0), default=0),
+            "height": _safe_non_negative_int(request.get("height", 0), default=0),
         }
         safe_elapsed = elapsed_ms if math.isfinite(elapsed_ms) and elapsed_ms >= 0 else 0.0
         return {

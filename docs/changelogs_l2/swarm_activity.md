@@ -2779,3 +2779,13 @@ This file is automatically managed by `scripts/swarm_sync.py`.
 - **Message:** Flutter shell desktop + transport base operativo
 - **Files Modified:**
   - *(No files modified)*
+
+### Execution (Swarm) | Date: 2026-04-30 19:56:34 | Author: Anonymous Agent
+- **Block:** `50.1B`
+- **Message:** Polish visual dark desktop shell completado
+- **Files Modified:**
+  - `src/clients/flutter_desktop_shell/lib/main.dart`
+  - `src/clients/flutter_desktop_shell/test/widget_test.dart`
+  - `src/server/desktop_video_adapter.py`
+  - `tests/server/test_app_integration.py`
+  - `tests/server/test_desktop_video_adapter.py`

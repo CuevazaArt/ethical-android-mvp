@@ -187,6 +187,35 @@ def test_ws_chat_video_frame_rejects_non_finite_metrics():
         _stop_patches(patches)
 
 
+def test_ws_chat_video_frame_with_malformed_dimensions_does_not_crash():
+    """WS /ws/chat: malformed width/height must return vision_rejected, not internal error."""
+    patches = _apply_patches()
+    try:
+        with TestClient(app) as client:
+            with client.websocket_connect("/ws/chat") as ws:
+                ws.send_text(
+                    json.dumps(
+                        {
+                            "type": "video_frame",
+                            "payload": {
+                                "image_b64": "stub",
+                                "frame_format": "jpeg",
+                                "width": "abc",
+                                "height": {"unexpected": "object"},
+                            },
+                        }
+                    )
+                )
+                events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
+
+        rejected = next((e for e in events if e.get("type") == "vision_rejected"), None)
+        assert rejected is not None
+        done_event = next((e for e in events if e.get("type") == "done"), None)
+        assert done_event is None
+    finally:
+        _stop_patches(patches)
+
+
 def _audio_contract_payload(*, audio_b64: str, sample_rate_hz: int = 16000) -> dict:
     return {
         "version": "1.0",

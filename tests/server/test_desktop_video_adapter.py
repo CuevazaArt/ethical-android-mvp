@@ -78,3 +78,44 @@ def test_process_video_frame_rejects_non_finite_metrics(monkeypatch) -> None:
     assert result.vision_context is None
     assert result.envelope["error"] is not None
     assert result.envelope["error"]["code"] == "NON_FINITE_METRIC"
+
+
+def test_sanitize_vision_context_rejects_invalid_boolean_tokens() -> None:
+    adapter = DesktopVideoAdapter()
+    sanitized = adapter.sanitize_vision_context(
+        {
+            "brightness": 0.5,
+            "motion": 0.2,
+            "faces_detected": 1,
+            "low_light": "banana",
+            "face_present": True,
+        }
+    )
+    assert sanitized is None
+
+
+def test_process_video_frame_tolerates_non_numeric_dimensions(monkeypatch) -> None:
+    adapter = DesktopVideoAdapter()
+    monkeypatch.setattr(
+        adapter._vision,
+        "process_b64",
+        lambda _: VisionSignals(
+            brightness=0.4,
+            motion=0.1,
+            faces_detected=0,
+            face_present=False,
+            low_light=False,
+            latency_ms=10.0,
+        ),
+    )
+    result = adapter.process_video_frame(
+        {
+            "image_b64": "stub",
+            "frame_format": "jpeg",
+            "width": "abc",
+            "height": {"bad": "type"},
+        }
+    )
+    assert result.envelope["error"] is None
+    assert result.envelope["request"]["width"] == 1
+    assert result.envelope["request"]["height"] == 1
