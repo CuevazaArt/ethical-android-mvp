@@ -72,6 +72,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   bool _payloadHasFocus = false;
   String _payloadActionMessage = 'No payload action yet.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
+  _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
   Map<String, String> _readinessGates = <String, String>{
     'G1': 'unknown',
     'G2': 'unknown',
@@ -215,12 +216,24 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     setState(() {
       _diagnosticEvents.insert(
         0,
-        _DiagnosticEvent(at: DateTime.now(), message: message),
+        _DiagnosticEvent(
+          at: DateTime.now(),
+          message: message,
+          type: _diagnosticTypeForMessage(message),
+        ),
       );
       if (_diagnosticEvents.length > 8) {
         _diagnosticEvents.removeLast();
       }
     });
+  }
+
+  _DiagnosticFilter _diagnosticTypeForMessage(String message) {
+    final String text = message.toLowerCase();
+    if (text.contains('manual probe')) {
+      return _DiagnosticFilter.manual;
+    }
+    return _DiagnosticFilter.transport;
   }
 
   void _updateVoiceStateFromHealth(Map<String, dynamic> payload) {
@@ -560,6 +573,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   }
 
   Widget _buildDiagnosticsCard(ThemeData theme) {
+    final List<_DiagnosticEvent> visibleEvents = _diagnosticEvents.where((
+      event,
+    ) {
+      if (_diagnosticFilter == _DiagnosticFilter.all) {
+        return true;
+      }
+      return event.type == _diagnosticFilter;
+    }).toList();
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -585,7 +606,41 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               ),
             ),
             const SizedBox(height: 12),
-            if (_diagnosticEvents.isEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilterChip(
+                  label: const Text('All'),
+                  selected: _diagnosticFilter == _DiagnosticFilter.all,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticFilter = _DiagnosticFilter.all;
+                    });
+                  },
+                ),
+                FilterChip(
+                  label: const Text('Transport'),
+                  selected: _diagnosticFilter == _DiagnosticFilter.transport,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticFilter = _DiagnosticFilter.transport;
+                    });
+                  },
+                ),
+                FilterChip(
+                  label: const Text('Manual'),
+                  selected: _diagnosticFilter == _DiagnosticFilter.manual,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticFilter = _DiagnosticFilter.manual;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (visibleEvents.isEmpty)
               Text(
                 'No diagnostics events yet.',
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -595,7 +650,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             else
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: _diagnosticEvents.map((event) {
+                children: visibleEvents.map((event) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
@@ -1177,11 +1232,18 @@ class _GateDetailData {
 }
 
 class _DiagnosticEvent {
-  const _DiagnosticEvent({required this.at, required this.message});
+  const _DiagnosticEvent({
+    required this.at,
+    required this.message,
+    required this.type,
+  });
 
   final DateTime at;
   final String message;
+  final _DiagnosticFilter type;
 }
+
+enum _DiagnosticFilter { all, transport, manual }
 
 class _ConnectionBadge extends StatelessWidget {
   const _ConnectionBadge({required this.data});

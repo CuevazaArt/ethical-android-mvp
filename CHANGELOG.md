@@ -87,6 +87,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added widget assertions for diagnostics timeline title and empty-state visibility.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.3` as done and advanced sequence to `101.4`.
 
+## [2026-05-01] V2.101.4 — Flutter diagnostics filtering pass
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added timeline filter controls (`All`, `Transport`, `Manual`) for diagnostics triage.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for filter controls in diagnostics card.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.4` as done and advanced sequence to `101.5`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

@@ -103,6 +103,12 @@
 - Timeline keeps a bounded recent history for quick operator triage without payload scanning.
 - Empty-state diagnostics message is explicit and covered by widget tests.
 
+### Execution pulse 101.4 (diagnostics filtering)
+
+- Added lightweight diagnostics filters in Flutter shell timeline: `All`, `Transport`, `Manual`.
+- Operators can now isolate manual probe events from transport noise in real time.
+- Feature remains client-side and keeps server contracts unchanged.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

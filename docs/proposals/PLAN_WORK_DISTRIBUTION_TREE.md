@@ -351,18 +351,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** new `Diagnostics timeline` card renders recent events (or empty-state message) in desktop shell.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 101.4: Flutter diagnostics filtering pass [PENDING]**
+**Bloque 101.4: Flutter diagnostics filtering pass [DONE ✅]**
 - **Goal:** Add lightweight event filtering/controls for faster operator triage in diagnostics timeline.
 - **Files:** Flutter shell module + tests.
-- **Demo:** operator can restrict diagnostics view to transport-critical events.
+- **Demo:** diagnostics timeline now provides `All`, `Transport`, and `Manual` filter controls.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 101.5: Flutter diagnostics retention tuning [PENDING]**
+- **Goal:** Expose compact retention controls for diagnostics timeline depth (short/medium) without backend changes.
+- **Files:** Flutter shell module + tests.
+- **Demo:** operator can change visible diagnostics depth from UI controls with deterministic behavior.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.4 — Flutter diagnostics filtering pass
+[SIGUIENTE] Bloque 101.5 — Flutter diagnostics retention tuning
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Increase triage speed by reducing noise in timeline events.
-[HECHO CUANDO] Diagnostics card supports focused view for transport-critical entries.
+[MOTIVO] Improve observability ergonomics by letting operators adjust timeline depth quickly.
+[HECHO CUANDO] Diagnostics timeline depth can be adjusted from UI and remains stable across transport states.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

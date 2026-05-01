@@ -24,6 +24,9 @@ void main() {
     expect(find.text('Check now'), findsOneWidget);
     expect(find.text('Last manual probe:'), findsOneWidget);
     expect(find.text('Diagnostics timeline'), findsOneWidget);
+    expect(find.text('All'), findsOneWidget);
+    expect(find.text('Transport'), findsOneWidget);
+    expect(find.text('Manual'), findsOneWidget);
     expect(find.text('No diagnostics events yet.'), findsOneWidget);
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
