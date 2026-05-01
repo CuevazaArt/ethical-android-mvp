@@ -321,18 +321,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** final checkpoint states no blocking in-progress CI for the corrective wave.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 100.9: Formal phase close packet [PENDING]**
+**Bloque 100.9: Formal phase close packet [DONE ✅]**
 - **Goal:** Produce the final close packet for this corrective wave (status, deltas, next command).
 - **Files:** `CONTEXT.md`, `CHANGELOG.md`.
 - **Demo:** one concise closure packet ready for operator handoff.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 101.0: Flutter MVP execution wave handoff [PENDING]**
+- **Goal:** Start next execution wave focused on feature-depth in active Flutter MVP lane.
+- **Files:** plan + context handoff.
+- **Demo:** first post-corrective feature block defined with objective acceptance criteria.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 100.9 — Formal phase close packet
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Consolidate all corrective actions into a final handoff-ready closure artifact.
-[HECHO CUANDO] Closure packet summarizes what changed, what is green, and what is next.
+[SIGUIENTE] Bloque 101.0 — Flutter MVP execution wave handoff
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Transition from corrective governance work to product-depth execution on the active surface.
+[HECHO CUANDO] Next Flutter MVP feature block is defined with measurable done criteria.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

@@ -58,6 +58,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added CI settle pulse confirming latest `HEAD` run success and no active blocking in-progress run.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `100.8` as done and queued `100.9` formal phase close packet.
 
+## [2026-05-01] V2.100.9 — Formal corrective-wave close packet
+### Changed
+- **`CONTEXT.md`:** Added formal closure packet summarizing scope, verification status, and next-wave handoff.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `100.9` as done and opened `101.0` as the first post-corrective execution handoff block.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
