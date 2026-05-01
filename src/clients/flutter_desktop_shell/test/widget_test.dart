@@ -31,6 +31,7 @@ void main() {
     expect(find.text('G1 UNKNOWN'), findsWidgets);
     expect(find.text('Gate source:'), findsOneWidget);
     expect(find.text('fallback (waiting for reentry_gates)'), findsOneWidget);
+    expect(find.text('No gate metadata available yet.'), findsOneWidget);
     expect(find.text('Health payload'), findsOneWidget);
     expect(find.text('Waiting for /api/status payload...'), findsOneWidget);
   });

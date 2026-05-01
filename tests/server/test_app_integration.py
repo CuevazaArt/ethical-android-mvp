@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import json
+from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
 from starlette.testclient import TestClient
@@ -79,14 +80,28 @@ def test_api_status_returns_all_fields():
             "voice_turn_state",
             "voice_turn_state_at",
             "reentry_gates",
+            "reentry_gates_details",
         ):
             assert field in data, f"Missing field: {field}"
         assert data["status"] == "online"
         gates = data["reentry_gates"]
         assert isinstance(gates, dict)
+        gate_details = data["reentry_gates_details"]
+        assert isinstance(gate_details, dict)
         for gate in ("G1", "G2", "G3", "G4", "G5"):
             assert gate in gates
             assert gates[gate] in {"pass", "in_progress", "fail"}
+            assert gate in gate_details
+            detail = gate_details[gate]
+            assert isinstance(detail, dict)
+            assert detail["status"] in {"pass", "in_progress", "fail"}
+            assert isinstance(detail["source"], str) and detail["source"].strip()
+            assert isinstance(detail["summary"], str) and detail["summary"].strip()
+            assert isinstance(detail["stale"], bool)
+            updated_at = detail.get("updated_at")
+            if isinstance(updated_at, str) and updated_at.strip():
+                # API contract lock: timestamps remain parseable ISO-8601.
+                datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
     finally:
         _stop_patches(patches)
 

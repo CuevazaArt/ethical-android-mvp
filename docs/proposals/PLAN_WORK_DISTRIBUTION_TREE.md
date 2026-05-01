@@ -225,6 +225,36 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `pytest tests/server/test_app_integration.py::test_api_status_returns_all_fields -q`.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
+**Bloque 52.6: Reentry gate payload v2 (metadata-rich) [DONE ✅]**
+- **Goal:** Expose detailed per-gate metadata (`status`, `source`, `updated_at`, `summary`, `stale`) in backend status payload.
+- **Files:** `src/server/app.py`, `tests/server/test_app_integration.py`.
+- **Demo:** `pytest tests/server/test_app_integration.py::test_api_status_returns_all_fields -q`.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 52.7: Flutter gate panel v2 (details + freshness) [DONE ✅]**
+- **Goal:** Render per-gate metadata and freshness state in desktop shell UI.
+- **Files:** `src/clients/flutter_desktop_shell/lib/main.dart`, `src/clients/flutter_desktop_shell/test/widget_test.dart`, `src/clients/flutter_desktop_shell/README.md`.
+- **Demo:** `flutter test` + `flutter analyze` in desktop shell module.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 52.8: CI artifact v2 (details snapshot) [DONE ✅]**
+- **Goal:** Publish gate snapshot with detailed metadata in CI artifact and workflow summary.
+- **Files:** `.github/workflows/ci.yml`, `scripts/eval/desktop_gate_runner.py`.
+- **Demo:** `desktop-gate-report` uploads `reentry-gates-snapshot.json` and summary table includes status/source/updated_at.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 52.9: Gate drift sentinel (schema lock) [DONE ✅]**
+- **Goal:** Harden tests so contract drift in `reentry_gates` / `reentry_gates_details` fails fast.
+- **Files:** `tests/server/test_app_integration.py`, `tests/eval/test_desktop_gate_runner.py`.
+- **Demo:** integration + eval tests validate enums, non-empty source/summary, and parseable timestamps.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 53.0: Evidence freshness policy and ops playbook [DONE ✅]**
+- **Goal:** Define stale-evidence SLA and degraded policy for reopen decisions.
+- **Files:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`, `CONTEXT.md`, `CHANGELOG.md`, `tests/test_freeze_lane_guardrails.py`.
+- **Demo:** freeze guardrail tests assert freshness policy markers exist.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.

@@ -95,6 +95,14 @@ All notable changes to this project are summarized here. For narrative context a
 - **`tests/server/test_app_integration.py`:** Extended status contract test to assert `reentry_gates` presence and valid status tokens (`pass`, `in_progress`, `fail`).
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Registered closure of block 52.5 in execution state.
 
+## [2026-04-30] Reentry payload v2 + freshness governance (52.6/52.7/52.8/52.9/53.0)
+### Changed
+- **`src/server/app.py`:** `GET /api/status` now exposes `reentry_gates_details` with per-gate metadata (`status`, `source`, `updated_at`, `summary`, `stale`) in addition to `reentry_gates`.
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Gate panel upgraded to display metadata rows and freshness state (`fresh`/`stale`) from server payload.
+- **`scripts/eval/desktop_gate_runner.py` + `.github/workflows/ci.yml`:** Added detailed snapshot generation for G1..G5 and expanded Actions summary table (`status`, `updated_at`, `source`, `summary`).
+- **`tests/server/test_app_integration.py` + `tests/eval/test_desktop_gate_runner.py`:** Added schema-lock assertions for reentry gate detail contract and snapshot structure.
+- **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md` + `tests/test_freeze_lane_guardrails.py`:** Introduced evidence freshness SLA policy; stale evidence now forces DEGRADED reopen posture.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

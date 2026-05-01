@@ -33,6 +33,7 @@
 - **G3 Contract no-drift:** 0 failures in freeze-lane envelope checks for one calendar month.
 - **G4 Demo reliability:** 10/10 successful scripted demos across audio/video/voice.
 - **G5 Ops readiness:** Windows packaging + artifact manifest + rollback checklist validated.
+- **Freshness policy:** stale gate evidence is treated as DEGRADED until refreshed within SLA.
 - **Automation runner (51.x):** `python scripts/eval/desktop_gate_runner.py` evaluates G1/G2/G4 from versioned evidence files.
 
 ### Desktop migration pulse status (50.x)
@@ -43,6 +44,8 @@
 - **CI visibility (51.4):** gate job publishes a human-readable PASS/FAIL table in `GITHUB_STEP_SUMMARY`.
 - **Execution pulse 52.x:** G3 monthly drift report automation, G1 daily ledger append tooling, G2 live capture harness, G4 executable demo checklist, and Flutter readiness-gates panel.
 - **Execution pulse 52.5:** `/api/status` now emits `reentry_gates` (G1..G5), enabling server-bound readiness badges in Flutter desktop.
+- **Execution pulse 52.6-52.9:** backend now emits `reentry_gates_details`, Flutter renders gate metadata/freshness, CI publishes detailed snapshot artifacts, and tests lock gate-schema drift.
+- **Execution pulse 53.0:** freshness SLA policy formalized; stale evidence now treated as DEGRADED for reopen decisions.
 
 ## Desktop Migration Progress (Block 50.1, 2026-04-30)
 

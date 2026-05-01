@@ -86,6 +86,11 @@ When a release is built with `scripts/build_windows_desktop_release.ps1`, a
 - If `/api/status` exposes `reentry_gates`, the panel switches to server source mode.
 - If `reentry_gates` is missing, the panel stays in fallback mode and labels this explicitly.
 - Backend support was added in block 52.5 (`src/server/app.py` -> `/api/status.reentry_gates`).
+- With block 52.6+, UI also consumes `reentry_gates_details`:
+  - `status`, `summary`, `source`, `updated_at`, `stale`.
+- Freshness badge intent:
+  - `fresh` when evidence is inside SLA,
+  - `stale` when evidence age exceeds gate SLA.
 
 ## Windows Packaging Baseline (Block 50.5A)
 

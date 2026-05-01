@@ -203,6 +203,7 @@ jobs:
           python scripts/eval/desktop_gate_runner.py stability --ledger docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl --days 14 > gate-reports/g1-stability.json
           python scripts/eval/desktop_gate_runner.py latency --samples docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl --target-p95-ms 2500 > gate-reports/g2-latency.json
           python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10 > gate-reports/g4-demo.json
+          python scripts/eval/desktop_gate_runner.py snapshot --evidence-dir docs/collaboration/evidence > gate-reports/reentry-gates-snapshot.json || true
 
       - name: Publish gate summary
         run: |
@@ -211,21 +212,21 @@ jobs:
           import os
           from pathlib import Path
 
-          files = [
-              ("G1 Stability", "gate-reports/g1-stability.json"),
-              ("G2 Voice latency", "gate-reports/g2-latency.json"),
-              ("G4 Demo reliability", "gate-reports/g4-demo.json"),
-          ]
+          snapshot = json.loads(Path("gate-reports/reentry-gates-snapshot.json").read_text(encoding="utf-8"))
+          gates = snapshot.get("gates", {})
           lines = [
               "## Desktop Re-entry Gate Report",
               "",
-              "| Gate | Status | Summary |",
-              "|---|---|---|",
+              "| Gate | Status | Updated At | Source | Summary |",
+              "|---|---|---|---|---|",
           ]
-          for label, path in files:
-              data = json.loads(Path(path).read_text(encoding="utf-8"))
-              status = "PASS" if data["passed"] else "FAIL"
-              lines.append(f"| {label} | {status} | {data['summary']} |")
+          for gate in ("G1", "G2", "G3", "G4", "G5"):
+              row = gates.get(gate, {})
+              status = str(row.get("status", "unknown")).upper()
+              updated_at = row.get("updated_at") or "n/a"
+              source = row.get("source") or "n/a"
+              summary = row.get("summary") or "n/a"
+              lines.append(f"| {gate} | {status} | {updated_at} | {source} | {summary} |")
           summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary_file:
               Path(summary_file).write_text("\n".join(lines) + "\n", encoding="utf-8")

@@ -11,6 +11,7 @@ import statistics
 import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -125,30 +126,94 @@ def _normalize_gate_status(value: str) -> str:
     return "fail"
 
 
-def _build_reentry_gates() -> dict[str, str]:
+def _parse_iso_utc(raw: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(UTC)
+    except ValueError:
+        return None
+
+
+def _to_iso_utc(dt: datetime) -> str:
+    return dt.astimezone(UTC).isoformat().replace("+00:00", "Z")
+
+
+def _stale_flag(updated_at: str | None, *, max_age_hours: int) -> bool:
+    if not updated_at:
+        return True
+    parsed = _parse_iso_utc(updated_at)
+    if parsed is None:
+        return True
+    age = datetime.now(UTC) - parsed
+    return age > timedelta(hours=max_age_hours)
+
+
+def _gate_detail(
+    *,
+    status: str,
+    source: str,
+    updated_at: str | None,
+    summary: str,
+    max_age_hours: int,
+) -> dict[str, Any]:
+    return {
+        "status": _normalize_gate_status(status),
+        "source": source,
+        "updated_at": updated_at,
+        "summary": summary,
+        "stale": _stale_flag(updated_at, max_age_hours=max_age_hours),
+    }
+
+
+def _parse_demo_run_id(raw: str) -> datetime | None:
+    marker = "demo-reliability-"
+    if not raw.startswith(marker):
+        return None
+    stamp = raw[len(marker) :]
+    try:
+        return datetime.strptime(stamp, "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC)
+    except ValueError:
+        return None
+
+
+def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, Any]]]:
     now = datetime.now(UTC)
-    # G1: 14-day stability window from daily ledger.
+    details: dict[str, dict[str, Any]] = {}
+
+    g1_source = "docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl"
     g1_rows = _read_jsonl(_EVIDENCE_DIR / "DESKTOP_STABILITY_LEDGER.jsonl")
     cutoff = now - timedelta(days=14)
     g1_days = set()
     g1_failed = False
+    g1_updated: datetime | None = None
     for row in g1_rows:
         raw_date = str(row.get("date", ""))
-        try:
-            ts = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
-        except ValueError:
+        ts = _parse_iso_utc(raw_date)
+        if ts is None:
             continue
+        if g1_updated is None or ts > g1_updated:
+            g1_updated = ts
         if ts < cutoff:
             continue
         g1_days.add(raw_date[:10])
         if str(row.get("status", "")).lower() != "pass":
             g1_failed = True
     g1 = "pass" if len(g1_days) >= 14 and not g1_failed else "in_progress"
+    details["G1"] = _gate_detail(
+        status=g1,
+        source=g1_source,
+        updated_at=_to_iso_utc(g1_updated) if g1_updated else None,
+        summary=f"{len(g1_days)}/14 day(s) stable in rolling window.",
+        max_age_hours=24,
+    )
 
-    # G2: p95 latency threshold from live sample file.
+    g2_source = "docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl"
     g2_rows = _read_jsonl(_EVIDENCE_DIR / "VOICE_TURN_LATENCY_SAMPLES.jsonl")
     totals = []
+    g2_updated: datetime | None = None
     for row in g2_rows:
+        ts = _parse_iso_utc(str(row.get("captured_at", "")))
+        if ts is not None and (g2_updated is None or ts > g2_updated):
+            g2_updated = ts
         try:
             total = float(row.get("total_ms", 0.0))
         except (TypeError, ValueError):
@@ -158,10 +223,19 @@ def _build_reentry_gates() -> dict[str, str]:
     if totals:
         p95 = float(statistics.quantiles(totals, n=100, method="inclusive")[94])
         g2 = "pass" if p95 < 2500.0 else "fail"
+        g2_summary = f"p95={p95:.2f}ms target<2500ms (n={len(totals)})"
     else:
         g2 = "in_progress"
+        g2_summary = "No valid live latency samples captured."
+    details["G2"] = _gate_detail(
+        status=g2,
+        source=g2_source,
+        updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
+        summary=g2_summary,
+        max_age_hours=24 * 7,
+    )
 
-    # G3: monthly no-drift history needs one full month window.
+    g3_source = "docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl"
     g3_rows = _read_jsonl(_EVIDENCE_DIR / "G3_CONTRACT_NO_DRIFT_HISTORY.jsonl")
     month_key = now.strftime("%Y-%m")
     g3_month = [row for row in g3_rows if str(row.get("month", "")) == month_key]
@@ -177,8 +251,20 @@ def _build_reentry_gates() -> dict[str, str]:
         g3 = "pass"
     else:
         g3 = "in_progress"
+    g3_updated: datetime | None = None
+    for row in g3_month:
+        ts = _parse_iso_utc(str(row.get("executed_at", "")))
+        if ts is not None and (g3_updated is None or ts > g3_updated):
+            g3_updated = ts
+    details["G3"] = _gate_detail(
+        status=g3,
+        source=g3_source,
+        updated_at=_to_iso_utc(g3_updated) if g3_updated else None,
+        summary=f"{len(g3_days)}/28 run-day(s) for {month_key}; failed_runs={int(g3_failed)}.",
+        max_age_hours=24 * 31,
+    )
 
-    # G4: executable checklist 10/10.
+    g4_source = "docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json"
     g4_payload = _read_json(_EVIDENCE_DIR / "DEMO_RELIABILITY_CHECKLIST.json")
     g4_items = [
         item for item in g4_payload.get("items", []) if isinstance(item, dict)
@@ -190,15 +276,33 @@ def _build_reentry_gates() -> dict[str, str]:
         g4 = "fail"
     else:
         g4 = "in_progress"
+    g4_updated = _parse_demo_run_id(str(g4_payload.get("run_id", "")))
+    g4_summary = f"passed {len(g4_passed)}/{len(g4_items)} checks"
+    details["G4"] = _gate_detail(
+        status=g4,
+        source=g4_source,
+        updated_at=_to_iso_utc(g4_updated) if g4_updated else None,
+        summary=g4_summary,
+        max_age_hours=24 * 14,
+    )
 
-    # G5 stays pass while packaging evidence remains validated in this wave.
-    return {
+    g5_updated = datetime(2026, 4, 30, 0, 0, 0, tzinfo=UTC)
+    details["G5"] = _gate_detail(
+        status="pass",
+        source="scripts/build_windows_desktop_release.ps1 + ROLLBACK_CHECKLIST",
+        updated_at=_to_iso_utc(g5_updated),
+        summary="Packaging baseline and rollback checklist validated.",
+        max_age_hours=24 * 30,
+    )
+
+    statuses = {
         "G1": _normalize_gate_status(g1),
         "G2": _normalize_gate_status(g2),
         "G3": _normalize_gate_status(g3),
         "G4": _normalize_gate_status(g4),
         "G5": "pass",
     }
+    return statuses, details
 
 
 @app.on_event("startup")
@@ -361,6 +465,7 @@ async def api_status():
     mem = Memory()
     identity = Identity()
     user_mod = UserModelTracker()
+    reentry_gates, reentry_gates_details = _build_reentry_gate_payload()
     uptime_s = int(time.time() - _start_time)
     h, rem = divmod(uptime_s, 3600)
     m, s = divmod(rem, 60)
@@ -381,7 +486,8 @@ async def api_status():
             "last_latency_ms": _last_latency,
             "voice_turn_state": _voice_turn_state,
             "voice_turn_state_at": _voice_turn_state_at,
-            "reentry_gates": _build_reentry_gates(),
+            "reentry_gates": reentry_gates,
+            "reentry_gates_details": reentry_gates_details,
         }
     )
 

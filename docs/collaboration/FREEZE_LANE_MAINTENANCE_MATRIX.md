@@ -47,6 +47,16 @@ A freeze lane is **HEALTHY** for a month only if all are true:
 
 If any check fails, status is **DEGRADED** and only remediation work is allowed.
 
+## Evidence Freshness SLA (53.0)
+
+- **G1 Stability evidence:** refresh daily (max age 24h).
+- **G2 Voice latency evidence:** refresh weekly (max age 7 days).
+- **G3 Contract no-drift history:** refresh at least every 31 days within active month.
+- **G4 Demo reliability evidence:** refresh every 14 days or before a commercial demo.
+- **G5 Ops readiness evidence:** refresh every 30 days or after packaging flow changes.
+
+If a gate evidence snapshot is stale beyond SLA, its status is treated as **DEGRADED** for reopen decisions.
+
 ## Gate Audit Proofpack (50.7B)
 
 | Gate | What is required | Source of truth | Current status |
@@ -59,4 +69,4 @@ If any check fails, status is **DEGRADED** and only remediation work is allowed.
 
 ### Decision policy
 
-Reopen mobile/web feature work only when **all gates are PASS** in the same review cycle.
+Reopen mobile/web feature work only when **all gates are PASS** in the same review cycle and all evidence is within freshness SLA.

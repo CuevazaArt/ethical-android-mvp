@@ -74,6 +74,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     'G4': 'unknown',
     'G5': 'unknown',
   };
+  Map<String, _GateDetailData> _gateDetails = <String, _GateDetailData>{};
   String _gateSource = 'fallback';
 
   Uri get _pingUri => Uri.parse('$_defaultKernelUrl/api/ping');
@@ -226,22 +227,41 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
 
   void _updateGateReadinessFromHealth(Map<String, dynamic> payload) {
     final dynamic raw = payload['reentry_gates'];
-    if (raw is! Map) {
+    final dynamic rawDetails = payload['reentry_gates_details'];
+    final bool hasStatuses = raw is Map;
+    final bool hasDetails = rawDetails is Map;
+    if (!hasStatuses && !hasDetails) {
       if (_gateSource != 'fallback') {
         setState(() {
           _gateSource = 'fallback';
+          _gateDetails = <String, _GateDetailData>{};
         });
       }
       return;
     }
     final Map<String, String> next = <String, String>{};
+    final Map<String, _GateDetailData> details = <String, _GateDetailData>{};
     for (final String gate in _gateOrder) {
-      final dynamic value = raw[gate] ?? raw[gate.toLowerCase()];
-      next[gate] = _normalizeGateStatus(value);
+      final dynamic value = hasStatuses
+          ? raw[gate] ?? raw[gate.toLowerCase()]
+          : null;
+      final String normalized = _normalizeGateStatus(value);
+      next[gate] = normalized;
+      if (hasDetails) {
+        final dynamic detailRaw =
+            rawDetails[gate] ?? rawDetails[gate.toLowerCase()];
+        if (detailRaw is Map<String, dynamic>) {
+          details[gate] = _parseGateDetail(
+            detailRaw,
+            fallbackStatus: normalized,
+          );
+        }
+      }
     }
     setState(() {
       _readinessGates = next;
-      _gateSource = 'server';
+      _gateDetails = details;
+      _gateSource = hasDetails ? 'server_details' : 'server';
     });
   }
 
@@ -263,6 +283,28 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       return 'fail';
     }
     return 'unknown';
+  }
+
+  _GateDetailData _parseGateDetail(
+    Map<String, dynamic> raw, {
+    required String fallbackStatus,
+  }) {
+    final String status = _normalizeGateStatus(raw['status'] ?? fallbackStatus);
+    final String source = (raw['source'] ?? 'n/a').toString();
+    final String summary = (raw['summary'] ?? 'No summary').toString();
+    final bool stale = raw['stale'] == true;
+    DateTime? updatedAt;
+    final dynamic updatedRaw = raw['updated_at'];
+    if (updatedRaw is String) {
+      updatedAt = DateTime.tryParse(updatedRaw);
+    }
+    return _GateDetailData(
+      status: status,
+      source: source,
+      summary: summary,
+      updatedAt: updatedAt,
+      stale: stale,
+    );
   }
 
   VoiceUiState? _parseVoiceState(dynamic raw) {
@@ -676,9 +718,49 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               }).toList(),
             ),
             const SizedBox(height: 12),
+            if (_gateDetails.isEmpty)
+              Text(
+                'No gate metadata available yet.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            else
+              Column(
+                children: _gateOrder.map((String gate) {
+                  final _GateDetailData? detail = _gateDetails[gate];
+                  if (detail == null) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _statusRow('$gate summary', detail.summary),
+                        const SizedBox(height: 6),
+                        _statusRow('$gate source', detail.source),
+                        const SizedBox(height: 6),
+                        _statusRow(
+                          '$gate updated',
+                          detail.updatedAt?.toIso8601String() ?? 'unknown',
+                        ),
+                        const SizedBox(height: 6),
+                        _statusRow(
+                          '$gate freshness',
+                          detail.stale ? 'stale' : 'fresh',
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            const SizedBox(height: 4),
             _statusRow(
               'Gate source',
-              _gateSource == 'server'
+              _gateSource == 'server_details'
+                  ? 'server payload (/api/status reentry_gates_details)'
+                  : _gateSource == 'server'
                   ? 'server payload (/api/status reentry_gates)'
                   : 'fallback (waiting for reentry_gates)',
             ),
@@ -821,6 +903,22 @@ class _VoiceStateData {
   final String label;
   final IconData icon;
   final Color accent;
+}
+
+class _GateDetailData {
+  const _GateDetailData({
+    required this.status,
+    required this.source,
+    required this.summary,
+    required this.updatedAt,
+    required this.stale,
+  });
+
+  final String status;
+  final String source;
+  final String summary;
+  final DateTime? updatedAt;
+  final bool stale;
 }
 
 class _ConnectionBadge extends StatelessWidget {

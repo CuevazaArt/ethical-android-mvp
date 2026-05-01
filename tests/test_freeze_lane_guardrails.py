@@ -62,6 +62,8 @@ def test_freeze_matrix_defines_healthy_criterion_and_feature_freeze_rule() -> No
         "No net-new feature merged in frozen lane paths",
         "Desktop contract no-drift check: PASS",
         "If any check fails, status is **DEGRADED**",
+        "Evidence Freshness SLA",
+        "all evidence is within freshness SLA",
     ]
     for marker in must_have:
         assert marker in text, f"Missing freeze guardrail marker: {marker}"
