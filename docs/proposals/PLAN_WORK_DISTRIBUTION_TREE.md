@@ -423,18 +423,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** counter strip now renders deterministic totals and updates after manual probe + filter interactions.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 102.6: Flutter diagnostics triage milestone checkpoint [PENDING]**
+**Bloque 102.6: Flutter diagnostics triage milestone checkpoint [DONE ✅]**
 - **Goal:** Register closure of the triage slice (`102.2` to `102.5`) before next feature wave.
 - **Files:** `CONTEXT.md`, `CHANGELOG.md`, plan handoff line.
-- **Demo:** checkpoint records validated capabilities and current guardrail status.
+- **Demo:** checkpoint now records triage capabilities and refreshed local validation (`flutter test` + collaboration invariants).
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 103.0: Flutter diagnostics next-wave planning checkpoint [PENDING]**
+- **Goal:** Open the next diagnostics UX wave with a compact, test-first target definition.
+- **Files:** plan handoff line + `CONTEXT.md`.
+- **Demo:** next block objective and acceptance criteria are explicit and non-ambiguous.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 102.6 — Flutter diagnostics triage milestone checkpoint
+[SIGUIENTE] Bloque 103.0 — Flutter diagnostics next-wave planning checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Consolidate the diagnostics triage milestone before opening another UX extension.
-[HECHO CUANDO] Checkpoint explicitly states completed triage capabilities and latest local validation.
+[MOTIVO] Start the next UX wave with explicit scope discipline after triage milestone closure.
+[HECHO CUANDO] Next objective and done-criteria are captured in one deterministic handoff entry.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
