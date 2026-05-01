@@ -100,6 +100,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`.github/workflows/ci.yml`:** Added `flutter-desktop-smoke` job for Flutter lane changes (`flutter pub get` + `flutter test`).
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.5` as done and advanced sequence to `101.6`.
 
+## [2026-05-01] V2.101.6 — Flutter diagnostics retention tuning
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added diagnostics depth controls (`Short`, `Medium`) with deterministic event truncation.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for diagnostics depth controls.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.6` as done and advanced sequence to `101.7`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

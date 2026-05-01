@@ -73,6 +73,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   String _payloadActionMessage = 'No payload action yet.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
+  _DiagnosticDepth _diagnosticDepth = _DiagnosticDepth.medium;
   Map<String, String> _readinessGates = <String, String>{
     'G1': 'unknown',
     'G2': 'unknown',
@@ -222,7 +223,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           type: _diagnosticTypeForMessage(message),
         ),
       );
-      if (_diagnosticEvents.length > 8) {
+      while (_diagnosticEvents.length > _diagnosticDepth.maxEntries) {
         _diagnosticEvents.removeLast();
       }
     });
@@ -634,6 +635,35 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   onSelected: (_) {
                     setState(() {
                       _diagnosticFilter = _DiagnosticFilter.manual;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('Short'),
+                  selected: _diagnosticDepth == _DiagnosticDepth.short,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticDepth = _DiagnosticDepth.short;
+                      while (_diagnosticEvents.length >
+                          _diagnosticDepth.maxEntries) {
+                        _diagnosticEvents.removeLast();
+                      }
+                    });
+                  },
+                ),
+                ChoiceChip(
+                  label: const Text('Medium'),
+                  selected: _diagnosticDepth == _DiagnosticDepth.medium,
+                  onSelected: (_) {
+                    setState(() {
+                      _diagnosticDepth = _DiagnosticDepth.medium;
                     });
                   },
                 ),
@@ -1244,6 +1274,15 @@ class _DiagnosticEvent {
 }
 
 enum _DiagnosticFilter { all, transport, manual }
+
+enum _DiagnosticDepth {
+  short(4),
+  medium(8);
+
+  const _DiagnosticDepth(this.maxEntries);
+
+  final int maxEntries;
+}
 
 class _ConnectionBadge extends StatelessWidget {
   const _ConnectionBadge({required this.data});

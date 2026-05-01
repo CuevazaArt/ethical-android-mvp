@@ -363,18 +363,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `quality/windows-smoke/desktop-gate-report` run only on Python-affecting changes; Flutter-only changes run `flutter-desktop-smoke`.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 101.6: Flutter diagnostics retention tuning [PENDING]**
+**Bloque 101.6: Flutter diagnostics retention tuning [DONE ✅]**
 - **Goal:** Expose compact retention controls for diagnostics timeline depth (short/medium) without backend changes.
 - **Files:** Flutter shell module + tests.
-- **Demo:** operator can change visible diagnostics depth from UI controls with deterministic behavior.
+- **Demo:** diagnostics timeline now includes `Short` (4 events) and `Medium` (8 events) depth controls.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 101.7: Flutter diagnostics UX polish pass [PENDING]**
+- **Goal:** Improve diagnostics card readability and operator affordance with minimal UI polish.
+- **Files:** Flutter shell module + tests.
+- **Demo:** diagnostics card presents clearer event grouping cues without contract changes.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.6 — Flutter diagnostics retention tuning
+[SIGUIENTE] Bloque 101.7 — Flutter diagnostics UX polish pass
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Continue improving diagnostics ergonomics on the active desktop surface.
-[HECHO CUANDO] Diagnostics timeline depth can be adjusted from UI and remains stable across transport states.
+[MOTIVO] Raise operator scan speed after adding filters and depth controls.
+[HECHO CUANDO] Diagnostics panel readability improves with stable tests and no contract impact.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

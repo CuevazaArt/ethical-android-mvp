@@ -116,6 +116,13 @@
 - Flutter lane changes trigger dedicated `flutter-desktop-smoke` job (`flutter test` in desktop shell module).
 - This removes false-red CI from historical Python typing debt when only Flutter UI changes are pushed.
 
+### Execution pulse 101.6 (diagnostics retention tuning)
+
+- Added diagnostics timeline retention controls in Flutter shell:
+  - `Short` mode keeps 4 recent events.
+  - `Medium` mode keeps 8 recent events.
+- Retention is applied client-side with deterministic truncation behavior.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
