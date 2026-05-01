@@ -2773,3 +2773,9 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/server/static/index.html`
   - `tests/server/test_app_integration.py`
   - `tests/server/test_desktop_video_adapter.py`
+
+### Execution (Swarm) | Date: 2026-04-30 19:45:14 | Author: Anonymous Agent
+- **Block:** `50.1`
+- **Message:** Flutter shell desktop + transport base operativo
+- **Files Modified:**
+  - *(No files modified)*
