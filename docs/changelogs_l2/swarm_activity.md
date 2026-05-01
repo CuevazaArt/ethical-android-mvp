@@ -2806,3 +2806,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/clients/flutter_desktop_shell/README.md`
   - `src/clients/flutter_desktop_shell/lib/main.dart`
   - `src/clients/flutter_desktop_shell/test/widget_test.dart`
+
+### Execution (Swarm) | Date: 2026-04-30 20:10:09 | Author: Anonymous Agent
+- **Block:** `50.5A`
+- **Message:** Packaging baseline desktop y smoke checklist listo
+- **Files Modified:**
+  - `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
+  - `scripts/build_windows_desktop_release.ps1`
+  - `tests/fixtures/freeze_lane/smoke_payloads.json`
+  - `tests/test_freeze_lane_guardrails.py`

@@ -1,10 +1,10 @@
-$ErrorActionPreference = "Stop"
-
 param(
     [string]$AppDir = "src/clients/flutter_desktop_shell",
     [string]$OutDir = "dist/desktop/windows",
     [switch]$SkipClean
 )
+
+$ErrorActionPreference = "Stop"
 
 function Step([string]$message) {
     Write-Host ""

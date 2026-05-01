@@ -1,0 +1,39 @@
+{
+  "valid": [
+    {
+      "lane": "web",
+      "payload": {
+        "version": "1.0",
+        "contract": "voice_turn",
+        "request": {"utterance": "status ping"},
+        "response": {"reply_text": "online", "should_listen": false},
+        "error": null,
+        "latency_ms": 12.4
+      }
+    },
+    {
+      "lane": "mobile",
+      "payload": {
+        "version": "1.0",
+        "contract": "video_perception",
+        "request": {"frame_b64": "iVBORw0KGgoAAAANSUhEUg==", "frame_format": "jpeg", "width": 320, "height": 240},
+        "response": {"labels": ["motion"], "motion": 0.1, "faces_detected": 0},
+        "error": null,
+        "latency_ms": 25.0
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "lane": "mobile",
+      "payload": {
+        "version": "1.0",
+        "contract": "voice_turn",
+        "request": {"utterance": "hello"},
+        "response": {"reply_text": "ok", "should_listen": true},
+        "latency_ms": 10.0
+      },
+      "reason": "missing error key"
+    }
+  ]
+}
