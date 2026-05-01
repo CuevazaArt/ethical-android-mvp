@@ -327,18 +327,30 @@ Use this fixed structure in each planning handoff:
 - **Demo:** one concise closure packet ready for operator handoff.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 101.0: Flutter MVP execution wave handoff [PENDING]**
+**Bloque 101.0: Flutter MVP execution wave handoff [DONE ✅]**
 - **Goal:** Start next execution wave focused on feature-depth in active Flutter MVP lane.
-- **Files:** plan + context handoff.
-- **Demo:** first post-corrective feature block defined with objective acceptance criteria.
+- **Files:** `src/clients/flutter_desktop_shell/lib/main.dart`, `src/clients/flutter_desktop_shell/test/widget_test.dart`, plan/context/changelog sync.
+- **Demo:** gate panel now computes and renders MVP checkpoint state (`READY`, `DEGRADED`, `BLOCKED`, `PENDING`) from G1..G5 + freshness details.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 101.1: Flutter MVP interaction depth slice [DONE ✅]**
+- **Goal:** Add one user-visible interaction-depth slice in Flutter (beyond transport status) with strict server-contract boundaries.
+- **Files:** Flutter shell module + targeted tests.
+- **Demo:** status card includes manual `Check now` probe action with explicit probe timestamp and no regression in gate/voice panels.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 101.2: Flutter payload ergonomics pass [PENDING]**
+- **Goal:** Improve status payload usability (quick diagnostics actions) without changing backend contracts.
+- **Files:** `src/clients/flutter_desktop_shell/lib/main.dart`, targeted widget tests.
+- **Demo:** operator can perform diagnostics action directly from payload panel with deterministic UI feedback.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 101.0 — Flutter MVP execution wave handoff
-[POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Transition from corrective governance work to product-depth execution on the active surface.
-[HECHO CUANDO] Next Flutter MVP feature block is defined with measurable done criteria.
+[SIGUIENTE] Bloque 101.2 — Flutter payload ergonomics pass
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Increase operator speed for diagnostics from the active desktop surface.
+[HECHO CUANDO] Payload panel exposes one direct diagnostics action with test coverage and stable offline behavior.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

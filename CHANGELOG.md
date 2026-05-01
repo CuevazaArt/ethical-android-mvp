@@ -63,6 +63,18 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added formal closure packet summarizing scope, verification status, and next-wave handoff.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `100.9` as done and opened `101.0` as the first post-corrective execution handoff block.
 
+## [2026-05-01] V2.101.0 — Flutter MVP execution handoff (depth started)
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added computed `MVP checkpoint` status in the gate readiness card based on gate pass/fail/in-progress/unknown plus freshness metadata.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Extended widget coverage for the default checkpoint rendering (`PENDING`) and explanatory text.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.0` as done and advanced sequence to `101.1`.
+
+## [2026-05-01] V2.101.1 — Flutter manual probe interaction slice
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added manual `Check now` transport action, in-flight state handling, and `Last manual probe` telemetry in the status card.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added coverage for manual-probe UI elements in baseline render.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `101.1` as done and advanced sequence to `101.2`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

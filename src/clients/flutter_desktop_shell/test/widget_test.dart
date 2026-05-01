@@ -21,6 +21,8 @@ void main() {
     expect(find.text('Connection states'), findsOneWidget);
     expect(find.text('Connected'), findsWidgets);
     expect(find.text('Retrying'), findsWidgets);
+    expect(find.text('Check now'), findsOneWidget);
+    expect(find.text('Last manual probe:'), findsOneWidget);
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
     expect(
@@ -29,6 +31,12 @@ void main() {
     );
     expect(find.text('Re-entry readiness gates'), findsOneWidget);
     expect(find.text('G1 UNKNOWN'), findsWidgets);
+    expect(find.text('MVP checkpoint'), findsOneWidget);
+    expect(find.text('PENDING'), findsWidgets);
+    expect(
+      find.text('Waiting for server gate payload to evaluate readiness.'),
+      findsOneWidget,
+    );
     expect(find.text('Gate source:'), findsOneWidget);
     expect(find.text('fallback (waiting for reentry_gates)'), findsOneWidget);
     expect(find.text('No gate metadata available yet.'), findsOneWidget);

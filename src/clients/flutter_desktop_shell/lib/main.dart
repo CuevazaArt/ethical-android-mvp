@@ -60,8 +60,10 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   Timer? _retryTimer;
   int _retryCount = 0;
   DateTime? _lastHeartbeatAt;
+  DateTime? _lastManualProbeAt;
   Map<String, dynamic>? _healthPayload;
   String _lastMessage = 'Startup...';
+  bool _manualProbeInFlight = false;
   VoiceUiState _voiceUiState = VoiceUiState.micOff;
   String _voiceEventSource = 'placeholder';
   DateTime? _lastVoiceStateAt;
@@ -174,6 +176,27 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
 
     _retryTimer = Timer(boundedDelay, () {
       unawaited(_probeAndSchedule());
+    });
+  }
+
+  Future<void> _runManualProbe() async {
+    if (_manualProbeInFlight || !mounted) {
+      return;
+    }
+    setState(() {
+      _manualProbeInFlight = true;
+      _connectionState = KernelConnectionState.connecting;
+      _lastMessage = 'manual probe requested';
+      _lastManualProbeAt = DateTime.now();
+    });
+    _heartbeatTimer?.cancel();
+    _retryTimer?.cancel();
+    await _probeAndSchedule();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _manualProbeInFlight = false;
     });
   }
 
@@ -482,7 +505,30 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               _lastHeartbeatAt?.toIso8601String() ?? 'never',
             ),
             const SizedBox(height: 10),
+            _statusRow(
+              'Last manual probe',
+              _lastManualProbeAt?.toIso8601String() ?? 'never',
+            ),
+            const SizedBox(height: 10),
             _statusRow('Transport', _lastMessage),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: _manualProbeInFlight
+                      ? null
+                      : () {
+                          unawaited(_runManualProbe());
+                        },
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: Text(
+                    _manualProbeInFlight ? 'Checking...' : 'Check now',
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -679,6 +725,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   }
 
   Widget _buildGateReadinessCard(ThemeData theme) {
+    final _StatusBadgeData checkpointBadge = _mvpCheckpointBadgeData(theme);
+    final String checkpointDetail = _mvpCheckpointDetail();
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -699,6 +747,27 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             const SizedBox(height: 4),
             Text(
               'G1..G5 status for mobile/web reopen criteria.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'MVP checkpoint',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _ConnectionBadge(data: checkpointBadge),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              checkpointDetail,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -857,6 +926,74 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           textColor: theme.colorScheme.onSurfaceVariant,
           bgColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.14),
         );
+    }
+  }
+
+  _StatusBadgeData _mvpCheckpointBadgeData(ThemeData theme) {
+    switch (_mvpCheckpointState()) {
+      case 'ready':
+        return _StatusBadgeData(
+          label: 'READY',
+          textColor: theme.colorScheme.primary,
+          bgColor: theme.colorScheme.primary.withValues(alpha: 0.16),
+        );
+      case 'degraded':
+        return _StatusBadgeData(
+          label: 'DEGRADED',
+          textColor: Colors.amber.shade300,
+          bgColor: Colors.amber.withValues(alpha: 0.16),
+        );
+      case 'blocked':
+        return _StatusBadgeData(
+          label: 'BLOCKED',
+          textColor: theme.colorScheme.error,
+          bgColor: theme.colorScheme.error.withValues(alpha: 0.16),
+        );
+      default:
+        return _StatusBadgeData(
+          label: 'PENDING',
+          textColor: theme.colorScheme.onSurfaceVariant,
+          bgColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.14),
+        );
+    }
+  }
+
+  String _mvpCheckpointState() {
+    if (_gateSource == 'fallback') {
+      return 'pending';
+    }
+    final List<String> statuses = _gateOrder
+        .map((String gate) => _readinessGates[gate] ?? 'unknown')
+        .toList();
+    if (statuses.any((String status) => status == 'fail')) {
+      return 'blocked';
+    }
+    if (statuses.every((String status) => status == 'pass')) {
+      if (_gateDetails.isEmpty) {
+        return 'ready';
+      }
+      final bool anyStale = _gateOrder
+          .map((String gate) => _gateDetails[gate])
+          .whereType<_GateDetailData>()
+          .any((detail) => detail.stale);
+      return anyStale ? 'degraded' : 'ready';
+    }
+    if (statuses.any((String status) => status == 'unknown')) {
+      return 'pending';
+    }
+    return 'degraded';
+  }
+
+  String _mvpCheckpointDetail() {
+    switch (_mvpCheckpointState()) {
+      case 'ready':
+        return 'All gates are passing and evidence is current.';
+      case 'degraded':
+        return 'No hard fail, but at least one gate is in progress or stale.';
+      case 'blocked':
+        return 'At least one gate failed. Re-entry remains blocked.';
+      default:
+        return 'Waiting for server gate payload to evaluate readiness.';
     }
   }
 

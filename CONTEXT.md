@@ -76,6 +76,21 @@
   - Corrective wave is closed.
   - Next execution wave should start at `101.0` with Flutter MVP feature-depth objectives only.
 
+### Execution pulse 101.0 (Flutter depth handoff started)
+
+- Implemented first post-corrective Flutter depth increment:
+  - `MVP checkpoint` state is now computed in the gate card from `G1..G5` + freshness.
+  - States rendered: `READY`, `DEGRADED`, `BLOCKED`, `PENDING`.
+- Contract discipline preserved:
+  - no new business logic moved out of server/core boundaries;
+  - UI derives state only from existing `/api/status` gate payloads.
+
+### Execution pulse 101.1 (interaction depth slice)
+
+- Added manual transport probe action in Flutter status card (`Check now`) for operator-driven reconnection checks.
+- UI now records and renders `Last manual probe` timestamp for traceable diagnostics steps.
+- Existing contract surfaces (`voice_turn_state`, `reentry_gates`, `reentry_gates_details`) remain unchanged.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
