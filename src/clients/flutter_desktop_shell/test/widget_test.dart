@@ -23,7 +23,14 @@ void main() {
     expect(find.text('Retrying'), findsWidgets);
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
-    expect(find.text('Waiting for backend to emit voice_turn_state.'), findsOneWidget);
+    expect(
+      find.text('Waiting for backend to emit voice_turn_state.'),
+      findsOneWidget,
+    );
+    expect(find.text('Re-entry readiness gates'), findsOneWidget);
+    expect(find.text('G1 UNKNOWN'), findsWidgets);
+    expect(find.text('Gate source:'), findsOneWidget);
+    expect(find.text('fallback (waiting for reentry_gates)'), findsOneWidget);
     expect(find.text('Health payload'), findsOneWidget);
     expect(find.text('Waiting for /api/status payload...'), findsOneWidget);
   });

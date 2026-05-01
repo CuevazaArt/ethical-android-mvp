@@ -1,20 +1,20 @@
-{"turn_id":"t-001","total_ms":1820.0}
-{"turn_id":"t-002","total_ms":1940.0}
-{"turn_id":"t-003","total_ms":2015.0}
-{"turn_id":"t-004","total_ms":1765.0}
-{"turn_id":"t-005","total_ms":2105.0}
-{"turn_id":"t-006","total_ms":2235.0}
-{"turn_id":"t-007","total_ms":1875.0}
-{"turn_id":"t-008","total_ms":1960.0}
-{"turn_id":"t-009","total_ms":2050.0}
-{"turn_id":"t-010","total_ms":2145.0}
-{"turn_id":"t-011","total_ms":1990.0}
-{"turn_id":"t-012","total_ms":2085.0}
-{"turn_id":"t-013","total_ms":2170.0}
-{"turn_id":"t-014","total_ms":2210.0}
-{"turn_id":"t-015","total_ms":1895.0}
-{"turn_id":"t-016","total_ms":1975.0}
-{"turn_id":"t-017","total_ms":2025.0}
-{"turn_id":"t-018","total_ms":2110.0}
-{"turn_id":"t-019","total_ms":2250.0}
-{"turn_id":"t-020","total_ms":1985.0}
+{"captured_at": "2026-05-01T03:11:40.824519Z", "sample_id": "voice-turn-001", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.13, "roundtrip_ms": 19.374, "total_ms": 19.374}
+{"captured_at": "2026-05-01T03:11:40.844144Z", "sample_id": "voice-turn-002", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.06, "roundtrip_ms": 1.033, "total_ms": 1.033}
+{"captured_at": "2026-05-01T03:11:40.845391Z", "sample_id": "voice-turn-003", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.05, "roundtrip_ms": 23.537, "total_ms": 23.537}
+{"captured_at": "2026-05-01T03:11:40.869152Z", "sample_id": "voice-turn-004", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.04, "roundtrip_ms": 1.142, "total_ms": 1.142}
+{"captured_at": "2026-05-01T03:11:40.870416Z", "sample_id": "voice-turn-005", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.774, "total_ms": 0.774}
+{"captured_at": "2026-05-01T03:11:40.871289Z", "sample_id": "voice-turn-006", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.701, "total_ms": 0.701}
+{"captured_at": "2026-05-01T03:11:40.872095Z", "sample_id": "voice-turn-007", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.761, "total_ms": 0.761}
+{"captured_at": "2026-05-01T03:11:40.872959Z", "sample_id": "voice-turn-008", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.04, "roundtrip_ms": 11.211, "total_ms": 11.211}
+{"captured_at": "2026-05-01T03:11:40.884303Z", "sample_id": "voice-turn-009", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.04, "roundtrip_ms": 0.989, "total_ms": 0.989}
+{"captured_at": "2026-05-01T03:11:40.885413Z", "sample_id": "voice-turn-010", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.04, "roundtrip_ms": 14.187, "total_ms": 14.187}
+{"captured_at": "2026-05-01T03:11:40.899788Z", "sample_id": "voice-turn-011", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.769, "total_ms": 0.769}
+{"captured_at": "2026-05-01T03:11:40.900680Z", "sample_id": "voice-turn-012", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.784, "total_ms": 0.784}
+{"captured_at": "2026-05-01T03:11:40.901621Z", "sample_id": "voice-turn-013", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.802, "total_ms": 0.802}
+{"captured_at": "2026-05-01T03:11:40.902574Z", "sample_id": "voice-turn-014", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.68, "total_ms": 0.68}
+{"captured_at": "2026-05-01T03:11:40.903391Z", "sample_id": "voice-turn-015", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.676, "total_ms": 0.676}
+{"captured_at": "2026-05-01T03:11:40.904236Z", "sample_id": "voice-turn-016", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.04, "roundtrip_ms": 0.799, "total_ms": 0.799}
+{"captured_at": "2026-05-01T03:11:40.905154Z", "sample_id": "voice-turn-017", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.05, "roundtrip_ms": 10.301, "total_ms": 10.301}
+{"captured_at": "2026-05-01T03:11:40.915607Z", "sample_id": "voice-turn-018", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.04, "roundtrip_ms": 0.88, "total_ms": 0.88}
+{"captured_at": "2026-05-01T03:11:40.916633Z", "sample_id": "voice-turn-019", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.04, "roundtrip_ms": 0.663, "total_ms": 0.663}
+{"captured_at": "2026-05-01T03:11:40.917423Z", "sample_id": "voice-turn-020", "source": "live_capture", "endpoint": "http://127.0.0.1:8000/api/perception/audio", "http_status": 200, "envelope_latency_ms": 0.03, "roundtrip_ms": 0.702, "total_ms": 0.702}

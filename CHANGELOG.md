@@ -75,6 +75,20 @@ All notable changes to this project are summarized here. For narrative context a
 - **`.github/workflows/ci.yml`:** `desktop-gate-report` now writes a markdown PASS/FAIL table to `GITHUB_STEP_SUMMARY` for direct operator visibility in Actions runs.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Registered CI visibility follow-up and closed block 51.4.
 
+## [2026-04-30] Re-entry gates automation expansion (52.0/52.1/52.2/52.3/52.4)
+### Added
+- **`scripts/eval/freeze_lane_monthly_report.py`:** G3 monthly report runner with PASS/IN_PROGRESS/FAIL status and JSONL history logging.
+- **`scripts/eval/append_stability_ledger.py`:** Daily G1 ledger append utility with duplicate-day protection and optional replacement.
+- **`scripts/eval/capture_voice_turn_latency.py`:** Live `/api/perception/audio` capture harness that writes normalized latency samples for G2.
+- **`scripts/eval/run_demo_reliability_checklist.py`:** Executable 10-check reliability runner that regenerates demo checklist evidence for G4.
+- **`tests/eval/`:** New coverage for monthly report logic, daily ledger append rules, latency capture helpers, and checklist shape.
+
+### Changed
+- **`docs/collaboration/evidence/`:** Refreshed G1/G2/G3/G4 evidence artifacts from executable automation runs.
+- **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`:** Gate proofpack now points to 52.x automation commands and sources.
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Re-entry readiness gates` panel (G1..G5 badges) with server/fallback source labeling.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Extended UI assertions for readiness panel visibility and fallback messaging.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

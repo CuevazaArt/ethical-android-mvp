@@ -78,11 +78,13 @@ When a release is built with `scripts/build_windows_desktop_release.ps1`, a
 - Current behavior:
   - Uses server state if `voice_state` / `voice_turn_state` fields appear in health payload.
   - Falls back to `mic off` if `stt_available` is false.
-  - Supports explicit placeholder transitions with the `Next state` button.
-- Demo log pattern:
-  - `voice_ui -> listening (placeholder)`
-  - `voice_ui -> transcribing (placeholder)`
-  - `voice_ui -> responding (placeholder)`
+
+## Re-entry gates panel (Block 52.4)
+
+- The desktop shell now includes a dedicated `Re-entry readiness gates` card.
+- Gates `G1..G5` are rendered as status badges (`PASS`, `IN PROGRESS`, `FAIL`, `UNKNOWN`).
+- If `/api/status` exposes `reentry_gates`, the panel switches to server source mode.
+- If `reentry_gates` is missing, the panel stays in fallback mode and labels this explicitly.
 
 ## Windows Packaging Baseline (Block 50.5A)
 

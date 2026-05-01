@@ -189,6 +189,36 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `desktop-gate-report` writes markdown table to `GITHUB_STEP_SUMMARY`.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 52.0: Contract no-drift monthly closure automation [DONE ✅]**
+- **Goal:** Version monthly G3 evidence with objective PASS/IN_PROGRESS/FAIL status.
+- **Files:** `scripts/eval/freeze_lane_monthly_report.py`, `docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl`.
+- **Demo:** `python scripts/eval/freeze_lane_monthly_report.py --record-run --allow-in-progress`.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 52.1: Daily stability ledger append automation [DONE ✅]**
+- **Goal:** Eliminate manual edits for G1 smoke evidence while preventing duplicate day entries.
+- **Files:** `scripts/eval/append_stability_ledger.py`, `docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl`.
+- **Demo:** `python scripts/eval/append_stability_ledger.py --date 2026-05-01T09:00:00Z --status pass --cycle desktop-smoke --note "No critical crash; daily automation entry."`.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 52.2: Live voice latency capture harness [DONE ✅]**
+- **Goal:** Replace static latency samples with endpoint-driven capture records.
+- **Files:** `scripts/eval/capture_voice_turn_latency.py`, `docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl`.
+- **Demo:** `python scripts/eval/capture_voice_turn_latency.py --base-url http://127.0.0.1:8000 --samples 20 --output docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl`.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 52.3: Executable demo reliability runner [DONE ✅]**
+- **Goal:** Generate 10/10 demo checklist from runnable integration checks instead of manual toggles.
+- **Files:** `scripts/eval/run_demo_reliability_checklist.py`, `docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json`.
+- **Demo:** `python scripts/eval/run_demo_reliability_checklist.py --output docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json`.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 52.4: Flutter readiness gates panel [DONE ✅]**
+- **Goal:** Expose G1..G5 reopening readiness directly in desktop shell UI.
+- **Files:** `src/clients/flutter_desktop_shell/lib/main.dart`, `src/clients/flutter_desktop_shell/test/widget_test.dart`.
+- **Demo:** `flutter test` validates rendering of `Re-entry readiness gates` and fallback/source messaging.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.

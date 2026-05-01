@@ -41,6 +41,7 @@
 - **Continuity pulse 51.x:** stability ledger automation, voice latency benchmark harness, and demo reliability checklist runner integrated with test coverage.
 - **CI continuity (51.3):** workflow `CI` now publishes `desktop-gate-report` artifact from automated G1/G2/G4 evaluation.
 - **CI visibility (51.4):** gate job publishes a human-readable PASS/FAIL table in `GITHUB_STEP_SUMMARY`.
+- **Execution pulse 52.x:** G3 monthly drift report automation, G1 daily ledger append tooling, G2 live capture harness, G4 executable demo checklist, and Flutter readiness-gates panel.
 
 ## Desktop Migration Progress (Block 50.1, 2026-04-30)
 

@@ -43,6 +43,7 @@ class TransportStatusPage extends StatefulWidget {
 }
 
 class _TransportStatusPageState extends State<TransportStatusPage> {
+  static const List<String> _gateOrder = <String>['G1', 'G2', 'G3', 'G4', 'G5'];
   static const String _defaultKernelUrl = String.fromEnvironment(
     'KERNEL_BASE_URL',
     defaultValue: 'http://127.0.0.1:8000',
@@ -66,6 +67,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   DateTime? _lastVoiceStateAt;
   bool _hasServerVoiceState = false;
   bool _payloadHasFocus = false;
+  Map<String, String> _readinessGates = <String, String>{
+    'G1': 'unknown',
+    'G2': 'unknown',
+    'G3': 'unknown',
+    'G4': 'unknown',
+    'G5': 'unknown',
+  };
+  String _gateSource = 'fallback';
 
   Uri get _pingUri => Uri.parse('$_defaultKernelUrl/api/ping');
   Uri get _statusUri => Uri.parse('$_defaultKernelUrl/api/status');
@@ -136,6 +145,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         _lastMessage = 'connected';
       });
       _updateVoiceStateFromHealth(decoded);
+      _updateGateReadinessFromHealth(decoded);
 
       _log('connected -> health payload received: ${jsonEncode(decoded)}');
     } catch (error) {
@@ -214,6 +224,47 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     }
   }
 
+  void _updateGateReadinessFromHealth(Map<String, dynamic> payload) {
+    final dynamic raw = payload['reentry_gates'];
+    if (raw is! Map) {
+      if (_gateSource != 'fallback') {
+        setState(() {
+          _gateSource = 'fallback';
+        });
+      }
+      return;
+    }
+    final Map<String, String> next = <String, String>{};
+    for (final String gate in _gateOrder) {
+      final dynamic value = raw[gate] ?? raw[gate.toLowerCase()];
+      next[gate] = _normalizeGateStatus(value);
+    }
+    setState(() {
+      _readinessGates = next;
+      _gateSource = 'server';
+    });
+  }
+
+  String _normalizeGateStatus(dynamic value) {
+    if (value == null) {
+      return 'unknown';
+    }
+    if (value is bool) {
+      return value ? 'pass' : 'fail';
+    }
+    final String text = value.toString().trim().toLowerCase();
+    if (text.contains('pass')) {
+      return 'pass';
+    }
+    if (text.contains('progress') || text.contains('pending')) {
+      return 'in_progress';
+    }
+    if (text.contains('fail')) {
+      return 'fail';
+    }
+    return 'unknown';
+  }
+
   VoiceUiState? _parseVoiceState(dynamic raw) {
     if (raw is! String) {
       return null;
@@ -271,6 +322,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               final bool isWide = constraints.maxWidth >= 1050;
               final Widget statusCard = _buildStatusCard(theme, badge);
               final Widget voiceCard = _buildVoiceCard(theme);
+              final Widget gatesCard = _buildGateReadinessCard(theme);
               final Widget payloadCard = _buildPayloadCard(theme);
 
               if (isWide) {
@@ -284,6 +336,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                           statusCard,
                           const SizedBox(height: 16),
                           voiceCard,
+                          const SizedBox(height: 16),
+                          gatesCard,
                         ],
                       ),
                     ),
@@ -300,6 +354,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                     statusCard,
                     const SizedBox(height: 16),
                     voiceCard,
+                    const SizedBox(height: 16),
+                    gatesCard,
                     const SizedBox(height: 16),
                     SizedBox(height: 360, child: payloadCard),
                   ],
@@ -580,6 +636,58 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     );
   }
 
+  Widget _buildGateReadinessCard(ThemeData theme) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Re-entry readiness gates',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'G1..G5 status for mobile/web reopen criteria.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _gateOrder.map((String gate) {
+                final String status = _readinessGates[gate] ?? 'unknown';
+                final _StatusBadgeData data = _gateBadgeData(
+                  gate,
+                  status,
+                  theme,
+                );
+                return _ConnectionBadge(data: data);
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            _statusRow(
+              'Gate source',
+              _gateSource == 'server'
+                  ? 'server payload (/api/status reentry_gates)'
+                  : 'fallback (waiting for reentry_gates)',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   _StatusBadgeData _statusBadgeForState(
     KernelConnectionState state,
     ThemeData theme,
@@ -637,6 +745,35 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           label: 'Responding',
           icon: Icons.record_voice_over_rounded,
           accent: theme.colorScheme.tertiary,
+        );
+    }
+  }
+
+  _StatusBadgeData _gateBadgeData(String gate, String status, ThemeData theme) {
+    switch (status) {
+      case 'pass':
+        return _StatusBadgeData(
+          label: '$gate PASS',
+          textColor: theme.colorScheme.primary,
+          bgColor: theme.colorScheme.primary.withValues(alpha: 0.16),
+        );
+      case 'in_progress':
+        return _StatusBadgeData(
+          label: '$gate IN PROGRESS',
+          textColor: Colors.amber.shade300,
+          bgColor: Colors.amber.withValues(alpha: 0.16),
+        );
+      case 'fail':
+        return _StatusBadgeData(
+          label: '$gate FAIL',
+          textColor: theme.colorScheme.error,
+          bgColor: theme.colorScheme.error.withValues(alpha: 0.16),
+        );
+      default:
+        return _StatusBadgeData(
+          label: '$gate UNKNOWN',
+          textColor: theme.colorScheme.onSurfaceVariant,
+          bgColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.14),
         );
     }
   }
