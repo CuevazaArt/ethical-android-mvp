@@ -215,6 +215,19 @@
 - Strip appears only when high-severity events exist and shows current urgent-event count.
 - This widens sprint throughput (planning + actions + alerting) while preserving green local validation.
 
+### Execution pulse 103.3 (perception hardware readiness brief)
+
+- Hardware discovery opens in parallel lane (without blocking Flutter diagnostics delivery).
+- Minimal pilot shortlist (starter tier):
+  - **Mic:** USB cardioid mic with native Windows support (48 kHz capable).
+  - **Camera:** UVC-compliant 1080p webcam (stable at 30 fps in low light).
+  - **Audio out:** wired headset for echo-controlled turn validation.
+- Pilot go/no-go acceptance criteria:
+  - **Capture stability:** no device disconnect during 15-minute run.
+  - **Input latency:** stable capture and handoff behavior suitable for p95 turn target envelope.
+  - **Signal quality:** intelligible speech at normal desk distance and face detection reliability in baseline lighting.
+  - **Rollback safety:** operator can disable perception hardware path and return to transport-only mode in one step.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

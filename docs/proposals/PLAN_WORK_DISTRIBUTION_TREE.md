@@ -447,18 +447,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** high-alert strip appears with count and operator wording once high-severity events exist.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 103.3: Perception hardware readiness brief [PENDING]**
+**Bloque 103.3: Perception hardware readiness brief [DONE ✅]**
 - **Goal:** Define minimal hardware shortlist and go/no-go criteria for basic perception pilot.
 - **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
-- **Demo:** shortlist and acceptance criteria are explicit without blocking Flutter UX progression.
+- **Demo:** shortlist and acceptance criteria are explicit and decoupled from Flutter sprint lane.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 103.4: Perception pilot execution checklist [PENDING]**
+- **Goal:** Convert readiness brief into a deterministic first-pilot checklist (setup, capture, validation, rollback).
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** pilot checklist can be executed by one operator in <30 minutes with clear pass/fail outputs.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 103.3 — Perception hardware readiness brief
+[SIGUIENTE] Bloque 103.4 — Perception pilot execution checklist
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Start hardware discovery in parallel while keeping Flutter MVP delivery lane unblocked.
-[HECHO CUANDO] A basic hardware shortlist and acceptance criteria are documented for pilot execution.
+[MOTIVO] Move from shortlist theory to operator-ready pilot execution without introducing backend coupling yet.
+[HECHO CUANDO] A first-run checklist is documented with deterministic pass/fail gates and rollback notes.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

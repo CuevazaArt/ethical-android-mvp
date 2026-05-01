@@ -176,6 +176,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for high-alert strip visibility after diagnostic error events.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `103.1` and `103.2` as done and queued `103.3` hardware-readiness brief.
 
+## [2026-05-01] V2.103.3 — Perception hardware readiness brief
+### Changed
+- **`CONTEXT.md`:** Added starter hardware shortlist (mic/camera/audio-out) and explicit go/no-go acceptance criteria for the first perception pilot.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.3` as done and queued `103.4` pilot execution checklist.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
