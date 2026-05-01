@@ -592,6 +592,16 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   }
 
   Widget _buildDiagnosticsCard(ThemeData theme) {
+    final int highSeverityCount = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.high)
+        .length;
+    final int mediumSeverityCount = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.medium)
+        .length;
+    final int lowSeverityCount = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.low)
+        .length;
+
     final List<_DiagnosticEvent> visibleEvents = _diagnosticEvents.where((
       event,
     ) {
@@ -629,6 +639,42 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Severity counters:',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'High: $highSeverityCount',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Med: $mediumSeverityCount',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.amber.shade300,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Low: $lowSeverityCount',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Wrap(

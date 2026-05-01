@@ -25,6 +25,10 @@ void main() {
     expect(find.text('Check now'), findsOneWidget);
     expect(find.text('Last manual probe:'), findsOneWidget);
     expect(find.text('Diagnostics timeline'), findsOneWidget);
+    expect(find.text('Severity counters:'), findsOneWidget);
+    expect(find.text('High: 0'), findsOneWidget);
+    expect(find.text('Med: 0'), findsOneWidget);
+    expect(find.text('Low: 0'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
     expect(find.text('Transport'), findsOneWidget);
     expect(find.text('Manual'), findsOneWidget);
@@ -93,5 +97,8 @@ void main() {
     await tester.tap(severityMedChip);
     await tester.pump();
     expect(find.text('Showing 1 event(s)'), findsOneWidget);
+    expect(find.text('High: 1'), findsOneWidget);
+    expect(find.text('Med: 1'), findsOneWidget);
+    expect(find.text('Low: 0'), findsOneWidget);
   });
 }

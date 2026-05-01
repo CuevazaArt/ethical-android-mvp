@@ -417,18 +417,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics list now supports deterministic severity filtering while preserving existing type/depth controls.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 102.5: Flutter diagnostics severity counters [PENDING]**
+**Bloque 102.5: Flutter diagnostics severity counters [DONE ✅]**
 - **Goal:** Show compact `high/med/low` counters in diagnostics card for instant triage density.
 - **Files:** Flutter shell module + widget tests.
-- **Demo:** counter strip updates based on current event buffer and respects clear/reset interactions.
+- **Demo:** counter strip now renders deterministic totals and updates after manual probe + filter interactions.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 102.6: Flutter diagnostics triage milestone checkpoint [PENDING]**
+- **Goal:** Register closure of the triage slice (`102.2` to `102.5`) before next feature wave.
+- **Files:** `CONTEXT.md`, `CHANGELOG.md`, plan handoff line.
+- **Demo:** checkpoint records validated capabilities and current guardrail status.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 102.5 — Flutter diagnostics severity counters
+[SIGUIENTE] Bloque 102.6 — Flutter diagnostics triage milestone checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Give operators instant severity distribution before drilling into event list.
-[HECHO CUANDO] High/Med/Low counters render deterministically and tests cover baseline + manual probe delta.
+[MOTIVO] Consolidate the diagnostics triage milestone before opening another UX extension.
+[HECHO CUANDO] Checkpoint explicitly states completed triage capabilities and latest local validation.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

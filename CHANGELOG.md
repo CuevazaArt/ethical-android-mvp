@@ -149,6 +149,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for severity chips and interaction coverage for deterministic `Med` filtering.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `102.4` as done and queued `102.5`.
 
+## [2026-05-01] V2.102.5 — Flutter diagnostics severity counters
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added deterministic in-card severity counters (`High`, `Med`, `Low`) over diagnostics event buffer.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline + post-manual-probe assertions for severity counter updates.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `102.5` as done, recorded triage mini-wave milestone, and queued `102.6` checkpoint.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

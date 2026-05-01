@@ -183,6 +183,12 @@
   - severity (`All` / `High` / `Med` / `Low`).
 - Widget coverage now validates severity filter interaction path after manual probe.
 
+### Execution pulse 102.5 (severity counters) — milestone reached
+
+- Added diagnostics severity counters in-card (`High`, `Med`, `Low`) computed from buffered events.
+- Counters update deterministically after event ingestion and reset on `Clear timeline`.
+- This closes the triage mini-wave (`102.2` to `102.5`): severity labels, severity filter, and density counters are now operational.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
