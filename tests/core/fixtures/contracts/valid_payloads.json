@@ -1,0 +1,26 @@
+[
+  {
+    "version": "1.0",
+    "contract": "audio_perception",
+    "request": {"audio_b64": "UklGRiQAAABXQVZF", "sample_rate_hz": 16000},
+    "response": {"transcript": "hello ethos", "confidence": 0.94},
+    "error": null,
+    "latency_ms": 37.5
+  },
+  {
+    "version": "1.0",
+    "contract": "video_perception",
+    "request": {"frame_b64": "iVBORw0KGgoAAAANSUhEUg==", "frame_format": "jpeg", "width": 640, "height": 480},
+    "response": {"labels": ["person", "desk"], "motion": 0.12, "faces_detected": 1},
+    "error": null,
+    "latency_ms": 42.0
+  },
+  {
+    "version": "1.0",
+    "contract": "voice_turn",
+    "request": {"utterance": "what time is it?"},
+    "response": {"reply_text": "It is 8 PM.", "should_listen": true},
+    "error": null,
+    "latency_ms": 58.3
+  }
+]

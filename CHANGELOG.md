@@ -27,6 +27,11 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`src/core/chat.py`:** `_finite01_or_none` / `_non_negative_int_or_none` gate Nomad `vision_context` (brightness, motion, faces) before appending physical-environment lines to the system prompt.
 
+## [2026-04-30] L1 architecture directive — Desktop-first Flutter migration wave
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Added Fase 26 strategic pivot with explicit swarm-ready blocks (50.0-50.7), architecture guardrails, freeze policy, and mandatory next-step format including power recommendation (`A/B/C`).
+- **`CONTEXT.md`:** Registered the L1 execution pivot, freeze scope for mobile/web, and re-entry gates to avoid scope drift during desktop maturation.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

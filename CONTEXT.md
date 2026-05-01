@@ -19,6 +19,14 @@
 - **Logro:** Setup de Core Android (Gradle/Compose) y Servicios en primer plano funcionales.
 - **Siguiente Paso:** Implementación del SDK de Colonización (App-Parásito) y Protocolo de Malla (Mesh).
 
+## Strategic Pivot (L1 Watchtower, 2026-04-30)
+
+- **Execution focus changed:** Desktop-first Flutter convergence for the next delivery wave.
+- **Freeze rule:** Mobile Nomad and browser dashboards are frozen for net-new features; only security/health maintenance is allowed.
+- **Commercial priority:** Mature audio perception, video perception, and voice loop in a controlled desktop environment before reopening cross-platform expansion.
+- **Non-negotiable architecture rule:** `src/core/` remains platform-agnostic and is the only business-logic authority.
+- **Re-entry condition:** Mobile/web expansion resumes only when desktop readiness gates (stability, latency, demo reliability, packaging) are met and documented.
+
 ## Bloques Activos
 
 - **V2.95-V2.97: SHERPA-ONNX WAKE WORD & VOICE HARDENING** - CLOSED ✅

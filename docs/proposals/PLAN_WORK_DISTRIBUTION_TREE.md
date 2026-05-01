@@ -72,6 +72,87 @@ Aquí es donde los agentes de ejecución (LLMs en IDEs) reclaman sus tareas.
 
 ---
 
+## 🚀 FASE 26: DESKTOP-FIRST FLUTTER CONVERGENCE (L1 STRATEGIC PIVOT)
+
+**Strategic decision:** freeze active feature development on mobile Nomad and browser dashboards, then concentrate execution on a Flutter desktop interface with the most sellable capabilities (audio perception, video perception, and voice loop). Mobile and web return only after desktop maturity gates pass.
+
+### Architectural guardrails (mandatory)
+- **Core-first:** `src/core/` remains the single source of truth. No business logic in Flutter UI widgets.
+- **Capability contracts:** Audio, video, and voice must expose stable contracts (`request`, `response`, `error`, `latency_ms`) before UI scaling.
+- **Adapter isolation:** Platform specifics live in adapters; no direct platform calls from domain orchestration.
+- **Demo-first integration:** Every block closes with executable evidence (test log, run log, or screenshot + trace).
+- **Token economy:** default execution in low-cost mode; premium reasoning only for architecture conflicts.
+
+### Freeze policy (to avoid repeated historical mistakes)
+- Mobile and web are **frozen for new features**, but not abandoned:
+  - Security patches allowed.
+  - Smoke checks kept alive.
+  - No schema drift from desktop contracts.
+
+### Next-step format (L1 directive, mandatory)
+Use this fixed structure in each planning handoff:
+
+```text
+[SIGUIENTE] Bloque X.Y — <title>
+[POTENCIA SUGERIDA] A (Auto eficiencia) | B (Auto equilibrado) | C (Auto premium)
+[MOTIVO] <one line>
+[HECHO CUANDO] <verification command or measurable outcome>
+```
+
+---
+
+## 🧩 BACKLOG ABIERTO: DESKTOP MIGRATION WAVE (Swarm-ready)
+
+**Bloque 50.0: Contract spine for desktop migration [PENDING]**
+- **Goal:** Define canonical contracts for `audio_perception`, `video_perception`, and `voice_turn` with error envelopes and latency telemetry.
+- **Files:** `docs/architecture/`, `src/core/` interfaces only if required.
+- **Demo:** contract validation test + example payload fixtures.
+- **[POTENCIA SUGERIDA]:** C (Auto premium) — architecture contract quality determines all downstream work.
+
+**Bloque 50.1: Flutter desktop shell + kernel transport [PENDING]**
+- **Goal:** Bootstrap Flutter desktop app shell with resilient connection to existing kernel server.
+- **Files:** desktop client module + minimal server handshake alignment.
+- **Demo:** cold-start desktop client receives heartbeat and health payload.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 50.2: Audio perception vertical slice [PENDING]**
+- **Goal:** Desktop microphone capture -> kernel perception endpoint -> UI feedback with latency.
+- **Files:** desktop audio adapter + integration boundary tests.
+- **Demo:** reproducible log with bounded latency and graceful fallback on missing devices.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 50.3: Video perception vertical slice [PENDING]**
+- **Goal:** Desktop camera frame pipeline -> kernel vision context -> UI state update.
+- **Files:** desktop video adapter + core boundary validation.
+- **Demo:** one deterministic scenario with motion/faces rendering and finite metric guards.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 50.4: Voice full-turn loop (STT -> core -> TTS) [PENDING]**
+- **Goal:** End-to-end conversational loop with interruption safety and retry policy.
+- **Files:** desktop voice orchestration layer + test harness.
+- **Demo:** successful wake/utter/respond cycle and one controlled failure path.
+- **[POTENCIA SUGERIDA]:** C (Auto premium) for first pass; B once contracts stabilize.
+
+**Bloque 50.5: Commercial hardening for desktop [PENDING]**
+- **Goal:** Packaging, auto-update strategy, telemetry minimum, and crash recovery.
+- **Files:** release scripts + runtime health instrumentation.
+- **Demo:** install -> run -> update smoke sequence on target desktop OS.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 50.6: Freeze-lane maintenance for web/mobile [PENDING]**
+- **Goal:** Keep frozen platforms healthy without feature expansion.
+- **Files:** smoke tests, dependency maintenance notes, CI health checks.
+- **Demo:** monthly smoke matrix with pass/fail report.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 50.7: Re-entry plan to mobile/web [PENDING]**
+- **Goal:** Define objective readiness gates for reopening mobile and web feature work.
+- **Files:** `CONTEXT.md` + roadmap docs.
+- **Demo:** signed gate checklist with metrics from desktop production-like usage.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+---
+
 ## 🚀 Continuidad (sin [PENDING] en Fase 16 — regla 1b)
 
 **Bloque 30.0: Higiene numérica V2 (ChatEngine) [DONE]**
