@@ -3,6 +3,7 @@
 import json
 
 import pytest
+
 from src.core.memory import Memory
 from src.ethos_cli import _build_parser, cmd_config, cmd_diagnostics, main
 

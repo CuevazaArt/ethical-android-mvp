@@ -5,6 +5,7 @@ import math
 
 import cv2
 import numpy as np
+
 from src.core.vision import VisionEngine, VisionSignals
 
 
@@ -50,7 +51,9 @@ def test_no_motion_on_first_frame():
 def test_motion_detected_between_frames():
     engine = VisionEngine()
     engine.process_b64(_make_frame_b64(color=(50, 50, 50)))  # frame 1
-    sig = engine.process_b64(_make_frame_b64(color=(200, 200, 200)))  # frame 2 — big diff
+    sig = engine.process_b64(
+        _make_frame_b64(color=(200, 200, 200))
+    )  # frame 2 — big diff
     assert sig.motion > 0.0
 
 

@@ -5,6 +5,7 @@ import os
 import tempfile
 
 import pytest
+
 from src.core.identity import Identity
 from src.core.memory import Memory
 
@@ -12,7 +13,9 @@ from src.core.memory import Memory
 def _temp_identity() -> Identity:
     import uuid
 
-    tmp = os.path.join(tempfile.gettempdir(), f"ethos_identity_test_{uuid.uuid4().hex}.json")
+    tmp = os.path.join(
+        tempfile.gettempdir(), f"ethos_identity_test_{uuid.uuid4().hex}.json"
+    )
     return Identity(storage_path=tmp)
 
 
@@ -38,7 +41,10 @@ def test_update_builds_profile():
     identity = _temp_identity()
     mem = _temp_memory()
     mem.add(
-        "Ayudé a alguien herido", action="assist_emergency", score=0.9, context="medical_emergency"
+        "Ayudé a alguien herido",
+        action="assist_emergency",
+        score=0.9,
+        context="medical_emergency",
     )
     mem.add(
         "Rechacé manipulación",
@@ -59,7 +65,12 @@ def test_update_builds_profile():
 def test_narrative_is_non_empty_with_episodes():
     identity = _temp_identity()
     mem = _temp_memory()
-    mem.add("Desescalé conflicto", action="de_escalate", score=0.6, context="hostile_interaction")
+    mem.add(
+        "Desescalé conflicto",
+        action="de_escalate",
+        score=0.6,
+        context="hostile_interaction",
+    )
     identity.update(mem)
     narr = identity.narrative()
     assert isinstance(narr, str)
@@ -71,7 +82,9 @@ def test_narrative_contains_episode_count():
     identity = _temp_identity()
     mem = _temp_memory()
     for i in range(5):
-        mem.add(f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics")
+        mem.add(
+            f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics"
+        )
     identity.update(mem)
     narr = identity.narrative()
     assert "5" in narr
@@ -97,7 +110,9 @@ def test_trending_improving():
         mem.add("Old", action="casual_chat", score=0.1, context="everyday_ethics")
     # Recent episodes high score
     for _ in range(10):
-        mem.add("Recent", action="assist_emergency", score=0.9, context="medical_emergency")
+        mem.add(
+            "Recent", action="assist_emergency", score=0.9, context="medical_emergency"
+        )
     identity.update(mem)
     assert identity.as_dict()["trending"] == "mejorando"
 
@@ -121,7 +136,12 @@ def test_profile_values_all_finite():
 def test_identity_persists_across_instances():
     tmp = os.path.join(tempfile.gettempdir(), f"ethos_id_persist_{os.getpid()}.json")
     mem = _temp_memory()
-    mem.add("Persistencia", action="assist_emergency", score=0.9, context="medical_emergency")
+    mem.add(
+        "Persistencia",
+        action="assist_emergency",
+        score=0.9,
+        context="medical_emergency",
+    )
 
     id1 = Identity(storage_path=tmp)
     id1.update(mem)

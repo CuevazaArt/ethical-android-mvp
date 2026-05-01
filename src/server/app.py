@@ -125,9 +125,13 @@ async def api_audio_perception(request: Request):
     parsed, parse_error = parse_audio_perception_payload(payload)
     if parse_error:
         latency_ms = safe_latency_ms(t0)
-        request_payload = payload.get("request", {}) if isinstance(payload, dict) else {}
+        request_payload = (
+            payload.get("request", {}) if isinstance(payload, dict) else {}
+        )
         envelope = build_error_envelope(
-            request_payload=request_payload if isinstance(request_payload, dict) else {},
+            request_payload=request_payload
+            if isinstance(request_payload, dict)
+            else {},
             error=parse_error,
             latency_ms=latency_ms,
         )

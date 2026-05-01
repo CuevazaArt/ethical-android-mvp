@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock
 
 import pytest
+
 from src.core.chat import ChatEngine
 from src.core.ethics import Signals
 
@@ -28,7 +29,9 @@ async def test_roster_chat_continuity():
     await engine.respond("Ayer salí con Alejandro", Signals())
 
     # Manually trigger observe_turn to bypass async background scheduling in tests
-    await engine.roster.observe_turn("Ayer salí con Alejandro, le gusta el café", engine.llm)
+    await engine.roster.observe_turn(
+        "Ayer salí con Alejandro, le gusta el café", engine.llm
+    )
 
     # Validate Roster has the person
     assert "Alejandro" in engine.roster.cards

@@ -33,8 +33,12 @@ def test_freeze_lane_valid_smokes_match_desktop_contract_envelope() -> None:
 
     for case in payloads["valid"]:
         errors = sorted(validator.iter_errors(case["payload"]), key=lambda e: e.path)
-        assert not errors, f"Unexpected drift in lane={case['lane']}: {[e.message for e in errors]}"
-        print(f"[freeze-valid] lane={case['lane']} contract={case['payload']['contract']} -> PASS")
+        assert not errors, (
+            f"Unexpected drift in lane={case['lane']}: {[e.message for e in errors]}"
+        )
+        print(
+            f"[freeze-valid] lane={case['lane']} contract={case['payload']['contract']} -> PASS"
+        )
 
 
 def test_freeze_lane_invalid_smokes_are_detected() -> None:

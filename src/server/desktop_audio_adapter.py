@@ -48,7 +48,9 @@ def build_error_envelope(
             "message": error.message,
             "retryable": error.retryable,
         },
-        "latency_ms": latency_ms if math.isfinite(latency_ms) and latency_ms >= 0 else 0.0,
+        "latency_ms": latency_ms
+        if math.isfinite(latency_ms) and latency_ms >= 0
+        else 0.0,
     }
 
 
@@ -70,11 +72,15 @@ def build_success_envelope(
             "confidence": safe_conf,
         },
         "error": None,
-        "latency_ms": latency_ms if math.isfinite(latency_ms) and latency_ms >= 0 else 0.0,
+        "latency_ms": latency_ms
+        if math.isfinite(latency_ms) and latency_ms >= 0
+        else 0.0,
     }
 
 
-def parse_audio_perception_payload(payload: Any) -> tuple[AudioPerceptionRequest | None, ContractError | None]:
+def parse_audio_perception_payload(
+    payload: Any,
+) -> tuple[AudioPerceptionRequest | None, ContractError | None]:
     if not isinstance(payload, dict):
         return None, ContractError(
             code="INVALID_PAYLOAD",

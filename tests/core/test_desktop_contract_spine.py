@@ -52,7 +52,11 @@ CONTRACT_SCHEMA = {
                         "required": ["transcript", "confidence"],
                         "properties": {
                             "transcript": {"type": "string"},
-                            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                            "confidence": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1,
+                            },
                         },
                     },
                 }
@@ -118,7 +122,9 @@ def test_contract_spine_accepts_valid_payloads():
 
     for payload in valid_payloads:
         errors = sorted(validator.iter_errors(payload), key=lambda e: e.path)
-        assert not errors, f"Expected valid payload, got errors: {[e.message for e in errors]}"
+        assert not errors, (
+            f"Expected valid payload, got errors: {[e.message for e in errors]}"
+        )
         print(f"[valid] {payload['contract']} -> PASS")
 
 

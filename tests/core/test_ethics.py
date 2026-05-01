@@ -11,7 +11,9 @@ def test_medical_emergency_chooses_assist():
         risk=0.3, urgency=0.9, vulnerability=0.9, calm=0.1, context="medical_emergency"
     )
     actions = [
-        Action(name="assist", description="Help the person", impact=0.9, confidence=0.8),
+        Action(
+            name="assist", description="Help the person", impact=0.9, confidence=0.8
+        ),
         Action(name="ignore", description="Walk away", impact=-0.3, confidence=0.95),
     ]
     result = EthicalEvaluator().evaluate(actions, signals)
@@ -25,7 +27,9 @@ def test_hostile_prefers_deescalation_over_force():
     signals = Signals(hostility=0.8, calm=0.1, context="hostile_interaction")
     actions = [
         Action(name="de_escalate", description="Calm down", impact=0.6, confidence=0.6),
-        Action(name="confront", description="Fight", impact=-0.1, force=0.7, confidence=0.5),
+        Action(
+            name="confront", description="Fight", impact=-0.1, force=0.7, confidence=0.5
+        ),
     ]
     result = EthicalEvaluator().evaluate(actions, signals)
     assert result.chosen.name == "de_escalate"
@@ -46,7 +50,9 @@ def test_force_is_penalized_deontologically():
 def test_single_action_works():
     """Evaluator handles a single action without error."""
     signals = Signals()
-    actions = [Action(name="only_option", description="The only thing to do", impact=0.3)]
+    actions = [
+        Action(name="only_option", description="The only thing to do", impact=0.3)
+    ]
     result = EthicalEvaluator().evaluate(actions, signals)
     assert result.chosen.name == "only_option"
     assert result.reasoning.startswith("'only_option' is the only viable action")
@@ -76,7 +82,9 @@ def test_scores_are_finite():
 
 def test_signals_from_dict_clamps_values():
     """Signals.from_dict should clamp all values to [0, 1]."""
-    s = Signals.from_dict({"risk": 5.0, "urgency": -2.0, "calm": "not_a_number", "legality": None})
+    s = Signals.from_dict(
+        {"risk": 5.0, "urgency": -2.0, "calm": "not_a_number", "legality": None}
+    )
     assert s.risk == 1.0  # clamped from 5.0
     assert s.urgency == 0.0  # clamped from -2.0
     assert s.calm == 0.7  # default for invalid
@@ -119,12 +127,23 @@ def test_medical_emergency_full_pipeline():
 
     # Mirror of _generate_actions_from_signals for medical path
     actions = [
-        Action(name="respond_helpfully", description="Give info", impact=0.5, confidence=0.8),
         Action(
-            name="assist_emergency", description="Prioritize emergency", impact=0.9, confidence=0.75
+            name="respond_helpfully",
+            description="Give info",
+            impact=0.5,
+            confidence=0.8,
         ),
         Action(
-            name="protect_vulnerable", description="Protect vulnerable", impact=0.8, confidence=0.7
+            name="assist_emergency",
+            description="Prioritize emergency",
+            impact=0.9,
+            confidence=0.75,
+        ),
+        Action(
+            name="protect_vulnerable",
+            description="Protect vulnerable",
+            impact=0.8,
+            confidence=0.7,
         ),
     ]
 
@@ -147,7 +166,12 @@ def test_hostile_interaction_full_pipeline():
     # Hostile path: respond_helpfully is NOT in the set when hostility > 0.5 alone
     # (matches _generate_actions_from_signals logic in chat.py)
     actions = [
-        Action(name="de_escalate", description="Calm the situation", impact=0.6, confidence=0.6),
+        Action(
+            name="de_escalate",
+            description="Calm the situation",
+            impact=0.6,
+            confidence=0.6,
+        ),
         Action(
             name="confront",
             description="Escalate aggressively",

@@ -208,12 +208,16 @@ class DesktopVideoAdapter:
         elapsed_ms: float,
     ) -> dict[str, Any]:
         request_envelope = {
-            "frame_b64": str(request.get("image_b64") or request.get("frame_b64") or ""),
+            "frame_b64": str(
+                request.get("image_b64") or request.get("frame_b64") or ""
+            ),
             "frame_format": str(request.get("frame_format", "jpeg")).lower(),
             "width": _safe_non_negative_int(request.get("width", 0), default=0),
             "height": _safe_non_negative_int(request.get("height", 0), default=0),
         }
-        safe_elapsed = elapsed_ms if math.isfinite(elapsed_ms) and elapsed_ms >= 0 else 0.0
+        safe_elapsed = (
+            elapsed_ms if math.isfinite(elapsed_ms) and elapsed_ms >= 0 else 0.0
+        )
         return {
             "version": "1.0",
             "contract": "video_perception",
