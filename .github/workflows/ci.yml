@@ -179,3 +179,36 @@ jobs:
           PYTHONHASHSEED: "0"
         run: python -m pytest tests/core/ -q --tb=short
 
+  # ── Desktop Re-entry Gate Report (CONDITIONAL) ──────────────────────
+  # Produces auditable artifacts for G1/G2/G4 from versioned evidence.
+  desktop-gate-report:
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.code_changed == 'true'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate re-entry gate reports
+        run: |
+          set -euo pipefail
+          mkdir -p gate-reports
+          python scripts/eval/desktop_gate_runner.py stability --ledger docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl --days 14 > gate-reports/g1-stability.json
+          python scripts/eval/desktop_gate_runner.py latency --samples docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl --target-p95-ms 2500 > gate-reports/g2-latency.json
+          python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10 > gate-reports/g4-demo.json
+
+      - name: Upload gate report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-gate-report
+          path: gate-reports/
+          if-no-files-found: error
+

@@ -39,6 +39,7 @@
 - **Done:** 50.0 contract spine, 50.1 desktop shell, 50.2 audio slice, 50.3 video slice, 50.4 voice full-turn, 50.5 commercial packaging hardening, 50.6 freeze lane, 50.7 re-entry gates.
 - **Control artifact:** Gate audit proofpack tracked in `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`.
 - **Continuity pulse 51.x:** stability ledger automation, voice latency benchmark harness, and demo reliability checklist runner integrated with test coverage.
+- **CI continuity (51.3):** workflow `CI` now publishes `desktop-gate-report` artifact from automated G1/G2/G4 evaluation.
 
 ## Desktop Migration Progress (Block 50.1, 2026-04-30)
 

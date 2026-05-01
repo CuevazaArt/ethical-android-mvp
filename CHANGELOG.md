@@ -65,6 +65,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`:** G1/G2/G4 now include executable proof commands and are marked PASS under the 51.x tooling.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Registered continuity pulse 51.x and synchronized the automation deliverables with potency guidance.
 
+## [2026-04-30] Re-entry gate report in CI (51.3)
+### Changed
+- **`.github/workflows/ci.yml`:** Added conditional job `desktop-gate-report` to run `desktop_gate_runner.py` for G1/G2/G4 and upload JSON evidence as `desktop-gate-report` artifact.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Logged CI continuity step and closed block 51.3 with executable evidence path.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

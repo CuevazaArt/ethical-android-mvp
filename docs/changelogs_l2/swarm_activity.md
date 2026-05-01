@@ -2829,3 +2829,12 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `scripts/eval/desktop_gate_runner.py`
   - `tests/eval/test_desktop_gate_runner.py`
+
+### Execution (Swarm) | Date: 2026-04-30 20:48:52 | Author: Cursor Codex
+- **Block:** `51.3`
+- **Message:** Wire desktop gate report artifact into CI workflow
+- **Files Modified:**
+  - `.github/workflows/ci.yml`
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`

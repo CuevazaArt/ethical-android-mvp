@@ -177,6 +177,12 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10`.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 51.3: CI gate-report integration [DONE ✅]**
+- **Goal:** Execute desktop re-entry gate evaluation in GitHub Actions and publish auditable artifact.
+- **Files:** `.github/workflows/ci.yml`.
+- **Demo:** CI job `desktop-gate-report` uploads `desktop-gate-report` artifact with G1/G2/G4 JSON outputs.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.
