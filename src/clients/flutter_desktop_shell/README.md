@@ -85,6 +85,7 @@ When a release is built with `scripts/build_windows_desktop_release.ps1`, a
 - Gates `G1..G5` are rendered as status badges (`PASS`, `IN PROGRESS`, `FAIL`, `UNKNOWN`).
 - If `/api/status` exposes `reentry_gates`, the panel switches to server source mode.
 - If `reentry_gates` is missing, the panel stays in fallback mode and labels this explicitly.
+- Backend support was added in block 52.5 (`src/server/app.py` -> `/api/status.reentry_gates`).
 
 ## Windows Packaging Baseline (Block 50.5A)
 

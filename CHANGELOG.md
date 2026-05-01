@@ -89,6 +89,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Re-entry readiness gates` panel (G1..G5 badges) with server/fallback source labeling.
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Extended UI assertions for readiness panel visibility and fallback messaging.
 
+## [2026-04-30] Server-bound reentry gate payload (52.5)
+### Changed
+- **`src/server/app.py`:** `GET /api/status` now includes `reentry_gates` (`G1..G5`) computed from evidence artifacts, enabling UI binding without client-side hardcoding.
+- **`tests/server/test_app_integration.py`:** Extended status contract test to assert `reentry_gates` presence and valid status tokens (`pass`, `in_progress`, `fail`).
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Registered closure of block 52.5 in execution state.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

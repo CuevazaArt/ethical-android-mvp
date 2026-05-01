@@ -78,9 +78,15 @@ def test_api_status_returns_all_fields():
             "stt_available",
             "voice_turn_state",
             "voice_turn_state_at",
+            "reentry_gates",
         ):
             assert field in data, f"Missing field: {field}"
         assert data["status"] == "online"
+        gates = data["reentry_gates"]
+        assert isinstance(gates, dict)
+        for gate in ("G1", "G2", "G3", "G4", "G5"):
+            assert gate in gates
+            assert gates[gate] in {"pass", "in_progress", "fail"}
     finally:
         _stop_patches(patches)
 

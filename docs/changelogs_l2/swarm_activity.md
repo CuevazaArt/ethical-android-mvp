@@ -2871,3 +2871,14 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `tests/eval/test_capture_voice_turn_latency.py`
   - `tests/eval/test_freeze_lane_monthly_report.py`
   - `tests/eval/test_run_demo_reliability_checklist.py`
+
+### Execution (Swarm) | Date: 2026-04-30 21:19:48 | Author: Cursor Codex
+- **Block:** `52.5`
+- **Message:** Expose reentry_gates in api status for Flutter server-bound readiness
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/clients/flutter_desktop_shell/README.md`
+  - `src/server/app.py`
+  - `tests/server/test_app_integration.py`

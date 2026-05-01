@@ -219,6 +219,12 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `flutter test` validates rendering of `Re-entry readiness gates` and fallback/source messaging.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
+**Bloque 52.5: Backend reentry-gates status feed [DONE ✅]**
+- **Goal:** Publish server-side readiness gate statuses in `/api/status` for Flutter binding.
+- **Files:** `src/server/app.py`, `tests/server/test_app_integration.py`.
+- **Demo:** `pytest tests/server/test_app_integration.py::test_api_status_returns_all_fields -q`.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
 - **Gate G2 (latency):** p95 end-to-end voice turn under 2500 ms on target desktop profile.
