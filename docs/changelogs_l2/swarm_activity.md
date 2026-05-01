@@ -2758,3 +2758,18 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/server/desktop_video_adapter.py`
   - `src/server/static/index.html`
   - `tests/server/test_app_integration.py`
+
+### Execution (Swarm) | Date: 2026-04-30 19:44:56 | Author: Anonymous Agent
+- **Block:** `50.3`
+- **Message:** Video perception vertical slice robusto (finite guards)
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `src/clients/flutter_desktop_shell/lib/main.dart`
+  - `src/clients/flutter_desktop_shell/test/widget_test.dart`
+  - `src/server/app.py`
+  - `src/server/desktop_video_adapter.py`
+  - `src/server/static/index.html`
+  - `tests/server/test_app_integration.py`
+  - `tests/server/test_desktop_video_adapter.py`

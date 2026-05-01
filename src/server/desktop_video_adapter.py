@@ -5,7 +5,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from src.core.vision import VisionEngine, VisionSignals
+from src.core.vision import VisionEngine
 
 
 def _finite01(value: Any) -> float | None:
@@ -51,12 +51,26 @@ class DesktopVideoAdapter:
         if not isinstance(payload, dict):
             return None
 
-        brightness = _finite01(payload.get("brightness"))
-        motion = _finite01(payload.get("motion"))
-        faces_detected = _finite_non_negative_int(payload.get("faces_detected"))
-        latency_ms = _finite_non_negative(payload.get("latency_ms"))
+        brightness_raw = payload.get("brightness")
+        motion_raw = payload.get("motion")
+        faces_raw = payload.get("faces_detected")
+        latency_raw = payload.get("latency_ms")
+
+        brightness = _finite01(brightness_raw)
+        motion = _finite01(motion_raw)
+        faces_detected = _finite_non_negative_int(faces_raw)
+        latency_ms = _finite_non_negative(latency_raw)
         low_light = bool(payload.get("low_light", False))
         face_present = bool(payload.get("face_present", False))
+
+        if brightness_raw is not None and brightness is None:
+            return None
+        if motion_raw is not None and motion is None:
+            return None
+        if faces_raw is not None and faces_detected is None:
+            return None
+        if latency_raw is not None and latency_ms is None:
+            return None
 
         if brightness is None and motion is None and faces_detected is None:
             return None

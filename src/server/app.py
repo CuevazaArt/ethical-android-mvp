@@ -27,6 +27,7 @@ from src.server.desktop_audio_adapter import (
     parse_audio_perception_payload,
     safe_latency_ms,
 )
+from src.server.desktop_video_adapter import DesktopVideoAdapter
 from src.server.mesh_server import router as mesh_router
 
 logging.basicConfig(level=logging.INFO)
@@ -376,6 +377,7 @@ async def websocket_endpoint(websocket: WebSocket):
     engine = ChatEngine()
     ready = await engine.start()
     _chat_vision: dict | None = None  # Fix 2: vision context from Nomad client
+    desktop_video = DesktopVideoAdapter()
 
     if not ready:
         await websocket.send_json(
@@ -406,7 +408,48 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 if frame_type == "vision_context":
                     # Nomad client forwarding vision signals from /ws/nomad
-                    _chat_vision = frame.get("payload")
+                    incoming = frame.get("payload")
+                    _chat_vision = desktop_video.sanitize_vision_context(incoming)
+                    if _chat_vision:
+                        await _safe_send(
+                            websocket,
+                            {"type": "vision_context", "payload": _chat_vision},
+                        )
+                elif frame_type == "video_frame":
+                    # Desktop camera frame -> video_perception contract + vision context.
+                    result = desktop_video.process_video_frame(frame.get("payload"))
+                    await _safe_send(
+                        websocket,
+                        {"type": "video_contract", "payload": result.envelope},
+                    )
+                    if result.vision_context is not None:
+                        _chat_vision = result.vision_context
+                        _log.info(
+                            "[DesktopVision] motion=%.3f faces_detected=%d",
+                            _chat_vision["motion"],
+                            _chat_vision["faces_detected"],
+                        )
+                        await _safe_send(
+                            websocket,
+                            {"type": "vision_context", "payload": _chat_vision},
+                        )
+                    else:
+                        error = result.envelope.get("error") or {}
+                        _log.warning(
+                            "[DesktopVision] frame rejected: %s (%s)",
+                            error.get("code", "UNKNOWN"),
+                            error.get("message", "invalid"),
+                        )
+                        await _safe_send(
+                            websocket,
+                            {
+                                "type": "vision_rejected",
+                                "payload": {
+                                    "code": error.get("code", "UNKNOWN"),
+                                    "message": error.get("message", "invalid frame"),
+                                },
+                            },
+                        )
                 elif frame_type == "chat_text":
                     # Explicit chat message from Nomad client
                     text = (

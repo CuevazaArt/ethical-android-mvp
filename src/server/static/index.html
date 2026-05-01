@@ -24,6 +24,12 @@
         .audio-status-ok { color: #1b5e20; }
         .audio-status-warn { color: #b26a00; }
         .audio-status-err { color: #b71c1c; }
+        .vision-box { margin: 1rem 0; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem; }
+        .vision-box h3 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+        .vision-row { display: flex; gap: 0.8rem; font-size: 0.85rem; margin-top: 0.5rem; }
+        .vision-value { font-weight: 700; color: #0056b3; }
+        #camera-preview { width: 100%; max-height: 140px; object-fit: cover; border-radius: 4px; margin-top: 0.6rem; display: none; }
+        #vision-error { margin-top: 0.4rem; font-size: 0.82rem; color: #b71c1c; min-height: 1rem; }
     </style>
 </head>
 <body>
@@ -41,6 +47,18 @@
             <button id="audio-fallback-btn">Send Fallback (No Mic)</button>
         </div>
     </div>
+    <div class="vision-box">
+        <h3>Video Perception (Desktop Slice)</h3>
+        <button id="camera-btn">Iniciar cámara</button>
+        <div class="vision-row">
+            <div>Motion: <span class="vision-value" id="vision-motion">0.00</span></div>
+            <div>Faces: <span class="vision-value" id="vision-faces">0</span></div>
+            <div>Status: <span class="vision-value" id="vision-status">idle</span></div>
+        </div>
+        <div id="vision-error"></div>
+        <video id="camera-preview" autoplay muted playsinline></video>
+        <canvas id="camera-canvas" width="320" height="240" style="display:none;"></canvas>
+    </div>
 
     <script>
         const log = document.getElementById('chat-log');
@@ -51,6 +69,14 @@
         const audioDeviceStatus = document.getElementById('audio-device-status');
         const audioLastResult = document.getElementById('audio-last-result');
         const audioLastLatency = document.getElementById('audio-last-latency');
+        const cameraBtn = document.getElementById('camera-btn');
+        const visionMotionEl = document.getElementById('vision-motion');
+        const visionFacesEl = document.getElementById('vision-faces');
+        const visionStatusEl = document.getElementById('vision-status');
+        const visionErrorEl = document.getElementById('vision-error');
+        const cameraPreview = document.getElementById('camera-preview');
+        const cameraCanvas = document.getElementById('camera-canvas');
+        const cameraCtx = cameraCanvas.getContext('2d');
         
         let ws;
         let currentMsgEl = null;
@@ -63,6 +89,8 @@
         let micUnavailable = false;
         let captureActive = false;
         let recordedChunks = [];
+        let cameraStream = null;
+        let cameraInterval = null;
 
         function updateMicStatus(text, cssClass) {
             audioDeviceStatus.textContent = `Mic: ${text}`;
@@ -196,6 +224,80 @@
             updateMicStatus(`ready (${sampleRate}Hz)`, 'audio-status-ok');
             audioCaptureBtn.disabled = false;
         }
+
+        function updateVisionState(payload) {
+            if (!payload || typeof payload !== 'object') {
+                return;
+            }
+            const motion = Number(payload.motion);
+            const faces = Number(payload.faces_detected);
+            if (!Number.isFinite(motion) || !Number.isFinite(faces)) {
+                visionStatusEl.textContent = 'rejected';
+                visionErrorEl.textContent = 'non-finite metrics rejected';
+                return;
+            }
+            visionMotionEl.textContent = motion.toFixed(2);
+            visionFacesEl.textContent = String(Math.max(0, Math.floor(faces)));
+            visionStatusEl.textContent = 'ok';
+            visionErrorEl.textContent = '';
+        }
+
+        function stopDesktopCamera() {
+            if (cameraInterval) {
+                clearInterval(cameraInterval);
+                cameraInterval = null;
+            }
+            if (cameraStream) {
+                for (const track of cameraStream.getTracks()) {
+                    track.stop();
+                }
+                cameraStream = null;
+            }
+            cameraPreview.style.display = 'none';
+            cameraBtn.textContent = 'Iniciar cámara';
+            if (visionStatusEl.textContent !== 'rejected') {
+                visionStatusEl.textContent = 'idle';
+            }
+        }
+
+        async function startDesktopCamera() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                visionStatusEl.textContent = 'error';
+                visionErrorEl.textContent = 'browser has no camera API';
+                return;
+            }
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480 },
+                    audio: false
+                });
+                cameraPreview.srcObject = cameraStream;
+                cameraPreview.style.display = 'block';
+                cameraBtn.textContent = 'Detener cámara';
+                visionStatusEl.textContent = 'capturing';
+                visionErrorEl.textContent = '';
+
+                cameraInterval = setInterval(() => {
+                    if (!cameraStream || !ws || ws.readyState !== WebSocket.OPEN) {
+                        return;
+                    }
+                    cameraCtx.drawImage(cameraPreview, 0, 0, cameraCanvas.width, cameraCanvas.height);
+                    const imageB64 = cameraCanvas.toDataURL('image/jpeg', 0.65).split(',')[1];
+                    ws.send(JSON.stringify({
+                        type: 'video_frame',
+                        payload: {
+                            image_b64: imageB64,
+                            frame_format: 'jpeg',
+                            width: cameraCanvas.width,
+                            height: cameraCanvas.height
+                        }
+                    }));
+                }, 1200);
+            } catch (error) {
+                visionStatusEl.textContent = 'error';
+                visionErrorEl.textContent = `camera open failed: ${error.message || error}`;
+            }
+        }
         
         function connect() {
             const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -206,6 +308,21 @@
                 
                 if (data.type === 'metadata') {
                     // V2.42: Early ethical context — no visual output needed
+                    return;
+                }
+
+                if (data.type === 'vision_context') {
+                    updateVisionState(data.payload);
+                    return;
+                }
+
+                if (data.type === 'vision_rejected') {
+                    visionStatusEl.textContent = 'rejected';
+                    visionErrorEl.textContent = `${data?.payload?.code || 'REJECTED'}: ${data?.payload?.message || 'invalid frame'}`;
+                    return;
+                }
+
+                if (data.type === 'video_contract') {
                     return;
                 }
 
@@ -278,6 +395,7 @@
                 streaming = false;
                 btn.disabled = false;
                 input.disabled = false;
+                stopDesktopCamera();
                 setTimeout(connect, 3000);
             };
         }
@@ -301,6 +419,17 @@
                 e.preventDefault();
                 send();
             }
+        };
+
+        cameraBtn.onclick = () => {
+            if (cameraStream) {
+                stopDesktopCamera();
+                return;
+            }
+            startDesktopCamera().catch((error) => {
+                visionStatusEl.textContent = 'error';
+                visionErrorEl.textContent = `camera startup failed: ${String(error)}`;
+            });
         };
 
         // Phase 19: Vault Authorization Function

@@ -12,6 +12,7 @@ import json
 from unittest.mock import AsyncMock, patch
 
 from src.server.app import app
+from src.server.desktop_video_adapter import VideoPerceptionResult
 from starlette.testclient import TestClient
 
 # ── Shared LLM mock ────────────────────────────────────────────────────────────
@@ -109,6 +110,79 @@ def test_ws_chat_safety_blocks_dangerous_input():
                         break
         assert done is not None, "Never received 'done' event"
         assert done.get("blocked") is True, f"Expected blocked=True, got: {done}"
+    finally:
+        _stop_patches(patches)
+
+
+def test_ws_chat_video_frame_updates_vision_state():
+    """WS /ws/chat: video_frame should emit sanitized vision_context for UI."""
+    patches = _apply_patches()
+    try:
+        with patch(
+            "src.server.app.DesktopVideoAdapter.process_video_frame",
+            return_value=VideoPerceptionResult(
+                envelope={
+                    "version": "1.0",
+                    "contract": "video_perception",
+                    "request": {},
+                    "response": {"labels": ["motion", "face_present"], "motion": 0.55, "faces_detected": 2},
+                    "error": None,
+                    "latency_ms": 12.3,
+                },
+                vision_context={"motion": 0.55, "faces_detected": 2, "brightness": 0.6, "low_light": False, "face_present": True, "latency_ms": 12.3},
+            ),
+        ):
+            with TestClient(app) as client:
+                with client.websocket_connect("/ws/chat") as ws:
+                    ws.send_text(
+                        json.dumps(
+                            {
+                                "type": "video_frame",
+                                "payload": {"image_b64": "stub", "frame_format": "jpeg", "width": 320, "height": 240},
+                            }
+                        )
+                    )
+                    events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
+        vision_event = next((e for e in events if e.get("type") == "vision_context"), None)
+        assert vision_event is not None
+        assert vision_event["payload"]["motion"] == 0.55
+        assert vision_event["payload"]["faces_detected"] == 2
+    finally:
+        _stop_patches(patches)
+
+
+def test_ws_chat_video_frame_rejects_non_finite_metrics():
+    """WS /ws/chat: non-finite video metrics should emit vision_rejected."""
+    patches = _apply_patches()
+    try:
+        with patch(
+            "src.server.app.DesktopVideoAdapter.process_video_frame",
+            return_value=VideoPerceptionResult(
+                envelope={
+                    "version": "1.0",
+                    "contract": "video_perception",
+                    "request": {},
+                    "response": {"labels": [], "motion": 0.0, "faces_detected": 0},
+                    "error": {"code": "NON_FINITE_METRIC", "message": "video metrics are non-finite or invalid", "retryable": True},
+                    "latency_ms": 3.4,
+                },
+                vision_context=None,
+            ),
+        ):
+            with TestClient(app) as client:
+                with client.websocket_connect("/ws/chat") as ws:
+                    ws.send_text(
+                        json.dumps(
+                            {
+                                "type": "video_frame",
+                                "payload": {"image_b64": "stub", "frame_format": "jpeg", "width": 320, "height": 240},
+                            }
+                        )
+                    )
+                    events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
+        rejected = next((e for e in events if e.get("type") == "vision_rejected"), None)
+        assert rejected is not None
+        assert rejected["payload"]["code"] == "NON_FINITE_METRIC"
     finally:
         _stop_patches(patches)
 

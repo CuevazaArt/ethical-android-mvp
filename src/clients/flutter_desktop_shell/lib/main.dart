@@ -104,7 +104,9 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         throw Exception('Ping failed with HTTP ${pingResponse.statusCode}');
       }
 
-      final healthResponse = await _client.get(_statusUri).timeout(_httpTimeout);
+      final healthResponse = await _client
+          .get(_statusUri)
+          .timeout(_httpTimeout);
       if (healthResponse.statusCode != 200) {
         throw Exception('Status failed with HTTP ${healthResponse.statusCode}');
       }
@@ -166,9 +168,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ethos Desktop Shell'),
-      ),
+      appBar: AppBar(title: const Text('Ethos Desktop Shell')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -180,7 +180,10 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             const SizedBox(height: 8),
             _statusRow('Retry count', _retryCount.toString()),
             const SizedBox(height: 8),
-            _statusRow('Last heartbeat', _lastHeartbeatAt?.toIso8601String() ?? 'never'),
+            _statusRow(
+              'Last heartbeat',
+              _lastHeartbeatAt?.toIso8601String() ?? 'never',
+            ),
             const SizedBox(height: 8),
             _statusRow('Transport', _lastMessage),
             const SizedBox(height: 16),
@@ -201,7 +204,9 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   child: SelectableText(
                     _healthPayload == null
                         ? 'Waiting for /api/status payload...'
-                        : const JsonEncoder.withIndent('  ').convert(_healthPayload),
+                        : const JsonEncoder.withIndent(
+                            '  ',
+                          ).convert(_healthPayload),
                   ),
                 ),
               ),

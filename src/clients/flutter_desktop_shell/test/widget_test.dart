@@ -10,7 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_desktop_shell/main.dart';
 
 void main() {
-  testWidgets('renders desktop shell transport view', (WidgetTester tester) async {
+  testWidgets('renders desktop shell transport view', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
 
     expect(find.text('Ethos Desktop Shell'), findsOneWidget);

@@ -27,6 +27,14 @@
 - **Non-negotiable architecture rule:** `src/core/` remains platform-agnostic and is the only business-logic authority.
 - **Re-entry condition:** Mobile/web expansion resumes only when desktop readiness gates (stability, latency, demo reliability, packaging) are met and documented.
 
+## Desktop Migration Progress (Block 50.1, 2026-04-30)
+
+- **Status:** CLOSED ✅
+- **Deliverable:** `src/clients/flutter_desktop_shell` boots as a desktop shell and shows live kernel connection state.
+- **Transport baseline:** Heartbeat via `GET /api/ping` and health payload retrieval via `GET /api/status`.
+- **Resilience proof:** On backend outage the client enters retry mode and reconnects automatically after server restart (bounded short backoff).
+- **Validation:** `flutter analyze` + `flutter test` (desktop shell module) passed locally.
+
 ## Bloques Activos
 
 - **V2.95-V2.97: SHERPA-ONNX WAKE WORD & VOICE HARDENING** - CLOSED ✅

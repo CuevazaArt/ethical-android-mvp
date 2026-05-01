@@ -32,6 +32,15 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Added Fase 26 strategic pivot with explicit swarm-ready blocks (50.0-50.7), architecture guardrails, freeze policy, and mandatory next-step format including power recommendation (`A/B/C`).
 - **`CONTEXT.md`:** Registered the L1 execution pivot, freeze scope for mobile/web, and re-entry gates to avoid scope drift during desktop maturation.
 
+## [2026-04-30] Block 50.1 — Flutter desktop shell + kernel transport
+### Added
+- **`src/clients/flutter_desktop_shell/`:** New Flutter desktop module (Windows/Linux/macOS scaffold) with transport UI and health payload viewer.
+
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Implemented resilient kernel transport: heartbeat against `/api/ping`, health fetch from `/api/status`, timeout handling, and bounded exponential backoff reconnect.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Replaced template counter test with desktop-shell render smoke test.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked block 50.1 as done and attached execution evidence.
+
 
 ## [2026-04-22] MVP Ethical Android (V1.0) — Recursive Identity & Psi-Sleep
 ### Antigravity (L1)

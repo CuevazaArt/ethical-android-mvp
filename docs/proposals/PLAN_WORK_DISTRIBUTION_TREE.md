@@ -109,11 +109,12 @@ Use this fixed structure in each planning handoff:
 - **Demo:** contract validation test + example payload fixtures.
 - **[POTENCIA SUGERIDA]:** C (Auto premium) — architecture contract quality determines all downstream work.
 
-**Bloque 50.1: Flutter desktop shell + kernel transport [PENDING]**
+**Bloque 50.1: Flutter desktop shell + kernel transport [DONE ✅]**
 - **Goal:** Bootstrap Flutter desktop app shell with resilient connection to existing kernel server.
 - **Files:** desktop client module + minimal server handshake alignment.
 - **Demo:** cold-start desktop client receives heartbeat and health payload.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+- **Evidence (2026-04-30):** New module `src/clients/flutter_desktop_shell` starts on desktop, reaches `/api/ping` + `/api/status`, and recovers after server restart with bounded retry backoff.
 
 **Bloque 50.2: Audio perception vertical slice [PENDING]**
 - **Goal:** Desktop microphone capture -> kernel perception endpoint -> UI feedback with latency.
