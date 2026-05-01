@@ -1,6 +1,6 @@
 import time
 
-from src.core.perception import SensoryBuffer
+from src.core.perception import PerceptionClassifier, SensoryBuffer
 
 
 def test_sensory_buffer_audio_only():
@@ -112,7 +112,6 @@ def test_has_audio_expired():
 
 
 # ── V2.59: Sensory-Context Perception ─────────────────────────────────────────
-from src.core.perception import PerceptionClassifier
 
 
 def test_perception_fused_emergency_with_vision():
@@ -138,7 +137,9 @@ def test_perception_vision_only_person():
 def test_perception_fused_violence_with_motion():
     """Fused violence audio + motion should have high urgency."""
     c = PerceptionClassifier()
-    signals = c.classify("Escuché: hay un tiroteo. Simultáneamente vi: movimiento detectado.")
+    signals = c.classify(
+        "Escuché: hay un tiroteo. Simultáneamente vi: movimiento detectado."
+    )
     assert signals.context == "violent_crime"
     assert signals.urgency > 0.5
     assert signals.risk > 0.5

@@ -1,9 +1,14 @@
 """Tests for src/core/memory.py — Episodic Memory."""
 
+import importlib.util as _ilu
+import math
 import os
 import tempfile
 
 import pytest
+
+from src.core.chat import ChatEngine
+from src.core.llm import OllamaClient
 from src.core.memory import Memory
 
 
@@ -23,7 +28,12 @@ def mem():
 
 def test_add_and_recall(mem):
     """Basic add and recall by keyword."""
-    mem.add("Helped an injured person in the park", action="assist", score=0.9, context="medical")
+    mem.add(
+        "Helped an injured person in the park",
+        action="assist",
+        score=0.9,
+        context="medical",
+    )
     mem.add("Had a casual conversation", action="chat", score=0.3, context="everyday")
     results = mem.recall("injured person help")
     assert len(results) >= 1
@@ -89,11 +99,6 @@ def test_recent(mem):
 
 
 # ─── Integration: memory inside ChatEngine pipeline ───────────────────────────
-
-import math
-
-from src.core.chat import ChatEngine
-from src.core.llm import OllamaClient
 
 
 @pytest.fixture
@@ -179,7 +184,12 @@ def test_memory_legacy_migration(mem):
 
     # Create a legacy flat list structure
     legacy_data = [
-        {"summary": "Legacy 1", "action": "test", "ethical_score": 0.5, "context": "everyday"}
+        {
+            "summary": "Legacy 1",
+            "action": "test",
+            "ethical_score": 0.5,
+            "context": "everyday",
+        }
     ]
     with open(mem._storage_path, "w", encoding="utf-8") as f:
         json.dump(legacy_data, f)
@@ -282,9 +292,21 @@ def test_tfidf_score_finite(mem):
 
 def test_tfidf_fallback_small_corpus(mem):
     """With < 5 episodes, recall() uses keyword fallback without crashing."""
-    mem.add("Ayudé a alguien", action="assist_emergency", score=0.9, context="medical_emergency")
-    mem.add("Conversación casual", action="casual_chat", score=0.3, context="everyday_ethics")
-    mem.add("Otro episodio más", action="casual_chat", score=0.4, context="everyday_ethics")
+    mem.add(
+        "Ayudé a alguien",
+        action="assist_emergency",
+        score=0.9,
+        context="medical_emergency",
+    )
+    mem.add(
+        "Conversación casual",
+        action="casual_chat",
+        score=0.3,
+        context="everyday_ethics",
+    )
+    mem.add(
+        "Otro episodio más", action="casual_chat", score=0.4, context="everyday_ethics"
+    )
     results = mem.recall("ayudé alguien")
     assert isinstance(results, list)
     assert len(results) >= 1
@@ -293,17 +315,23 @@ def test_tfidf_fallback_small_corpus(mem):
 def test_tfidf_idf_cache_invalidated_on_add(mem):
     """After add(), _idf_cache must be None."""
     for i in range(6):
-        mem.add(f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics")
+        mem.add(
+            f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics"
+        )
     _ = mem._build_idf()
     assert mem._idf_cache is not None
-    mem.add("Nuevo episodio", action="casual_chat", score=0.5, context="everyday_ethics")
+    mem.add(
+        "Nuevo episodio", action="casual_chat", score=0.5, context="everyday_ethics"
+    )
     assert mem._idf_cache is None
 
 
 def test_recall_empty_query_tfidf(mem):
     """recall() with empty or whitespace-only query always returns [] even with large corpus."""
     for i in range(6):
-        mem.add(f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics")
+        mem.add(
+            f"Episodio {i}", action="casual_chat", score=0.5, context="everyday_ethics"
+        )
     assert mem.recall("") == []
     assert mem.recall("   ") == []
 
@@ -311,8 +339,6 @@ def test_recall_empty_query_tfidf(mem):
 # --- V2.43: Sentence-embedding semantic tests ---
 # Both tests are backend-agnostic: they pass in TF-IDF mode (no strict SBERT assertions)
 # and become stricter assertions when sentence-transformers is installed.
-
-import importlib.util as _ilu
 
 _SBERT_INSTALLED = _ilu.find_spec("sentence_transformers") is not None
 
@@ -342,7 +368,10 @@ def test_recall_synonym(mem):
         context="everyday_ethics",
     )
     mem.add(
-        "El clima esta soleado y calido", action="casual_chat", score=0.4, context="everyday_ethics"
+        "El clima esta soleado y calido",
+        action="casual_chat",
+        score=0.4,
+        context="everyday_ethics",
     )
     mem.add(
         "Conversacion sobre libros de historia",

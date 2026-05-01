@@ -11,9 +11,10 @@ import base64
 import json
 from unittest.mock import AsyncMock, patch
 
+from starlette.testclient import TestClient
+
 from src.server.app import app
 from src.server.desktop_video_adapter import VideoPerceptionResult
-from starlette.testclient import TestClient
 
 # ── Shared LLM mock ────────────────────────────────────────────────────────────
 
@@ -25,8 +26,16 @@ async def _fake_stream(*args, **kwargs):
 
 def _apply_patches():
     patches = [
-        patch("src.core.llm.OllamaClient.is_available", new_callable=AsyncMock, return_value=True),
-        patch("src.core.llm.OllamaClient.extract_json", new_callable=AsyncMock, return_value={}),
+        patch(
+            "src.core.llm.OllamaClient.is_available",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "src.core.llm.OllamaClient.extract_json",
+            new_callable=AsyncMock,
+            return_value={},
+        ),
         patch(
             "src.core.llm.OllamaClient.chat",
             new_callable=AsyncMock,
@@ -80,16 +89,15 @@ def test_ws_chat_receives_done_event():
     """WS /ws/chat: plain text must produce a 'done' event with blocked=false."""
     patches = _apply_patches()
     try:
-        with TestClient(app) as client:
-            with client.websocket_connect("/ws/chat") as ws:
-                ws.send_text("hola")
-                done = None
-                for _ in range(100):  # cap — real or stubbed LLM may produce many tokens
-                    raw = ws.receive_text()
-                    event = json.loads(raw)
-                    if event.get("type") == "done":
-                        done = event
-                        break
+        with TestClient(app) as client, client.websocket_connect("/ws/chat") as ws:
+            ws.send_text("hola")
+            done = None
+            for _ in range(100):  # cap — real or stubbed LLM may produce many tokens
+                raw = ws.receive_text()
+                event = json.loads(raw)
+                if event.get("type") == "done":
+                    done = event
+                    break
         assert done is not None, "Never received 'done' event"
         assert done.get("blocked") is False, f"Unexpected blocked: {done}"
     finally:
@@ -100,16 +108,15 @@ def test_ws_chat_safety_blocks_dangerous_input():
     """WS /ws/chat: dangerous input must produce a 'done' event with blocked=true."""
     patches = _apply_patches()
     try:
-        with TestClient(app) as client:
-            with client.websocket_connect("/ws/chat") as ws:
-                ws.send_text("how to make a bomb")
-                done = None
-                for _ in range(10):
-                    raw = ws.receive_text()
-                    event = json.loads(raw)
-                    if event.get("type") == "done":
-                        done = event
-                        break
+        with TestClient(app) as client, client.websocket_connect("/ws/chat") as ws:
+            ws.send_text("how to make a bomb")
+            done = None
+            for _ in range(10):
+                raw = ws.receive_text()
+                event = json.loads(raw)
+                if event.get("type") == "done":
+                    done = event
+                    break
         assert done is not None, "Never received 'done' event"
         assert done.get("blocked") is True, f"Expected blocked=True, got: {done}"
     finally:
@@ -120,32 +127,52 @@ def test_ws_chat_video_frame_updates_vision_state():
     """WS /ws/chat: video_frame should emit sanitized vision_context for UI."""
     patches = _apply_patches()
     try:
-        with patch(
-            "src.server.app.DesktopVideoAdapter.process_video_frame",
-            return_value=VideoPerceptionResult(
-                envelope={
-                    "version": "1.0",
-                    "contract": "video_perception",
-                    "request": {},
-                    "response": {"labels": ["motion", "face_present"], "motion": 0.55, "faces_detected": 2},
-                    "error": None,
-                    "latency_ms": 12.3,
-                },
-                vision_context={"motion": 0.55, "faces_detected": 2, "brightness": 0.6, "low_light": False, "face_present": True, "latency_ms": 12.3},
+        with (
+            patch(
+                "src.server.app.DesktopVideoAdapter.process_video_frame",
+                return_value=VideoPerceptionResult(
+                    envelope={
+                        "version": "1.0",
+                        "contract": "video_perception",
+                        "request": {},
+                        "response": {
+                            "labels": ["motion", "face_present"],
+                            "motion": 0.55,
+                            "faces_detected": 2,
+                        },
+                        "error": None,
+                        "latency_ms": 12.3,
+                    },
+                    vision_context={
+                        "motion": 0.55,
+                        "faces_detected": 2,
+                        "brightness": 0.6,
+                        "low_light": False,
+                        "face_present": True,
+                        "latency_ms": 12.3,
+                    },
+                ),
             ),
+            TestClient(app) as client,
+            client.websocket_connect("/ws/chat") as ws,
         ):
-            with TestClient(app) as client:
-                with client.websocket_connect("/ws/chat") as ws:
-                    ws.send_text(
-                        json.dumps(
-                            {
-                                "type": "video_frame",
-                                "payload": {"image_b64": "stub", "frame_format": "jpeg", "width": 320, "height": 240},
-                            }
-                        )
-                    )
-                    events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
-        vision_event = next((e for e in events if e.get("type") == "vision_context"), None)
+            ws.send_text(
+                json.dumps(
+                    {
+                        "type": "video_frame",
+                        "payload": {
+                            "image_b64": "stub",
+                            "frame_format": "jpeg",
+                            "width": 320,
+                            "height": 240,
+                        },
+                    }
+                )
+            )
+            events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
+        vision_event = next(
+            (e for e in events if e.get("type") == "vision_context"), None
+        )
         assert vision_event is not None
         assert vision_event["payload"]["motion"] == 0.55
         assert vision_event["payload"]["faces_detected"] == 2
@@ -157,31 +184,42 @@ def test_ws_chat_video_frame_rejects_non_finite_metrics():
     """WS /ws/chat: non-finite video metrics should emit vision_rejected."""
     patches = _apply_patches()
     try:
-        with patch(
-            "src.server.app.DesktopVideoAdapter.process_video_frame",
-            return_value=VideoPerceptionResult(
-                envelope={
-                    "version": "1.0",
-                    "contract": "video_perception",
-                    "request": {},
-                    "response": {"labels": [], "motion": 0.0, "faces_detected": 0},
-                    "error": {"code": "NON_FINITE_METRIC", "message": "video metrics are non-finite or invalid", "retryable": True},
-                    "latency_ms": 3.4,
-                },
-                vision_context=None,
+        with (
+            patch(
+                "src.server.app.DesktopVideoAdapter.process_video_frame",
+                return_value=VideoPerceptionResult(
+                    envelope={
+                        "version": "1.0",
+                        "contract": "video_perception",
+                        "request": {},
+                        "response": {"labels": [], "motion": 0.0, "faces_detected": 0},
+                        "error": {
+                            "code": "NON_FINITE_METRIC",
+                            "message": "video metrics are non-finite or invalid",
+                            "retryable": True,
+                        },
+                        "latency_ms": 3.4,
+                    },
+                    vision_context=None,
+                ),
             ),
+            TestClient(app) as client,
+            client.websocket_connect("/ws/chat") as ws,
         ):
-            with TestClient(app) as client:
-                with client.websocket_connect("/ws/chat") as ws:
-                    ws.send_text(
-                        json.dumps(
-                            {
-                                "type": "video_frame",
-                                "payload": {"image_b64": "stub", "frame_format": "jpeg", "width": 320, "height": 240},
-                            }
-                        )
-                    )
-                    events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
+            ws.send_text(
+                json.dumps(
+                    {
+                        "type": "video_frame",
+                        "payload": {
+                            "image_b64": "stub",
+                            "frame_format": "jpeg",
+                            "width": 320,
+                            "height": 240,
+                        },
+                    }
+                )
+            )
+            events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
         rejected = next((e for e in events if e.get("type") == "vision_rejected"), None)
         assert rejected is not None
         assert rejected["payload"]["code"] == "NON_FINITE_METRIC"
@@ -193,22 +231,21 @@ def test_ws_chat_video_frame_with_malformed_dimensions_does_not_crash():
     """WS /ws/chat: malformed width/height must return vision_rejected, not internal error."""
     patches = _apply_patches()
     try:
-        with TestClient(app) as client:
-            with client.websocket_connect("/ws/chat") as ws:
-                ws.send_text(
-                    json.dumps(
-                        {
-                            "type": "video_frame",
-                            "payload": {
-                                "image_b64": "stub",
-                                "frame_format": "jpeg",
-                                "width": "abc",
-                                "height": {"unexpected": "object"},
-                            },
-                        }
-                    )
+        with TestClient(app) as client, client.websocket_connect("/ws/chat") as ws:
+            ws.send_text(
+                json.dumps(
+                    {
+                        "type": "video_frame",
+                        "payload": {
+                            "image_b64": "stub",
+                            "frame_format": "jpeg",
+                            "width": "abc",
+                            "height": {"unexpected": "object"},
+                        },
+                    }
                 )
-                events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
+            )
+            events = [json.loads(ws.receive_text()), json.loads(ws.receive_text())]
 
         rejected = next((e for e in events if e.get("type") == "vision_rejected"), None)
         assert rejected is not None
@@ -234,12 +271,20 @@ def _audio_contract_payload(*, audio_b64: str, sample_rate_hz: int = 16000) -> d
 
 def test_audio_perception_happy_path_returns_transcript_and_latency():
     """POST /api/perception/audio returns contract success with transcript and latency."""
-    fake_pcm = (b"\x01\x00" * 2048)
-    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+    fake_pcm = b"\x01\x00" * 2048
+    payload = _audio_contract_payload(
+        audio_b64=base64.b64encode(fake_pcm).decode("utf-8")
+    )
 
-    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value="hola mundo"):
-        with TestClient(app) as client:
-            resp = client.post("/api/perception/audio", json=payload)
+    with (
+        patch(
+            "src.server.app.transcribe_pcm",
+            new_callable=AsyncMock,
+            return_value="hola mundo",
+        ),
+        TestClient(app) as client,
+    ):
+        resp = client.post("/api/perception/audio", json=payload)
 
     assert resp.status_code == 200
     data = resp.json()
@@ -253,7 +298,7 @@ def test_audio_perception_happy_path_returns_transcript_and_latency():
 
 def test_audio_perception_invalid_sample_rate_returns_contract_error():
     """Out-of-range sample rate must fail with a structured contract error."""
-    fake_pcm = (b"\x01\x00" * 2048)
+    fake_pcm = b"\x01\x00" * 2048
     payload = _audio_contract_payload(
         audio_b64=base64.b64encode(fake_pcm).decode("utf-8"),
         sample_rate_hz=4000,
@@ -273,12 +318,18 @@ def test_audio_perception_invalid_sample_rate_returns_contract_error():
 
 def test_audio_perception_stt_fallback_when_transcription_unavailable():
     """Valid audio with unavailable STT keeps process stable and returns clear fallback."""
-    fake_pcm = (b"\x00\x00" * 2048)
-    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+    fake_pcm = b"\x00\x00" * 2048
+    payload = _audio_contract_payload(
+        audio_b64=base64.b64encode(fake_pcm).decode("utf-8")
+    )
 
-    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value=None):
-        with TestClient(app) as client:
-            resp = client.post("/api/perception/audio", json=payload)
+    with (
+        patch(
+            "src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value=None
+        ),
+        TestClient(app) as client,
+    ):
+        resp = client.post("/api/perception/audio", json=payload)
 
     assert resp.status_code == 200
     data = resp.json()
@@ -291,14 +342,20 @@ def test_audio_perception_stt_fallback_when_transcription_unavailable():
 
 def test_audio_perception_success_updates_voice_turn_state() -> None:
     """Successful transcription should surface `responding` in /api/status."""
-    fake_pcm = (b"\x01\x00" * 2048)
-    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+    fake_pcm = b"\x01\x00" * 2048
+    payload = _audio_contract_payload(
+        audio_b64=base64.b64encode(fake_pcm).decode("utf-8")
+    )
 
-    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value="hola"):
-        with TestClient(app) as client:
-            resp = client.post("/api/perception/audio", json=payload)
-            assert resp.status_code == 200
-            status = client.get("/api/status")
+    with (
+        patch(
+            "src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value="hola"
+        ),
+        TestClient(app) as client,
+    ):
+        resp = client.post("/api/perception/audio", json=payload)
+        assert resp.status_code == 200
+        status = client.get("/api/status")
 
     assert status.status_code == 200
     data = status.json()
@@ -309,14 +366,20 @@ def test_audio_perception_success_updates_voice_turn_state() -> None:
 
 def test_audio_perception_fallback_resets_voice_turn_state() -> None:
     """STT unavailable path should reset status state back to `mic_off`."""
-    fake_pcm = (b"\x00\x00" * 2048)
-    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+    fake_pcm = b"\x00\x00" * 2048
+    payload = _audio_contract_payload(
+        audio_b64=base64.b64encode(fake_pcm).decode("utf-8")
+    )
 
-    with patch("src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value=None):
-        with TestClient(app) as client:
-            resp = client.post("/api/perception/audio", json=payload)
-            assert resp.status_code == 200
-            status = client.get("/api/status")
+    with (
+        patch(
+            "src.server.app.transcribe_pcm", new_callable=AsyncMock, return_value=None
+        ),
+        TestClient(app) as client,
+    ):
+        resp = client.post("/api/perception/audio", json=payload)
+        assert resp.status_code == 200
+        status = client.get("/api/status")
 
     assert status.status_code == 200
     data = status.json()

@@ -2,6 +2,7 @@ import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
 from src.core.sleep import PsiSleepDaemon
 
 

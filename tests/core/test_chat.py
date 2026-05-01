@@ -21,7 +21,9 @@ from src.core.ethics import Signals
 async def test_casual_message_skips_ethics(engine):
     """A simple 'hola' should NOT trigger the ethical evaluator."""
     with (
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(
+            engine.llm, "extract_json", new_callable=AsyncMock, return_value={}
+        ),
         patch.object(
             engine.llm,
             "chat",
@@ -161,7 +163,9 @@ async def test_turn_records_episode(engine):
     """After one turn, memory should contain one episode."""
     engine.memory.clear()
     with (
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(
+            engine.llm, "extract_json", new_callable=AsyncMock, return_value={}
+        ),
         patch.object(engine.llm, "chat", new_callable=AsyncMock, return_value="Hola"),
     ):
         await engine.turn("hola")
@@ -178,8 +182,12 @@ async def test_cross_session_persistence(engine):
     # Session 1: record an episode
     engine.memory.clear()
     with (
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
-        patch.object(engine.llm, "chat", new_callable=AsyncMock, return_value="Te ayudo"),
+        patch.object(
+            engine.llm, "extract_json", new_callable=AsyncMock, return_value={}
+        ),
+        patch.object(
+            engine.llm, "chat", new_callable=AsyncMock, return_value="Te ayudo"
+        ),
     ):
         await engine.turn("hay alguien herido en el parque")
 
@@ -195,7 +203,9 @@ async def test_cross_session_persistence(engine):
 async def test_respond_injects_recalled_memories(engine):
     """The respond method must include relevant memories in the system prompt."""
     engine.memory.clear()
-    engine.memory.add("Previously helped an injured person", score=0.9, context="medical")
+    engine.memory.add(
+        "Previously helped an injured person", score=0.9, context="medical"
+    )
 
     captured_system = {}
 
@@ -204,7 +214,9 @@ async def test_respond_injects_recalled_memories(engine):
         return "Recuerdo eso."
 
     with (
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(
+            engine.llm, "extract_json", new_callable=AsyncMock, return_value={}
+        ),
         patch.object(engine.llm, "chat", new_callable=AsyncMock, side_effect=mock_chat),
     ):
         await engine.turn("tell me about injured people")
@@ -229,9 +241,13 @@ async def test_chat_pipeline_latency_metrics(engine):
 
     done_event = None
     with (
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(
+            engine.llm, "extract_json", new_callable=AsyncMock, return_value={}
+        ),
         patch.object(engine.llm, "chat", new_callable=AsyncMock, return_value="Hola"),
-        patch.object(engine.llm, "chat_stream", return_value=_async_gen(["Hola", " mundo"])),
+        patch.object(
+            engine.llm, "chat_stream", return_value=_async_gen(["Hola", " mundo"])
+        ),
     ):
         async for event in engine.turn_stream("hola"):
             if event.get("type") == "done":
@@ -287,8 +303,12 @@ async def test_turn_count_increments(engine):
     from unittest.mock import AsyncMock, patch
 
     with (
-        patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=True),
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(
+            engine.llm, "is_available", new_callable=AsyncMock, return_value=True
+        ),
+        patch.object(
+            engine.llm, "extract_json", new_callable=AsyncMock, return_value={}
+        ),
         patch.object(engine.llm, "chat_stream", side_effect=_fake_stream_throttle),
     ):
         await engine.start()
@@ -305,7 +325,9 @@ async def test_turn_count_increments(engine):
 async def test_start_when_llm_unavailable(engine):
     from unittest.mock import AsyncMock, patch
 
-    with patch.object(engine.llm, "is_available", new_callable=AsyncMock, return_value=False):
+    with patch.object(
+        engine.llm, "is_available", new_callable=AsyncMock, return_value=False
+    ):
         assert await engine.start() is False
 
 
@@ -416,7 +438,9 @@ async def test_turn_stream_exception_during_respond(engine):
     from unittest.mock import AsyncMock, patch
 
     with (
-        patch.object(engine.llm, "extract_json", new_callable=AsyncMock, return_value={}),
+        patch.object(
+            engine.llm, "extract_json", new_callable=AsyncMock, return_value={}
+        ),
         patch.object(engine.llm, "chat_stream", side_effect=Exception("Boom")),
     ):
         events = []

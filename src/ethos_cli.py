@@ -69,7 +69,10 @@ def cmd_config(args: argparse.Namespace) -> int:
     if args.strict:
         model = report["OLLAMA_MODEL"]
         if not model:
-            report["strict_validation"] = {"ok": False, "error": "OLLAMA_MODEL is empty"}
+            report["strict_validation"] = {
+                "ok": False,
+                "error": "OLLAMA_MODEL is empty",
+            }
             exit_code = 1
         else:
             report["strict_validation"] = {"ok": True}
@@ -92,14 +95,20 @@ def _build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_diag = sub.add_parser("diagnostics", help="Print kernel stats (V2 Core).")
-    p_diag.add_argument("--json", action="store_true", help="Machine-readable JSON output.")
+    p_diag.add_argument(
+        "--json", action="store_true", help="Machine-readable JSON output."
+    )
     p_diag.set_defaults(func=cmd_diagnostics)
 
     p_cfg = sub.add_parser("config", help="Environment config report.")
     p_cfg.add_argument("--json", action="store_true", help="Machine-readable output.")
-    p_cfg.add_argument("--profiles", action="store_true", help="List runtime profile names.")
     p_cfg.add_argument(
-        "--strict", action="store_true", help="Validate env strictly; exit 1 on violations."
+        "--profiles", action="store_true", help="List runtime profile names."
+    )
+    p_cfg.add_argument(
+        "--strict",
+        action="store_true",
+        help="Validate env strictly; exit 1 on violations.",
     )
     p_cfg.set_defaults(func=cmd_config)
 

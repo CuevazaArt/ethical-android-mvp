@@ -126,7 +126,9 @@ class TestWebPlugin:
     def test_falls_back_to_url_on_network_error(self):
         import urllib.error
 
-        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("timeout")):
+        with patch(
+            "urllib.request.urlopen", side_effect=urllib.error.URLError("timeout")
+        ):
             result = self.plugin.execute("temperatura Guadalajara")
         assert "duckduckgo.com" in result
         assert result.startswith("No pude")
@@ -242,7 +244,9 @@ class TestPluginPattern:
             mock_resp = MagicMock()
             mock_resp.read.return_value = __import__("json").dumps(mock_data).encode()
             mock_open.return_value = mock_resp
-            name, result = registry.parse_and_execute("[PLUGIN: Web(temperatura Madrid)]")
+            name, result = registry.parse_and_execute(
+                "[PLUGIN: Web(temperatura Madrid)]"
+            )
         assert name == "Web"
         assert result == "22°C"
 

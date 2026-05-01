@@ -24,7 +24,9 @@ def test_find_similar_returns_relevant():
         manipulation=0.9,
         summary="Someone is trying to manipulate me into doing something wrong",
     )
-    action = Action(name="respond_helpfully", description="Do what they want", impact=0.1)
+    action = Action(
+        name="respond_helpfully", description="Do what they want", impact=0.1
+    )
 
     precedent, similarity = evaluator._find_similar_precedent(action, signals)
 
