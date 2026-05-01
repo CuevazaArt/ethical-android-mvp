@@ -61,6 +61,9 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   DateTime? _lastHeartbeatAt;
   Map<String, dynamic>? _healthPayload;
   String _lastMessage = 'Startup...';
+  VoiceUiState _voiceUiState = VoiceUiState.micOff;
+  String _voiceEventSource = 'placeholder';
+  DateTime? _lastVoiceStateAt;
 
   Uri get _pingUri => Uri.parse('$_defaultKernelUrl/api/ping');
   Uri get _statusUri => Uri.parse('$_defaultKernelUrl/api/status');
@@ -130,6 +133,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         _healthPayload = decoded;
         _lastMessage = 'connected';
       });
+      _updateVoiceStateFromHealth(decoded);
 
       _log('connected -> health payload received: ${jsonEncode(decoded)}');
     } catch (error) {
@@ -164,6 +168,89 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     debugPrint('[flutter-desktop-shell] $message');
   }
 
+  void _updateVoiceStateFromHealth(Map<String, dynamic> payload) {
+    final dynamic explicitState =
+        payload['voice_state'] ??
+        payload['voice_turn_state'] ??
+        (payload['voice_turn'] is Map<String, dynamic>
+            ? payload['voice_turn']['state']
+            : null);
+    final VoiceUiState? parsed = _parseVoiceState(explicitState);
+    final bool sttAvailable = payload['stt_available'] == true;
+
+    if (parsed != null) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _voiceUiState = parsed;
+        _voiceEventSource = 'server';
+        _lastVoiceStateAt = DateTime.now();
+      });
+      return;
+    }
+
+    if (!sttAvailable && _voiceUiState != VoiceUiState.micOff) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _voiceUiState = VoiceUiState.micOff;
+        _voiceEventSource = 'health_fallback';
+        _lastVoiceStateAt = DateTime.now();
+      });
+    }
+  }
+
+  VoiceUiState? _parseVoiceState(dynamic raw) {
+    if (raw is! String) {
+      return null;
+    }
+    switch (raw.toLowerCase()) {
+      case 'mic_off':
+      case 'idle':
+      case 'off':
+        return VoiceUiState.micOff;
+      case 'listening':
+        return VoiceUiState.listening;
+      case 'transcribing':
+        return VoiceUiState.transcribing;
+      case 'responding':
+      case 'speaking':
+        return VoiceUiState.responding;
+      default:
+        return null;
+    }
+  }
+
+  void _advanceVoicePlaceholder() {
+    const List<VoiceUiState> cycle = <VoiceUiState>[
+      VoiceUiState.micOff,
+      VoiceUiState.listening,
+      VoiceUiState.transcribing,
+      VoiceUiState.responding,
+    ];
+    final int currentIndex = cycle.indexOf(_voiceUiState);
+    final int nextIndex = currentIndex == -1
+        ? 0
+        : (currentIndex + 1) % cycle.length;
+    setState(() {
+      _voiceUiState = cycle[nextIndex];
+      _voiceEventSource = 'placeholder';
+      _lastVoiceStateAt = DateTime.now();
+    });
+    _log('voice_ui -> ${_voiceUiState.name} (placeholder)');
+  }
+
+  void _resetVoicePlaceholder() {
+    setState(() {
+      _voiceUiState = VoiceUiState.micOff;
+      _voiceEventSource = 'placeholder';
+      _lastVoiceStateAt = DateTime.now();
+    });
+    _log('voice_ui -> ${_voiceUiState.name} (placeholder reset)');
+  }
+
   @override
   void dispose() {
     _heartbeatTimer?.cancel();
@@ -176,7 +263,10 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final _StatusBadgeData badge = _statusBadgeForState(_connectionState, theme);
+    final _StatusBadgeData badge = _statusBadgeForState(
+      _connectionState,
+      theme,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -196,26 +286,40 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             builder: (BuildContext context, BoxConstraints constraints) {
               final bool isWide = constraints.maxWidth >= 1050;
               final Widget statusCard = _buildStatusCard(theme, badge);
+              final Widget voiceCard = _buildVoiceCard(theme);
               final Widget payloadCard = _buildPayloadCard(theme);
 
               if (isWide) {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(flex: 5, child: statusCard),
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        children: [
+                          statusCard,
+                          const SizedBox(height: 16),
+                          voiceCard,
+                        ],
+                      ),
+                    ),
                     const SizedBox(width: 16),
                     Expanded(flex: 7, child: payloadCard),
                   ],
                 );
               }
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  statusCard,
-                  const SizedBox(height: 16),
-                  Expanded(child: payloadCard),
-                ],
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    statusCard,
+                    const SizedBox(height: 16),
+                    voiceCard,
+                    const SizedBox(height: 16),
+                    SizedBox(height: 360, child: payloadCard),
+                  ],
+                ),
               );
             },
           ),
@@ -271,10 +375,9 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   }
 
   Widget _buildPayloadCard(ThemeData theme) {
-    final String payloadText =
-        _healthPayload == null
-            ? 'Waiting for /api/status payload...'
-            : const JsonEncoder.withIndent('  ').convert(_healthPayload);
+    final String payloadText = _healthPayload == null
+        ? 'Waiting for /api/status payload...'
+        : const JsonEncoder.withIndent('  ').convert(_healthPayload);
 
     return Card(
       elevation: 0,
@@ -332,6 +435,105 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     );
   }
 
+  Widget _buildVoiceCard(ThemeData theme) {
+    final _VoiceStateData activeState = _voiceStateData(_voiceUiState, theme);
+    const List<VoiceUiState> orderedStates = <VoiceUiState>[
+      VoiceUiState.micOff,
+      VoiceUiState.listening,
+      VoiceUiState.transcribing,
+      VoiceUiState.responding,
+    ];
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Voice loop surface',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'UI machine-state only in this block (no STT/TTS backend changes).',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Icon(activeState.icon, color: activeState.accent, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  activeState.label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: activeState.accent,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: orderedStates.map((VoiceUiState state) {
+                final _VoiceStateData data = _voiceStateData(state, theme);
+                final bool isActive = state == _voiceUiState;
+                return _MachineStateChip(
+                  icon: data.icon,
+                  label: data.label,
+                  active: isActive,
+                  activeColor: data.accent,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            _statusRow(
+              'Voice source',
+              _voiceEventSource == 'server'
+                  ? 'server event'
+                  : _voiceEventSource == 'health_fallback'
+                  ? 'health fallback (stt unavailable)'
+                  : 'placeholder (manual cycle)',
+            ),
+            const SizedBox(height: 8),
+            _statusRow(
+              'Last voice update',
+              _lastVoiceStateAt?.toIso8601String() ?? 'never',
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: _advanceVoicePlaceholder,
+                  icon: const Icon(Icons.skip_next_rounded, size: 16),
+                  label: const Text('Next state'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _resetVoicePlaceholder,
+                  icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                  label: const Text('Reset'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   _StatusBadgeData _statusBadgeForState(
     KernelConnectionState state,
     ThemeData theme,
@@ -341,25 +543,54 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         return _StatusBadgeData(
           label: 'Connected',
           textColor: theme.colorScheme.primary,
-          bgColor: theme.colorScheme.primary.withOpacity(0.16),
+          bgColor: theme.colorScheme.primary.withValues(alpha: 0.16),
         );
       case KernelConnectionState.retrying:
         return _StatusBadgeData(
           label: 'Retrying',
           textColor: Colors.amber.shade300,
-          bgColor: Colors.amber.withOpacity(0.16),
+          bgColor: Colors.amber.withValues(alpha: 0.16),
         );
       case KernelConnectionState.offline:
         return _StatusBadgeData(
           label: 'Offline',
           textColor: theme.colorScheme.error,
-          bgColor: theme.colorScheme.error.withOpacity(0.16),
+          bgColor: theme.colorScheme.error.withValues(alpha: 0.16),
         );
       case KernelConnectionState.connecting:
         return _StatusBadgeData(
           label: 'Connecting',
           textColor: theme.colorScheme.secondary,
-          bgColor: theme.colorScheme.secondary.withOpacity(0.16),
+          bgColor: theme.colorScheme.secondary.withValues(alpha: 0.16),
+        );
+    }
+  }
+
+  _VoiceStateData _voiceStateData(VoiceUiState state, ThemeData theme) {
+    switch (state) {
+      case VoiceUiState.micOff:
+        return _VoiceStateData(
+          label: 'Mic off',
+          icon: Icons.mic_off_rounded,
+          accent: theme.colorScheme.error,
+        );
+      case VoiceUiState.listening:
+        return _VoiceStateData(
+          label: 'Listening',
+          icon: Icons.hearing_rounded,
+          accent: theme.colorScheme.primary,
+        );
+      case VoiceUiState.transcribing:
+        return _VoiceStateData(
+          label: 'Transcribing',
+          icon: Icons.graphic_eq_rounded,
+          accent: Colors.amber.shade300,
+        );
+      case VoiceUiState.responding:
+        return _VoiceStateData(
+          label: 'Responding',
+          icon: Icons.record_voice_over_rounded,
+          accent: theme.colorScheme.tertiary,
         );
     }
   }
@@ -376,10 +607,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           ),
         ),
         Expanded(
-          child: SelectableText(
-            value,
-            style: const TextStyle(fontSize: 13),
-          ),
+          child: SelectableText(value, style: const TextStyle(fontSize: 13)),
         ),
       ],
     );
@@ -398,6 +626,20 @@ class _StatusBadgeData {
   final Color bgColor;
 }
 
+enum VoiceUiState { micOff, listening, transcribing, responding }
+
+class _VoiceStateData {
+  const _VoiceStateData({
+    required this.label,
+    required this.icon,
+    required this.accent,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color accent;
+}
+
 class _ConnectionBadge extends StatelessWidget {
   const _ConnectionBadge({required this.data});
 
@@ -409,7 +651,7 @@ class _ConnectionBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: data.bgColor,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: data.textColor.withOpacity(0.35)),
+        border: Border.all(color: data.textColor.withValues(alpha: 0.35)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -424,6 +666,58 @@ class _ConnectionBadge extends StatelessWidget {
                 color: data.textColor,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MachineStateChip extends StatelessWidget {
+  const _MachineStateChip({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.activeColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+  final Color activeColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color textColor = active
+        ? activeColor
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+    final Color background = active
+        ? activeColor.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.03);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: textColor.withValues(alpha: active ? 0.45 : 0.25),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: textColor),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

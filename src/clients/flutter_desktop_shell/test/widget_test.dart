@@ -18,7 +18,33 @@ void main() {
     expect(find.text('Ethos Desktop Shell'), findsOneWidget);
     expect(find.text('Offline'), findsWidgets);
     expect(find.text('Transport disabled for tests.'), findsOneWidget);
+    expect(find.text('Voice loop surface'), findsOneWidget);
+    expect(find.text('Mic off'), findsWidgets);
+    expect(find.text('Next state'), findsOneWidget);
     expect(find.text('Health payload'), findsOneWidget);
     expect(find.text('Waiting for /api/status payload...'), findsOneWidget);
+  });
+
+  testWidgets('voice panel cycles machine states with placeholder control', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
+
+    final Finder nextStateButton = find.text('Next state');
+    expect(find.text('Mic off'), findsWidgets);
+    await tester.ensureVisible(nextStateButton);
+    await tester.pumpAndSettle();
+
+    await tester.tap(nextStateButton);
+    await tester.pump();
+    expect(find.text('Listening'), findsWidgets);
+
+    await tester.tap(nextStateButton);
+    await tester.pump();
+    expect(find.text('Transcribing'), findsWidgets);
+
+    await tester.tap(nextStateButton);
+    await tester.pump();
+    expect(find.text('Responding'), findsWidgets);
   });
 }

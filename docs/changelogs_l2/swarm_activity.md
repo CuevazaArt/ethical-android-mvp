@@ -2789,3 +2789,11 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `src/server/desktop_video_adapter.py`
   - `tests/server/test_app_integration.py`
   - `tests/server/test_desktop_video_adapter.py`
+
+### Execution (Swarm) | Date: 2026-04-30 20:02:56 | Author: Anonymous Agent
+- **Block:** `50.4A`
+- **Message:** Voice UX surface dark en Flutter lista
+- **Files Modified:**
+  - `src/clients/flutter_desktop_shell/README.md`
+  - `src/clients/flutter_desktop_shell/lib/main.dart`
+  - `src/clients/flutter_desktop_shell/test/widget_test.dart`
