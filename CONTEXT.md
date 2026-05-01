@@ -253,6 +253,14 @@
   5. **Decision:** `GO`, `GO-WITH-CONSTRAINTS`, or `NO-GO`, plus next action owner.
 - Any pilot run without all five sections is considered invalid evidence for hardware scaling decisions.
 
+### Execution pulse 103.6 (perception pilot readiness checkpoint)
+
+- Pilot-1 start gate is now explicit and active:
+  - hardware shortlist (`103.3`) available,
+  - execution checklist (`103.4`) available,
+  - evidence template (`103.5`) available.
+- Next phase opened as a wider chained sprint (`104.x`) to move from readiness docs into pilot execution artifacts and decision locks.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

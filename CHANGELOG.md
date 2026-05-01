@@ -191,6 +191,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added reusable pilot evidence template with mandatory metadata, metrics, incidents, and deterministic decision fields.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.5` as done and queued `103.6` readiness checkpoint.
 
+## [2026-05-01] V2.103.6 — Perception pilot readiness checkpoint
+### Changed
+- **`CONTEXT.md`:** Added readiness checkpoint confirming pilot-1 start gate (`103.3` + `103.4` + `103.5`) is active.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.6` as done, opened `104.0`, and added a chained sprint-prompt sequence (`104.1`-`104.4`).
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

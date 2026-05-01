@@ -465,18 +465,46 @@ Use this fixed structure in each planning handoff:
 - **Demo:** evidence template now enforces mandatory sections and deterministic `GO`/`NO-GO` decision fields.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 103.6: Perception pilot readiness checkpoint [PENDING]**
+**Bloque 103.6: Perception pilot readiness checkpoint [DONE ✅]**
 - **Goal:** Consolidate readiness artifacts (`103.3`-`103.5`) and declare pilot start gate.
 - **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
-- **Demo:** checkpoint states exact entry conditions to run pilot-1 without further document drift.
+- **Demo:** checkpoint now confirms active shortlist, execution checklist, and evidence template before pilot-1.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 104.0: Perception pilot prompt-sprint kickoff [PENDING]**
+- **Goal:** Launch a wider prompt sprint for pilot-1 execution while keeping Flutter diagnostics lane active.
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** sprint prompt chain is explicit, sequential, and ready for single-agent autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 103.6 — Perception pilot readiness checkpoint
+[SIGUIENTE] Bloque 104.0 — Perception pilot prompt-sprint kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Freeze pilot preconditions before first hardware run and avoid ad-hoc procedure drift.
-[HECHO CUANDO] Readiness checkpoint explicitly confirms shortlist, checklist, and evidence template are all active.
+[MOTIVO] Move from readiness documentation into execution-oriented pilot sprint planning.
+[HECHO CUANDO] A chained set of sprint prompts is documented for autonomous sequential execution.
+
+### Sprint prompts (104.x chain)
+
+[SIGUIENTE] Bloque 104.1 — Pilot-1 dry-run evidence seed
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Produce first evidence record using the 103.5 template with synthetic or controlled local inputs.
+[HECHO CUANDO] One complete pilot evidence artifact is captured with all mandatory fields.
+
+[SIGUIENTE] Bloque 104.2 — Pilot-1 incident taxonomy pass
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Normalize incident labels so future pilot runs are comparable.
+[HECHO CUANDO] Incident categories and severity mapping are defined and linked to evidence reporting.
+
+[SIGUIENTE] Bloque 104.3 — Pilot-1 go/no-go rubric lock
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Prevent ambiguous hardware decisions by freezing deterministic decision thresholds.
+[HECHO CUANDO] GO / GO-WITH-CONSTRAINTS / NO-GO criteria are frozen and referenced by the evidence template.
+
+[SIGUIENTE] Bloque 104.4 — Pilot lane handoff checkpoint
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Close sprint with explicit pilot lane status before any hardware scale-up.
+[HECHO CUANDO] Context and plan are synchronized with pilot readiness, open risks, and next execution owner.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
