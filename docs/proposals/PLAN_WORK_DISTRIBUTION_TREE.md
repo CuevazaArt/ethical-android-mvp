@@ -399,18 +399,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics card now provides `Copy snapshot` and deterministic export feedback line.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 102.2: Flutter diagnostics severity hinting [PENDING]**
+**Bloque 102.2: Flutter diagnostics severity hinting [DONE ✅]**
 - **Goal:** Add lightweight severity hinting for diagnostics events to prioritize operator attention.
 - **Files:** Flutter shell module + tests.
-- **Demo:** diagnostics events show deterministic severity labels without backend changes.
+- **Demo:** diagnostics events now render deterministic severity badges (`HIGH`, `MED`, `LOW`) from message heuristics.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 102.3: Flutter diagnostics wave checkpoint [PENDING]**
+- **Goal:** Record a concise checkpoint after severity rollout and confirm no regressions.
+- **Files:** `CONTEXT.md`, `CHANGELOG.md`, plan handoff line.
+- **Demo:** checkpoint pulse reflects implemented slices and current validation posture.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 102.2 — Flutter diagnostics severity hinting
+[SIGUIENTE] Bloque 102.3 — Flutter diagnostics wave checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Improve triage speed by exposing quick severity cues in diagnostics stream.
-[HECHO CUANDO] Severity hints are rendered with deterministic rules and validated in tests.
+[MOTIVO] Consolidate the diagnostics export+severity wave before opening another feature slice.
+[HECHO CUANDO] Checkpoint is documented with current local/CI validation status.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

@@ -133,6 +133,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for diagnostics snapshot export controls and default feedback text.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `102.1` as done and advanced sequence to `102.2`.
 
+## [2026-05-01] V2.102.2 — Flutter diagnostics severity hinting
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added deterministic severity classification and per-event severity badges (`HIGH`, `MED`, `LOW`) in diagnostics timeline.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `102.2` as done and advanced sequence to `102.3`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

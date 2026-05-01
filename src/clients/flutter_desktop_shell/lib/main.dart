@@ -195,6 +195,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       _lastMessage = 'manual probe requested';
       _lastManualProbeAt = DateTime.now();
     });
+    _log('manual probe requested by operator');
     _heartbeatTimer?.cancel();
     _retryTimer?.cancel();
     await _probeAndSchedule();
@@ -222,6 +223,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           at: DateTime.now(),
           message: message,
           type: _diagnosticTypeForMessage(message),
+          severity: _diagnosticSeverityForMessage(message),
         ),
       );
       while (_diagnosticEvents.length > _diagnosticDepth.maxEntries) {
@@ -236,6 +238,19 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       return _DiagnosticFilter.manual;
     }
     return _DiagnosticFilter.transport;
+  }
+
+  _DiagnosticSeverity _diagnosticSeverityForMessage(String message) {
+    final String text = message.toLowerCase();
+    if (text.contains('connection lost') ||
+        text.contains('retrying after error') ||
+        text.contains('failed')) {
+      return _DiagnosticSeverity.high;
+    }
+    if (text.contains('manual probe') || text.contains('retry')) {
+      return _DiagnosticSeverity.medium;
+    }
+    return _DiagnosticSeverity.low;
   }
 
   void _updateVoiceStateFromHealth(Map<String, dynamic> payload) {
@@ -725,12 +740,18 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                     event.type,
                     theme,
                   );
+                  final _StatusBadgeData severityBadge = _diagnosticSeverityBadge(
+                    event.severity,
+                    theme,
+                  );
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _ConnectionBadge(data: eventBadge),
+                        const SizedBox(width: 6),
+                        _ConnectionBadge(data: severityBadge),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -773,6 +794,32 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           label: 'EVENT',
           textColor: theme.colorScheme.onSurfaceVariant,
           bgColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.14),
+        );
+    }
+  }
+
+  _StatusBadgeData _diagnosticSeverityBadge(
+    _DiagnosticSeverity severity,
+    ThemeData theme,
+  ) {
+    switch (severity) {
+      case _DiagnosticSeverity.high:
+        return _StatusBadgeData(
+          label: 'HIGH',
+          textColor: theme.colorScheme.error,
+          bgColor: theme.colorScheme.error.withValues(alpha: 0.16),
+        );
+      case _DiagnosticSeverity.medium:
+        return _StatusBadgeData(
+          label: 'MED',
+          textColor: Colors.amber.shade300,
+          bgColor: Colors.amber.withValues(alpha: 0.16),
+        );
+      case _DiagnosticSeverity.low:
+        return _StatusBadgeData(
+          label: 'LOW',
+          textColor: theme.colorScheme.primary,
+          bgColor: theme.colorScheme.primary.withValues(alpha: 0.16),
         );
     }
   }
@@ -1387,14 +1434,18 @@ class _DiagnosticEvent {
     required this.at,
     required this.message,
     required this.type,
+    required this.severity,
   });
 
   final DateTime at;
   final String message;
   final _DiagnosticFilter type;
+  final _DiagnosticSeverity severity;
 }
 
 enum _DiagnosticFilter { all, transport, manual }
+
+enum _DiagnosticSeverity { high, medium, low }
 
 enum _DiagnosticDepth {
   short(4),

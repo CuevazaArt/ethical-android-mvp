@@ -160,6 +160,14 @@
 - Snapshot output includes connection, voice state, retry count, gate source, and visible events.
 - Export path includes deterministic user feedback (`copied` / fallback failure message).
 
+### Execution pulse 102.2 (severity hinting)
+
+- Diagnostics events now include deterministic severity hints:
+  - `HIGH` for connection-loss/error-like signals,
+  - `MED` for retry/manual-probe context,
+  - `LOW` for routine informational events.
+- Severity is computed client-side from event message heuristics.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -71,4 +71,16 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('diagnostics timeline exposes deterministic severity badges', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
+
+    await tester.tap(find.text('Check now'));
+    await tester.pump();
+
+    expect(find.text('MANUAL'), findsOneWidget);
+    expect(find.text('MED'), findsOneWidget);
+  });
 }
