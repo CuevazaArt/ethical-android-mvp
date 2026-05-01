@@ -196,6 +196,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added readiness checkpoint confirming pilot-1 start gate (`103.3` + `103.4` + `103.5`) is active.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `103.6` as done, opened `104.0`, and added a chained sprint-prompt sequence (`104.1`-`104.4`).
 
+## [2026-05-01] V2.104.x — Pilot prompt-sprint execution chain
+### Changed
+- **`CONTEXT.md`:** Added `104.0` to `104.4` execution pulses: synthetic evidence seed, incident taxonomy lock, deterministic go/no-go rubric lock, and pilot lane handoff checkpoint.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `104.0`-`104.4` as done and advanced sequence to `105.0` controlled hardware run with balanced potency.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

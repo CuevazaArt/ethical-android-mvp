@@ -261,6 +261,50 @@
   - evidence template (`103.5`) available.
 - Next phase opened as a wider chained sprint (`104.x`) to move from readiness docs into pilot execution artifacts and decision locks.
 
+### Execution pulse 104.0 (prompt-sprint kickoff)
+
+- Launched chained pilot sprint (`104.1` to `104.4`) for single-agent sequential execution.
+- Scope remained in planning/evidence lane; Flutter diagnostics lane stays unblocked.
+
+### Execution pulse 104.1 (dry-run evidence seed)
+
+- Seeded first synthetic evidence artifact using the 103.5 template:
+  - metadata and input conditions filled,
+  - core metrics populated in controlled (non-hardware-production) mode,
+  - deterministic decision field completed.
+- This artifact is explicitly synthetic and used only to validate reporting discipline before real hardware run.
+
+### Execution pulse 104.2 (incident taxonomy pass)
+
+- Locked incident taxonomy for pilot evidence consistency:
+  - `capture_disconnect`,
+  - `audio_clipping`,
+  - `audio_dropout`,
+  - `frame_drop`,
+  - `latency_spike`,
+  - `rollback_failure`.
+- Severity mapping:
+  - **HIGH:** disconnects, rollback failure, repeated latency spikes.
+  - **MED:** intermittent clipping/dropout or frame-drop bursts.
+  - **LOW:** transient recoverable anomalies with no user-impact escalation.
+
+### Execution pulse 104.3 (go/no-go rubric lock)
+
+- Locked deterministic decision rubric:
+  - **GO:** zero HIGH incidents, rollback PASS, and latency envelope within target.
+  - **GO-WITH-CONSTRAINTS:** one bounded MED pattern with rollback PASS and explicit mitigation owner.
+  - **NO-GO:** any rollback FAIL, any unresolved HIGH incident, or unstable capture continuity.
+- Rubric is now mandatory reference for pilot decision fields.
+
+### Execution pulse 104.4 (pilot lane handoff checkpoint)
+
+- Closed `104.x` sprint and handed off to `105.0` controlled hardware run.
+- Open risks at handoff:
+  - USB device variance across desktop profiles,
+  - low-light webcam behavior drift,
+  - ambient-noise sensitivity for intelligibility scoring.
+- Next execution owner: single operator in autopilot lane, using locked checklist + evidence template + rubric.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -471,40 +471,48 @@ Use this fixed structure in each planning handoff:
 - **Demo:** checkpoint now confirms active shortlist, execution checklist, and evidence template before pilot-1.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 104.0: Perception pilot prompt-sprint kickoff [PENDING]**
+**Bloque 104.0: Perception pilot prompt-sprint kickoff [DONE ✅]**
 - **Goal:** Launch a wider prompt sprint for pilot-1 execution while keeping Flutter diagnostics lane active.
 - **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
 - **Demo:** sprint prompt chain is explicit, sequential, and ready for single-agent autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 104.1: Pilot-1 dry-run evidence seed [DONE ✅]**
+- **Goal:** Produce first evidence record using the 103.5 template with synthetic or controlled local inputs.
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** one complete synthetic evidence artifact is captured with all mandatory fields.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 104.2: Pilot-1 incident taxonomy pass [DONE ✅]**
+- **Goal:** Normalize incident labels so future pilot runs are comparable.
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** incident categories and severity mapping are explicitly defined for evidence reports.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 104.3: Pilot-1 go/no-go rubric lock [DONE ✅]**
+- **Goal:** Prevent ambiguous hardware decisions by freezing deterministic decision thresholds.
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** GO / GO-WITH-CONSTRAINTS / NO-GO thresholds are locked and referenced by evidence template.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 104.4: Pilot lane handoff checkpoint [DONE ✅]**
+- **Goal:** Close sprint with explicit pilot lane status before any hardware scale-up.
+- **Files:** planning/docs checkpoint (`CONTEXT.md` + plan entry).
+- **Demo:** lane status, open risks, and next execution owner are synchronized.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 105.0: Pilot-1 controlled hardware run [PENDING]**
+- **Goal:** Execute first real hardware pilot using locked checklist and evidence rubric.
+- **Files:** pilot evidence output + context/plan checkpoint.
+- **Demo:** one real pilot run logged with deterministic GO/NO-GO decision.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 104.0 — Perception pilot prompt-sprint kickoff
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Move from readiness documentation into execution-oriented pilot sprint planning.
-[HECHO CUANDO] A chained set of sprint prompts is documented for autonomous sequential execution.
-
-### Sprint prompts (104.x chain)
-
-[SIGUIENTE] Bloque 104.1 — Pilot-1 dry-run evidence seed
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Produce first evidence record using the 103.5 template with synthetic or controlled local inputs.
-[HECHO CUANDO] One complete pilot evidence artifact is captured with all mandatory fields.
-
-[SIGUIENTE] Bloque 104.2 — Pilot-1 incident taxonomy pass
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Normalize incident labels so future pilot runs are comparable.
-[HECHO CUANDO] Incident categories and severity mapping are defined and linked to evidence reporting.
-
-[SIGUIENTE] Bloque 104.3 — Pilot-1 go/no-go rubric lock
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Prevent ambiguous hardware decisions by freezing deterministic decision thresholds.
-[HECHO CUANDO] GO / GO-WITH-CONSTRAINTS / NO-GO criteria are frozen and referenced by the evidence template.
-
-[SIGUIENTE] Bloque 104.4 — Pilot lane handoff checkpoint
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Close sprint with explicit pilot lane status before any hardware scale-up.
-[HECHO CUANDO] Context and plan are synchronized with pilot readiness, open risks, and next execution owner.
+[SIGUIENTE] Bloque 105.0 — Pilot-1 controlled hardware run
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Transition from synthetic documentation sprint to first real controlled hardware pilot.
+[HECHO CUANDO] One pilot run is executed end-to-end with full evidence payload and deterministic decision outcome.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
