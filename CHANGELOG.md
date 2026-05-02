@@ -444,6 +444,25 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`:** Refreshed gate snapshot after transition/cadence reinforcement.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `114.x` done, recorded gate posture, and queued `115.0` daily cadence loop.
 
+## [2026-05-02] V2.115.0 — Daily gate cadence execution loop
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `115.x` loop done and kept gate progression tied to truthful cadence evidence.
+
+## [2026-05-02] V2.115.1 — G3 idempotent daily run recorder
+### Added
+- **`scripts/eval/record_g3_daily_contract_run.py`:** Added daily G3 runner that appends a no-drift run only when current UTC day is missing (prevents duplicate-day inflation).
+- **`tests/eval/test_record_g3_daily_contract_run.py`:** Added coverage for day-present/day-missing/month-mismatch detection logic.
+
+## [2026-05-02] V2.115.2 — Gate freshness refresh
+### Changed
+- **`docs/collaboration/evidence/G2_TRANSITION_READINESS.json`:** Refreshed transition artifact; status remains explicit as `BLOCKED_HARDWARE`.
+- **`docs/collaboration/evidence/G3_CADENCE_PLAN.json`:** Refreshed cadence plan artifact with current due-window guidance.
+
+## [2026-05-02] V2.115.3 — Gate scoreboard checkpoint
+### Changed
+- **`docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`:** Refreshed scoreboard after cadence/transition refresh cycle.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Synchronized `115.x` completion and queued `116.0`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

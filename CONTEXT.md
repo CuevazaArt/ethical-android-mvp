@@ -659,6 +659,45 @@
   - `G5`: pass
 - Successor chain opened as `115.x` for daily cadence closure loops.
 
+### Execution pulse 115.0 (daily gate cadence execution loop)
+
+- Executed full `115.x` loop in-order under autopilot.
+- Scope stayed gate-first with emphasis on cadence determinism and truthful evidence freshness.
+
+### Execution pulse 115.1 (G3 daily no-drift run append)
+
+- Added idempotent daily runner:
+  - `scripts/eval/record_g3_daily_contract_run.py`
+- Added dedicated tests:
+  - `tests/eval/test_record_g3_daily_contract_run.py`
+- Runner behavior now avoids duplicate-day inflation:
+  - appends only when current UTC day is missing,
+  - returns `skipped_duplicate_day` when an entry already exists.
+- Current day posture:
+  - today's G3 day was already present, so coverage remained `2/28` (truthful no-overclaim).
+
+### Execution pulse 115.2 (G2 transition freshness refresh)
+
+- Refreshed transition readiness artifact:
+  - `docs/collaboration/evidence/G2_TRANSITION_READINESS.json`
+- Refreshed cadence artifact:
+  - `docs/collaboration/evidence/G3_CADENCE_PLAN.json`
+- Current transition posture remains explicit:
+  - `G2 status=BLOCKED_HARDWARE`,
+  - provisional evidence valid/fresh, live promotion blocked by missing mic/camera path.
+
+### Execution pulse 115.3 (gate scoreboard checkpoint)
+
+- Refreshed scoreboard artifact:
+  - `docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`
+- Current posture remains:
+  - `G1`: pass
+  - `G2`: in_progress (blocked by hardware; transition report fresh)
+  - `G3`: in_progress (`2/28`, cadence loop active)
+  - `G4`: pass
+  - `G5`: pass
+- Successor chain opened as `116.x` for first next-day coverage gain.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

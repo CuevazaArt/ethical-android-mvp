@@ -789,35 +789,59 @@ Use this fixed structure in each planning handoff:
 - **Demo:** refreshed scoreboard confirms `G1/G4/G5 pass` with `G2/G3 in_progress` and transition/cadence artifacts linked.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 115.0: Daily gate cadence execution loop [PENDING]**
+**Bloque 115.0: Daily gate cadence execution loop [DONE ✅]**
 - **Goal:** Continue closing `G3` day-coverage and keep `G2` transition report fresh until hardware unblock.
 - **Files:** gate runners + evidence cadence docs/checkpoints.
-- **Demo:** `G3` covered_days increases monotonically day-by-day with zero failures and `G2_TRANSITION_READINESS` remains fresh.
+- **Demo:** daily loop executed with idempotent `G3` day-check and refreshed `G2`/scoreboard artifacts.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 115.1: G3 daily no-drift run append [DONE ✅]**
+- **Goal:** Convert cadence plan into recurring day-by-day contract evidence.
+- **Files:** `scripts/eval/record_g3_daily_contract_run.py`, `tests/eval/test_record_g3_daily_contract_run.py`.
+- **Demo:** runner now appends only when current UTC day is missing; today's run was already present so action was `skipped_duplicate_day` (truthful/idempotent).
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 115.2: G2 transition freshness refresh [DONE ✅]**
+- **Goal:** Avoid stale transition posture while hardware remains blocked.
+- **Files:** `docs/collaboration/evidence/G2_TRANSITION_READINESS.json`, `docs/collaboration/evidence/G3_CADENCE_PLAN.json`.
+- **Demo:** transition report regenerated with current `generated_at`, preserving truthful `BLOCKED_HARDWARE` posture.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 115.3: Gate scoreboard checkpoint [DONE ✅]**
+- **Goal:** Keep gate movement auditable after each cadence cycle.
+- **Files:** `docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`, context/plan/changelog.
+- **Demo:** scoreboard refreshed and aligned with `G2` blocked-by-hardware + `G3` cadence loop status.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 116.0: Next-day closure prep loop [PENDING]**
+- **Goal:** Prepare deterministic next-day execution so `G3` can advance day coverage at first UTC opportunity.
+- **Files:** cadence runner/evidence checkpoints.
+- **Demo:** next due execution window and commands are explicit; gate artifacts remain fresh and truthful.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 115.0 — Daily gate cadence execution loop
+[SIGUIENTE] Bloque 116.0 — Next-day closure prep loop
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep pressure on remaining in-progress gates through deterministic daily evidence refresh.
-[HECHO CUANDO] G3 covered-days advances and G2 transition posture remains explicit/fresh.
+[MOTIVO] Hold gate discipline today and convert into immediate next-day evidence gain.
+[HECHO CUANDO] Next UTC run appends a new G3 day and scoreboard remains synchronized.
 
-### Sprint prompts (115.x chain)
+### Sprint prompts (116.x chain)
 
-[SIGUIENTE] Bloque 115.1 — G3 daily no-drift run append
+[SIGUIENTE] Bloque 116.1 — G3 new-day append execution
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Convert cadence plan into recurring day-by-day contract evidence.
-[HECHO CUANDO] New zero-failure run-day is appended for current UTC date.
+[MOTIVO] Capture first available new UTC day for no-drift cadence coverage.
+[HECHO CUANDO] `covered_days` increases by +1 with zero failures.
 
-[SIGUIENTE] Bloque 115.2 — G2 transition freshness refresh
+[SIGUIENTE] Bloque 116.2 — G2 hardware unblock watch refresh
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Avoid stale transition posture while hardware remains blocked.
-[HECHO CUANDO] Transition report regenerated and still truthful (`BLOCKED_HARDWARE` or ready states).
+[MOTIVO] Keep transition status current while waiting for mic/camera availability.
+[HECHO CUANDO] Transition report is refreshed and still explicit about blocker or readiness.
 
-[SIGUIENTE] Bloque 115.3 — Gate scoreboard checkpoint
+[SIGUIENTE] Bloque 116.3 — Gate scoreboard checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep gate movement auditable after each cadence cycle.
-[HECHO CUANDO] Context/plan/changelog align on 115.x execution and successor queue.
+[MOTIVO] Keep gate progress auditable at each cadence cycle.
+[HECHO CUANDO] Context/plan/changelog align on 116.x execution and successor queue.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
