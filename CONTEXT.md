@@ -722,6 +722,22 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 128.0 (B2 — MVP closure)
+
+**MVP entregable. Operador no-autor verificado.**
+
+- New `scripts/eval/generate_mvp_closure_report.py` aggregates the gate snapshot, operator demo evidence, transparency posture, and the V2.119–V2.128 ledger.
+- New canonical artifact `docs/collaboration/evidence/MVP_CLOSURE_REPORT.json` (`g2_status=pass`, `g2_mode=text_mediated`, `g2_audio_capture_path=PENDING_HARDWARE`).
+- Definition of done satisfied:
+  1. Operator can clone repo + follow `MVP_OPERATOR_RUNBOOK.md` (§ V2.122).
+  2. ≥3 turn chat in Flutter shell via `/ws/chat` (§ V2.119).
+  3. `Speak` button posts `voice_turn` and renders latency badge (§ V2.121).
+  4. `Why this answer` expander shows MalAbs / action / mode / score / weights / memory (§ V2.123 → V2.126).
+  5. Thumbs +/- persisted into `FEEDBACK_CALIBRATION_LEDGER.jsonl` (§ V2.124).
+  6. Gate scoreboard visible: G1 PASS, G2 PASS (text_mediated), G3 in_progress by calendar, G4 PASS, G5 PASS (§ V2.127).
+- Phase B closed. The whole wave V2.119–V2.128 (Phase A operator demo, Phase C model depth, Phase B gate closure) is committed to `feature/model-dev-V2.119` and ready for L0 review.
+- Coverage: full Python suite 334 green; Flutter shell 12/12; ruff/mypy/invariants clean.
+
 ### Execution pulse 127.0 (B1 — G2 reframe: text_mediated PASS path)
 
 - New canonical evidence `docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl` (22 samples, p95=1.97 ms).

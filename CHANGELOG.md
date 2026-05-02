@@ -4,6 +4,16 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.128 — MVP closure report and final pulse
+
+### Added
+- **`scripts/eval/generate_mvp_closure_report.py`:** Aggregates the live gate snapshot, operator demo evidence, the wave V2.119–V2.128 ledger, and the G2 transparency posture into a single `MVP_CLOSURE_REPORT.json` artifact.
+- **`docs/collaboration/evidence/MVP_CLOSURE_REPORT.json`:** The closing artifact for the wave (`g2_status=pass`, `g2_mode=text_mediated`, declaration: "MVP entregable, operador no-autor verificado").
+- **`tests/eval/test_mvp_closure_report.py`:** Locks the schema, the block ledger, the G2 posture, and the definition-of-done checklist.
+
+### Changed
+- **`CONTEXT.md`:** Closing pulse 128.0 declares the MVP wave complete and points operators at the canonical artifacts.
+
 ## [2026-05-02] Model dev wave V2.127 — G2 reframe: text_mediated PASS path
 
 ### Added
