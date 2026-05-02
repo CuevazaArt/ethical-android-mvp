@@ -11,6 +11,9 @@ All notable changes to this project are summarized here. For narrative context a
 - **`scripts/eval/audit_kernel_ruff_scope.py`:** Thin wrapper matching CI Ruff scope (`src` + `tests`).
 - **`tests/eval/test_evidence_contract_shapes.py`:** Locks JSON shapes for `G2_TRANSITION_READINESS.json` and `G3_CADENCE_PLAN.json`.
 - **`tests/eval/test_run_gate_maintenance_checklist.py`:** Asserts maintenance commands reference expected scripts and evidence paths.
+- **`scripts/eval/premium_autopilot_20.py`:** Defines and executes a premium hardening board of 20 machine-verifiable prompts.
+- **`docs/collaboration/PREMIUM_AUTOPILOT_PROMPTS_20.md`:** Human-readable premium prompt list for operator review.
+- **`tests/eval/test_premium_autopilot_20.py`:** Locks the 20-prompt contract and autopilot pass expectations.
 
 ### Changed
 - **`scripts/eval/record_g3_daily_contract_run.py`:** Refactored to a testable `run_g3_daily_contract()` helper with injectable clock and guardrail runner.
@@ -19,6 +22,7 @@ All notable changes to this project are summarized here. For narrative context a
 - **`tests/eval/test_g2_transition_guard.py`:** Covers stale provisional, non-provisional reports, and invalid live rows.
 - **`scripts/field_test.py`:** Module docstring translated to English (repository language policy).
 - **`.github/workflows/ci.yml`:** Quality job runs `pytest tests/eval/` before the main suite for fast gate-regression signal.
+- **`.github/workflows/ci.yml`:** Desktop gate report now emits `premium-autopilot-20.json` artifact from the premium autopilot runner.
 - **`pyproject.toml`:** Ruff and Mypy exclude the vendored `llama_cpp` tree under Nomad Android so local checks match kernel scope.
 - **`src/server/app.py`:** Renamed overlapping `g2_updated` bindings to satisfy Mypy `no-redef` after Ruff format.
 

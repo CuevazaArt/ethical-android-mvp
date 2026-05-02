@@ -1,0 +1,313 @@
+{
+  "track": "premium-autopilot",
+  "schema_version": "1",
+  "generated_by": "scripts/eval/premium_autopilot_20.py",
+  "total_prompts": 20,
+  "passed_prompts": 20,
+  "failed_prompts": 0,
+  "all_passed": true,
+  "prompts": [
+    {
+      "id": "P01",
+      "title": "Deterministic G1 clock input",
+      "motive": "Avoid date flakiness",
+      "done_when": "G1 evaluator accepts injected clock",
+      "check_kind": "contains",
+      "target": "scripts/eval/desktop_gate_runner.py",
+      "needle": "now: datetime | None = None"
+    },
+    {
+      "id": "P02",
+      "title": "Snapshot clock propagation",
+      "motive": "Single-time reference",
+      "done_when": "Snapshot forwards fixed clock into G1",
+      "check_kind": "contains",
+      "target": "scripts/eval/desktop_gate_runner.py",
+      "needle": "evaluate_stability_gate(g1_path, days=14, now=clock)"
+    },
+    {
+      "id": "P03",
+      "title": "G1 cutoff boundary test",
+      "motive": "Protect rolling-window logic",
+      "done_when": "Boundary exclusion test exists",
+      "check_kind": "contains",
+      "target": "tests/eval/test_desktop_gate_runner.py",
+      "needle": "test_stability_gate_excludes_rows_before_cutoff"
+    },
+    {
+      "id": "P04",
+      "title": "Injectable G3 daily helper",
+      "motive": "Test idempotency precisely",
+      "done_when": "run_g3_daily_contract helper exists",
+      "check_kind": "contains",
+      "target": "scripts/eval/record_g3_daily_contract_run.py",
+      "needle": "def run_g3_daily_contract("
+    },
+    {
+      "id": "P05",
+      "title": "G3 skip/append test coverage",
+      "motive": "Prevent duplicate-day inflation",
+      "done_when": "Both skip and append tests exist",
+      "check_kind": "contains",
+      "target": "tests/eval/test_record_g3_daily_contract_run.py",
+      "needle": "test_run_g3_appends_when_day_missing"
+    },
+    {
+      "id": "P06",
+      "title": "G2 stale provisional test",
+      "motive": "Harden transition gate",
+      "done_when": "Stale provisional test exists",
+      "check_kind": "contains",
+      "target": "tests/eval/test_g2_transition_guard.py",
+      "needle": "test_transition_blocks_when_provisional_is_stale"
+    },
+    {
+      "id": "P07",
+      "title": "Evidence contract tests",
+      "motive": "Lock JSON compatibility",
+      "done_when": "Evidence shape tests file exists",
+      "check_kind": "file_exists",
+      "target": "tests/eval/test_evidence_contract_shapes.py",
+      "needle": null
+    },
+    {
+      "id": "P08",
+      "title": "Maintenance one-shot script",
+      "motive": "Operator speed and repeatability",
+      "done_when": "Maintenance checklist script exists",
+      "check_kind": "file_exists",
+      "target": "scripts/eval/run_gate_maintenance_checklist.py",
+      "needle": null
+    },
+    {
+      "id": "P09",
+      "title": "Ruff audit helper",
+      "motive": "Quick kernel-lane lint check",
+      "done_when": "Ruff audit helper exists",
+      "check_kind": "file_exists",
+      "target": "scripts/eval/audit_kernel_ruff_scope.py",
+      "needle": null
+    },
+    {
+      "id": "P10",
+      "title": "CI eval harness step",
+      "motive": "Catch eval regressions early",
+      "done_when": "CI runs tests/eval",
+      "check_kind": "contains",
+      "target": ".github/workflows/ci.yml",
+      "needle": "python -m pytest tests/eval/ -q --tb=short"
+    },
+    {
+      "id": "P11",
+      "title": "Ruff vendor exclusion",
+      "motive": "Keep lint focused on owned code",
+      "done_when": "Ruff excludes vendored llama_cpp",
+      "check_kind": "contains",
+      "target": "pyproject.toml",
+      "needle": "src/clients/nomad_android/app/src/main/cpp/llama_cpp"
+    },
+    {
+      "id": "P12",
+      "title": "Mypy vendor exclusion",
+      "motive": "Stop external typing noise",
+      "done_when": "Mypy excludes vendored llama_cpp",
+      "check_kind": "contains",
+      "target": "pyproject.toml",
+      "needle": "exclude = \"(?x)(^src/clients/nomad_android/app/src/main/cpp/llama_cpp/)\""
+    },
+    {
+      "id": "P13",
+      "title": "English field test header",
+      "motive": "Repository language policy",
+      "done_when": "Field test header is English",
+      "check_kind": "contains",
+      "target": "scripts/field_test.py",
+      "needle": "Automated field test."
+    },
+    {
+      "id": "P14",
+      "title": "Freeze matrix one-shot command",
+      "motive": "Operational discoverability",
+      "done_when": "Matrix references maintenance script",
+      "check_kind": "contains",
+      "target": "docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md",
+      "needle": "run_gate_maintenance_checklist.py"
+    },
+    {
+      "id": "P15",
+      "title": "Changelog premium entry",
+      "motive": "Auditability of sprint closure",
+      "done_when": "Changelog has 2026-05-02 premium entry",
+      "check_kind": "contains",
+      "target": "CHANGELOG.md",
+      "needle": "Gate sprint 116.0"
+    },
+    {
+      "id": "P16",
+      "title": "Context pulse 116.0",
+      "motive": "State handoff continuity",
+      "done_when": "CONTEXT mentions execution pulse 116.0",
+      "check_kind": "contains",
+      "target": "CONTEXT.md",
+      "needle": "Execution pulse 116.0"
+    },
+    {
+      "id": "P17",
+      "title": "Plan marks 116.0 done",
+      "motive": "Roadmap truth sync",
+      "done_when": "Plan updated to DONE",
+      "check_kind": "contains",
+      "target": "docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md",
+      "needle": "Bloque 116.0: Next-day closure prep loop [DONE"
+    },
+    {
+      "id": "P18",
+      "title": "Checklist execute mode",
+      "motive": "Hands-free operator run",
+      "done_when": "Checklist has --execute flag",
+      "check_kind": "contains",
+      "target": "scripts/eval/run_gate_maintenance_checklist.py",
+      "needle": "--execute"
+    },
+    {
+      "id": "P19",
+      "title": "Checklist includes G2 transition",
+      "motive": "Full chain consistency",
+      "done_when": "Checklist invokes g2_transition_guard",
+      "check_kind": "contains",
+      "target": "scripts/eval/run_gate_maintenance_checklist.py",
+      "needle": "g2_transition_guard.py"
+    },
+    {
+      "id": "P20",
+      "title": "Premium autopilot test",
+      "motive": "Ensure prompt count contract",
+      "done_when": "Dedicated premium test exists",
+      "check_kind": "file_exists",
+      "target": "tests/eval/test_premium_autopilot_20.py",
+      "needle": null
+    }
+  ],
+  "results": [
+    {
+      "id": "P01",
+      "title": "Deterministic G1 clock input",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P02",
+      "title": "Snapshot clock propagation",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P03",
+      "title": "G1 cutoff boundary test",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P04",
+      "title": "Injectable G3 daily helper",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P05",
+      "title": "G3 skip/append test coverage",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P06",
+      "title": "G2 stale provisional test",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P07",
+      "title": "Evidence contract tests",
+      "passed": true,
+      "evidence": "exists"
+    },
+    {
+      "id": "P08",
+      "title": "Maintenance one-shot script",
+      "passed": true,
+      "evidence": "exists"
+    },
+    {
+      "id": "P09",
+      "title": "Ruff audit helper",
+      "passed": true,
+      "evidence": "exists"
+    },
+    {
+      "id": "P10",
+      "title": "CI eval harness step",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P11",
+      "title": "Ruff vendor exclusion",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P12",
+      "title": "Mypy vendor exclusion",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P13",
+      "title": "English field test header",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P14",
+      "title": "Freeze matrix one-shot command",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P15",
+      "title": "Changelog premium entry",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P16",
+      "title": "Context pulse 116.0",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P17",
+      "title": "Plan marks 116.0 done",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P18",
+      "title": "Checklist execute mode",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P19",
+      "title": "Checklist includes G2 transition",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "P20",
+      "title": "Premium autopilot test",
+      "passed": true,
+      "evidence": "exists"
+    }
+  ]
+}

@@ -821,27 +821,34 @@ Use this fixed structure in each planning handoff:
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 116.0 — Next-day closure prep loop
+[SIGUIENTE] Bloque 117.0 — Premium autopilot 20-prompt execution
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Hold gate discipline today and convert into immediate next-day evidence gain.
-[HECHO CUANDO] Next UTC run appends a new G3 day and scoreboard remains synchronized.
+[MOTIVO] Convert premium hardening scope into an executable, auditable, repeatable chain.
+[HECHO CUANDO] 20 premium prompts are generated, executed, and recorded with machine-readable evidence.
 
-### Sprint prompts (116.x chain)
+### Sprint prompts (117.x premium chain, 20 prompts)
 
-[SIGUIENTE] Bloque 116.1 — G3 new-day append execution
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Capture first available new UTC day for no-drift cadence coverage.
-[HECHO CUANDO] `covered_days` increases by +1 with zero failures.
-
-[SIGUIENTE] Bloque 116.2 — G2 hardware unblock watch refresh
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep transition status current while waiting for mic/camera availability.
-[HECHO CUANDO] Transition report is refreshed and still explicit about blocker or readiness.
-
-[SIGUIENTE] Bloque 116.3 — Gate scoreboard checkpoint
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep gate progress auditable at each cadence cycle.
-[HECHO CUANDO] Context/plan/changelog align on 116.x execution and successor queue.
+[SIGUIENTE] Bloque 117.1 — Premium prompt board scaffold  
+[SIGUIENTE] Bloque 117.2 — Deterministic G1 clock compliance check  
+[SIGUIENTE] Bloque 117.3 — Snapshot clock propagation check  
+[SIGUIENTE] Bloque 117.4 — G1 cutoff boundary coverage check  
+[SIGUIENTE] Bloque 117.5 — Injectable G3 daily helper check  
+[SIGUIENTE] Bloque 117.6 — G3 skip/append test coverage check  
+[SIGUIENTE] Bloque 117.7 — G2 stale provisional edge check  
+[SIGUIENTE] Bloque 117.8 — Evidence contract test check  
+[SIGUIENTE] Bloque 117.9 — Maintenance one-shot script check  
+[SIGUIENTE] Bloque 117.10 — Ruff audit helper check  
+[SIGUIENTE] Bloque 117.11 — CI eval harness check  
+[SIGUIENTE] Bloque 117.12 — Ruff vendor exclusion check  
+[SIGUIENTE] Bloque 117.13 — Mypy vendor exclusion check  
+[SIGUIENTE] Bloque 117.14 — English language policy check  
+[SIGUIENTE] Bloque 117.15 — Freeze matrix operator discoverability check  
+[SIGUIENTE] Bloque 117.16 — Changelog audit entry check  
+[SIGUIENTE] Bloque 117.17 — Context pulse continuity check  
+[SIGUIENTE] Bloque 117.18 — Plan state synchronization check  
+[SIGUIENTE] Bloque 117.19 — Checklist execute-mode check  
+[SIGUIENTE] Bloque 117.20 — Premium contract test check  
+[HECHO CUANDO] `scripts/eval/premium_autopilot_20.py` reports `20/20` passed.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

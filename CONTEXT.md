@@ -710,6 +710,18 @@
   - CI `quality` job runs `pytest tests/eval/` before the full matrix.
 - Operational G3 day-coverage increment (`116.1`) still waits on the next UTC calendar day without a recorded run.
 
+### Execution pulse 117.0 (premium autopilot chain — 20 prompts)
+
+- Added executable premium chain:
+  - `scripts/eval/premium_autopilot_20.py`
+  - `docs/collaboration/PREMIUM_AUTOPILOT_PROMPTS_20.md`
+  - `tests/eval/test_premium_autopilot_20.py`
+- Premium chain validates 20 hardening checkpoints (code, tests, CI wiring, docs continuity).
+- Evidence artifact emitted by autopilot run:
+  - `docs/collaboration/evidence/PREMIUM_AUTOPILOT_20_REPORT.json`
+- CI desktop gate report now includes premium autopilot artifact generation:
+  - `gate-reports/premium-autopilot-20.json`
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

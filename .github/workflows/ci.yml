@@ -217,6 +217,7 @@ jobs:
           python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10 > gate-reports/g4-demo.json
           python scripts/eval/desktop_gate_runner.py snapshot --evidence-dir docs/collaboration/evidence > gate-reports/reentry-gates-snapshot.json
           python scripts/eval/freeze_lane_monthly_report.py --allow-in-progress > gate-reports/g3-monthly-report.json
+          python scripts/eval/premium_autopilot_20.py --report gate-reports/premium-autopilot-20.json
 
       - name: Enforce freshness SLA
         run: |
