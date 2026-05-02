@@ -507,18 +507,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** one controlled pilot run evidence payload is validated with deterministic `NO-GO` decision and explicit blocker trace.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 105.1: Pilot-1 physical hardware execution [PENDING]**
+**Bloque 105.1: Pilot-1 physical hardware execution [DONE ✅]**
 - **Goal:** Repeat pilot run with physically connected starter hardware and update decision from controlled baseline.
 - **Files:** pilot evidence output + context/plan checkpoint.
-- **Demo:** physical-run evidence payload validated by rubric with final GO/GO-WITH-CONSTRAINTS/NO-GO outcome.
+- **Demo:** physical-attempt evidence payload validated by rubric with deterministic `NO-GO` due missing capture devices.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 105.2: Pilot-1 hardware procurement checkpoint [PENDING]**
+- **Goal:** Convert physical-attempt blockers into a minimal procurement/connection checklist for rerun.
+- **Files:** context/plan checkpoint.
+- **Demo:** rerun prerequisites (mic/camera/headset path) are explicit and operator-ready.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 105.1 — Pilot-1 physical hardware execution
-[POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Controlled baseline already produced deterministic blocker evidence; next step is physical hardware confirmation run.
-[HECHO CUANDO] Physical-run evidence is validated and decision outcome is recorded with mitigation owner.
+[SIGUIENTE] Bloque 105.2 — Pilot-1 hardware procurement checkpoint
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Physical attempt confirmed missing capture path; next step is explicit unblock checklist before rerun.
+[HECHO CUANDO] Hardware prerequisites and connection validation steps are documented for the next physical pilot run.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

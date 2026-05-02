@@ -315,6 +315,15 @@
 - Controlled run decision: **NO-GO** (expected) due missing physical mic/camera path and unstable capture envelope.
 - Next step is `105.1`: physical hardware execution with the same validator/rubric to update decision status.
 
+### Execution pulse 105.1 (physical hardware attempt)
+
+- Added physical-attempt evidence payload:
+  - `docs/collaboration/evidence/PERCEPTION_PILOT_1_PHYSICAL_RUN.json`
+  - validated with `scripts/eval/perception_pilot_evidence_validator.py --require-decision-match`.
+- Device probe in this environment confirms audio endpoints but no usable camera/mic capture path for pilot requirements.
+- Physical attempt decision: **NO-GO** (deterministic), with mitigation owner kept in hardware lane for rerun unblock.
+- Next step is `105.2`: hardware procurement/connection checkpoint before the next physical execution.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

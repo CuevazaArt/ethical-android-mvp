@@ -1,0 +1,47 @@
+{
+  "run_metadata": {
+    "run_id": "perception-pilot-1-physical-20260502T035500Z",
+    "operator": "automation-runner",
+    "desktop_profile": "win32-local",
+    "hardware_ids": {
+      "mic": "not-detected",
+      "camera": "not-detected",
+      "headset": "audio-endpoint-present"
+    },
+    "mode": "physical-hardware-attempt"
+  },
+  "input_conditions": {
+    "room_noise": "unknown",
+    "lighting": "unknown",
+    "desk_distance": "unknown",
+    "sample_duration_min": 15
+  },
+  "core_metrics": {
+    "capture_disconnect_count": 1,
+    "dropped_frame_burst_count": 1,
+    "speech_intelligibility_score": 1,
+    "latency_within_target": false,
+    "rollback_pass": true
+  },
+  "incidents": [
+    {
+      "id": "pilot1-physical-01",
+      "category": "capture_disconnect",
+      "severity": "HIGH",
+      "timestamp": "2026-05-02T03:55:12Z",
+      "note": "No camera class device detected during physical attempt."
+    },
+    {
+      "id": "pilot1-physical-02",
+      "category": "audio_dropout",
+      "severity": "MED",
+      "timestamp": "2026-05-02T03:55:58Z",
+      "note": "No microphone path detected for speech capture validation."
+    }
+  ],
+  "decision": {
+    "result": "NO-GO",
+    "next_action_owner": "operator-hardware-lane",
+    "reason": "Pilot cannot satisfy capture continuity without detected mic/camera devices."
+  }
+}
