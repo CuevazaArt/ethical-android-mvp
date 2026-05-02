@@ -106,12 +106,67 @@ class EvalResult:
     pole_scores: dict = field(default_factory=dict)  # util, deonto, virtue breakdown
 
 
-# Pole weights: the soul of the ethical balance
+# Pole weights: the soul of the ethical balance (default / fallback)
 WEIGHTS = {
     "util": 0.40,  # Utilitarian: maximize outcomes
     "deonto": 0.35,  # Deontological: respect duties and rights
     "virtue": 0.25,  # Virtue: what would a good person do?
 }
+
+# Markers that indicate a situation where absolute rules dominate.
+# These warrant a higher deontological weight.
+_ABSOLUTE_RULE_MARKERS: frozenset[str] = frozenset(
+    {
+        "promise", "promised", "lie", "lying", "lied", "deceive", "deceiving",
+        "deception", "duty", "right", "rights", "obligation", "must not",
+        "forbidden", "never", "inviolable", "categorical", "absolute rule",
+        "consent", "non-consensual",
+    }
+)
+
+# Markers that indicate aggregate social impact.
+# These warrant a higher utilitarian weight.
+_AGGREGATE_MARKERS: frozenset[str] = frozenset(
+    {
+        "many", "everyone", "people", "population", "society", "community",
+        "public", "thousands", "millions", "majority", "group", "aggregate",
+        "collective", "widespread", "mass", "all affected",
+    }
+)
+
+
+def select_weights(signals: Signals) -> dict[str, float]:
+    """Return contextual pole weights based on auditable rule-based markers.
+
+    Rules (explicit, not LLM-inferred):
+    - If the situation summary contains absolute-rule markers
+      (duties, rights, promises, deception) → boost deontological weight.
+    - If the situation summary contains aggregate-impact markers
+      (mass harm, societal impact) → boost utilitarian weight.
+    - If both or neither apply → default WEIGHTS.
+    - Weights are normalised to sum exactly to 1.0.
+
+    The ``context`` field provides a secondary signal:
+    - ``consistency_check`` context always boosts deonto (rule-testing).
+    """
+    summary_lower = (signals.summary or "").lower()
+
+    has_absolute_rule = (
+        any(marker in summary_lower for marker in _ABSOLUTE_RULE_MARKERS)
+        or signals.context == "consistency_check"
+    )
+    has_aggregate = any(marker in summary_lower for marker in _AGGREGATE_MARKERS)
+
+    if has_absolute_rule and not has_aggregate:
+        raw = {"util": 0.25, "deonto": 0.55, "virtue": 0.20}
+    elif has_aggregate and not has_absolute_rule:
+        raw = {"util": 0.55, "deonto": 0.25, "virtue": 0.20}
+    else:
+        # Both or neither: use default (they cancel out or no adjustment needed)
+        return WEIGHTS.copy()
+
+    total = sum(raw.values())
+    return {k: round(v / total, 6) for k, v in raw.items()}
 
 
 def _score_utilitarian(action: Action, signals: Signals) -> float:
@@ -161,11 +216,17 @@ class EthicalEvaluator:
     """
 
     def __init__(self, weights: dict | None = None, ledger: Any | None = None):
-        self.weights = weights or WEIGHTS.copy()
+        # None → use contextual select_weights() per evaluation.
+        # Explicit dict → fixed weights (backward-compatible with tests/tools that
+        # construct EthicalEvaluator(weights={...})).
+        self._fixed_weights: dict | None = weights
+        self.weights = weights or WEIGHTS.copy()  # kept for attribute-level inspection
         self.ledger = ledger
 
     def score_action(self, action: Action, signals: Signals) -> tuple[float, dict]:
         """Score a single action. Returns (weighted_score, pole_breakdown)."""
+        # Use contextual weights unless caller fixed them explicitly.
+        w = self._fixed_weights if self._fixed_weights is not None else select_weights(signals)
         poles = {
             "util": _score_utilitarian(action, signals),
             "deonto": _score_deontological(action, signals),
@@ -179,7 +240,7 @@ class EthicalEvaluator:
             else:
                 poles[k] = max(-1.5, min(1.5, v))
 
-        weighted = sum(self.weights[k] * poles[k] for k in poles)
+        weighted = sum(w[k] * poles[k] for k in poles)
         return weighted * action.confidence, poles
 
     def _find_similar_precedent(

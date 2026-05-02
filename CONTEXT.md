@@ -900,3 +900,50 @@ was left ajar. No new model surface; no new client features.
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
 - **CI gate runner:** `scripts/eval/desktop_gate_runner.py`
 - **Primary quality command set:** see `README.md` and `CONTRIBUTING.md`
+
+### Execution wave V2.135–V2.140 — Ethics benchmark sprint (CLOSED ✅)
+
+**Objective:** Convert the ethical kernel from a fixed-weight rubric with
+telemetry into a measurable, calibratable, externally-validated rubric.
+
+#### Milestone status
+
+| Hito | Status | Evidence |
+|---|---|---|
+| **H1** — Benchmark exists | ✅ CLOSED | `scripts/eval/run_ethics_benchmark.py --suite v1` |
+| **H2** — Baseline frozen | ✅ CLOSED | `evals/ethics/BASELINE_v1.json` |
+| **H3** — Real operator data | ⏳ OPEN | Requires external human signoff; runbook at `docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md` |
+| **H4** — Evaluator modified, delta measured | ✅ CLOSED | `select_weights()` added; delta = +0.0000 vs baseline (stable) |
+| **H5** — README reflects measured numbers | ✅ CLOSED | README "Ethical performance (measured)" section |
+
+#### Key facts
+
+- **Baseline accuracy:** 96.43% (27/28 dilemmas, 1 HARD_FAIL on C003).
+- **C003 failure root cause:** CBR precedent anchor (`Domestic-Violence-Intervention`)
+  incorrectly matches the fat man trolley scenario, overriding the deontological
+  force penalty. Documented in `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md`.
+- **V2.139 calibration result:** contextual weights (`select_weights()`) trigger
+  on 8 of 28 dilemmas (deonto boost for rights/duty contexts; util boost for
+  aggregate-impact contexts). Delta vs. baseline = +0.0000 (stable; C003 failure
+  is CBR-structural, not a weights issue).
+- **Files created:** `evals/ethics/dilemmas_v1.json`,
+  `evals/ethics/BASELINE_v1.json`, `evals/ethics/ETHICS_BENCHMARK_RUN.json`,
+  `scripts/eval/run_ethics_benchmark.py`,
+  `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md`,
+  `docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`.
+- **Files modified:** `src/core/ethics.py` (added `select_weights`, `WEIGHTS`
+  context constants, and contextual dispatch in `score_action`),
+  `scripts/eval/verify_external_operator_signoff.py` (added `--signoff-dir` and
+  `--min-signoffs`), `README.md` (measured ethics performance section).
+
+#### Next block (V2.141.x — CBR anchor context specificity)
+
+The one open issue from this sprint is the C003 false positive from CBR.
+The fix requires: narrowing the `violent_crime` context precedents so that
+protection-intervention precedents only match when the *action* protects
+the vulnerable party, not when the *action uses* them. This is a CBR
+semantic-matching improvement, not a weights change.
+
+Tag recommendation: `v1.1-mvp-evaluable` — cut after H3 is closed (real
+external operator signoff obtained). Do not cut before H3; the tag name
+is only accurate when a non-author has verified the run.

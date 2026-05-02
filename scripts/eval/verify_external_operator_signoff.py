@@ -126,15 +126,73 @@ def verify_signoff(
     return (len(reasons) == 0, reasons)
 
 
+def _verify_directory(
+    *,
+    signoff_dir: Path,
+    demo: dict[str, Any] | None,
+    author_identities: tuple[str, ...],
+    min_signoffs: int,
+) -> tuple[bool, list[dict[str, Any]]]:
+    """Verify all *.json signoff files in *signoff_dir*.
+
+    Returns (overall_ok, per_file_results).
+    ``overall_ok`` is True when at least ``min_signoffs`` files pass.
+    """
+    candidates = sorted(signoff_dir.glob("*.json"))
+    if not candidates:
+        return False, [{"file": str(signoff_dir), "ok": False, "reasons": ["no .json files found in directory"]}]
+
+    per_file: list[dict[str, Any]] = []
+    n_ok = 0
+    for path in candidates:
+        try:
+            signoff = _load_json(path)
+        except Exception as exc:
+            per_file.append({"file": path.name, "ok": False, "reasons": [str(exc)]})
+            continue
+        ok, reasons = verify_signoff(
+            signoff=signoff,
+            demo=demo,
+            author_identities=author_identities,
+        )
+        if ok:
+            n_ok += 1
+        try:
+            file_display = path.resolve().relative_to(ROOT).as_posix()
+        except (ValueError, OSError):
+            file_display = path.name
+        per_file.append({"file": file_display, "ok": ok, "reasons": reasons})
+
+    overall_ok = n_ok >= min_signoffs
+    return overall_ok, per_file
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Verify the MVP external operator signoff is real and matches a "
-            "passing OPERATOR_INTERACTION_DEMO run."
+            "passing OPERATOR_INTERACTION_DEMO run. "
+            "Accepts a single signoff file (--signoff) or a directory of "
+            "signoff files (--signoff-dir)."
         )
     )
     parser.add_argument("--signoff", type=Path, default=DEFAULT_SIGNOFF)
+    parser.add_argument(
+        "--signoff-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory containing one or more operator signoff JSON files. "
+            "When provided, --signoff is ignored."
+        ),
+    )
     parser.add_argument("--demo", type=Path, default=DEFAULT_DEMO)
+    parser.add_argument(
+        "--min-signoffs",
+        type=int,
+        default=1,
+        help="Minimum number of passing signoffs required (default: 1). Only used with --signoff-dir.",
+    )
     parser.add_argument(
         "--author",
         action="append",
@@ -147,21 +205,49 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        signoff = _load_json(args.signoff)
-    except FileNotFoundError as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
-        return 2
-
-    try:
         demo = _load_json(args.demo)
     except FileNotFoundError:
         demo = None
 
     extra_authors = tuple(args.author or ())
+    author_identities = DEFAULT_AUTHOR_IDENTITIES + extra_authors
+
+    if args.signoff_dir is not None:
+        if not args.signoff_dir.is_dir():
+            print(json.dumps({"ok": False, "error": f"not a directory: {args.signoff_dir}"}, indent=2))
+            return 2
+        overall_ok, per_file = _verify_directory(
+            signoff_dir=args.signoff_dir,
+            demo=demo,
+            author_identities=author_identities,
+            min_signoffs=args.min_signoffs,
+        )
+        n_ok = sum(1 for f in per_file if f["ok"])
+        print(
+            json.dumps(
+                {
+                    "ok": overall_ok,
+                    "signoff_dir": str(args.signoff_dir),
+                    "n_files_checked": len(per_file),
+                    "n_files_ok": n_ok,
+                    "min_required": args.min_signoffs,
+                    "per_file": per_file,
+                },
+                indent=2,
+            )
+        )
+        return 0 if overall_ok else 1
+
+    try:
+        signoff = _load_json(args.signoff)
+    except FileNotFoundError as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+        return 2
+
     ok, reasons = verify_signoff(
         signoff=signoff,
         demo=demo,
-        author_identities=DEFAULT_AUTHOR_IDENTITIES + extra_authors,
+        author_identities=author_identities,
     )
     try:
         signoff_display = args.signoff.resolve().relative_to(ROOT).as_posix()
