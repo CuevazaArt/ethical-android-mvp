@@ -205,6 +205,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
       - name: Desktop MVP status contract smoke
         run: python -m pytest tests/server/test_app_integration.py::test_desktop_mvp_status_contract_smoke -q --tb=short
 
