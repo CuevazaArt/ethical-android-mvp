@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.126 — Why-this-answer expander in chat panel
+
+### Added
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** New `_WhyThisAnswer` `ExpansionTile` (key `chatWhyExpander`) under every Ethos bubble that renders the decision trace in human-readable form: MalAbs verdict, action+mode+score, hypothesis weights (util/deon/virtue), and the recalled memory episode summaries.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** New widget test that taps the expander and asserts each rendered line.
+
 ## [2026-05-02] Model dev wave V2.125 — Narrative memory threaded into chat trace
 
 ### Added

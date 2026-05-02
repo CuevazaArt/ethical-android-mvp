@@ -789,6 +789,10 @@ class _ChatBubble extends StatelessWidget {
                 const SizedBox(height: 6),
                 Wrap(spacing: 6, runSpacing: 4, children: meta),
               ],
+              if (!isUser && trace != null && trace.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                _WhyThisAnswer(trace: trace),
+              ],
               if (onFeedback != null) ...[
                 const SizedBox(height: 6),
                 Row(
@@ -845,6 +849,112 @@ class _ChatBubble extends StatelessWidget {
         text,
         style: theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// V2.126 (C4): "Why this answer" expander.
+///
+/// Renders the Ethos decision trace in human-readable form so the operator
+/// can audit any reply: MalAbs verdict, chosen action with mode/score,
+/// hypothesis weights (util/deonto/virtue), and which memory episodes
+/// (if any) were injected into the prompt for this turn.
+class _WhyThisAnswer extends StatelessWidget {
+  const _WhyThisAnswer({required this.trace});
+
+  final Map<String, dynamic> trace;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final String malabs = (trace['malabs']?.toString() ?? 'pass').toLowerCase();
+    final String action = trace['action']?.toString() ?? 'casual_chat';
+    final String mode = trace['mode']?.toString() ?? 'casual';
+    final dynamic scoreRaw = trace['score'];
+    final double? score = scoreRaw is num ? scoreRaw.toDouble() : null;
+    final List<dynamic> weightsRaw = trace['weights'] is List
+        ? (trace['weights'] as List<dynamic>)
+        : <dynamic>[];
+    final List<double> weights = weightsRaw
+        .map<double>((dynamic v) => v is num ? v.toDouble() : 0.0)
+        .toList();
+    final List<dynamic> memoryRaw = trace['memory_used'] is List
+        ? (trace['memory_used'] as List<dynamic>)
+        : <dynamic>[];
+
+    final List<Widget> rows = <Widget>[];
+
+    if (malabs == 'blocked') {
+      final String reason = trace['blocked_reason']?.toString() ?? 'safety';
+      rows.add(_line(theme, 'MalAbs: blocked ($reason)'));
+    } else {
+      rows.add(_line(theme, 'MalAbs: pass'));
+    }
+
+    final String scoreStr = score == null
+        ? 'n/a'
+        : score.toStringAsFixed(2);
+    rows.add(
+      _line(theme, 'Action: $action (mode $mode, score $scoreStr)'),
+    );
+
+    if (weights.length >= 3) {
+      rows.add(
+        _line(
+          theme,
+          'Hypothesis weights: util ${weights[0].toStringAsFixed(2)}, '
+          'deon ${weights[1].toStringAsFixed(2)}, '
+          'virtue ${weights[2].toStringAsFixed(2)}',
+        ),
+      );
+    }
+
+    if (memoryRaw.isNotEmpty) {
+      rows.add(_line(theme, 'Memory: ${memoryRaw.length} episode(s) used'));
+      final int previewCount = memoryRaw.length > 3 ? 3 : memoryRaw.length;
+      for (int i = 0; i < previewCount; i++) {
+        final dynamic ep = memoryRaw[i];
+        if (ep is Map) {
+          final String summary = ep['summary']?.toString() ?? '';
+          if (summary.isNotEmpty) {
+            rows.add(_line(theme, '  • $summary'));
+          }
+        }
+      }
+    } else {
+      rows.add(_line(theme, 'Memory: none'));
+    }
+
+    return Theme(
+      data: theme.copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        key: const Key('chatWhyExpander'),
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(left: 4, bottom: 4),
+        initiallyExpanded: false,
+        dense: true,
+        visualDensity: VisualDensity.compact,
+        title: Text(
+          'Why this answer',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        children: rows,
+      ),
+    );
+  }
+
+  Widget _line(ThemeData theme, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 1),
+      child: Text(
+        text,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurface,
         ),
       ),
     );

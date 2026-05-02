@@ -722,6 +722,18 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 126.0 (C4 — Why-this-answer expander)
+
+- Each Ethos bubble now exposes a `Why this answer` `ExpansionTile` (key `chatWhyExpander`) that renders the decision trace as plain text:
+  - `MalAbs: pass` / `MalAbs: blocked (<reason>)`
+  - `Action: <name> (mode <mode>, score <0.62>)`
+  - `Hypothesis weights: util 0.40, deon 0.35, virtue 0.25`
+  - `Memory: N episode(s) used` + up to 3 bullet summaries.
+- This closes the "auditable" promise: any operator can open the card on any reply and see exactly why Ethos chose what it chose.
+- Coverage: new Flutter widget test taps the expander and asserts each line; suite at 12/12.
+
+**Phase C (Model depth) closed.** Decision trace, Bayesian feedback loop, narrative memory, and human-readable audit card are all live in the desktop shell.
+
 ### Execution pulse 125.0 (C3 — narrative memory threaded into chat trace)
 
 - New `_recall_episodes` + `_episode_descriptor` in `src/core/chat.py` give a single source of truth for memory recall per turn.

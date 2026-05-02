@@ -280,6 +280,78 @@ void main() {
     expect(find.text('voice_turn ok (listen)'), findsOneWidget);
   });
 
+  testWidgets('Why-this-answer expander reveals human-readable trace', (
+    WidgetTester tester,
+  ) async {
+    final _FakeWebSocketChannel fake = _FakeWebSocketChannel();
+    await tester.pumpWidget(
+      _harness(
+        child: ChatPanel(
+          startTransport: true,
+          channelFactory: (_) => fake,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    fake.emit(<String, dynamic>{
+      'type': 'metadata',
+      'context': 'everyday_ethics',
+      'evaluation': <String, dynamic>{
+        'chosen': 'comfort_user',
+        'verdict': 'Good',
+      },
+    });
+    fake.emit(<String, dynamic>{'type': 'token', 'content': 'Hola'});
+    fake.emit(<String, dynamic>{
+      'type': 'done',
+      'message': 'Hola',
+      'latency': <String, dynamic>{'total': 100.0},
+      'blocked': false,
+      'trace': <String, dynamic>{
+        'malabs': 'pass',
+        'context': 'everyday_ethics',
+        'action': 'comfort_user',
+        'mode': 'D_delib',
+        'score': 0.55,
+        'verdict': 'Good',
+        'weights': <double>[0.40, 0.35, 0.25],
+        'memory_used': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'ep-1',
+            'summary': 'recordamos hablar de música',
+            'context': 'everyday_ethics',
+          },
+        ],
+      },
+    });
+    await tester.pumpAndSettle();
+
+    final Finder expander = find.byKey(const Key('chatWhyExpander'));
+    expect(expander, findsOneWidget);
+    expect(find.text('Why this answer'), findsOneWidget);
+
+    await tester.tap(expander);
+    await tester.pumpAndSettle();
+
+    expect(find.text('MalAbs: pass'), findsOneWidget);
+    expect(
+      find.text('Action: comfort_user (mode D_delib, score 0.55)'),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Hypothesis weights: util 0.40, deon 0.35, virtue 0.25',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Memory: 1 episode(s) used'), findsOneWidget);
+    expect(
+      find.text('  • recordamos hablar de música'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Thumbs-up posts feedback envelope and toggles state', (
     WidgetTester tester,
   ) async {
