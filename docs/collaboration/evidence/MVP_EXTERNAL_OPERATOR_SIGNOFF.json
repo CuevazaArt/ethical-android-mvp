@@ -1,0 +1,8 @@
+{
+  "schema_version": "1",
+  "verified": false,
+  "operator": null,
+  "verified_at": null,
+  "evidence_run_id": null,
+  "notes": "PENDING: a non-author operator must run docs/collaboration/MVP_OPERATOR_RUNBOOK.md end-to-end on a clean checkout, then update this file (operator, verified=true, verified_at, evidence_run_id matching the OPERATOR_INTERACTION_DEMO.json that was generated during their run). Run scripts/eval/verify_external_operator_signoff.py to confirm the signoff matches the live evidence before any v1.0 tag is cut."
+}

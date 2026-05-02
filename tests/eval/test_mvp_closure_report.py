@@ -74,7 +74,11 @@ def test_build_closure_report_lists_all_blocks_and_gates(tmp_path: Path) -> None
     assert g2["mode"] == "text_mediated"
     assert g2["audio_capture_path"] == "PENDING_HARDWARE"
     assert report["transparency"]["g2_audio_capture_path"] == "PENDING_HARDWARE"
-    assert "MVP entregable" in report["declaration"]
+    assert "MVP autodeclarado entregable" in report["declaration"]
+    assert "PENDIENTE" in report["declaration"]
+    signoff = report["external_operator_signoff"]
+    assert signoff["schema_version"] == "1"
+    assert signoff["verified"] is False
     dod = report["definition_of_done"]
     for key in (
         "operator_clones_repo_and_follows_runbook",
@@ -85,6 +89,34 @@ def test_build_closure_report_lists_all_blocks_and_gates(tmp_path: Path) -> None
         "gate_scoreboard_visible",
     ):
         assert dod[key] is True
+
+
+def test_signoff_when_verified_changes_declaration(tmp_path: Path) -> None:
+    evidence_dir = tmp_path / "evidence"
+    evidence_dir.mkdir()
+    _seed_g1(evidence_dir)
+    _seed_g2_text(evidence_dir)
+    _seed_g4(evidence_dir)
+    (evidence_dir / "MVP_EXTERNAL_OPERATOR_SIGNOFF.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "1",
+                "verified": True,
+                "operator": "external-tester@example.org",
+                "verified_at": "2026-05-10T10:00:00Z",
+                "evidence_run_id": "desktop-e2e-demo-20260510T100000Z",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = build_closure_report(
+        evidence_dir=evidence_dir,
+        now=datetime(2026, 5, 10, 12, 0, tzinfo=UTC),
+    )
+    assert report["external_operator_signoff"]["verified"] is True
+    assert "verificado por operador externo" in report["declaration"]
+    assert "PENDIENTE" not in report["declaration"]
 
 
 def test_write_report_round_trip(tmp_path: Path) -> None:

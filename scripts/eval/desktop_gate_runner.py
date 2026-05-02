@@ -49,6 +49,40 @@ def _to_iso_utc(dt: datetime | None) -> str | None:
     return dt.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
+# V2.130: repo root used to convert evidence paths to repo-relative form
+# in `build_gate_snapshot`. Storing absolute paths in versioned evidence
+# (e.g. `C:/Users/lexar/...`) leaks operator-local environment and breaks
+# portability of the MVP closure report.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _to_repo_relative(path: Path) -> str:
+    """Return `path` relative to the repository root using forward slashes.
+
+    Falls back to the path's basename if `path` lives outside the repo
+    (e.g. a tmp_path in tests). Never returns an absolute or
+    backslash-containing string, so versioned snapshots stay portable.
+
+    Note: the basename fallback can produce collisions if two evidence
+    files outside the repo share the same name. This is acceptable for
+    test fixtures (the only realistic out-of-repo caller); never use this
+    helper for paths that are user-facing identifiers.
+    """
+
+    candidate = Path(path)
+    try:
+        resolved = candidate.resolve()
+    except (OSError, RuntimeError):
+        resolved = candidate
+    try:
+        rel = resolved.relative_to(_REPO_ROOT)
+    except ValueError:
+        # Path is outside the repo root (tmp_path in tests, etc).
+        # Use only the file name to avoid leaking the absolute prefix.
+        return resolved.name
+    return rel.as_posix()
+
+
 def _parse_demo_run_id(raw: str) -> datetime | None:
     marker = "demo-reliability-"
     if not raw.startswith(marker):
@@ -191,7 +225,9 @@ def _read_g2_provisional_report(path: Path) -> dict[str, Any] | None:
     if not math.isfinite(target) or target <= 0.0:
         return None
     generated_at = str(payload.get("generated_at", "")).strip()
-    source = str(payload.get("source", "synthetic_fixture")).strip() or "synthetic_fixture"
+    source = (
+        str(payload.get("source", "synthetic_fixture")).strip() or "synthetic_fixture"
+    )
     return {
         "p95_ms": p95,
         "target_p95_ms": target,
@@ -235,7 +271,7 @@ def build_gate_snapshot(
     )
     snapshot["G1"] = {
         "status": "pass" if g1_result.passed else "in_progress",
-        "source": str(g1_path).replace("\\", "/"),
+        "source": _to_repo_relative(g1_path),
         "updated_at": _to_iso_utc(g1_updated),
         "summary": g1_result.summary,
     }
@@ -268,7 +304,7 @@ def build_gate_snapshot(
         snapshot["G2"] = {
             "status": "pass",
             "mode": "text_mediated",
-            "source": str(g2_text_path).replace("\\", "/"),
+            "source": _to_repo_relative(g2_text_path),
             "updated_at": _to_iso_utc(text_mediated_updated),
             "summary": text_mediated_result.summary,
             "audio_capture_path": "PENDING_HARDWARE",
@@ -277,7 +313,7 @@ def build_gate_snapshot(
         g2_updated = _parse_iso_utc(g2_provisional["generated_at"])
         snapshot["G2"] = {
             "status": "in_progress",
-            "source": str(g2_provisional_path).replace("\\", "/"),
+            "source": _to_repo_relative(g2_provisional_path),
             "updated_at": _to_iso_utc(g2_updated),
             "summary": (
                 "PROVISIONAL "
@@ -288,9 +324,7 @@ def build_gate_snapshot(
         }
     else:
         g2_rows = _read_jsonl(g2_path)
-        g2_result = evaluate_latency_gate(
-            g2_path, target_p95_ms=2500.0, mode="live"
-        )
+        g2_result = evaluate_latency_gate(g2_path, target_p95_ms=2500.0, mode="live")
         g2_updated = max(
             (_parse_iso_utc(str(row.get("captured_at", ""))) for row in g2_rows),
             default=None,
@@ -298,7 +332,7 @@ def build_gate_snapshot(
         snapshot["G2"] = {
             "status": "pass" if g2_result.passed else "fail",
             "mode": "live",
-            "source": str(g2_path).replace("\\", "/"),
+            "source": _to_repo_relative(g2_path),
             "updated_at": _to_iso_utc(g2_updated),
             "summary": g2_result.summary,
         }
@@ -325,7 +359,7 @@ def build_gate_snapshot(
     )
     snapshot["G3"] = {
         "status": g3_status,
-        "source": str(g3_path).replace("\\", "/"),
+        "source": _to_repo_relative(g3_path),
         "updated_at": _to_iso_utc(g3_updated),
         "summary": f"{len(g3_days)}/28 day(s) recorded for {month_key}, failed={int(g3_fail)}",
     }
@@ -336,7 +370,7 @@ def build_gate_snapshot(
     g4_updated = _parse_demo_run_id(str(g4_payload.get("run_id", "")))
     snapshot["G4"] = {
         "status": "pass" if g4_result.passed else "fail",
-        "source": str(g4_path).replace("\\", "/"),
+        "source": _to_repo_relative(g4_path),
         "updated_at": _to_iso_utc(g4_updated),
         "summary": g4_result.summary,
     }
@@ -362,7 +396,9 @@ def build_gate_snapshot(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Desktop migration gate runner (51.x).")
+    parser = argparse.ArgumentParser(
+        description="Desktop migration gate runner (51.x)."
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p_stability = sub.add_parser("stability", help="Evaluate G1 stability gate.")
@@ -377,7 +413,9 @@ def main() -> int:
     p_demo.add_argument("--checklist", required=True, type=Path)
     p_demo.add_argument("--required-count", type=int, default=10)
 
-    p_snapshot = sub.add_parser("snapshot", help="Generate detailed G1..G5 gate snapshot.")
+    p_snapshot = sub.add_parser(
+        "snapshot", help="Generate detailed G1..G5 gate snapshot."
+    )
     p_snapshot.add_argument(
         "--evidence-dir",
         type=Path,

@@ -10,6 +10,65 @@
 - **Mobile status:** freeze-lane for net-new features (security/health maintenance only).
 - **Canonical roadmap:** `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`.
 
+## Wave V2.129–V2.134 — Close the doors left ajar (current)
+
+The V2.119–V2.128 wave shipped an MVP that was *self-declared* deliverable.
+This wave converts it to *verifiably* deliverable by hardening exactly what
+was left ajar. No new model surface; no new client features.
+
+- **V2.130 — Path hygiene.** `build_gate_snapshot` now emits repo-relative
+  `source` paths via `_to_repo_relative()`. New regression test
+  `tests/eval/test_gate_snapshot_path_hygiene.py` fails if any absolute
+  path (`C:/`, `/home/`, `/Users/`, `/root/`, `/tmp/`, UNC) leaks into the
+  committed `MVP_CLOSURE_REPORT.json` or a fresh snapshot.
+- **V2.131 — External operator signoff.** `MVP_CLOSURE_REPORT` schema is
+  bumped to `1.1` with a new `external_operator_signoff` block sourced
+  from `docs/collaboration/evidence/MVP_EXTERNAL_OPERATOR_SIGNOFF.json`.
+  `scripts/eval/verify_external_operator_signoff.py` enforces that the
+  signoff (a) is `verified=true`, (b) names a non-author operator,
+  (c) has an RFC-3339 `verified_at`, and (d) carries an `evidence_run_id`
+  that matches the latest `OPERATOR_INTERACTION_DEMO.json` `run_id` and
+  `passed=true`. The closure declaration string switches between
+  "MVP autodeclarado" and "verificado por operador externo" based on the
+  signoff state — no quiet self-approval is possible.
+- **V2.132 — Feedback ledger seeding.** New
+  `scripts/eval/seed_feedback_ledger.py` produces 50 synthetic guided
+  turns (deterministic) so the `posterior_assisted` nudge is visible
+  end-to-end. Output:
+  `docs/collaboration/evidence/FEEDBACK_LEDGER_SYNTHETIC_SEED.jsonl` plus
+  `.summary.json` showing the resulting per-action up/down counts and
+  capped `posterior_bias` ([-0.10, +0.10]). Every event is tagged
+  `source: "synthetic_seed_v1"` so it can be filtered out of real-operator
+  data later. The seed never touches the live ledger unless
+  `--into-live-ledger` is passed.
+- **V2.133 + V2.129 — Gate cadence automation.** New scheduled CI workflow
+  `.github/workflows/gate-maintenance.yml` runs daily at 09:00 UTC and:
+  (a) appends today's G3 no-drift run via `record_g3_daily_contract_run.py`
+  (idempotent — skipped if the day is already covered), (b) regenerates
+  `DEMO_RELIABILITY_CHECKLIST.json` so G4 freshness stays inside its
+  14-day SLA, (c) regenerates `MVP_CLOSURE_REPORT.json`, and (d) opens a
+  PR with the refreshed evidence (no direct push to main, per L0-only
+  policy). G3 reaches `pass` automatically once 28 calendar days are
+  covered without operator intervention.
+- **V2.134 — Tag recommendation (deferred to L0).** L0-only action.
+  Once `verify_external_operator_signoff.py` exits 0 against a real
+  external-operator run AND G3 reaches `28/28`, cut the closure tag as
+  `v1.0-mvp-text-mediated` (NOT plain `v1.0`). The mode-qualified name
+  preserves the honesty of the G2 reframe: audio capture remains
+  `PENDING_HARDWARE`, and the tag should not pretend otherwise.
+
+### Methodology lessons carried forward
+
+- The V2.119–V2.128 four-rule pattern (explicit pivot when looping →
+  A/B/C-phase wave → atomic sub-blocks with green suite → canonical JSON
+  closure artifact) is repeated here, with two adjustments:
+  1. Phase-purpose labels separate **observability** ("audit what already
+     exists") from **feature** ("new model surface"). This whole wave is
+     observability + verifiability, deliberately.
+  2. External-operator signoff is now a hard prerequisite for tagging,
+     enforced by `verify_external_operator_signoff.py`. Self-attestation
+     can no longer ship as v1.0.
+
 ## Strategic amendment (V2.100)
 
 - Ethos execution is now explicitly **Flutter-first for MVP completion**.
