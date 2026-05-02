@@ -549,18 +549,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** checkpoint explicitly tracks hardware postponement and active software-only next step.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 106.2: Flutter diagnostics quick incident note [PENDING]**
+**Bloque 106.2: Flutter diagnostics quick incident note [DONE ✅]**
 - **Goal:** Add one-click note template export for incident tickets (status, counters, latest high event).
 - **Files:** Flutter shell module + widget tests.
-- **Demo:** diagnostics card exports deterministic incident-note text without backend/hardware dependencies.
+- **Demo:** diagnostics card now exports deterministic incident-note text via `Copy incident note`.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 106.3: Flutter software-lane stabilization checkpoint [PENDING]**
+- **Goal:** Consolidate software-only diagnostics gains after 106.0-106.2 before new UX expansion.
+- **Files:** context/plan checkpoint.
+- **Demo:** checkpoint captures current software lane scope, validation posture, and next low-risk UI increment.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 106.2 — Flutter diagnostics quick incident note
+[SIGUIENTE] Bloque 106.3 — Flutter software-lane stabilization checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Operators still need faster issue handoff text while hardware lane remains paused.
-[HECHO CUANDO] Incident-note export action generates deterministic summary from current diagnostics state.
+[MOTIVO] Hold stability after multiple diagnostics UX increments before opening another interaction surface.
+[HECHO CUANDO] Checkpoint syncs active scope, test posture, and the next software-only action block.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

@@ -383,6 +383,18 @@
   - no backend contract changes needed for current UI increments.
 - Next software slice queued: `106.2` quick incident-note export from diagnostics state.
 
+### Execution pulse 106.2 (quick incident-note export)
+
+- Added `Copy incident note` action in diagnostics card.
+- Export payload includes compact triage fields:
+  - status (`BLOCKED`/`MONITOR`),
+  - connection state,
+  - visible event count,
+  - severity counters,
+  - latest high-severity event message,
+  - retry count and gate source.
+- Widget coverage confirms action availability and diagnostics feedback update.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

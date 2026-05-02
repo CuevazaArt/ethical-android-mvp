@@ -871,6 +871,13 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   icon: const Icon(Icons.report_problem_rounded, size: 16),
                   label: const Text('Copy blocked summary'),
                 ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    unawaited(_copyIncidentNote(visibleEvents));
+                  },
+                  icon: const Icon(Icons.note_add_rounded, size: 16),
+                  label: const Text('Copy incident note'),
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -1183,6 +1190,26 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     }
   }
 
+  Future<void> _copyIncidentNote(List<_DiagnosticEvent> visibleEvents) async {
+    final String note = _buildIncidentNote(visibleEvents);
+    try {
+      await Clipboard.setData(ClipboardData(text: note));
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'Incident note copied.';
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'Unable to copy incident note.';
+      });
+    }
+  }
+
   String _buildDiagnosticsSnapshot(List<_DiagnosticEvent> events) {
     final String connection = _connectionState.name;
     final String voice = _voiceUiState.name;
@@ -1217,6 +1244,35 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       'gate_source: $_gateSource',
       'events:',
       eventLines.join('\n'),
+    ].join('\n');
+  }
+
+  String _buildIncidentNote(List<_DiagnosticEvent> visibleEvents) {
+    final int highCount = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.high)
+        .length;
+    final int mediumCount = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.medium)
+        .length;
+    final int lowCount = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.low)
+        .length;
+    final List<_DiagnosticEvent> highEvents = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.high)
+        .toList(growable: false);
+    final String latestHighMessage = highEvents.isEmpty
+        ? 'none'
+        : highEvents.first.message;
+
+    return [
+      'Ethos incident note',
+      'status: ${highCount > 0 ? 'BLOCKED' : 'MONITOR'}',
+      'connection: ${_connectionState.name}',
+      'visible_events: ${visibleEvents.length}',
+      'severity_counts: high=$highCount med=$mediumCount low=$lowCount',
+      'latest_high_event: $latestHighMessage',
+      'retry_count: $_retryCount',
+      'gate_source: $_gateSource',
     ].join('\n');
   }
 

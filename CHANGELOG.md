@@ -243,6 +243,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added checkpoint confirming hardware-lane postponement and active Flutter diagnostics-only delivery scope.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.1` as done and queued `106.2` quick incident-note export.
 
+## [2026-05-02] V2.106.2 — Diagnostics quick incident-note export
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Copy incident note` action to export compact incident handoff note from current diagnostics state.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline and interaction assertions for incident-note export control and feedback.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.2` as done and queued `106.3` stabilization checkpoint.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
