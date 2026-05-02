@@ -103,6 +103,9 @@ jobs:
       - name: L1 collaboration invariants
         run: python scripts/eval/verify_collaboration_invariants.py
 
+      - name: Eval harness (gate scripts)
+        run: python -m pytest tests/eval/ -q --tb=short
+
       - name: Ruff lint
         run: python -m ruff check src tests
 

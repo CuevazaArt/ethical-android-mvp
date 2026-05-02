@@ -61,6 +61,7 @@ If a gate evidence snapshot is stale beyond SLA, its status is treated as **DEGR
 
 - Daily freshness audit now runs in CI (`desktop-gate-report` via `schedule` trigger).
 - CI fails when any gate is marked `stale=true` in `reentry-gates-snapshot.json`.
+- Operator one-shot sequence (print or run): `python scripts/eval/run_gate_maintenance_checklist.py` (add `--execute` to run each step).
 
 ## Gate Audit Proofpack (50.7B)
 

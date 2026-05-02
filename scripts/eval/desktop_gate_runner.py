@@ -60,9 +60,18 @@ def _parse_demo_run_id(raw: str) -> datetime | None:
         return None
 
 
-def evaluate_stability_gate(ledger_path: Path, *, days: int = 14) -> GateResult:
-    now = datetime.now(UTC)
-    cutoff = now - timedelta(days=days)
+def evaluate_stability_gate(
+    ledger_path: Path,
+    *,
+    days: int = 14,
+    now: datetime | None = None,
+) -> GateResult:
+    """Evaluate G1 using ledger rows whose `date` falls in the rolling window.
+
+    `now` defaults to current UTC time; pass a fixed value in tests for determinism.
+    """
+    clock = now if now is not None else datetime.now(UTC)
+    cutoff = clock - timedelta(days=days)
     rows = _read_jsonl(ledger_path)
     in_window = []
     for row in rows:
@@ -176,8 +185,12 @@ def _print_result(result: GateResult) -> None:
     print(json.dumps(blob, ensure_ascii=True, indent=2))
 
 
-def build_gate_snapshot(*, evidence_dir: Path) -> dict[str, Any]:
-    now = datetime.now(UTC)
+def build_gate_snapshot(
+    *,
+    evidence_dir: Path,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    clock = now if now is not None else datetime.now(UTC)
     stale_thresholds_h = {
         "G1": 24,
         "G2": 24 * 7,
@@ -189,7 +202,7 @@ def build_gate_snapshot(*, evidence_dir: Path) -> dict[str, Any]:
 
     g1_path = evidence_dir / "DESKTOP_STABILITY_LEDGER.jsonl"
     g1_rows = _read_jsonl(g1_path)
-    g1_result = evaluate_stability_gate(g1_path, days=14)
+    g1_result = evaluate_stability_gate(g1_path, days=14, now=clock)
     g1_updated = max(
         (_parse_iso_utc(str(row.get("date", ""))) for row in g1_rows),
         default=None,
@@ -233,7 +246,7 @@ def build_gate_snapshot(*, evidence_dir: Path) -> dict[str, Any]:
 
     g3_path = evidence_dir / "G3_CONTRACT_NO_DRIFT_HISTORY.jsonl"
     g3_rows = _read_jsonl(g3_path)
-    month_key = now.strftime("%Y-%m")
+    month_key = clock.strftime("%Y-%m")
     g3_month = [row for row in g3_rows if str(row.get("month", "")) == month_key]
     g3_fail = any(int(row.get("exit_code", 1)) != 0 for row in g3_month)
     g3_days = {
@@ -283,10 +296,10 @@ def build_gate_snapshot(*, evidence_dir: Path) -> dict[str, Any]:
         gate_data["stale"] = (
             True
             if parsed is None
-            else (now - parsed) > timedelta(hours=stale_thresholds_h[gate])
+            else (clock - parsed) > timedelta(hours=stale_thresholds_h[gate])
         )
 
-    return {"generated_at": _to_iso_utc(now), "gates": snapshot}
+    return {"generated_at": _to_iso_utc(clock), "gates": snapshot}
 
 
 def main() -> int:

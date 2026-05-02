@@ -206,9 +206,15 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         max_age_hours=24,
     )
 
-    g2_provisional_source = "docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json"
-    g2_provisional_payload = _read_json(_EVIDENCE_DIR / "G2_PROVISIONAL_LATENCY_REPORT.json")
-    if isinstance(g2_provisional_payload, dict) and bool(g2_provisional_payload.get("provisional")):
+    g2_provisional_source = (
+        "docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json"
+    )
+    g2_provisional_payload = _read_json(
+        _EVIDENCE_DIR / "G2_PROVISIONAL_LATENCY_REPORT.json"
+    )
+    if isinstance(g2_provisional_payload, dict) and bool(
+        g2_provisional_payload.get("provisional")
+    ):
         try:
             p95 = float(g2_provisional_payload.get("p95_ms"))
             target = float(g2_provisional_payload.get("target_p95_ms", 2500.0))
@@ -217,7 +223,7 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
             p95 = float("nan")
             target = float("nan")
             sample_count = 0
-        g2_updated = _parse_iso_utc(str(g2_provisional_payload.get("generated_at", "")))
+        g2_prov_updated = _parse_iso_utc(str(g2_provisional_payload.get("generated_at", "")))
         if math.isfinite(p95) and p95 >= 0.0 and math.isfinite(target) and target > 0.0:
             g2 = "in_progress"
             g2_summary = (
@@ -230,7 +236,7 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         details["G2"] = _gate_detail(
             status=g2,
             source=g2_provisional_source,
-            updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
+            updated_at=_to_iso_utc(g2_prov_updated) if g2_prov_updated else None,
             summary=g2_summary,
             max_age_hours=24 * 7,
         )
@@ -238,11 +244,11 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         g2_source = "docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl"
         g2_rows = _read_jsonl(_EVIDENCE_DIR / "VOICE_TURN_LATENCY_SAMPLES.jsonl")
         totals = []
-        g2_updated: datetime | None = None
+        g2_live_updated: datetime | None = None
         for row in g2_rows:
             ts = _parse_iso_utc(str(row.get("captured_at", "")))
-            if ts is not None and (g2_updated is None or ts > g2_updated):
-                g2_updated = ts
+            if ts is not None and (g2_live_updated is None or ts > g2_live_updated):
+                g2_live_updated = ts
             try:
                 total = float(row.get("total_ms", 0.0))
             except (TypeError, ValueError):
@@ -262,7 +268,7 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         details["G2"] = _gate_detail(
             status=g2,
             source=g2_source,
-            updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
+            updated_at=_to_iso_utc(g2_live_updated) if g2_live_updated else None,
             summary=g2_summary,
             max_age_hours=24 * 7,
         )

@@ -4,6 +4,24 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Gate sprint 116.0 — Eval harness, vendor lint scope, and operator maintenance
+
+### Added
+- **`scripts/eval/run_gate_maintenance_checklist.py`:** Prints or runs the ordered G3-daily → G2-transition → gate-snapshot maintenance commands.
+- **`scripts/eval/audit_kernel_ruff_scope.py`:** Thin wrapper matching CI Ruff scope (`src` + `tests`).
+- **`tests/eval/test_evidence_contract_shapes.py`:** Locks JSON shapes for `G2_TRANSITION_READINESS.json` and `G3_CADENCE_PLAN.json`.
+- **`tests/eval/test_run_gate_maintenance_checklist.py`:** Asserts maintenance commands reference expected scripts and evidence paths.
+
+### Changed
+- **`scripts/eval/record_g3_daily_contract_run.py`:** Refactored to a testable `run_g3_daily_contract()` helper with injectable clock and guardrail runner.
+- **`scripts/eval/desktop_gate_runner.py`:** `evaluate_stability_gate` / `build_gate_snapshot` accept optional `now` for deterministic tests.
+- **`tests/eval/test_desktop_gate_runner.py`:** Uses fixed UTC clocks for G1 and snapshot tests; adds cutoff boundary coverage.
+- **`tests/eval/test_g2_transition_guard.py`:** Covers stale provisional, non-provisional reports, and invalid live rows.
+- **`scripts/field_test.py`:** Module docstring translated to English (repository language policy).
+- **`.github/workflows/ci.yml`:** Quality job runs `pytest tests/eval/` before the main suite for fast gate-regression signal.
+- **`pyproject.toml`:** Ruff and Mypy exclude the vendored `llama_cpp` tree under Nomad Android so local checks match kernel scope.
+- **`src/server/app.py`:** Renamed overlapping `g2_updated` bindings to satisfy Mypy `no-redef` after Ruff format.
+
 ## [2026-05-01] V2.100.0 — Repository truth sync for Flutter-first MVP
 ### Changed
 - **`README.md`:** Reframed project scope to the active product reality (Flutter Desktop MVP + Python kernel), removed stale Android-primary messaging, and documented current quality verification commands.

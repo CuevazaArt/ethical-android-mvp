@@ -77,7 +77,9 @@ def test_build_cadence_plan_marks_overdue_missing_days(tmp_path: Path) -> None:
     assert cadence.overdue_missing_days == ["2026-05-02"]
 
 
-def test_build_cadence_plan_advances_due_date_when_today_covered(tmp_path: Path) -> None:
+def test_build_cadence_plan_advances_due_date_when_today_covered(
+    tmp_path: Path,
+) -> None:
     history = tmp_path / "g3.jsonl"
     _write_jsonl(
         history,

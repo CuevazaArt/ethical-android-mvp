@@ -698,6 +698,18 @@
   - `G5`: pass
 - Successor chain opened as `116.x` for first next-day coverage gain.
 
+### Execution pulse 116.0 (next-day closure prep loop — tooling)
+
+- Shipped deterministic gate evaluation and hygiene tooling:
+  - `evaluate_stability_gate` / `build_gate_snapshot` accept fixed `now` for tests; desktop gate tests use pinned April 2026 UTC for the 14-day G1 window.
+  - `record_g3_daily_contract_run.run_g3_daily_contract()` is injectable for skip vs append coverage.
+  - `tests/eval/test_g2_transition_guard.py` extended for stale provisional, invalid samples, and `provisional=false`.
+  - Contract shape tests lock `G2_TRANSITION_READINESS.json` and `G3_CADENCE_PLAN.json`.
+  - `scripts/eval/run_gate_maintenance_checklist.py` documents the operator command chain (`--execute` runs it).
+  - `scripts/eval/audit_kernel_ruff_scope.py` matches CI Ruff scope; `pyproject.toml` excludes vendored `llama_cpp` for Ruff/Mypy.
+  - CI `quality` job runs `pytest tests/eval/` before the full matrix.
+- Operational G3 day-coverage increment (`116.1`) still waits on the next UTC calendar day without a recorded run.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -813,10 +813,10 @@ Use this fixed structure in each planning handoff:
 - **Demo:** scoreboard refreshed and aligned with `G2` blocked-by-hardware + `G3` cadence loop status.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 116.0: Next-day closure prep loop [PENDING]**
+**Bloque 116.0: Next-day closure prep loop [DONE ✅]**
 - **Goal:** Prepare deterministic next-day execution so `G3` can advance day coverage at first UTC opportunity.
-- **Files:** cadence runner/evidence checkpoints.
-- **Demo:** next due execution window and commands are explicit; gate artifacts remain fresh and truthful.
+- **Files:** `scripts/eval/desktop_gate_runner.py`, `scripts/eval/record_g3_daily_contract_run.py`, `tests/eval/*`, `scripts/eval/run_gate_maintenance_checklist.py`, `pyproject.toml`, `.github/workflows/ci.yml`.
+- **Demo:** fixed-clock G1 tests; G3 skip/append tests; G2 transition edge cases; evidence JSON contract tests; maintenance checklist script; CI eval harness step; vendor `llama_cpp` excluded from Ruff/Mypy kernel scope.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
