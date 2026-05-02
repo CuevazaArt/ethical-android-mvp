@@ -4,6 +4,12 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.121 — Push-to-talk button in chat panel
+
+### Added
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** New `Speak` button (push-to-talk) that posts a `voice_turn` envelope to `/api/voice_turn` over HTTP, with progress indicator, blocked-bubble error rendering, and latency badge on the reply.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Two new MockClient-driven tests covering the success path (envelope + latency badge) and the error path (blocked bubble with code).
+
 ## [2026-05-02] Model dev wave V2.120 — Text-mediated voice_turn endpoint
 
 ### Added

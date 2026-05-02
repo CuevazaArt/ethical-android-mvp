@@ -722,6 +722,12 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 121.0 (A3 — push-to-talk button in chat panel)
+
+- Chat panel now exposes a `Speak` action that posts a `voice_turn` envelope over HTTP.
+- Replies render with `latency: Xms` and `action: voice_turn` chips; server-side errors surface as blocked bubbles with the explicit error code.
+- Coverage extended in `chat_panel_test.dart` via `MockClient` (success + 400 paths). Flutter suite remains green at 10/10.
+
 ### Execution pulse 120.0 (A2 — text-mediated voice_turn endpoint)
 
 - New HTTP capability `POST /api/voice_turn` returns a `DESKTOP_CONTRACT_SPINE_V1` envelope:

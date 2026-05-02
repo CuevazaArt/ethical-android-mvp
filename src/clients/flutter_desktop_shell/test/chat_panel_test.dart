@@ -5,6 +5,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -187,5 +189,101 @@ void main() {
     await fake._controller.close();
     await tester.pump();
     expect(find.text('Chat retrying'), findsOneWidget);
+  });
+
+  testWidgets('Speak posts voice_turn envelope and renders latency badge', (
+    WidgetTester tester,
+  ) async {
+    Uri? capturedUri;
+    Map<String, dynamic>? capturedBody;
+    final MockClient client = MockClient((http.Request request) async {
+      capturedUri = request.url;
+      capturedBody = jsonDecode(request.body) as Map<String, dynamic>;
+      return http.Response(
+        jsonEncode(<String, dynamic>{
+          'version': '1.0',
+          'contract': 'voice_turn',
+          'request': capturedBody!['request'],
+          'response': <String, dynamic>{
+            'reply_text': 'Estoy aquí.',
+            'should_listen': true,
+          },
+          'error': null,
+          'latency_ms': 712.0,
+        }),
+        200,
+        headers: <String, String>{'content-type': 'application/json'},
+      );
+    });
+
+    await tester.pumpWidget(
+      _harness(
+        child: ChatPanel(
+          startTransport: false,
+          httpClient: client,
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byKey(const Key('chatInput')), 'hola voz');
+    await tester.tap(find.byKey(const Key('chatSpeak')));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(capturedUri, isNotNull);
+    expect(capturedUri!.path, '/api/voice_turn');
+    expect(capturedBody!['contract'], 'voice_turn');
+    expect((capturedBody!['request'] as Map)['utterance'], 'hola voz');
+
+    expect(find.text('hola voz'), findsOneWidget);
+    expect(find.text('Estoy aquí.'), findsOneWidget);
+    expect(find.textContaining('latency: 712ms'), findsOneWidget);
+    expect(find.textContaining('action: voice_turn'), findsOneWidget);
+    expect(find.text('voice_turn ok (listen)'), findsOneWidget);
+  });
+
+  testWidgets('Speak surfaces server-side voice_turn errors as blocked bubble', (
+    WidgetTester tester,
+  ) async {
+    final MockClient client = MockClient((http.Request request) async {
+      return http.Response(
+        jsonEncode(<String, dynamic>{
+          'version': '1.0',
+          'contract': 'voice_turn',
+          'request': <String, dynamic>{'utterance': 'x'},
+          'response': <String, dynamic>{
+            'reply_text': '',
+            'should_listen': false,
+          },
+          'error': <String, dynamic>{
+            'code': 'EMPTY_UTTERANCE',
+            'message': 'utterance must not be empty',
+            'retryable': false,
+          },
+          'latency_ms': 0.0,
+        }),
+        400,
+      );
+    });
+
+    await tester.pumpWidget(
+      _harness(
+        child: ChatPanel(
+          startTransport: false,
+          httpClient: client,
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byKey(const Key('chatInput')), 'something');
+    await tester.tap(find.byKey(const Key('chatSpeak')));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('[EMPTY_UTTERANCE]'),
+      findsOneWidget,
+    );
+    expect(find.text('voice_turn error (400)'), findsOneWidget);
   });
 }

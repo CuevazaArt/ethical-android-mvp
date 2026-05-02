@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// V2.119 (A1): real chat surface for the desktop shell.
@@ -14,6 +15,7 @@ class ChatPanel extends StatefulWidget {
     this.startTransport = true,
     this.kernelBaseUrl,
     this.channelFactory,
+    this.httpClient,
   });
 
   /// When false, the panel renders idle without opening a WebSocket.
@@ -27,6 +29,10 @@ class ChatPanel extends StatefulWidget {
   /// Optional injection seam for tests: provides the [WebSocketChannel] given
   /// the resolved `ws://.../ws/chat` URI.
   final WebSocketChannel Function(Uri wsUri)? channelFactory;
+
+  /// Optional injection seam for tests: provides the HTTP client used by the
+  /// push-to-talk action so a `MockClient` can stub `/api/voice_turn` calls.
+  final http.Client? httpClient;
 
   @override
   State<ChatPanel> createState() => _ChatPanelState();
@@ -67,6 +73,8 @@ class _ChatPanelState extends State<ChatPanel> {
   StreamSubscription<dynamic>? _subscription;
   Timer? _retryTimer;
   int _retryCount = 0;
+  http.Client? _httpClient;
+  bool _ownsHttpClient = false;
 
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -74,6 +82,7 @@ class _ChatPanelState extends State<ChatPanel> {
   ChatConnectionState _state = ChatConnectionState.idle;
   String _statusLine = 'Idle';
   ChatMessage? _activeStream;
+  bool _voiceTurnInFlight = false;
 
   String get _baseUrl => widget.kernelBaseUrl ?? _defaultKernelUrl;
 
@@ -91,6 +100,13 @@ class _ChatPanelState extends State<ChatPanel> {
   @override
   void initState() {
     super.initState();
+    if (widget.httpClient != null) {
+      _httpClient = widget.httpClient;
+      _ownsHttpClient = false;
+    } else {
+      _httpClient = http.Client();
+      _ownsHttpClient = true;
+    }
     if (widget.startTransport) {
       _connect();
     } else {
@@ -104,6 +120,9 @@ class _ChatPanelState extends State<ChatPanel> {
     _retryTimer?.cancel();
     _subscription?.cancel();
     _channel?.sink.close();
+    if (_ownsHttpClient) {
+      _httpClient?.close();
+    }
     _inputController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -297,6 +316,130 @@ class _ChatPanelState extends State<ChatPanel> {
     _scrollToBottom();
   }
 
+  Future<void> _speak() async {
+    if (_voiceTurnInFlight) {
+      return;
+    }
+    final String text = _inputController.text.trim();
+    if (text.isEmpty) {
+      return;
+    }
+    final http.Client? client = _httpClient;
+    if (client == null) {
+      return;
+    }
+    final Uri voiceUri = Uri.parse('$_baseUrl/api/voice_turn');
+    final Map<String, dynamic> envelope = <String, dynamic>{
+      'version': '1.0',
+      'contract': 'voice_turn',
+      'request': <String, dynamic>{'utterance': text},
+      'response': <String, dynamic>{},
+      'error': null,
+      'latency_ms': 0.0,
+    };
+    setState(() {
+      _voiceTurnInFlight = true;
+      _messages.add(ChatMessage(role: 'user', text: text));
+      _statusLine = 'Speaking (HTTP voice_turn)...';
+    });
+    _inputController.clear();
+    _scrollToBottom();
+    try {
+      final http.Response response = await client
+          .post(
+            voiceUri,
+            headers: const <String, String>{
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(envelope),
+          )
+          .timeout(const Duration(seconds: 30));
+      final dynamic decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        _handleVoiceTurnResponse(response.statusCode, decoded);
+      } else if (decoded is Map) {
+        _handleVoiceTurnResponse(
+          response.statusCode,
+          decoded.cast<String, dynamic>(),
+        );
+      } else {
+        _appendVoiceError('Malformed voice_turn response payload.');
+      }
+    } catch (error) {
+      _appendVoiceError('voice_turn failed: $error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _voiceTurnInFlight = false;
+        });
+      }
+    }
+  }
+
+  void _handleVoiceTurnResponse(int status, Map<String, dynamic> body) {
+    final dynamic err = body['error'];
+    final dynamic latency = body['latency_ms'];
+    final double? latencyMs = latency is num ? latency.toDouble() : null;
+    if (err is Map) {
+      final String code = err['code']?.toString() ?? 'UNKNOWN';
+      final String message = err['message']?.toString() ?? 'voice_turn failed';
+      setState(() {
+        _messages.add(
+          ChatMessage(
+            role: 'ethos',
+            text: '[$code] $message',
+            latencyMs: latencyMs,
+            blocked: true,
+          ),
+        );
+        _statusLine = 'voice_turn error ($status)';
+      });
+      _scrollToBottom();
+      return;
+    }
+    final dynamic response = body['response'];
+    String reply = '';
+    bool shouldListen = true;
+    String? audioB64;
+    if (response is Map) {
+      reply = response['reply_text']?.toString() ?? '';
+      final dynamic listen = response['should_listen'];
+      if (listen is bool) {
+        shouldListen = listen;
+      }
+      audioB64 = response['audio_b64']?.toString();
+    }
+    setState(() {
+      _messages.add(
+        ChatMessage(
+          role: 'ethos',
+          text: reply.isEmpty ? '[empty reply]' : reply,
+          latencyMs: latencyMs,
+          action: 'voice_turn',
+        ),
+      );
+      _statusLine = shouldListen
+          ? 'voice_turn ok (listen)'
+          : 'voice_turn ok (mic off)';
+    });
+    _scrollToBottom();
+    if (audioB64 != null && audioB64.isNotEmpty) {
+      // Audio payload is recorded for future playback (deferred to a later
+      // block). Keeping the field accessible avoids silently dropping it.
+      debugPrint('[chat-panel] voice_turn audio_b64 length=${audioB64.length}');
+    }
+  }
+
+  void _appendVoiceError(String message) {
+    setState(() {
+      _messages.add(
+        ChatMessage(role: 'ethos', text: message, blocked: true),
+      );
+      _statusLine = message;
+    });
+    _scrollToBottom();
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) {
@@ -388,6 +531,19 @@ class _ChatPanelState extends State<ChatPanel> {
                       : null,
                   icon: const Icon(Icons.send_rounded),
                   label: const Text('Send'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  key: const Key('chatSpeak'),
+                  onPressed: _voiceTurnInFlight ? null : _speak,
+                  icon: _voiceTurnInFlight
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.record_voice_over_rounded),
+                  label: const Text('Speak'),
                 ),
               ],
             ),
