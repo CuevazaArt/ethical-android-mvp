@@ -4,6 +4,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.125 — Narrative memory threaded into chat trace
+
+### Added
+- **`src/core/chat.py`:** `_episode_descriptor` helper plus `ChatEngine._recall_episodes` — a single recall point reused by both `turn` and `turn_stream`.
+- **`tests/core/test_chat_memory_injection.py`:** Locks the new `memory_used` contract (descriptor shape, presence in `metadata` and `done` events, blocked path).
+
+### Changed
+- **`src/core/chat.py`:** `TurnResult.memory_used` is populated from the same recall list used to build the system prompt; `build_decision_trace` now carries `memory_used` (always a list, empty when nothing was recalled). `respond` and `respond_stream` accept an optional `memory_episodes` override so recall happens once per turn.
+- **`src/server/app.py`:** `POST /api/voice_turn` threads `result.memory_used` into the trace embedded in the response envelope.
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** New `memory: N episodes` chip rendered when the trace carries non-empty `memory_used`; `_metaChip` accepts an optional `Key` so the badge is targetable.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Streaming bubble test now feeds `memory_used` and asserts the chip + key.
+- **`tests/server/test_voice_turn_endpoint.py`:** Asserts `trace.memory_used` is present (as a list) on both pass and blocked paths.
+
 ## [2026-05-02] Model dev wave V2.124 — Bayesian posterior_assisted feedback loop
 
 ### Added

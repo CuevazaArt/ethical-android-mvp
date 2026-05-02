@@ -722,6 +722,13 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 125.0 (C3 — narrative memory threaded into chat trace)
+
+- New `_recall_episodes` + `_episode_descriptor` in `src/core/chat.py` give a single source of truth for memory recall per turn.
+- `TurnResult.memory_used` and `build_decision_trace(..., memory_used=...)` now carry compact episode descriptors `{id, summary, context}`; both `metadata` and `done` events of `/ws/chat` plus the `voice_turn` response include them.
+- Flutter chat bubbles render `memory: N episode(s)` chip (key `chatMemoryChip`) when the trace carries non-empty memory.
+- Coverage: new `tests/core/test_chat_memory_injection.py` (4 cases) + extended voice_turn + Flutter widget tests. Full Python suite 327 green; Flutter 11/11.
+
 ### Execution pulse 124.0 (C2 — Bayesian posterior_assisted feedback loop)
 
 - New `src/core/feedback.py` with `FeedbackCalibrationLedger`: append-only JSONL ledger plus capped (`±0.10`) `posterior_bias` per action.

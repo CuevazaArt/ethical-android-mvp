@@ -741,6 +741,16 @@ class _ChatBubble extends StatelessWidget {
     if (traceMalabs != null && traceMalabs == 'blocked') {
       meta.add(_metaChip('malabs: blocked', theme));
     }
+    final dynamic traceMemoryRaw = trace?['memory_used'];
+    final List<dynamic> traceMemory = traceMemoryRaw is List
+        ? traceMemoryRaw
+        : <dynamic>[];
+    if (traceMemory.isNotEmpty) {
+      final String label = traceMemory.length == 1
+          ? 'memory: 1 episode'
+          : 'memory: ${traceMemory.length} episodes';
+      meta.add(_metaChip(label, theme, key: const Key('chatMemoryChip')));
+    }
     if (message.context != null && message.context!.isNotEmpty) {
       meta.add(_metaChip('ctx: ${message.context}', theme));
     }
@@ -822,8 +832,9 @@ class _ChatBubble extends StatelessWidget {
     );
   }
 
-  Widget _metaChip(String text, ThemeData theme) {
+  Widget _metaChip(String text, ThemeData theme, {Key? key}) {
     return Container(
+      key: key,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.6),

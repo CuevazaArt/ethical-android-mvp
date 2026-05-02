@@ -145,6 +145,18 @@ void main() {
         'score': 0.62,
         'verdict': 'Good',
         'weights': <double>[0.4, 0.35, 0.25],
+        'memory_used': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'ep-1',
+            'summary': 'antes hablamos',
+            'context': 'everyday_ethics',
+          },
+          <String, dynamic>{
+            'id': 'ep-2',
+            'summary': 'segundo recuerdo',
+            'context': 'everyday_ethics',
+          },
+        ],
       },
     });
     await tester.pumpAndSettle();
@@ -155,6 +167,8 @@ void main() {
     expect(find.textContaining('verdict: Good'), findsOneWidget);
     expect(find.textContaining('ctx: everyday_ethics'), findsOneWidget);
     expect(find.textContaining('latency: 432ms'), findsOneWidget);
+    expect(find.byKey(const Key('chatMemoryChip')), findsOneWidget);
+    expect(find.textContaining('memory: 2 episodes'), findsOneWidget);
   });
 
   testWidgets('send button posts a chat_text frame to the socket', (

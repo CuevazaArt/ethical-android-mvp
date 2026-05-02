@@ -1,0 +1,133 @@
+# Copyright 2026 Juan Cuevaz / Mos Ex Machina
+# Licensed under the Apache License, Version 2.0
+"""V2.125 (C3): narrative memory must be threaded through the chat loop and
+surface in the decision trace as ``memory_used`` so the Flutter shell can
+render the "Memory: N episodes" badge.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from typing import Any
+
+import pytest
+
+from src.core.chat import ChatEngine, _episode_descriptor, build_decision_trace
+from src.core.ethics import Signals
+
+
+class _StubLLM:
+    """Minimal awaitable stub that records the system prompt it received."""
+
+    def __init__(self, reply: str = "ok") -> None:
+        self.reply = reply
+        self.system_seen: str | None = None
+        self.history_seen: list[dict[str, str]] | None = None
+
+    async def is_available(self) -> bool:
+        return True
+
+    async def chat(
+        self,
+        user_message: str,
+        system: str,
+        *,
+        temperature: float = 0.7,
+        history: list[dict[str, str]] | None = None,
+    ) -> str:
+        self.system_seen = system
+        self.history_seen = history
+        return self.reply
+
+    async def close(self) -> None:
+        return None
+
+
+@pytest.fixture()
+def engine_with_memory(tmp_path):
+    """ChatEngine with a Memory pinned to tmp storage and a recallable episode."""
+
+    from src.core.memory import Memory
+
+    mem = Memory(storage_path=str(tmp_path / "episodes.json"))
+    mem.add(
+        summary="Usuario dijo hola y respondí con calidez",
+        action="respond_helpfully",
+        score=0.5,
+        context="everyday_ethics",
+    )
+    llm = _StubLLM(reply="hola otra vez")
+    return ChatEngine(llm=llm, memory=mem), llm, mem
+
+
+def test_episode_descriptor_is_safe_for_unknown_input() -> None:
+    desc = _episode_descriptor(object())
+    assert desc["id"].startswith("ep-")
+    assert desc["summary"] == ""
+    assert desc["context"] == "everyday_ethics"
+
+
+def test_build_decision_trace_includes_memory_used_when_provided() -> None:
+    memory_used = [
+        {"id": "ep-1", "summary": "antes hablamos de ti", "context": "everyday_ethics"}
+    ]
+    trace = build_decision_trace(
+        signals=Signals(risk=0.1, context="everyday_ethics"),
+        evaluation=None,
+        blocked=False,
+        memory_used=memory_used,
+    )
+    assert trace["memory_used"] == memory_used
+
+    blocked_trace = build_decision_trace(
+        signals=None,
+        evaluation=None,
+        blocked=True,
+        blocked_reason="adversarial",
+        memory_used=memory_used,
+    )
+    assert blocked_trace["memory_used"] == memory_used
+
+
+def test_chat_engine_turn_records_memory_used(engine_with_memory) -> None:
+    engine, llm, _ = engine_with_memory
+    result = asyncio.run(engine.turn("hola"))
+    assert isinstance(result.memory_used, list)
+    assert result.memory_used, "memory_used should be populated when episodes exist"
+    descriptor = result.memory_used[0]
+    assert descriptor["id"].startswith("ep-")
+    assert "hola" in descriptor["summary"].lower()
+    assert llm.system_seen is not None
+    assert "Recuerdos relevantes" in llm.system_seen
+
+
+def test_chat_engine_turn_stream_emits_memory_in_trace(engine_with_memory) -> None:
+    engine, llm, _ = engine_with_memory
+
+    async def _drain() -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+
+        class _StreamLLM(_StubLLM):
+            async def chat_stream(
+                self,
+                user_message: str,
+                system: str,
+                *,
+                temperature: float = 0.7,
+                history: list[dict[str, str]] | None = None,
+            ):
+                self.system_seen = system
+                for tok in ("ho", "la"):
+                    yield tok
+
+        engine.llm = _StreamLLM(reply="hola")
+        async for ev in engine.turn_stream("hola"):
+            events.append(ev)
+        return events
+
+    events = asyncio.run(_drain())
+    metadata = next(ev for ev in events if ev["type"] == "metadata")
+    done = next(ev for ev in events if ev["type"] == "done")
+    assert metadata["trace"]["memory_used"], "metadata trace must include memory"
+    assert done["trace"]["memory_used"] == metadata["trace"]["memory_used"]
+    assert done["trace"]["memory_used"][0]["id"].startswith("ep-")

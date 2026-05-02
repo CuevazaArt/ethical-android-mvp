@@ -173,6 +173,7 @@ def test_voice_turn_endpoint_returns_success_envelope() -> None:
     assert trace["verdict"] == "Good"
     assert math.isfinite(float(trace["score"]))
     assert isinstance(trace["weights"], list) and len(trace["weights"]) == 3
+    assert "memory_used" in trace and isinstance(trace["memory_used"], list)
 
 
 def test_voice_turn_endpoint_marks_should_listen_false_when_blocked() -> None:
@@ -198,6 +199,7 @@ def test_voice_turn_endpoint_marks_should_listen_false_when_blocked() -> None:
     assert trace["malabs"] == "blocked"
     assert trace["action"] == "safety_block"
     assert trace["blocked_reason"] == "lex"
+    assert "memory_used" in trace and isinstance(trace["memory_used"], list)
 
 
 def test_voice_turn_endpoint_returns_400_on_empty_utterance() -> None:

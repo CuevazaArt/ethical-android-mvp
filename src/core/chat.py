@@ -74,6 +74,26 @@ def _finite01_or_none(x: Any) -> float | None:
     return max(0.0, min(1.0, v))
 
 
+def _episode_descriptor(ep: Any) -> dict[str, Any]:
+    """V2.125 (C3): compact, JSON-safe descriptor for a memory episode.
+
+    Includes a stable-ish id (ms-resolution timestamp), a truncated summary, and
+    the context label so the chat client can render a `Memory: N episodes`
+    badge plus a tooltip / expander without leaking PII-heavy raw fields.
+    """
+
+    try:
+        ts_ms = int(float(getattr(ep, "timestamp", 0.0)) * 1000)
+    except (TypeError, ValueError):
+        ts_ms = 0
+    summary_raw = str(getattr(ep, "summary", "") or "")
+    return {
+        "id": f"ep-{ts_ms}",
+        "summary": summary_raw[:80],
+        "context": str(getattr(ep, "context", "") or "everyday_ethics"),
+    }
+
+
 def build_decision_trace(
     *,
     signals: Signals | None,
@@ -82,6 +102,7 @@ def build_decision_trace(
     blocked_reason: str | None = None,
     weights: dict[str, float] | None = None,
     turn_id: str | None = None,
+    memory_used: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """V2.123 (C1): canonical decision trace returned with every chat reply.
 
@@ -104,6 +125,7 @@ def build_decision_trace(
         float(weight_mix.get("deonto", 0.0)),
         float(weight_mix.get("virtue", 0.0)),
     ]
+    safe_memory: list[dict[str, Any]] = list(memory_used or [])
     if blocked:
         trace: dict[str, Any] = {
             "malabs": "blocked",
@@ -114,6 +136,7 @@ def build_decision_trace(
             "verdict": "Blocked",
             "weights": weight_list,
             "blocked_reason": blocked_reason or "safety",
+            "memory_used": safe_memory,
         }
         if turn_id:
             trace["turn_id"] = turn_id
@@ -134,6 +157,7 @@ def build_decision_trace(
         "score": score,
         "verdict": evaluation.verdict if evaluation else "Neutral",
         "weights": weight_list,
+        "memory_used": safe_memory,
     }
     if turn_id:
         trace["turn_id"] = turn_id
@@ -177,6 +201,9 @@ class TurnResult:
     latency_ms: dict[str, float] = field(
         default_factory=dict
     )  # V2.18: Performance tracking
+    memory_used: list[dict[str, Any]] = field(
+        default_factory=list
+    )  # V2.125 (C3): episodes recalled into the system prompt for this turn
 
 
 def _generate_actions_from_signals(signals: Signals) -> list[Action]:
@@ -296,12 +323,27 @@ class ChatEngine:
         """
         return self.perception.classify(user_message)
 
+    def _recall_episodes(self, user_message: str, *, limit: int = 2) -> list[Any]:
+        """V2.125 (C3): single source of truth for memory recall in a turn.
+
+        Returns the relevant episodes (newest API of `Memory.recall`) so the
+        same list can be used for the system prompt AND surfaced in the
+        decision trace as `memory_used`.
+        """
+
+        try:
+            episodes = self.memory.recall(user_message, limit=limit)
+        except Exception:
+            episodes = []
+        return list(episodes or [])
+
     def _build_system(
         self,
         user_message: str,
         signals: Signals,
         evaluation: EvalResult | None = None,
         vision_context: dict | None = None,
+        memory_episodes: list[Any] | None = None,
     ) -> str:
         """
         Build the full system prompt: ethics + memory + vision + plugins.
@@ -320,7 +362,10 @@ class ChatEngine:
         # Conversation history is now passed as native multi-turn messages
         # to llm.chat() / llm.chat_stream() — see respond() and respond_stream().
 
-        relevant = self.memory.recall(user_message, limit=2)
+        if memory_episodes is None:
+            relevant = self._recall_episodes(user_message, limit=2)
+        else:
+            relevant = memory_episodes
         if relevant:
             mem_context = "\n".join(f"- {ep.summary}" for ep in relevant)
             system += f"\n\nRecuerdos relevantes:\n{mem_context}"
@@ -398,12 +443,19 @@ class ChatEngine:
         signals: Signals,
         evaluation: EvalResult | None = None,
         vision_context: dict | None = None,
+        memory_episodes: list[Any] | None = None,
     ) -> str:
         """
         Step 3: Generate the verbal response.
         The LLM speaks; the ethics inform the tone, not the content.
         """
-        system = self._build_system(user_message, signals, evaluation, vision_context)
+        system = self._build_system(
+            user_message,
+            signals,
+            evaluation,
+            vision_context,
+            memory_episodes=memory_episodes,
+        )
         try:
             response = await self.llm.chat(
                 user_message,
@@ -424,13 +476,20 @@ class ChatEngine:
         signals: Signals,
         evaluation: EvalResult | None = None,
         vision_context: dict | None = None,
+        memory_episodes: list[Any] | None = None,
     ):
         """
         Streaming variant of respond(). Yields text tokens as they arrive.
         Uses _build_system() — no duplication.
         Real-time data is pre-injected into user_message by turn_stream before this is called.
         """
-        system = self._build_system(user_message, signals, evaluation, vision_context)
+        system = self._build_system(
+            user_message,
+            signals,
+            evaluation,
+            vision_context,
+            memory_episodes=memory_episodes,
+        )
         try:
             async for token in self.llm.chat_stream(
                 user_message,
@@ -502,9 +561,18 @@ class ChatEngine:
         # 2.1 Update user model (bias/risk tracking)
         self.user_model.update(signals)
 
+        # 2.5 Recall narrative memory once and reuse for prompt + trace (V2.125)
+        memory_episodes = self._recall_episodes(user_message, limit=2)
+        memory_used = [_episode_descriptor(ep) for ep in memory_episodes]
+
         # 3. Respond
         t_start = time.perf_counter()
-        message = await self.respond(user_message, signals, evaluation)
+        message = await self.respond(
+            user_message,
+            signals,
+            evaluation,
+            memory_episodes=memory_episodes,
+        )
         latency["llm_total"] = round((time.perf_counter() - t_start) * 1000, 2)
 
         # 4. Remember
@@ -546,6 +614,7 @@ class ChatEngine:
                 "context": signals.context,
             },
             latency_ms=latency,
+            memory_used=memory_used,
         )
 
     async def turn_stream(self, user_message: str, vision_context: dict | None = None):
@@ -613,6 +682,10 @@ class ChatEngine:
         # 2.1 Update user model
         self.user_model.update(signals)
 
+        # 2.5 Recall narrative memory once and reuse for prompt + trace (V2.125)
+        memory_episodes = self._recall_episodes(user_message, limit=2)
+        memory_used = [_episode_descriptor(ep) for ep in memory_episodes]
+
         # 3. Stream response
         t_start = time.perf_counter()
 
@@ -636,6 +709,7 @@ class ChatEngine:
                 evaluation=evaluation,
                 blocked=False,
                 weights=self.ethics.weights,
+                memory_used=memory_used,
             ),
         }
 
@@ -684,7 +758,11 @@ class ChatEngine:
         first_token = True
         plugin_triggered = False
         async for token in self.respond_stream(
-            effective_user_message, signals, evaluation, vision_context
+            effective_user_message,
+            signals,
+            evaluation,
+            vision_context,
+            memory_episodes=memory_episodes,
         ):
             if first_token:
                 latency["ttft"] = round((time.perf_counter() - t_start) * 1000, 2)
@@ -724,6 +802,7 @@ class ChatEngine:
                 signals,
                 evaluation,
                 vision_context,
+                memory_episodes=memory_episodes,
             ):
                 final_tokens.append(token)
                 yield {"type": "token", "content": token}
@@ -790,6 +869,7 @@ class ChatEngine:
                 evaluation=evaluation,
                 blocked=False,
                 weights=self.ethics.weights,
+                memory_used=memory_used,
             ),
         }
 

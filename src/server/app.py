@@ -563,6 +563,7 @@ async def api_voice_turn(request: Request):
             blocked_reason=blocked_reason,
             weights=engine.ethics.weights,
             turn_id=turn_id,
+            memory_used=getattr(result, "memory_used", []) or [],
         )
     except Exception as exc:
         _log.error("[VoiceTurn] turn failed: %s", exc)
