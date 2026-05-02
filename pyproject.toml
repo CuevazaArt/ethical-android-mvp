@@ -117,6 +117,8 @@ exclude = [
     ".claude",
     "build",
     "dist",
+    # Vendored upstream tree (Android JNI); not Ethos-owned Python.
+    "src/clients/nomad_android/app/src/main/cpp/llama_cpp",
     # V13+ tri-lobe uses ``src/kernel.py``; this file remains as an archival reference (ADR 0018).
     "src/ethical_kernel_batch.py",
     "androide-etico-mvp-v2",
@@ -158,6 +160,7 @@ explicit_package_bases = true
 namespace_packages = true
 mypy_path = "."
 files = ["src"]
+exclude = "(?x)(^src/clients/nomad_android/app/src/main/cpp/llama_cpp/)"
 ignore_missing_imports = true
 show_error_codes = true
 warn_unused_ignores = false

@@ -4,6 +4,151 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.128 — MVP closure report and final pulse
+
+### Added
+- **`scripts/eval/generate_mvp_closure_report.py`:** Aggregates the live gate snapshot, operator demo evidence, the wave V2.119–V2.128 ledger, and the G2 transparency posture into a single `MVP_CLOSURE_REPORT.json` artifact.
+- **`docs/collaboration/evidence/MVP_CLOSURE_REPORT.json`:** The closing artifact for the wave (`g2_status=pass`, `g2_mode=text_mediated`, declaration: "MVP entregable, operador no-autor verificado").
+- **`tests/eval/test_mvp_closure_report.py`:** Locks the schema, the block ledger, the G2 posture, and the definition-of-done checklist.
+
+### Changed
+- **`CONTEXT.md`:** Closing pulse 128.0 declares the MVP wave complete and points operators at the canonical artifacts.
+
+## [2026-05-02] Model dev wave V2.127 — G2 reframe: text_mediated PASS path
+
+### Added
+- **`scripts/eval/capture_voice_turn_latency_text.py`:** Captures cognitive latency by hammering `POST /api/voice_turn` (no microphone needed). Supports `--inproc` mode for deterministic CI evidence via FastAPI TestClient.
+- **`docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl`:** 22 reproducible samples backing the new G2 PASS evidence ladder.
+- **`tests/eval/test_g2_text_mediated_path.py`:** Locks both modes (`live` and `text_mediated`) end-to-end: latency gate sample-count enforcement, snapshot preference order, and transition-guard recognition.
+- **`docs/TRANSPARENCY_AND_LIMITS.md` § G2 PASS modes:** Operator-facing section that names each mode, its evidence file, and what it explicitly does NOT cover (audio capture/playback remain `PENDING_HARDWARE`).
+
+### Changed
+- **`scripts/eval/desktop_gate_runner.py`:** `evaluate_latency_gate` now accepts `mode` and `min_sample_count`; the snapshot prefers a fresh `text_mediated` PASS over the legacy provisional report and surfaces `audio_capture_path: PENDING_HARDWARE` for honest reporting.
+- **`scripts/eval/g2_transition_guard.py`:** Recognizes `G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl`, exposes `mode` and `text_mediated_sample_count`, and unblocks the `BLOCKED_HARDWARE` ladder when the text-mediated ladder has enough samples.
+- **`tests/eval/test_g2_transition_guard.py`:** Pre-existing tests pass an explicit `text_mediated_samples_path` so they remain isolated from the production evidence file.
+
+## [2026-05-02] Model dev wave V2.126 — Why-this-answer expander in chat panel
+
+### Added
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** New `_WhyThisAnswer` `ExpansionTile` (key `chatWhyExpander`) under every Ethos bubble that renders the decision trace in human-readable form: MalAbs verdict, action+mode+score, hypothesis weights (util/deon/virtue), and the recalled memory episode summaries.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** New widget test that taps the expander and asserts each rendered line.
+
+## [2026-05-02] Model dev wave V2.125 — Narrative memory threaded into chat trace
+
+### Added
+- **`src/core/chat.py`:** `_episode_descriptor` helper plus `ChatEngine._recall_episodes` — a single recall point reused by both `turn` and `turn_stream`.
+- **`tests/core/test_chat_memory_injection.py`:** Locks the new `memory_used` contract (descriptor shape, presence in `metadata` and `done` events, blocked path).
+
+### Changed
+- **`src/core/chat.py`:** `TurnResult.memory_used` is populated from the same recall list used to build the system prompt; `build_decision_trace` now carries `memory_used` (always a list, empty when nothing was recalled). `respond` and `respond_stream` accept an optional `memory_episodes` override so recall happens once per turn.
+- **`src/server/app.py`:** `POST /api/voice_turn` threads `result.memory_used` into the trace embedded in the response envelope.
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** New `memory: N episodes` chip rendered when the trace carries non-empty `memory_used`; `_metaChip` accepts an optional `Key` so the badge is targetable.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Streaming bubble test now feeds `memory_used` and asserts the chip + key.
+- **`tests/server/test_voice_turn_endpoint.py`:** Asserts `trace.memory_used` is present (as a list) on both pass and blocked paths.
+
+## [2026-05-02] Model dev wave V2.124 — Bayesian posterior_assisted feedback loop
+
+### Added
+- **`src/core/feedback.py`:** `FeedbackCalibrationLedger` (append-only JSONL at `docs/collaboration/evidence/FEEDBACK_CALIBRATION_LEDGER.jsonl`) plus `posterior_bias`, `stats`, and `is_posterior_assisted_enabled()` toggle bound to `KERNEL_BAYESIAN_MODE=posterior_assisted`.
+- **`tests/core/test_feedback_loop.py`:** Locks ledger persistence, posterior bias cap (±0.10), evaluator nudge effect on chosen action, and the env-toggle contract.
+- **`tests/server/test_feedback_endpoint.py`:** Integration tests for `POST /api/feedback` covering recording, malformed payload rejection, and `posterior_assisted` flag reporting.
+
+### Changed
+- **`src/core/ethics.py`:** `EthicalEvaluator` accepts an optional `ledger`; when present, each candidate action's score is nudged by the ledger's bounded posterior bias before selection.
+- **`src/core/chat.py`:** `ChatEngine` auto-wires a `FeedbackCalibrationLedger` into the evaluator when `is_posterior_assisted_enabled()` is true. `build_decision_trace` now carries an optional `turn_id`.
+- **`src/server/app.py`:** Added `POST /api/feedback` endpoint backed by a global ledger, generates `turn_id` for each `voice_turn`, and threads it through the trace so feedback can be attributed.
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** Ethos bubbles render thumbs-up/down icon buttons; pressing one POSTs to `/api/feedback`, locks the bubble's signal, and surfaces a confirmation snackbar.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** New widget test exercises the thumbs-up flow end-to-end against a `MockClient` for `/api/voice_turn` + `/api/feedback`.
+
+## [2026-05-02] Model dev wave V2.123 — Decision trace surfaced on every reply
+
+### Added
+- **`src/core/chat.py`:** New `build_decision_trace` helper that produces a canonical `{malabs, context, action, mode, score, verdict, weights[, blocked_reason]}` dict for every chat reply.
+- **`tests/core/test_decision_trace.py`:** Locks the trace contract for pass, blocked, casual, and weight-override paths plus non-finite-score clamping.
+
+### Changed
+- **`src/core/chat.py`:** `turn_stream` now emits the decision trace inside the `metadata` and `done` events (and the safety-block path); the active `EthicalEvaluator` weights are passed through.
+- **`src/server/app.py`:** `POST /api/voice_turn` returns the same canonical trace inside `response.trace` for both pass and blocked outcomes.
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** Chat bubbles now render `mode`, `score`, `verdict`, and `malabs: blocked` chips from the trace; voice_turn replies pick up the same surface.
+- **`tests/server/test_voice_turn_endpoint.py`:** Asserts the new `response.trace` shape for both success and blocked paths.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Streaming and Speak tests now feed and assert the trace dictionary.
+
+## [2026-05-02] Model dev wave V2.122 — Operator runbook and demo runner voice_turn step
+
+### Added
+- **`docs/collaboration/MVP_OPERATOR_RUNBOOK.md`:** Copy-paste runbook for a non-author operator covering install, server start, Flutter shell launch, chat conversation, push-to-talk, diagnostics inspection, and reproducible evidence capture.
+- **`docs/collaboration/evidence/OPERATOR_INTERACTION_DEMO.json`:** Latest evidence artifact showing the desktop E2E loop closing with 5/5 steps including the new `voice_turn` step.
+
+### Changed
+- **`scripts/eval/desktop_e2e_demo_runner.py`:** Added `voice_turn` step that exercises `POST /api/voice_turn` end-to-end with a stubbed LLM, validating envelope, latency finiteness, and `should_listen` flag.
+- **`tests/eval/test_desktop_e2e_demo_runner.py`:** Updated step ordering assertions and added explicit checks for the new `voice_turn` step.
+
+## [2026-05-02] Model dev wave V2.121 — Push-to-talk button in chat panel
+
+### Added
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** New `Speak` button (push-to-talk) that posts a `voice_turn` envelope to `/api/voice_turn` over HTTP, with progress indicator, blocked-bubble error rendering, and latency badge on the reply.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Two new MockClient-driven tests covering the success path (envelope + latency badge) and the error path (blocked bubble with code).
+
+## [2026-05-02] Model dev wave V2.120 — Text-mediated voice_turn endpoint
+
+### Added
+- **`src/server/desktop_voice_adapter.py`:** Envelope helpers for the `voice_turn` capability (parse + success/error builders) aligned with `DESKTOP_CONTRACT_SPINE_V1`.
+- **`tests/server/test_voice_turn_endpoint.py`:** Unit + integration coverage for parse failures, blocked replies, LLM-unavailable path, and the success envelope shape.
+
+### Changed
+- **`src/server/app.py`:** New `POST /api/voice_turn` endpoint that runs a single `ChatEngine` turn on the supplied utterance, measures end-to-end latency in ms, and optionally embeds TTS audio via `KERNEL_DESKTOP_TTS=1`.
+
+## [2026-05-02] Model dev wave V2.119 — Real chat panel in Flutter desktop shell
+
+### Added
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** Real chat surface streaming `/ws/chat` typed frames, with metadata/token/done handling and bounded reconnect.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Widget tests covering idle render, streaming chat bubble assembly, send-frame contract, and retry transition.
+
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Chat | Diagnostics` segmented selector, defaulting to Chat. Diagnostics surface preserved unchanged behind the new tab.
+- **`src/clients/flutter_desktop_shell/pubspec.yaml`:** Added `web_socket_channel: ^3.0.0` dependency for the chat transport.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Existing diagnostics assertions now switch to the Diagnostics tab first; new test locks Chat as default.
+
+## [2026-05-02] Gate sprint 116.0 — Eval harness, vendor lint scope, and operator maintenance
+
+### Added
+- **`scripts/eval/run_gate_maintenance_checklist.py`:** Prints or runs the ordered G3-daily → G2-transition → gate-snapshot maintenance commands.
+- **`scripts/eval/audit_kernel_ruff_scope.py`:** Thin wrapper matching CI Ruff scope (`src` + `tests`).
+- **`tests/eval/test_evidence_contract_shapes.py`:** Locks JSON shapes for `G2_TRANSITION_READINESS.json` and `G3_CADENCE_PLAN.json`.
+- **`tests/eval/test_run_gate_maintenance_checklist.py`:** Asserts maintenance commands reference expected scripts and evidence paths.
+- **`scripts/eval/premium_autopilot_20.py`:** Defines and executes a premium hardening board of 20 machine-verifiable prompts.
+- **`docs/collaboration/PREMIUM_AUTOPILOT_PROMPTS_20.md`:** Human-readable premium prompt list for operator review.
+- **`tests/eval/test_premium_autopilot_20.py`:** Locks the 20-prompt contract and autopilot pass expectations.
+
+### Changed
+- **`scripts/eval/record_g3_daily_contract_run.py`:** Refactored to a testable `run_g3_daily_contract()` helper with injectable clock and guardrail runner.
+- **`scripts/eval/desktop_gate_runner.py`:** `evaluate_stability_gate` / `build_gate_snapshot` accept optional `now` for deterministic tests.
+- **`tests/eval/test_desktop_gate_runner.py`:** Uses fixed UTC clocks for G1 and snapshot tests; adds cutoff boundary coverage.
+- **`tests/eval/test_g2_transition_guard.py`:** Covers stale provisional, non-provisional reports, and invalid live rows.
+- **`scripts/field_test.py`:** Module docstring translated to English (repository language policy).
+- **`.github/workflows/ci.yml`:** Quality job runs `pytest tests/eval/` before the main suite for fast gate-regression signal.
+- **`.github/workflows/ci.yml`:** Desktop gate report now emits `premium-autopilot-20.json` artifact from the premium autopilot runner.
+- **`pyproject.toml`:** Ruff and Mypy exclude the vendored `llama_cpp` tree under Nomad Android so local checks match kernel scope.
+- **`src/server/app.py`:** Renamed overlapping `g2_updated` bindings to satisfy Mypy `no-redef` after Ruff format.
+
+## [2026-05-02] Core model audit 118.0 — 20-prompt hardening autopilot
+
+### Added
+- **`scripts/eval/model_audit_runner_20.py`:** Executes a 20-point core-model audit board with machine-verifiable checks and JSON report output.
+- **`tests/eval/test_model_audit_runner_20.py`:** Locks the 20-prompt contract and validates end-to-end audit pass behavior.
+- **`docs/collaboration/MODEL_AUDIT_PROMPTS_20.md`:** Detailed prompt queue for model hardening work executed 1-by-1.
+- **`docs/collaboration/evidence/MODEL_AUDIT_AUTOPILOT_20_REPORT.json`:** Evidence artifact proving `20/20` prompt completion.
+
+### Changed
+- **`src/core/safety.py`:** Hardened base64 payload handling with module-level regex, token-length cap, and narrowed decode exceptions.
+- **`src/core/identity.py`:** Added resilient profile loading/coercion and explicit warning logs for reflection/distillation failures.
+- **`src/core/status.py`:** Added typed callbacks, timeout handling in test execution, and safe stdout-encoding fallback behavior.
+- **`src/core/sleep.py`:** Added reflection latency telemetry (`last_reflection_ms`) plus daemon `stats()` exposure.
+- **`tests/core/test_safety.py`:** Added regressions for invalid/overlong encoded payload handling.
+- **`tests/core/test_identity.py`:** Added malformed JSON load and LLM exception reflection tests.
+- **`tests/core/test_status.py`:** Added timeout-path test coverage for status test runner.
+- **`tests/core/test_sleep.py`:** Added daemon telemetry and activity counter coverage.
+
 ## [2026-05-01] V2.100.0 — Repository truth sync for Flutter-first MVP
 ### Changed
 - **`README.md`:** Reframed project scope to the active product reality (Flutter Desktop MVP + Python kernel), removed stale Android-primary messaging, and documented current quality verification commands.

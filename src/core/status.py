@@ -15,9 +15,11 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from collections.abc import Callable
+from functools import partial
 
 
-def _check(label: str, fn) -> bool:
+def _check(label: str, fn: Callable[[], bool]) -> bool:
     try:
         result = fn()
         symbol = "✅" if result else "❌"
@@ -36,6 +38,10 @@ def _importable(module: str) -> bool:
         return False
 
 
+def _importable_check(module: str) -> bool:
+    return _importable(module)
+
+
 def _ollama_reachable() -> bool:
     import httpx
 
@@ -47,22 +53,26 @@ def _ollama_reachable() -> bool:
 
 
 def _run_tests() -> tuple[bool, str]:
-    r = subprocess.run(
-        [sys.executable, "-m", "pytest", "tests/core/", "-q", "--tb=no"],
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
+    try:
+        r = subprocess.run(
+            [sys.executable, "-m", "pytest", "tests/core/", "-q", "--tb=no"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "timed out (>30s)"
     last_line = r.stdout.strip().split("\n")[-1] if r.stdout.strip() else "no output"
     return r.returncode == 0, last_line
 
 
 def main() -> None:
-    if sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    encoding = (sys.stdout.encoding or "").lower()
+    if encoding not in ("utf-8", "utf8"):
         try:
             sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"  ⚠️ stdout reconfigure skipped: {e}")
 
     print("=" * 50)
     print("  ETHOS 2.0 — Project Status")
@@ -82,13 +92,15 @@ def main() -> None:
         "src.core.user_model",
         "src.core.vault",
     ]
-    core_ok = all(_check(m.split(".")[-1], lambda m=m: _importable(m)) for m in modules)
+    core_ok = all(
+        _check(m.split(".")[-1], partial(_importable_check, m)) for m in modules
+    )
 
     # Sensory modules
     print("\nSensory modules:")
     sensory = ["src.core.stt", "src.core.tts"]
     sensory_ok = all(
-        _check(m.split(".")[-1], lambda m=m: _importable(m)) for m in sensory
+        _check(m.split(".")[-1], partial(_importable_check, m)) for m in sensory
     )
 
     # Tests

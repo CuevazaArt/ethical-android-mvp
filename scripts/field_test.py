@@ -1,10 +1,10 @@
 """
 Ethos 2.0 — Field Test Script
 ==============================
-Prueba de campo automatizada. Requiere servidor corriendo en localhost:8000.
-Ejercita TODOS los subsistemas en secuencia.
+Automated field test. Requires the server on localhost:8000.
+Exercises subsystems in sequence.
 
-Uso:
+Usage:
     # Terminal 1: uvicorn src.server.app:app --port 8000
     # Terminal 2: python scripts/field_test.py
 """

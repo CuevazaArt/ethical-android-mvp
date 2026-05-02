@@ -1,0 +1,60 @@
+{
+  "run_id": "desktop-e2e-demo-20260502T194339Z",
+  "mode": "local-testclient-stt-mocked",
+  "evidence_posture": "G4_EXECUTABLE_LOCAL",
+  "passed": true,
+  "steps": [
+    {
+      "name": "ping",
+      "passed": true,
+      "latency_ms": 1.4576000394299626,
+      "details": {
+        "status_code": 200,
+        "pong": true,
+        "uptime_s": 0
+      }
+    },
+    {
+      "name": "status_before_turn",
+      "passed": true,
+      "latency_ms": 4.305599955841899,
+      "details": {
+        "status_code": 200,
+        "status": "online",
+        "voice_turn_state": "mic_off"
+      }
+    },
+    {
+      "name": "audio_turn",
+      "passed": true,
+      "latency_ms": 1.4773000148124993,
+      "details": {
+        "status_code": 200,
+        "contract": "audio_perception",
+        "transcript_chars": 28,
+        "latency_ms": 0.09
+      }
+    },
+    {
+      "name": "status_after_turn",
+      "passed": true,
+      "latency_ms": 1.8832999630831182,
+      "details": {
+        "status_code": 200,
+        "voice_turn_state": "responding"
+      }
+    },
+    {
+      "name": "voice_turn",
+      "passed": true,
+      "latency_ms": 2.408800006378442,
+      "details": {
+        "status_code": 200,
+        "contract": "voice_turn",
+        "reply_chars": 36,
+        "should_listen": true,
+        "latency_ms": 1.1
+      }
+    }
+  ]
+}

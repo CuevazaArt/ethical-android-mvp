@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from scripts.eval.desktop_gate_runner import (
@@ -17,6 +18,7 @@ def _write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
 
 
 def test_stability_gate_passes_with_14_days(tmp_path: Path) -> None:
+    ref = datetime(2026, 4, 30, 23, 0, 0, tzinfo=UTC)
     rows = [
         {
             "date": f"2026-04-{day:02d}T09:00:00Z",
@@ -28,7 +30,30 @@ def test_stability_gate_passes_with_14_days(tmp_path: Path) -> None:
     ledger = tmp_path / "ledger.jsonl"
     _write_jsonl(ledger, rows)
 
-    result = evaluate_stability_gate(ledger, days=14)
+    result = evaluate_stability_gate(ledger, days=14, now=ref)
+
+    assert result.passed is True
+    assert result.details["covered_days"] == 14
+
+
+def test_stability_gate_excludes_rows_before_cutoff(tmp_path: Path) -> None:
+    """Cutoff is `now - days`; April 16 22:59Z is strictly before April 16 23:00Z cutoff."""
+    ref = datetime(2026, 4, 30, 23, 0, 0, tzinfo=UTC)
+    rows = [
+        {"date": "2026-04-16T22:59:59Z", "status": "pass", "cycle": "desktop-smoke"},
+        *[
+            {
+                "date": f"2026-04-{day:02d}T09:00:00Z",
+                "status": "pass",
+                "cycle": "desktop-smoke",
+            }
+            for day in range(17, 31)
+        ],
+    ]
+    ledger = tmp_path / "ledger.jsonl"
+    _write_jsonl(ledger, rows)
+
+    result = evaluate_stability_gate(ledger, days=14, now=ref)
 
     assert result.passed is True
     assert result.details["covered_days"] == 14
@@ -104,7 +129,8 @@ def test_snapshot_includes_gate_details_shape(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    snapshot = build_gate_snapshot(evidence_dir=evidence)
+    ref = datetime(2026, 4, 30, 23, 0, 0, tzinfo=UTC)
+    snapshot = build_gate_snapshot(evidence_dir=evidence, now=ref)
 
     assert "generated_at" in snapshot
     assert "gates" in snapshot
@@ -131,12 +157,17 @@ def test_snapshot_marks_stale_when_updated_at_missing(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    snapshot = build_gate_snapshot(evidence_dir=evidence)
+    snapshot = build_gate_snapshot(
+        evidence_dir=evidence,
+        now=datetime(2026, 5, 1, 12, 0, 0, tzinfo=UTC),
+    )
 
     assert snapshot["gates"]["G1"]["stale"] is True
 
 
-def test_snapshot_marks_g2_as_in_progress_with_provisional_report(tmp_path: Path) -> None:
+def test_snapshot_marks_g2_as_in_progress_with_provisional_report(
+    tmp_path: Path,
+) -> None:
     evidence = tmp_path / "evidence"
     evidence.mkdir(parents=True, exist_ok=True)
     _write_jsonl(
@@ -166,7 +197,10 @@ def test_snapshot_marks_g2_as_in_progress_with_provisional_report(tmp_path: Path
         encoding="utf-8",
     )
 
-    snapshot = build_gate_snapshot(evidence_dir=evidence)
+    snapshot = build_gate_snapshot(
+        evidence_dir=evidence,
+        now=datetime(2099, 1, 2, 12, 0, 0, tzinfo=UTC),
+    )
 
     g2 = snapshot["gates"]["G2"]
     assert g2["status"] == "in_progress"

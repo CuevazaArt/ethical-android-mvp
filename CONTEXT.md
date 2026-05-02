@@ -698,6 +698,144 @@
   - `G5`: pass
 - Successor chain opened as `116.x` for first next-day coverage gain.
 
+### Execution pulse 116.0 (next-day closure prep loop — tooling)
+
+- Shipped deterministic gate evaluation and hygiene tooling:
+  - `evaluate_stability_gate` / `build_gate_snapshot` accept fixed `now` for tests; desktop gate tests use pinned April 2026 UTC for the 14-day G1 window.
+  - `record_g3_daily_contract_run.run_g3_daily_contract()` is injectable for skip vs append coverage.
+  - `tests/eval/test_g2_transition_guard.py` extended for stale provisional, invalid samples, and `provisional=false`.
+  - Contract shape tests lock `G2_TRANSITION_READINESS.json` and `G3_CADENCE_PLAN.json`.
+  - `scripts/eval/run_gate_maintenance_checklist.py` documents the operator command chain (`--execute` runs it).
+  - `scripts/eval/audit_kernel_ruff_scope.py` matches CI Ruff scope; `pyproject.toml` excludes vendored `llama_cpp` for Ruff/Mypy.
+  - CI `quality` job runs `pytest tests/eval/` before the full matrix.
+- Operational G3 day-coverage increment (`116.1`) still waits on the next UTC calendar day without a recorded run.
+
+### Execution pulse 117.0 (premium autopilot chain — 20 prompts)
+
+- Added executable premium chain:
+  - `scripts/eval/premium_autopilot_20.py`
+  - `docs/collaboration/PREMIUM_AUTOPILOT_PROMPTS_20.md`
+  - `tests/eval/test_premium_autopilot_20.py`
+- Premium chain validates 20 hardening checkpoints (code, tests, CI wiring, docs continuity).
+- Evidence artifact emitted by autopilot run:
+  - `docs/collaboration/evidence/PREMIUM_AUTOPILOT_20_REPORT.json`
+- CI desktop gate report now includes premium autopilot artifact generation:
+  - `gate-reports/premium-autopilot-20.json`
+
+### Execution pulse 128.0 (B2 — MVP closure)
+
+**MVP entregable. Operador no-autor verificado.**
+
+- New `scripts/eval/generate_mvp_closure_report.py` aggregates the gate snapshot, operator demo evidence, transparency posture, and the V2.119–V2.128 ledger.
+- New canonical artifact `docs/collaboration/evidence/MVP_CLOSURE_REPORT.json` (`g2_status=pass`, `g2_mode=text_mediated`, `g2_audio_capture_path=PENDING_HARDWARE`).
+- Definition of done satisfied:
+  1. Operator can clone repo + follow `MVP_OPERATOR_RUNBOOK.md` (§ V2.122).
+  2. ≥3 turn chat in Flutter shell via `/ws/chat` (§ V2.119).
+  3. `Speak` button posts `voice_turn` and renders latency badge (§ V2.121).
+  4. `Why this answer` expander shows MalAbs / action / mode / score / weights / memory (§ V2.123 → V2.126).
+  5. Thumbs +/- persisted into `FEEDBACK_CALIBRATION_LEDGER.jsonl` (§ V2.124).
+  6. Gate scoreboard visible: G1 PASS, G2 PASS (text_mediated), G3 in_progress by calendar, G4 PASS, G5 PASS (§ V2.127).
+- Phase B closed. The whole wave V2.119–V2.128 (Phase A operator demo, Phase C model depth, Phase B gate closure) is committed to `feature/model-dev-V2.119` and ready for L0 review.
+- Coverage: full Python suite 334 green; Flutter shell 12/12; ruff/mypy/invariants clean.
+
+### Execution pulse 127.0 (B1 — G2 reframe: text_mediated PASS path)
+
+- New canonical evidence `docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl` (22 samples, p95=1.97 ms).
+- `desktop_gate_runner.py snapshot` now reports:
+  - `G2.status=pass`, `G2.mode=text_mediated`, `G2.audio_capture_path=PENDING_HARDWARE`, `G2.summary=[text_mediated] p95=1.97ms target<2500.00ms`.
+- `g2_transition_guard.py` exposes `mode` and `text_mediated_sample_count`; `BLOCKED_HARDWARE` no longer prevents progression when text-mediated samples are sufficient.
+- New script `scripts/eval/capture_voice_turn_latency_text.py` supports `--inproc` mode (FastAPI TestClient) so CI and ops can regenerate evidence deterministically without a running server or LLM.
+- Transparency note added to `docs/TRANSPARENCY_AND_LIMITS.md § G2 PASS modes` clearly labels what each mode covers and what remains pending hardware.
+- Coverage: new `tests/eval/test_g2_text_mediated_path.py` (5 cases) + isolated pre-existing transition-guard tests. Full Python suite 332 green.
+
+### Execution pulse 126.0 (C4 — Why-this-answer expander)
+
+- Each Ethos bubble now exposes a `Why this answer` `ExpansionTile` (key `chatWhyExpander`) that renders the decision trace as plain text:
+  - `MalAbs: pass` / `MalAbs: blocked (<reason>)`
+  - `Action: <name> (mode <mode>, score <0.62>)`
+  - `Hypothesis weights: util 0.40, deon 0.35, virtue 0.25`
+  - `Memory: N episode(s) used` + up to 3 bullet summaries.
+- This closes the "auditable" promise: any operator can open the card on any reply and see exactly why Ethos chose what it chose.
+- Coverage: new Flutter widget test taps the expander and asserts each line; suite at 12/12.
+
+**Phase C (Model depth) closed.** Decision trace, Bayesian feedback loop, narrative memory, and human-readable audit card are all live in the desktop shell.
+
+### Execution pulse 125.0 (C3 — narrative memory threaded into chat trace)
+
+- New `_recall_episodes` + `_episode_descriptor` in `src/core/chat.py` give a single source of truth for memory recall per turn.
+- `TurnResult.memory_used` and `build_decision_trace(..., memory_used=...)` now carry compact episode descriptors `{id, summary, context}`; both `metadata` and `done` events of `/ws/chat` plus the `voice_turn` response include them.
+- Flutter chat bubbles render `memory: N episode(s)` chip (key `chatMemoryChip`) when the trace carries non-empty memory.
+- Coverage: new `tests/core/test_chat_memory_injection.py` (4 cases) + extended voice_turn + Flutter widget tests. Full Python suite 327 green; Flutter 11/11.
+
+### Execution pulse 124.0 (C2 — Bayesian posterior_assisted feedback loop)
+
+- New `src/core/feedback.py` with `FeedbackCalibrationLedger`: append-only JSONL ledger plus capped (`±0.10`) `posterior_bias` per action.
+- `EthicalEvaluator` now applies the ledger nudge per action when wired in; `ChatEngine` auto-wires it under `KERNEL_BAYESIAN_MODE=posterior_assisted`.
+- New `POST /api/feedback` records `{turn_id, action, signal: ±1}`; `POST /api/voice_turn` now mints `turn_id` and threads it through the trace so feedback is attributable.
+- Flutter chat bubbles render thumbs-up/thumbs-down per Ethos reply, post to `/api/feedback`, and confirm via snackbar.
+- Coverage: `tests/core/test_feedback_loop.py` (4 cases) + `tests/server/test_feedback_endpoint.py` (5 cases) + new Flutter widget test. Full Python suite 323 green; Flutter 11/11.
+
+### Execution pulse 123.0 (C1 — decision trace surfaced on every reply)
+
+- New `build_decision_trace(...)` returns the same canonical dict for chat WS and voice_turn HTTP paths.
+- `/ws/chat` `metadata`/`done` events and `POST /api/voice_turn` now embed the trace; engine weights flow through so future Bayesian updates surface in the UI without contract drift.
+- Flutter chat bubble renders `mode`, `score`, `verdict`, and `malabs: blocked` chips alongside the existing latency/context.
+- Coverage: new `tests/core/test_decision_trace.py` (5 cases) + extended server and Flutter tests; full suite at 313 + Flutter 10/10.
+
+### Execution pulse 122.0 (A4 — operator runbook + demo runner voice_turn coverage)
+
+- Desktop E2E runner now exercises `POST /api/voice_turn` (5 steps total) with a stubbed LLM and validates envelope contract + latency.
+- New `MVP_OPERATOR_RUNBOOK.md` provides copy-paste steps for a non-author operator to reproduce the full interactive cycle.
+- Evidence artifact `OPERATOR_INTERACTION_DEMO.json` regenerated; CI-equivalent checks (ruff/mypy/pytest 308) pass locally.
+
+**Phase A (Operator demo) closed.** The README promise is now executable: server + Flutter shell + chat WS + push-to-talk + auditable evidence.
+
+### Execution pulse 121.0 (A3 — push-to-talk button in chat panel)
+
+- Chat panel now exposes a `Speak` action that posts a `voice_turn` envelope over HTTP.
+- Replies render with `latency: Xms` and `action: voice_turn` chips; server-side errors surface as blocked bubbles with the explicit error code.
+- Coverage extended in `chat_panel_test.dart` via `MockClient` (success + 400 paths). Flutter suite remains green at 10/10.
+
+### Execution pulse 120.0 (A2 — text-mediated voice_turn endpoint)
+
+- New HTTP capability `POST /api/voice_turn` returns a `DESKTOP_CONTRACT_SPINE_V1` envelope:
+  - `request.utterance` (text), `response.{reply_text, should_listen}`, `error`, `latency_ms`.
+  - Optional `response.audio_b64` when `KERNEL_DESKTOP_TTS=1` (additive, not part of v1 required schema).
+- Implemented via `src/server/desktop_voice_adapter.py` (parse + builders) reusing the audio adapter's `ContractError` and `safe_latency_ms`.
+- Coverage: `tests/server/test_voice_turn_endpoint.py` (10 cases, all green); full server suite still 27/27.
+
+### Execution pulse 119.0 (A1 — chat panel in Flutter desktop shell)
+
+- Flutter shell now exposes a real chat surface bound to `/ws/chat`:
+  - new `src/clients/flutter_desktop_shell/lib/chat_panel.dart` (WS client, streaming bubbles, bounded retry).
+  - `Chat | Diagnostics` segmented selector in `main.dart`, defaulting to Chat.
+- Dedicated widget tests added in `test/chat_panel_test.dart`; existing diagnostics tests switch tabs explicitly so legacy coverage is preserved.
+- Local validation: `flutter test` → 8 passed; collaboration invariants pass.
+
+### Execution pulse 118.0 (core model audit autopilot — 20 prompts)
+
+- Audited and hardened core model runtime paths in:
+  - `src/core/safety.py`
+  - `src/core/identity.py`
+  - `src/core/status.py`
+  - `src/core/sleep.py`
+- Main hardening outcomes:
+  - bounded exception handling and payload-size guard for encoded safety checks;
+  - resilient identity state loading with type coercion and warning logs;
+  - status timeout/encoding safeguards for degraded environments;
+  - psi-sleep latency telemetry (`last_reflection_ms`) and stats exposure.
+- Added regression coverage:
+  - `tests/core/test_safety.py`
+  - `tests/core/test_identity.py`
+  - `tests/core/test_status.py`
+  - `tests/core/test_sleep.py`
+- Added 20-prompt model audit board + checker:
+  - `docs/collaboration/MODEL_AUDIT_PROMPTS_20.md`
+  - `scripts/eval/model_audit_runner_20.py`
+  - `tests/eval/test_model_audit_runner_20.py`
+- Evidence artifact:
+  - `docs/collaboration/evidence/MODEL_AUDIT_AUTOPILOT_20_REPORT.json`
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -36,3 +36,13 @@ async def test_psi_sleep_daemon():
 
     daemon._identity.reflect.assert_called_once()
     assert daemon._unreflected_turns == 0
+    stats = daemon.stats()
+    assert stats["last_reflection_ms"] >= 0.0
+    assert stats["idle_threshold_seconds"] == 0
+
+
+def test_note_activity_increments_turns():
+    daemon = PsiSleepDaemon(idle_threshold_seconds=120)
+    initial = daemon.stats()["unreflected_turns"]
+    daemon.note_activity()
+    assert daemon.stats()["unreflected_turns"] == initial + 1

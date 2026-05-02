@@ -1,6 +1,7 @@
+import subprocess
 from unittest.mock import MagicMock, patch
 
-from src.core.status import _check, _importable, _ollama_reachable
+from src.core.status import _check, _importable, _ollama_reachable, _run_tests
 
 
 def test_check_success():
@@ -44,3 +45,11 @@ def test_ollama_reachable_fail(mock_get):
 def test_ollama_reachable_exception(mock_get):
     mock_get.side_effect = Exception("No connection")
     assert _ollama_reachable() is False
+
+
+@patch("subprocess.run")
+def test_run_tests_handles_timeout(mock_run):
+    mock_run.side_effect = subprocess.TimeoutExpired(cmd="pytest", timeout=30)
+    ok, summary = _run_tests()
+    assert ok is False
+    assert "timed out" in summary

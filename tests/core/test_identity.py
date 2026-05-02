@@ -165,6 +165,28 @@ def test_reset_clears_profile():
     assert identity.narrative() == ""
 
 
+def test_identity_load_handles_malformed_json(tmp_path):
+    bad = tmp_path / "identity_bad.json"
+    bad.write_text("{not json", encoding="utf-8")
+    identity = Identity(storage_path=str(bad))
+    assert identity.as_dict() == {}
+    assert identity.narrative() == ""
+
+
+@pytest.mark.asyncio
+async def test_reflect_handles_llm_exceptions():
+    from unittest.mock import AsyncMock, MagicMock
+
+    identity = _temp_identity()
+    mem = _temp_memory()
+    mem.add("Turno", action="casual_chat", score=0.5, context="everyday_ethics")
+
+    llm = MagicMock()
+    llm.chat = AsyncMock(side_effect=RuntimeError("llm-down"))
+    await identity.reflect(mem, llm)
+    assert identity._journal == []
+
+
 # --- V2.44: Narrative Identity (reflect + journal) ---
 
 

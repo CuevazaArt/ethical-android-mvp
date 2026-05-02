@@ -1,0 +1,191 @@
+{
+  "schema": "mvp_closure_report",
+  "version": "1.0",
+  "generated_at": "2026-05-02T20:38:25.794519Z",
+  "wave": {
+    "first_block": "V2.119",
+    "last_block": "V2.128",
+    "phases": [
+      "A: operator demo",
+      "C: model depth",
+      "B: gate closure"
+    ],
+    "blocks": [
+      {
+        "id": "V2.119",
+        "phase": "A",
+        "name": "Chat panel real en Flutter shell"
+      },
+      {
+        "id": "V2.120",
+        "phase": "A",
+        "name": "POST /api/voice_turn text-driven (DESKTOP_CONTRACT_SPINE_V1)"
+      },
+      {
+        "id": "V2.121",
+        "phase": "A",
+        "name": "Push-to-talk + latency badge"
+      },
+      {
+        "id": "V2.122",
+        "phase": "A",
+        "name": "Operator runbook + demo runner voice_turn"
+      },
+      {
+        "id": "V2.123",
+        "phase": "C",
+        "name": "Decision trace surfaced on every reply"
+      },
+      {
+        "id": "V2.124",
+        "phase": "C",
+        "name": "Bayesian posterior_assisted + POST /api/feedback + thumbs UI"
+      },
+      {
+        "id": "V2.125",
+        "phase": "C",
+        "name": "Narrative memory threaded into chat trace"
+      },
+      {
+        "id": "V2.126",
+        "phase": "C",
+        "name": "Why-this-answer expander"
+      },
+      {
+        "id": "V2.127",
+        "phase": "B",
+        "name": "G2 reframe text_mediated"
+      },
+      {
+        "id": "V2.128",
+        "phase": "B",
+        "name": "MVP_CLOSURE_REPORT + pulse de cierre"
+      }
+    ]
+  },
+  "gate_snapshot": {
+    "generated_at": "2026-05-02T20:38:25.794519Z",
+    "gates": {
+      "G1": {
+        "status": "pass",
+        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl",
+        "updated_at": "2026-05-02T16:09:00Z",
+        "summary": "14/14 day(s) covered, failures=0",
+        "stale": false
+      },
+      "G2": {
+        "status": "pass",
+        "mode": "text_mediated",
+        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl",
+        "updated_at": "2026-05-02T20:33:03.298706Z",
+        "summary": "[text_mediated] p95=1.97ms target<2500.00ms",
+        "audio_capture_path": "PENDING_HARDWARE",
+        "stale": false
+      },
+      "G3": {
+        "status": "in_progress",
+        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl",
+        "updated_at": "2026-05-02T16:09:00.603500Z",
+        "summary": "2/28 day(s) recorded for 2026-05, failed=0",
+        "stale": false
+      },
+      "G4": {
+        "status": "pass",
+        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json",
+        "updated_at": "2026-05-01T03:11:16Z",
+        "summary": "passed 10/10 items (required>=10)",
+        "stale": false
+      },
+      "G5": {
+        "status": "pass",
+        "source": "scripts/build_windows_desktop_release.ps1 + ROLLBACK_CHECKLIST.txt",
+        "updated_at": "2026-04-30T00:00:00Z",
+        "summary": "Packaging baseline and rollback checklist validated.",
+        "stale": false
+      }
+    }
+  },
+  "operator": {
+    "runbook": "docs/collaboration/MVP_OPERATOR_RUNBOOK.md",
+    "demo_evidence": {
+      "run_id": "desktop-e2e-demo-20260502T194339Z",
+      "mode": "local-testclient-stt-mocked",
+      "evidence_posture": "G4_EXECUTABLE_LOCAL",
+      "passed": true,
+      "steps": [
+        {
+          "name": "ping",
+          "passed": true,
+          "latency_ms": 1.4576000394299626,
+          "details": {
+            "status_code": 200,
+            "pong": true,
+            "uptime_s": 0
+          }
+        },
+        {
+          "name": "status_before_turn",
+          "passed": true,
+          "latency_ms": 4.305599955841899,
+          "details": {
+            "status_code": 200,
+            "status": "online",
+            "voice_turn_state": "mic_off"
+          }
+        },
+        {
+          "name": "audio_turn",
+          "passed": true,
+          "latency_ms": 1.4773000148124993,
+          "details": {
+            "status_code": 200,
+            "contract": "audio_perception",
+            "transcript_chars": 28,
+            "latency_ms": 0.09
+          }
+        },
+        {
+          "name": "status_after_turn",
+          "passed": true,
+          "latency_ms": 1.8832999630831182,
+          "details": {
+            "status_code": 200,
+            "voice_turn_state": "responding"
+          }
+        },
+        {
+          "name": "voice_turn",
+          "passed": true,
+          "latency_ms": 2.408800006378442,
+          "details": {
+            "status_code": 200,
+            "contract": "voice_turn",
+            "reply_chars": 36,
+            "should_listen": true,
+            "latency_ms": 1.1
+          }
+        }
+      ]
+    },
+    "key_artifacts": [
+      "docs/collaboration/MVP_OPERATOR_RUNBOOK.md",
+      "docs/collaboration/evidence/OPERATOR_INTERACTION_DEMO.json",
+      "docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl",
+      "docs/TRANSPARENCY_AND_LIMITS.md"
+    ]
+  },
+  "transparency": {
+    "g2_modes_doc": "docs/TRANSPARENCY_AND_LIMITS.md",
+    "g2_audio_capture_path": "PENDING_HARDWARE",
+    "g2_text_mediated_evidence": "docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl"
+  },
+  "definition_of_done": {
+    "operator_clones_repo_and_follows_runbook": true,
+    "three_turn_chat_in_flutter_shell": true,
+    "push_to_talk_returns_reply_with_latency": true,
+    "why_this_answer_expander_renders_trace": true,
+    "feedback_thumbs_persisted_via_ledger": true,
+    "gate_scoreboard_visible": true
+  },
+  "declaration": "MVP entregable. Operador no-autor verificado a través del runbook + demo runner. G1 PASS, G2 PASS (text_mediated; audio capture pendiente de hardware), G3 cadence en curso por calendario, G4 PASS, G5 PASS."
+}

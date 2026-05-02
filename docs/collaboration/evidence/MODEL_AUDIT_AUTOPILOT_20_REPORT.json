@@ -1,0 +1,292 @@
+{
+  "track": "model-audit-autopilot-20",
+  "schema_version": "1",
+  "total_prompts": 20,
+  "passed_prompts": 20,
+  "failed_prompts": 0,
+  "all_passed": true,
+  "prompts": [
+    {
+      "id": "M01",
+      "title": "Safety import hardening",
+      "prompt": "Add explicit decode exception support in safety gate.",
+      "check_kind": "contains",
+      "target": "src/core/safety.py",
+      "needle": "import binascii"
+    },
+    {
+      "id": "M02",
+      "title": "Safety base64 regex hoist",
+      "prompt": "Move base64 regex to module scope.",
+      "check_kind": "contains",
+      "target": "src/core/safety.py",
+      "needle": "_BASE64_PATTERN = re.compile"
+    },
+    {
+      "id": "M03",
+      "title": "Safety payload length guard",
+      "prompt": "Skip excessively long base64 tokens.",
+      "check_kind": "contains",
+      "target": "src/core/safety.py",
+      "needle": "_MAX_BASE64_TOKEN_LENGTH"
+    },
+    {
+      "id": "M04",
+      "title": "Safety targeted exceptions",
+      "prompt": "Replace broad except with bounded decode exceptions.",
+      "check_kind": "contains",
+      "target": "src/core/safety.py",
+      "needle": "except (binascii.Error, ValueError):"
+    },
+    {
+      "id": "M05",
+      "title": "Safety invalid base64 test",
+      "prompt": "Add test ensuring invalid payload does not crash.",
+      "check_kind": "contains",
+      "target": "tests/core/test_safety.py",
+      "needle": "test_safety_ignores_invalid_base64_without_crash"
+    },
+    {
+      "id": "M06",
+      "title": "Safety long base64 test",
+      "prompt": "Add test for overlong encoded token skip path.",
+      "check_kind": "contains",
+      "target": "tests/core/test_safety.py",
+      "needle": "test_safety_skips_overlong_base64_tokens"
+    },
+    {
+      "id": "M07",
+      "title": "Identity logger injection",
+      "prompt": "Add module logger for identity fallback paths.",
+      "check_kind": "contains",
+      "target": "src/core/identity.py",
+      "needle": "_log = logging.getLogger(__name__)"
+    },
+    {
+      "id": "M08",
+      "title": "Identity list coercion",
+      "prompt": "Sanitize loaded JSON lists into string-only lists.",
+      "check_kind": "contains",
+      "target": "src/core/identity.py",
+      "needle": "def _coerce_str_list"
+    },
+    {
+      "id": "M09",
+      "title": "Identity load type checks",
+      "prompt": "Harden identity load against malformed payload types.",
+      "check_kind": "contains",
+      "target": "src/core/identity.py",
+      "needle": "if isinstance(data, dict):"
+    },
+    {
+      "id": "M10",
+      "title": "Identity load warning",
+      "prompt": "Log warning when profile load fails.",
+      "check_kind": "contains",
+      "target": "src/core/identity.py",
+      "needle": "Identity profile load failed"
+    },
+    {
+      "id": "M11",
+      "title": "Identity reflect warning",
+      "prompt": "Log warning when LLM reflection fails.",
+      "check_kind": "contains",
+      "target": "src/core/identity.py",
+      "needle": "Identity reflection failed"
+    },
+    {
+      "id": "M12",
+      "title": "Identity chronicle warning",
+      "prompt": "Log warning when chronicle distillation fails.",
+      "check_kind": "contains",
+      "target": "src/core/identity.py",
+      "needle": "Chronicle distillation failed"
+    },
+    {
+      "id": "M13",
+      "title": "Identity archetype warning",
+      "prompt": "Log warning when archetype distillation fails.",
+      "check_kind": "contains",
+      "target": "src/core/identity.py",
+      "needle": "Archetype distillation failed"
+    },
+    {
+      "id": "M14",
+      "title": "Identity malformed JSON test",
+      "prompt": "Add regression test for malformed identity file.",
+      "check_kind": "contains",
+      "target": "tests/core/test_identity.py",
+      "needle": "test_identity_load_handles_malformed_json"
+    },
+    {
+      "id": "M15",
+      "title": "Identity reflect exception test",
+      "prompt": "Add regression test for LLM reflection exceptions.",
+      "check_kind": "contains",
+      "target": "tests/core/test_identity.py",
+      "needle": "test_reflect_handles_llm_exceptions"
+    },
+    {
+      "id": "M16",
+      "title": "Status callable typing",
+      "prompt": "Type _check callback for static safety.",
+      "check_kind": "contains",
+      "target": "src/core/status.py",
+      "needle": "Callable[[], bool]"
+    },
+    {
+      "id": "M17",
+      "title": "Status timeout handling",
+      "prompt": "Handle subprocess timeout cleanly in status self-test.",
+      "check_kind": "contains",
+      "target": "src/core/status.py",
+      "needle": "except subprocess.TimeoutExpired:"
+    },
+    {
+      "id": "M18",
+      "title": "Status stdout encoding guard",
+      "prompt": "Avoid None encoding attribute errors.",
+      "check_kind": "contains",
+      "target": "src/core/status.py",
+      "needle": "encoding = (sys.stdout.encoding or \"\").lower()"
+    },
+    {
+      "id": "M19",
+      "title": "Sleep latency telemetry",
+      "prompt": "Record reflection latency in ms and clamp non-finite values.",
+      "check_kind": "contains",
+      "target": "src/core/sleep.py",
+      "needle": "self._last_reflection_ms"
+    },
+    {
+      "id": "M20",
+      "title": "Sleep telemetry tests",
+      "prompt": "Add stats and note_activity tests for sleep daemon.",
+      "check_kind": "contains",
+      "target": "tests/core/test_sleep.py",
+      "needle": "test_note_activity_increments_turns"
+    }
+  ],
+  "results": [
+    {
+      "id": "M01",
+      "title": "Safety import hardening",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M02",
+      "title": "Safety base64 regex hoist",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M03",
+      "title": "Safety payload length guard",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M04",
+      "title": "Safety targeted exceptions",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M05",
+      "title": "Safety invalid base64 test",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M06",
+      "title": "Safety long base64 test",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M07",
+      "title": "Identity logger injection",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M08",
+      "title": "Identity list coercion",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M09",
+      "title": "Identity load type checks",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M10",
+      "title": "Identity load warning",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M11",
+      "title": "Identity reflect warning",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M12",
+      "title": "Identity chronicle warning",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M13",
+      "title": "Identity archetype warning",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M14",
+      "title": "Identity malformed JSON test",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M15",
+      "title": "Identity reflect exception test",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M16",
+      "title": "Status callable typing",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M17",
+      "title": "Status timeout handling",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M18",
+      "title": "Status stdout encoding guard",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M19",
+      "title": "Sleep latency telemetry",
+      "passed": true,
+      "evidence": "needle found"
+    },
+    {
+      "id": "M20",
+      "title": "Sleep telemetry tests",
+      "passed": true,
+      "evidence": "needle found"
+    }
+  ]
+}

@@ -813,35 +813,42 @@ Use this fixed structure in each planning handoff:
 - **Demo:** scoreboard refreshed and aligned with `G2` blocked-by-hardware + `G3` cadence loop status.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 116.0: Next-day closure prep loop [PENDING]**
+**Bloque 116.0: Next-day closure prep loop [DONE ✅]**
 - **Goal:** Prepare deterministic next-day execution so `G3` can advance day coverage at first UTC opportunity.
-- **Files:** cadence runner/evidence checkpoints.
-- **Demo:** next due execution window and commands are explicit; gate artifacts remain fresh and truthful.
+- **Files:** `scripts/eval/desktop_gate_runner.py`, `scripts/eval/record_g3_daily_contract_run.py`, `tests/eval/*`, `scripts/eval/run_gate_maintenance_checklist.py`, `pyproject.toml`, `.github/workflows/ci.yml`.
+- **Demo:** fixed-clock G1 tests; G3 skip/append tests; G2 transition edge cases; evidence JSON contract tests; maintenance checklist script; CI eval harness step; vendor `llama_cpp` excluded from Ruff/Mypy kernel scope.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 116.0 — Next-day closure prep loop
+[SIGUIENTE] Bloque 118.0 — Core model audit autopilot (20 prompts)
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Hold gate discipline today and convert into immediate next-day evidence gain.
-[HECHO CUANDO] Next UTC run appends a new G3 day and scoreboard remains synchronized.
+[MOTIVO] Harden core runtime reliability using bounded exception paths and regression tests.
+[HECHO CUANDO] `scripts/eval/model_audit_runner_20.py` reports `20/20` passed.
 
-### Sprint prompts (116.x chain)
+### Sprint prompts (118.x model-audit chain, 20 prompts)
 
-[SIGUIENTE] Bloque 116.1 — G3 new-day append execution
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Capture first available new UTC day for no-drift cadence coverage.
-[HECHO CUANDO] `covered_days` increases by +1 with zero failures.
-
-[SIGUIENTE] Bloque 116.2 — G2 hardware unblock watch refresh
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep transition status current while waiting for mic/camera availability.
-[HECHO CUANDO] Transition report is refreshed and still explicit about blocker or readiness.
-
-[SIGUIENTE] Bloque 116.3 — Gate scoreboard checkpoint
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep gate progress auditable at each cadence cycle.
-[HECHO CUANDO] Context/plan/changelog align on 116.x execution and successor queue.
+[SIGUIENTE] Bloque 118.1 — Safety base64 hardening  
+[SIGUIENTE] Bloque 118.2 — Safety overlong token guard  
+[SIGUIENTE] Bloque 118.3 — Safety invalid payload regression  
+[SIGUIENTE] Bloque 118.4 — Identity load type guards  
+[SIGUIENTE] Bloque 118.5 — Identity malformed storage resilience  
+[SIGUIENTE] Bloque 118.6 — Identity reflection warning paths  
+[SIGUIENTE] Bloque 118.7 — Chronicle warning paths  
+[SIGUIENTE] Bloque 118.8 — Archetype warning paths  
+[SIGUIENTE] Bloque 118.9 — Identity regression tests  
+[SIGUIENTE] Bloque 118.10 — Status callable typing  
+[SIGUIENTE] Bloque 118.11 — Status timeout resilience  
+[SIGUIENTE] Bloque 118.12 — Status encoding fallback guard  
+[SIGUIENTE] Bloque 118.13 — Status timeout test  
+[SIGUIENTE] Bloque 118.14 — Sleep latency telemetry  
+[SIGUIENTE] Bloque 118.15 — Sleep telemetry API  
+[SIGUIENTE] Bloque 118.16 — Sleep note_activity test  
+[SIGUIENTE] Bloque 118.17 — 20-prompt model audit board  
+[SIGUIENTE] Bloque 118.18 — 20-prompt machine check runner  
+[SIGUIENTE] Bloque 118.19 — Audit evidence report generation  
+[SIGUIENTE] Bloque 118.20 — Core+eval targeted regression suite  
+[HECHO CUANDO] Model audit evidence is committed with all prompts marked PASS.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

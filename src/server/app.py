@@ -16,7 +16,11 @@ from typing import Any
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
-from src.core.chat import ChatEngine
+from src.core.chat import ChatEngine, build_decision_trace
+from src.core.feedback import (
+    FeedbackCalibrationLedger,
+    is_posterior_assisted_enabled,
+)
 from src.core.memory import Memory
 from src.core.perception import SensoryBuffer
 from src.core.sleep import PsiSleepDaemon
@@ -32,6 +36,11 @@ from src.server.desktop_audio_adapter import (
     safe_latency_ms,
 )
 from src.server.desktop_video_adapter import DesktopVideoAdapter
+from src.server.desktop_voice_adapter import (
+    build_voice_turn_error_envelope,
+    build_voice_turn_success_envelope,
+    parse_voice_turn_payload,
+)
 from src.server.mesh_server import router as mesh_router
 
 logging.basicConfig(level=logging.INFO)
@@ -83,6 +92,7 @@ _last_latency: dict | None = None  # V2.19: Store last latency globally
 _sleep_daemon = PsiSleepDaemon(idle_threshold_seconds=120)  # V2.76: Psi-Sleep
 _voice_turn_state = "mic_off"
 _voice_turn_state_at = time.time()
+_feedback_ledger = FeedbackCalibrationLedger()
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _EVIDENCE_DIR = _REPO_ROOT / "docs" / "collaboration" / "evidence"
 
@@ -206,9 +216,15 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         max_age_hours=24,
     )
 
-    g2_provisional_source = "docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json"
-    g2_provisional_payload = _read_json(_EVIDENCE_DIR / "G2_PROVISIONAL_LATENCY_REPORT.json")
-    if isinstance(g2_provisional_payload, dict) and bool(g2_provisional_payload.get("provisional")):
+    g2_provisional_source = (
+        "docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json"
+    )
+    g2_provisional_payload = _read_json(
+        _EVIDENCE_DIR / "G2_PROVISIONAL_LATENCY_REPORT.json"
+    )
+    if isinstance(g2_provisional_payload, dict) and bool(
+        g2_provisional_payload.get("provisional")
+    ):
         try:
             p95 = float(g2_provisional_payload.get("p95_ms"))
             target = float(g2_provisional_payload.get("target_p95_ms", 2500.0))
@@ -217,7 +233,9 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
             p95 = float("nan")
             target = float("nan")
             sample_count = 0
-        g2_updated = _parse_iso_utc(str(g2_provisional_payload.get("generated_at", "")))
+        g2_prov_updated = _parse_iso_utc(
+            str(g2_provisional_payload.get("generated_at", ""))
+        )
         if math.isfinite(p95) and p95 >= 0.0 and math.isfinite(target) and target > 0.0:
             g2 = "in_progress"
             g2_summary = (
@@ -230,7 +248,7 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         details["G2"] = _gate_detail(
             status=g2,
             source=g2_provisional_source,
-            updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
+            updated_at=_to_iso_utc(g2_prov_updated) if g2_prov_updated else None,
             summary=g2_summary,
             max_age_hours=24 * 7,
         )
@@ -238,11 +256,11 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         g2_source = "docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl"
         g2_rows = _read_jsonl(_EVIDENCE_DIR / "VOICE_TURN_LATENCY_SAMPLES.jsonl")
         totals = []
-        g2_updated: datetime | None = None
+        g2_live_updated: datetime | None = None
         for row in g2_rows:
             ts = _parse_iso_utc(str(row.get("captured_at", "")))
-            if ts is not None and (g2_updated is None or ts > g2_updated):
-                g2_updated = ts
+            if ts is not None and (g2_live_updated is None or ts > g2_live_updated):
+                g2_live_updated = ts
             try:
                 total = float(row.get("total_ms", 0.0))
             except (TypeError, ValueError):
@@ -262,7 +280,7 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         details["G2"] = _gate_detail(
             status=g2,
             source=g2_source,
-            updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
+            updated_at=_to_iso_utc(g2_live_updated) if g2_live_updated else None,
             summary=g2_summary,
             max_age_hours=24 * 7,
         )
@@ -465,6 +483,212 @@ async def api_audio_perception(request: Request):
         latency_ms,
     )
     return JSONResponse(envelope, status_code=200)
+
+
+@app.post("/api/voice_turn")
+async def api_voice_turn(request: Request):
+    """V2.120 (A2): text-mediated voice_turn endpoint.
+
+    Conforms to `DESKTOP_CONTRACT_SPINE_V1.md`. Drives a single ChatEngine turn
+    on the supplied utterance and returns the generated reply with end-to-end
+    latency, so G2 can be measured on hardware without microphone capture.
+
+    When `KERNEL_DESKTOP_TTS=1`, the response also embeds a base64 audio payload
+    synthesized through the existing TTS adapter. The audio field is additive
+    and not part of contract v1's required schema.
+    """
+    import os as _os
+
+    t0 = time.perf_counter()
+    try:
+        payload = await request.json()
+    except Exception:
+        envelope = build_voice_turn_error_envelope(
+            request_payload={},
+            error=ContractError(
+                code="INVALID_JSON",
+                message="Request body must be valid JSON.",
+                retryable=False,
+            ),
+            latency_ms=safe_latency_ms(t0),
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    parsed, parse_error = parse_voice_turn_payload(payload)
+    if parse_error is not None:
+        request_payload = (
+            payload.get("request", {}) if isinstance(payload, dict) else {}
+        )
+        if not isinstance(request_payload, dict):
+            request_payload = {}
+        envelope = build_voice_turn_error_envelope(
+            request_payload=request_payload,
+            error=parse_error,
+            latency_ms=safe_latency_ms(t0),
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    assert parsed is not None
+    engine = ChatEngine()
+    ready = await engine.start()
+    if not ready:
+        envelope = build_voice_turn_error_envelope(
+            request_payload=parsed.request_payload,
+            error=ContractError(
+                code="LLM_UNAVAILABLE",
+                message="Local LLM backend is not reachable.",
+                retryable=True,
+            ),
+            latency_ms=safe_latency_ms(t0),
+        )
+        await engine.close()
+        return JSONResponse(envelope, status_code=503)
+
+    _set_voice_turn_state("responding")
+    turn_id = f"voice-{int(time.time() * 1000)}"
+    blocked = False
+    blocked_reason: str | None = None
+    try:
+        result = await engine.turn(parsed.utterance)
+        reply_text = (result.message or "").strip()
+        if isinstance(result.perception_raw, dict) and result.perception_raw.get(
+            "blocked"
+        ):
+            blocked = True
+            blocked_reason = str(result.perception_raw.get("reason") or "safety")
+        trace = build_decision_trace(
+            signals=result.signals,
+            evaluation=result.evaluation,
+            blocked=blocked,
+            blocked_reason=blocked_reason,
+            weights=engine.ethics.weights,
+            turn_id=turn_id,
+            memory_used=getattr(result, "memory_used", []) or [],
+        )
+    except Exception as exc:
+        _log.error("[VoiceTurn] turn failed: %s", exc)
+        envelope = build_voice_turn_error_envelope(
+            request_payload=parsed.request_payload,
+            error=ContractError(
+                code="TURN_FAILED",
+                message=f"Turn execution failed: {exc.__class__.__name__}",
+                retryable=True,
+            ),
+            latency_ms=safe_latency_ms(t0),
+        )
+        await engine.close()
+        _set_voice_turn_state("mic_off")
+        return JSONResponse(envelope, status_code=500)
+
+    audio_b64: str | None = None
+    if _os.environ.get("KERNEL_DESKTOP_TTS", "0") == "1" and reply_text and not blocked:
+        try:
+            audio_bytes = await synthesize(reply_text)
+            if audio_bytes:
+                audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+        except Exception as exc:
+            _log.warning("[VoiceTurn] TTS synthesis failed: %s", exc)
+
+    await engine.close()
+    _set_voice_turn_state("mic_off")
+
+    latency_ms = safe_latency_ms(t0)
+    envelope = build_voice_turn_success_envelope(
+        request_payload=parsed.request_payload,
+        reply_text=reply_text,
+        should_listen=not blocked,
+        latency_ms=latency_ms,
+        audio_b64=audio_b64,
+    )
+    envelope["response"]["trace"] = trace
+    _log.info(
+        "[VoiceTurn] ok | utterance_len=%s | reply_len=%s | latency_ms=%.2f | blocked=%s",
+        len(parsed.utterance),
+        len(reply_text),
+        latency_ms,
+        blocked,
+    )
+    return JSONResponse(envelope, status_code=200)
+
+
+@app.post("/api/feedback")
+async def api_feedback(request: Request):
+    """V2.124 (C2): record a thumbs-up/-down for a chat or voice_turn reply.
+
+    Request body (`application/json`):
+
+    ```json
+    {"turn_id": "voice-1717123456789", "action": "comfort_user", "signal": 1}
+    ```
+
+    The signal is `1` (positive) or `-1` (negative). When the kernel runs in
+    `KERNEL_BAYESIAN_MODE=posterior_assisted`, the next chat or voice_turn
+    will pick up a small, capped score nudge for the action via the feedback
+    ledger.
+    """
+
+    try:
+        payload = await request.json()
+    except Exception:
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": {
+                    "code": "INVALID_JSON",
+                    "message": "Body must be valid JSON.",
+                },
+            },
+            status_code=400,
+        )
+
+    if not isinstance(payload, dict):
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": {
+                    "code": "INVALID_PAYLOAD",
+                    "message": "Body must be a JSON object.",
+                },
+            },
+            status_code=400,
+        )
+
+    action = str(payload.get("action") or "").strip()
+    turn_id = str(payload.get("turn_id") or "").strip()
+    raw_signal = payload.get("signal")
+    try:
+        signal = int(raw_signal)
+    except (TypeError, ValueError):
+        signal = 0
+    if not action or signal not in (1, -1):
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": {
+                    "code": "INVALID_FEEDBACK",
+                    "message": "Provide action (str) and signal (1 or -1).",
+                },
+            },
+            status_code=400,
+        )
+
+    weights_at_time = payload.get("weights_at_time")
+    if not isinstance(weights_at_time, list):
+        weights_at_time = None
+    accepted = _feedback_ledger.record(
+        turn_id=turn_id or "unknown",
+        action=action,
+        signal=signal,
+        weights_at_time=weights_at_time,
+    )
+    posterior_assisted = is_posterior_assisted_enabled()
+    return JSONResponse(
+        {
+            "ok": bool(accepted),
+            "posterior_assisted": posterior_assisted,
+            "stats": _feedback_ledger.stats(action),
+        }
+    )
 
 
 @app.get("/nomad/")

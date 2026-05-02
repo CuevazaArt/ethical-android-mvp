@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from typing import Any
 
 from src.core.memory import _EMBEDDINGS_AVAILABLE
 from src.core.precedents import PRECEDENTS, Precedent
@@ -151,10 +152,17 @@ class EthicalEvaluator:
     Three-pole ethical evaluator.
 
     Simple, transparent, auditable. No hidden layers.
+
+    V2.124 (C2): when a `FeedbackCalibrationLedger` is supplied (and the
+    ``posterior_assisted`` mode is active), each candidate action receives a
+    small, capped score nudge from accumulated user thumbs feedback. The
+    nudge is bounded so feedback can refine but never override the deterministic
+    pole calculus.
     """
 
-    def __init__(self, weights: dict | None = None):
+    def __init__(self, weights: dict | None = None, ledger: Any | None = None):
         self.weights = weights or WEIGHTS.copy()
+        self.ledger = ledger
 
     def score_action(self, action: Action, signals: Signals) -> tuple[float, dict]:
         """Score a single action. Returns (weighted_score, pole_breakdown)."""
@@ -284,6 +292,15 @@ class EthicalEvaluator:
                 # Anchor the score towards the precedent's impact score
                 score = 0.7 * score + 0.3 * precedent.impact_score
                 a.source = f"precedent:{precedent.name}"
+
+            # V2.124 (C2): posterior-assisted nudge from feedback ledger.
+            if self.ledger is not None:
+                try:
+                    nudge = float(self.ledger.posterior_bias(a.name))
+                except Exception:
+                    nudge = 0.0
+                if math.isfinite(nudge):
+                    score = score + nudge
 
             scored.append((a, score, poles, precedent))
 

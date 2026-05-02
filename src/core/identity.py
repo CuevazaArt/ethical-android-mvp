@@ -23,6 +23,7 @@ Single file. No depende de nada externo. Zero embeddings.
 from __future__ import annotations
 
 import json
+import logging
 import math
 import os
 import time
@@ -32,6 +33,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.core.memory import Memory
+
+_log = logging.getLogger(__name__)
 
 
 class Identity:
@@ -62,15 +65,32 @@ class Identity:
             if p.exists():
                 with open(p, encoding="utf-8") as f:
                     data = json.load(f)
-                    self._profile = data.get("profile", {})
-                    self._journal = data.get("journal", [])
-                    self._chronicle = data.get("chronicle", [])
-                    self._archetype = data.get("archetype", "")
-        except Exception:
+                    if isinstance(data, dict):
+                        self._profile = (
+                            data.get("profile", {})
+                            if isinstance(data.get("profile", {}), dict)
+                            else {}
+                        )
+                        self._journal = self._coerce_str_list(data.get("journal", []))
+                        self._chronicle = self._coerce_str_list(
+                            data.get("chronicle", [])
+                        )
+                        archetype = data.get("archetype", "")
+                        self._archetype = (
+                            archetype if isinstance(archetype, str) else ""
+                        )
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            _log.warning("Identity profile load failed, using defaults.", exc_info=True)
             self._profile = {}
             self._journal = []
             self._chronicle = []
             self._archetype = ""
+
+    @staticmethod
+    def _coerce_str_list(value: object) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        return [item for item in value if isinstance(item, str)]
 
     def _save(self) -> None:
         p = Path(self._path)
@@ -191,8 +211,8 @@ class Identity:
 
                 self._save()
         except Exception:
-            # Silently fail if LLM is unavailable; we keep using the old journal or fallback
-            pass
+            # LLM may be transiently unavailable; preserve existing identity state.
+            _log.warning("Identity reflection failed.", exc_info=True)
 
     async def _distill_to_chronicle(self, entries: list[str], llm_client) -> None:
         """
@@ -219,7 +239,7 @@ class Identity:
                     self._chronicle = self._chronicle[3:]
                     await self._distill_to_archetype(to_distill, llm_client)
         except Exception:
-            pass
+            _log.warning("Chronicle distillation failed.", exc_info=True)
 
     async def _distill_to_archetype(self, entries: list[str], llm_client) -> None:
         """
@@ -252,7 +272,7 @@ class Identity:
             if archetype:
                 self._archetype = archetype.strip()
         except Exception:
-            pass
+            _log.warning("Archetype distillation failed.", exc_info=True)
 
     def narrative(self) -> str:
         """

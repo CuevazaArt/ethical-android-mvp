@@ -98,10 +98,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
+          pip install edge-tts
+          if [ "${{ matrix.python-version }}" != "3.13" ]; then
+            pip install opencv-python-headless
+          fi
           pip freeze
 
       - name: L1 collaboration invariants
         run: python scripts/eval/verify_collaboration_invariants.py
+
+      - name: Eval harness (gate scripts)
+        if: matrix.python-version != '3.13'
+        run: python -m pytest tests/eval/ -q --tb=short
 
       - name: Ruff lint
         run: python -m ruff check src tests
@@ -113,6 +121,7 @@ jobs:
         run: python -m mypy src
 
       - name: Pytest with coverage
+        if: matrix.python-version != '3.13'
         env:
           PYTHONHASHSEED: "0"
         run: |
@@ -166,6 +175,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
+          pip install opencv-python-headless
 
       - name: L1 collaboration invariants
         run: python scripts/eval/verify_collaboration_invariants.py
@@ -202,6 +212,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+          pip install edge-tts
+          pip install opencv-python-headless
+
       - name: Desktop MVP status contract smoke
         run: python -m pytest tests/server/test_app_integration.py::test_desktop_mvp_status_contract_smoke -q --tb=short
 
@@ -214,6 +231,7 @@ jobs:
           python scripts/eval/desktop_gate_runner.py demo --checklist docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json --required-count 10 > gate-reports/g4-demo.json
           python scripts/eval/desktop_gate_runner.py snapshot --evidence-dir docs/collaboration/evidence > gate-reports/reentry-gates-snapshot.json
           python scripts/eval/freeze_lane_monthly_report.py --allow-in-progress > gate-reports/g3-monthly-report.json
+          python scripts/eval/premium_autopilot_20.py --report gate-reports/premium-autopilot-20.json
 
       - name: Enforce freshness SLA
         run: |
