@@ -462,6 +462,28 @@
 - Closed `107.x` chain with local validation still green (`flutter test` + invariants).
 - Queued next software-only chain as `108.x`.
 
+### Execution pulse 108.0 (microcopy/affordance kickoff)
+
+- Opened and executed bounded `108.x` software-only chain.
+- Scope focused on low-friction diagnostics interactions and consistent microcopy.
+
+### Execution pulse 108.1 (empty-state CTA polish)
+
+- Added in-card diagnostics CTA button (`Run check now`) when no diagnostics events are visible.
+- CTA mirrors operator intent directly from diagnostics surface (no panel switching required).
+
+### Execution pulse 108.2 (feedback microcopy pass)
+
+- Added `_setDiagnosticsMessage(...)` helper to centralize diagnostics feedback copy.
+- Export/pin actions now use one feedback assignment path with consistent `Diagnostics: ...` prefix.
+
+### Execution pulse 108.3 (software-lane checkpoint)
+
+- Closed `108.x` chain with local validation still green:
+  - `flutter test`,
+  - collaboration invariants.
+- Queued successor software-only chain as `109.x`.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

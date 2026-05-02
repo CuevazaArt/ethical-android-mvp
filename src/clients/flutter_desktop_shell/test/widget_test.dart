@@ -59,6 +59,7 @@ void main() {
       find.text('Tip: use Check now to seed a fresh diagnostics sample.'),
       findsOneWidget,
     );
+    expect(find.text('Run check now'), findsOneWidget);
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
     expect(

@@ -1024,6 +1024,23 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                 ),
               )
             else
+              const SizedBox.shrink(),
+            if (visibleEvents.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: FilledButton.icon(
+                  onPressed: _manualProbeInFlight
+                      ? null
+                      : () {
+                          unawaited(_runManualProbe());
+                        },
+                  icon: const Icon(Icons.play_circle_outline_rounded, size: 16),
+                  label: Text(
+                    _manualProbeInFlight ? 'Checking...' : 'Run check now',
+                  ),
+                ),
+              )
+            else
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: visibleEvents.map((event) {
@@ -1241,19 +1258,9 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     final String snapshot = _buildDiagnosticsSnapshot(events);
     try {
       await Clipboard.setData(ClipboardData(text: snapshot));
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: snapshot copied.';
-      });
+      _setDiagnosticsMessage('snapshot copied.');
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: snapshot copy failed.';
-      });
+      _setDiagnosticsMessage('snapshot copy failed.');
     }
   }
 
@@ -1262,31 +1269,15 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         .where((event) => event.severity == _DiagnosticSeverity.high)
         .toList(growable: false);
     if (highEvents.isEmpty) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: no high-severity events to export.';
-      });
+      _setDiagnosticsMessage('no high-severity events to export.');
       return;
     }
     final String snapshot = _buildBlockedSummary(highEvents);
     try {
       await Clipboard.setData(ClipboardData(text: snapshot));
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: high-severity summary copied.';
-      });
+      _setDiagnosticsMessage('high-severity summary copied.');
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage =
-            'Diagnostics: high-severity summary copy failed.';
-      });
+      _setDiagnosticsMessage('high-severity summary copy failed.');
     }
   }
 
@@ -1294,19 +1285,9 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     final String note = _buildIncidentNote(visibleEvents);
     try {
       await Clipboard.setData(ClipboardData(text: note));
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: incident note copied.';
-      });
+      _setDiagnosticsMessage('incident note copied.');
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: incident note copy failed.';
-      });
+      _setDiagnosticsMessage('incident note copy failed.');
     }
   }
 
@@ -1318,10 +1299,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       return;
     }
     if (highEvents.isEmpty) {
-      setState(() {
-        _diagnosticsActionMessage =
-            'Diagnostics: no high-severity event available to pin.';
-      });
+      _setDiagnosticsMessage('no high-severity event available to pin.');
       return;
     }
     final _DiagnosticEvent latest = highEvents.first;
@@ -1345,20 +1323,19 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   Future<void> _copyPinnedHighEvent() async {
     try {
       await Clipboard.setData(ClipboardData(text: _pinnedHighEventNote));
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: pinned note copied.';
-      });
+      _setDiagnosticsMessage('pinned note copied.');
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _diagnosticsActionMessage = 'Diagnostics: pinned note copy failed.';
-      });
+      _setDiagnosticsMessage('pinned note copy failed.');
     }
+  }
+
+  void _setDiagnosticsMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _diagnosticsActionMessage = 'Diagnostics: $message';
+    });
   }
 
   String _buildDiagnosticsSnapshot(List<_DiagnosticEvent> events) {

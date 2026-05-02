@@ -301,6 +301,24 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `107.x` as done and queued `108.0` successor chain.
 
+## [2026-05-02] V2.108.0 — Diagnostics microcopy and affordance kickoff
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked kickoff done and executed chained `108.x` sequence.
+
+## [2026-05-02] V2.108.1 — Diagnostics empty-state CTA polish
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Run check now` CTA in diagnostics empty-state.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertion for empty-state CTA.
+
+## [2026-05-02] V2.108.2 — Diagnostics feedback microcopy pass
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `_setDiagnosticsMessage(...)` helper and normalized diagnostics feedback assignment through a single path.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Existing feedback assertions remain valid under normalized microcopy handling.
+
+## [2026-05-02] V2.108.3 — Software-lane checkpoint
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `108.x` as done and queued `109.0` successor software-only chain.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
