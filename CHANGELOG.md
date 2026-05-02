@@ -283,6 +283,24 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.6`-`106.9` as done and queued `107.0` software mini-wave kickoff.
 
+## [2026-05-02] V2.107.0 — Diagnostics mini-wave kickoff
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked kickoff done and opened/closed bounded `107.x` software-only sequence.
+
+## [2026-05-02] V2.107.1 — Empty-state guidance polish
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added actionable diagnostics empty-state tip for operator next action.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertion for empty-state guidance text.
+
+## [2026-05-02] V2.107.2 — Diagnostics feedback tone normalization
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Normalized diagnostics feedback strings to consistent `Diagnostics: ...` tone.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Updated baseline assertion to match normalized diagnostics idle feedback.
+
+## [2026-05-02] V2.107.3 — Software-lane checkpoint
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `107.x` as done and queued `108.0` successor chain.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

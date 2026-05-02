@@ -51,10 +51,14 @@ void main() {
     expect(find.text('Pin actions'), findsOneWidget);
     expect(find.text('Pinned high event note'), findsOneWidget);
     expect(find.text('No pinned high event.'), findsOneWidget);
-    expect(find.text('No diagnostics export yet.'), findsOneWidget);
+    expect(find.text('Diagnostics: no export yet.'), findsOneWidget);
     expect(find.text('Short'), findsOneWidget);
     expect(find.text('Medium'), findsOneWidget);
     expect(find.text('No diagnostics events yet.'), findsOneWidget);
+    expect(
+      find.text('Tip: use Check now to seed a fresh diagnostics sample.'),
+      findsOneWidget,
+    );
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
     expect(

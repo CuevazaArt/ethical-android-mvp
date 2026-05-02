@@ -71,7 +71,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   bool _hasServerVoiceState = false;
   bool _payloadHasFocus = false;
   String _payloadActionMessage = 'No payload action yet.';
-  String _diagnosticsActionMessage = 'No diagnostics export yet.';
+  String _diagnosticsActionMessage = 'Diagnostics: no export yet.';
   String _pinnedHighEventNote = 'No pinned high event.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
@@ -1014,6 +1014,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
+              ),
+            if (visibleEvents.isEmpty)
+              Text(
+                'Tip: use Check now to seed a fresh diagnostics sample.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
               )
             else
               Column(
@@ -1237,14 +1245,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'Diagnostics snapshot copied.';
+        _diagnosticsActionMessage = 'Diagnostics: snapshot copied.';
       });
     } catch (_) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'Unable to copy diagnostics snapshot.';
+        _diagnosticsActionMessage = 'Diagnostics: snapshot copy failed.';
       });
     }
   }
@@ -1258,7 +1266,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'No high-severity events to export.';
+        _diagnosticsActionMessage = 'Diagnostics: no high-severity events to export.';
       });
       return;
     }
@@ -1269,14 +1277,15 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'High-severity summary copied.';
+        _diagnosticsActionMessage = 'Diagnostics: high-severity summary copied.';
       });
     } catch (_) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'Unable to copy high-severity summary.';
+        _diagnosticsActionMessage =
+            'Diagnostics: high-severity summary copy failed.';
       });
     }
   }
@@ -1289,14 +1298,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'Incident note copied.';
+        _diagnosticsActionMessage = 'Diagnostics: incident note copied.';
       });
     } catch (_) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'Unable to copy incident note.';
+        _diagnosticsActionMessage = 'Diagnostics: incident note copy failed.';
       });
     }
   }
@@ -1310,7 +1319,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     }
     if (highEvents.isEmpty) {
       setState(() {
-        _diagnosticsActionMessage = 'No high-severity event available to pin.';
+        _diagnosticsActionMessage =
+            'Diagnostics: no high-severity event available to pin.';
       });
       return;
     }
@@ -1318,7 +1328,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     setState(() {
       _pinnedHighEventNote =
           'Pinned high event: ${latest.at.toIso8601String()} :: ${latest.message}';
-      _diagnosticsActionMessage = 'Pinned latest high-severity event.';
+      _diagnosticsActionMessage = 'Diagnostics: latest high-severity event pinned.';
     });
   }
 
@@ -1328,7 +1338,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     }
     setState(() {
       _pinnedHighEventNote = 'No pinned high event.';
-      _diagnosticsActionMessage = 'Pinned event cleared.';
+      _diagnosticsActionMessage = 'Diagnostics: pinned event cleared.';
     });
   }
 
@@ -1339,14 +1349,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'Pinned note copied.';
+        _diagnosticsActionMessage = 'Diagnostics: pinned note copied.';
       });
     } catch (_) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _diagnosticsActionMessage = 'Unable to copy pinned note.';
+        _diagnosticsActionMessage = 'Diagnostics: pinned note copy failed.';
       });
     }
   }

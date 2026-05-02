@@ -597,35 +597,59 @@ Use this fixed structure in each planning handoff:
 - **Demo:** chain completion and next software-only successor block are synchronized.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 107.0: Diagnostics mini-wave kickoff [PENDING]**
+**Bloque 107.0: Diagnostics mini-wave kickoff [DONE ✅]**
 - **Goal:** Open the next software-only UX mini-wave after 106.6-106.9 closure.
 - **Files:** context/plan checkpoint.
 - **Demo:** next chain is explicit and ready for autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 107.1: Diagnostics empty-state guidance polish [DONE ✅]**
+- **Goal:** Clarify operator next actions when diagnostics list is empty.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** empty diagnostics state now includes actionable guidance text.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 107.2: Diagnostics feedback tone normalization [DONE ✅]**
+- **Goal:** Keep action feedback messages concise and consistent for faster scanning.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** diagnostics feedback messages now follow a consistent `Diagnostics: ...` verbal pattern.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 107.3: Software-lane checkpoint [DONE ✅]**
+- **Goal:** Close the mini-wave with explicit scope and validation posture.
+- **Files:** context/plan/changelog.
+- **Demo:** 107.x completion and queued successor block are synchronized.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 108.0: Diagnostics microcopy and affordance kickoff [PENDING]**
+- **Goal:** Open next software-only UX pass focused on clarity and low-friction interactions.
+- **Files:** context/plan checkpoint.
+- **Demo:** bounded prompt chain is ready for sequential autopilot execution.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 107.0 — Diagnostics mini-wave kickoff
+[SIGUIENTE] Bloque 108.0 — Diagnostics microcopy and affordance kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Maintain software-only momentum with another bounded UX chain.
-[HECHO CUANDO] New mini-wave prompts are documented in strict execution order.
+[MOTIVO] Continue software-only velocity with bounded UI clarity upgrades.
+[HECHO CUANDO] Next prompt chain is explicit and queued in deterministic order.
 
-### Sprint prompts (107.x chain)
+### Sprint prompts (108.x chain)
 
-[SIGUIENTE] Bloque 107.1 — Diagnostics empty-state guidance polish
+[SIGUIENTE] Bloque 108.1 — Diagnostics empty-state CTA polish
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Clarify operator next actions when diagnostics list is empty.
-[HECHO CUANDO] Empty-state text is more actionable and covered by widget baseline assertions.
+[MOTIVO] Improve readability and operator guidance when diagnostics are idle.
+[HECHO CUANDO] Empty-state and guidance copy are concise, actionable, and test-covered.
 
-[SIGUIENTE] Bloque 107.2 — Diagnostics feedback tone normalization
+[SIGUIENTE] Bloque 108.2 — Diagnostics feedback microcopy pass
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep action feedback messages concise and consistent for faster scanning.
-[HECHO CUANDO] Diagnostics action messages follow one consistent verbal pattern.
+[MOTIVO] Refine wording consistency across copy/export/pin actions.
+[HECHO CUANDO] Feedback strings are normalized and validated by widget assertions.
 
-[SIGUIENTE] Bloque 107.3 — Software-lane checkpoint
+[SIGUIENTE] Bloque 108.3 — Software-lane checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Close the mini-wave with explicit scope and validation posture.
-[HECHO CUANDO] Context/plan/changelog align on 107.x completion and next queued block.
+[MOTIVO] Close mini-wave with explicit scope and readiness for the next UX slice.
+[HECHO CUANDO] Context/plan/changelog align on 108.x completion and successor queue.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

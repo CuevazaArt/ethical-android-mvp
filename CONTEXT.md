@@ -440,6 +440,28 @@
 - Closed `106.6`-`106.9` mini-wave with local validation still green (`flutter test` + invariants).
 - Next queue opened as `107.x` software-only chain while hardware lane remains paused.
 
+### Execution pulse 107.0 (mini-wave kickoff)
+
+- Opened and executed bounded software-only mini-wave (`107.1` to `107.3`) under autopilot.
+- Scope remained strictly UI/UX diagnostics polish with no hardware/backend dependency.
+
+### Execution pulse 107.1 (empty-state guidance polish)
+
+- Empty diagnostics state now includes explicit operator hint:
+  - use `Check now` to seed a fresh diagnostics sample.
+- Baseline widget assertions updated to lock this guidance text.
+
+### Execution pulse 107.2 (feedback tone normalization)
+
+- Diagnostics feedback messages normalized into one pattern:
+  - `Diagnostics: ...`
+- This reduces message-style drift across snapshot/blocked/incident/pin actions.
+
+### Execution pulse 107.3 (software-lane checkpoint)
+
+- Closed `107.x` chain with local validation still green (`flutter test` + invariants).
+- Queued next software-only chain as `108.x`.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
