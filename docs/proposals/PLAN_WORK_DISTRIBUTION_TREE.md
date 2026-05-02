@@ -741,35 +741,59 @@ Use this fixed structure in each planning handoff:
 - **Demo:** checkpoint now reports gate posture (`G1/G2/G3 in_progress`, `G4/G5 pass`) and queues successor chain.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 113.0: Gate stability sprint kickoff [PENDING]**
+**Bloque 113.0: Gate stability sprint kickoff [DONE ✅]**
 - **Goal:** Open next gate-driven sprint focused on converting provisional/in-progress gates into deterministic closure evidence.
 - **Files:** context/plan checkpoint.
-- **Demo:** ordered successor chain is explicit for autopilot execution.
+- **Demo:** sprint executed in-order with gate evidence updates for `G1` and `G3`.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 113.1: G1 stability ledger acceleration [DONE ✅]**
+- **Goal:** Move G1 from rolling deficit to closure-ready coverage.
+- **Files:** eval smoke runner + stability ledger evidence.
+- **Demo:** `G1` now reaches `14/14` coverage with no failures (`pass` in snapshot).
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 113.2: G3 no-drift execution cadence [DONE ✅]**
+- **Goal:** Reduce month-window gap for contract no-drift gate progression.
+- **Files:** monthly report runner + G3 history evidence.
+- **Demo:** new monthly run appended with `exit_code=0`; `G3` coverage increased (`2/28` run-days).
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 113.3: Gate scoreboard checkpoint [DONE ✅]**
+- **Goal:** Close sprint with explicit gate movement and successor readiness.
+- **Files:** context/plan/changelog + gate snapshot artifact.
+- **Demo:** scoreboard snapshot exported with current state (`G1/G4/G5 pass`, `G2/G3 in_progress`).
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 114.0: Gate closure sprint kickoff [PENDING]**
+- **Goal:** Open successor sprint focused on converting remaining in-progress gates to closure posture.
+- **Files:** context/plan checkpoint.
+- **Demo:** successor chain is explicit and executable in autopilot.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 113.0 — Gate stability sprint kickoff
+[SIGUIENTE] Bloque 114.0 — Gate closure sprint kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Continue gate-first execution to close remaining `in_progress` gates.
+[MOTIVO] Continue gate-first execution on remaining `G2` and `G3` in-progress items.
 [HECHO CUANDO] New successor chain is documented in strict execution order.
 
-### Sprint prompts (113.x chain)
+### Sprint prompts (114.x chain)
 
-[SIGUIENTE] Bloque 113.1 — G1 stability ledger acceleration
+[SIGUIENTE] Bloque 114.1 — G2 provisional-to-live transition prep
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Move G1 from rolling deficit to closure-ready coverage.
-[HECHO CUANDO] Stability evidence reaches required day coverage without failures.
+[MOTIVO] Keep provisional latency lane explicit while preparing eventual live hardware switch.
+[HECHO CUANDO] Transition checklist and evidence hooks are codified without false PASS claims.
 
-[SIGUIENTE] Bloque 113.2 — G3 no-drift execution cadence
+[SIGUIENTE] Bloque 114.2 — G3 cadence reinforcement
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Reduce month-window gap for contract no-drift gate progression.
-[HECHO CUANDO] G3 evidence records deterministic run cadence with zero failures.
+[MOTIVO] Increase monthly no-drift day coverage with deterministic recurring runs.
+[HECHO CUANDO] G3 evidence shows monotonic day growth and zero failures.
 
-[SIGUIENTE] Bloque 113.3 — Gate scoreboard checkpoint
+[SIGUIENTE] Bloque 114.3 — Gate scoreboard checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
 [MOTIVO] Close sprint with explicit gate movement and successor readiness.
-[HECHO CUANDO] Context/plan/changelog align on 113.x completion and queued successor block.
+[HECHO CUANDO] Context/plan/changelog align on 114.x completion and queued successor block.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

@@ -583,6 +583,43 @@
   - `G5`: pass (packaging + rollback validated)
 - Successor chain opened as `113.x`, focused on moving `G1` and `G3` toward closure.
 
+### Execution pulse 113.0 (gate stability sprint kickoff)
+
+- Executed full `113.x` gate sprint in-order under autopilot.
+- Scope remained gate-first (`G1` and `G3` evidence progression), with no diagnostics-card expansion.
+
+### Execution pulse 113.1 (G1 stability ledger acceleration)
+
+- Added reproducible G1 smoke recorder:
+  - `scripts/eval/record_desktop_stability_smoke.py`
+- Added test coverage:
+  - `tests/eval/test_record_desktop_stability_smoke.py`
+- Appended new stability ledger row for current day:
+  - `docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl`
+- Gate snapshot now reports:
+  - `G1 = pass` (`14/14 day(s) covered, failures=0`).
+
+### Execution pulse 113.2 (G3 no-drift execution cadence)
+
+- Executed one additional G3 no-drift run via:
+  - `scripts/eval/freeze_lane_monthly_report.py --record-run --allow-in-progress`
+- G3 history now includes a new zero-failure run-day:
+  - `docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl`
+- Snapshot reflects deterministic progress:
+  - `G3 = in_progress` (`2/28 day(s), failed=0`).
+
+### Execution pulse 113.3 (gate scoreboard checkpoint)
+
+- Exported explicit gate scoreboard artifact:
+  - `docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`
+- Current posture after `113.x`:
+  - `G1`: pass
+  - `G2`: in_progress (PROVISIONAL synthetic evidence)
+  - `G3`: in_progress
+  - `G4`: pass
+  - `G5`: pass
+- Successor chain opened as `114.x` for remaining in-progress gates.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

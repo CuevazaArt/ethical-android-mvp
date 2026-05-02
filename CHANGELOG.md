@@ -399,6 +399,30 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `112.2` and `112.3` done, recorded gate scoreboard state, and queued `113.0` successor gate sprint.
 
+## [2026-05-02] V2.113.0 — Gate stability sprint kickoff
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Marked `113.x` sprint kickoff done and executed gate-first chain focused on `G1`/`G3` evidence movement.
+
+## [2026-05-02] V2.113.1 — G1 stability ledger acceleration
+### Added
+- **`scripts/eval/record_desktop_stability_smoke.py`:** New executable G1 smoke recorder that appends daily desktop stability evidence rows.
+- **`tests/eval/test_record_desktop_stability_smoke.py`:** Unit coverage for smoke recorder success path.
+
+### Changed
+- **`docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl`:** Added fresh smoke entry for current day, closing 14/14 rolling stability coverage.
+
+## [2026-05-02] V2.113.2 — G3 no-drift execution cadence
+### Changed
+- **`docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl`:** Appended new zero-failure run-day using `freeze_lane_monthly_report.py --record-run`.
+- **`scripts/eval/freeze_lane_monthly_report.py` workflow usage:** Reinforced deterministic monthly cadence without claiming premature PASS.
+
+## [2026-05-02] V2.113.3 — Gate scoreboard checkpoint
+### Added
+- **`docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`:** Persisted gate snapshot artifact for auditable checkpoint state.
+
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `113.x` done, logged gate movement (`G1` pass; `G2`/`G3` in_progress), and queued `114.0`.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
