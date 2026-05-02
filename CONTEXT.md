@@ -324,6 +324,20 @@
 - Physical attempt decision: **NO-GO** (deterministic), with mitigation owner kept in hardware lane for rerun unblock.
 - Next step is `105.2`: hardware procurement/connection checkpoint before the next physical execution.
 
+### Execution pulse 105.2 (hardware procurement checkpoint)
+
+- Added executable preflight tool:
+  - `scripts/eval/perception_hardware_preflight.py`
+  - writes `docs/collaboration/evidence/PERCEPTION_HARDWARE_PREFLIGHT.json`.
+- Preflight report currently shows:
+  - `camera_count = 0`,
+  - `microphone_count = 0`,
+  - `audio_endpoint_count = 2`,
+  - `preflight_ready = false`.
+- Added tests for preflight readiness logic:
+  - `tests/eval/test_perception_hardware_preflight.py`.
+- Next gate is `105.3`: physical rerun once preflight flips to ready.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

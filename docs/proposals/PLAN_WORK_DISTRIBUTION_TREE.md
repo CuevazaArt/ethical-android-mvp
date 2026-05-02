@@ -513,18 +513,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** physical-attempt evidence payload validated by rubric with deterministic `NO-GO` due missing capture devices.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 105.2: Pilot-1 hardware procurement checkpoint [PENDING]**
+**Bloque 105.2: Pilot-1 hardware procurement checkpoint [DONE ✅]**
 - **Goal:** Convert physical-attempt blockers into a minimal procurement/connection checklist for rerun.
 - **Files:** context/plan checkpoint.
-- **Demo:** rerun prerequisites (mic/camera/headset path) are explicit and operator-ready.
+- **Demo:** executable preflight report now lists mic/camera/audio availability and exposes rerun blockers deterministically.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 105.3: Pilot-1 physical rerun gate [PENDING]**
+- **Goal:** Re-run pilot once preflight reports ready=true and capture updated evidence decision.
+- **Files:** evidence JSON + context/plan checkpoint.
+- **Demo:** validated rerun evidence with decision progression from previous NO-GO baseline.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 105.2 — Pilot-1 hardware procurement checkpoint
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Physical attempt confirmed missing capture path; next step is explicit unblock checklist before rerun.
-[HECHO CUANDO] Hardware prerequisites and connection validation steps are documented for the next physical pilot run.
+[SIGUIENTE] Bloque 105.3 — Pilot-1 physical rerun gate
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Procurement checkpoint now has executable preflight output; next step requires actual hardware-connected rerun.
+[HECHO CUANDO] Preflight is ready and a new validated pilot evidence payload is recorded.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

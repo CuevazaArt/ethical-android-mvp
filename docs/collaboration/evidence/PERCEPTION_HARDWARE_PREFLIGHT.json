@@ -1,0 +1,23 @@
+{
+  "captured_at": "2026-05-02T04:55:41.448669Z",
+  "camera_devices": [],
+  "audio_endpoints": [
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Roku TV (NVIDIA High Definition Audio)"
+    },
+    {
+      "Status": "OK",
+      "Class": "AudioEndpoint",
+      "FriendlyName": "Panasonic-TV (NVIDIA High Definition Audio)"
+    }
+  ],
+  "microphone_devices": [],
+  "preflight_ready": false,
+  "summary": {
+    "camera_count": 0,
+    "audio_endpoint_count": 2,
+    "microphone_count": 0
+  }
+}

@@ -213,6 +213,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/collaboration/evidence/PERCEPTION_PILOT_1_PHYSICAL_RUN.json`:** Added physical-attempt pilot evidence payload with deterministic `NO-GO` outcome due missing capture path.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.1` as done and queued `105.2` hardware procurement checkpoint.
 
+## [2026-05-02] V2.105.2 — Hardware procurement checkpoint tooling
+### Changed
+- **`scripts/eval/perception_hardware_preflight.py`:** Added executable Windows preflight to report camera/microphone/audio-endpoint readiness for pilot reruns.
+- **`tests/eval/test_perception_hardware_preflight.py`:** Added readiness/not-ready unit coverage for preflight decision logic.
+- **`docs/collaboration/evidence/PERCEPTION_HARDWARE_PREFLIGHT.json`:** Added current hardware readiness snapshot (`preflight_ready=false` in this environment).
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.2` as done and queued `105.3` physical rerun gate.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
