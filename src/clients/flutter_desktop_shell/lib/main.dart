@@ -72,6 +72,8 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   bool _payloadHasFocus = false;
   String _payloadActionMessage = 'No payload action yet.';
   String _diagnosticsActionMessage = 'Diagnostics: idle.';
+  _DiagnosticsFeedbackTone _diagnosticsFeedbackTone =
+      _DiagnosticsFeedbackTone.info;
   String _pinnedHighEventNote = 'No pinned high event.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
@@ -933,11 +935,20 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               ],
             ),
             const SizedBox(height: 6),
-            Text(
-              _diagnosticsActionMessage,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _ConnectionBadge(data: _diagnosticsFeedbackBadge(theme)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _diagnosticsActionMessage,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             DecoratedBox(
@@ -1010,17 +1021,9 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             const SizedBox(height: 10),
             if (visibleEvents.isEmpty)
               Text(
-                'No events yet.',
+                'No events yet. Use Check now to seed diagnostics.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            if (visibleEvents.isEmpty)
-              Text(
-                'Tip: run Check now to seed diagnostics.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
                 ),
               )
             else
@@ -1258,9 +1261,15 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     final String snapshot = _buildDiagnosticsSnapshot(events);
     try {
       await Clipboard.setData(ClipboardData(text: snapshot));
-      _setDiagnosticsMessage('snapshot copied.');
+      _setDiagnosticsMessage(
+        'snapshot copied.',
+        tone: _DiagnosticsFeedbackTone.success,
+      );
     } catch (_) {
-      _setDiagnosticsMessage('snapshot copy failed.');
+      _setDiagnosticsMessage(
+        'snapshot copy failed.',
+        tone: _DiagnosticsFeedbackTone.alert,
+      );
     }
   }
 
@@ -1269,15 +1278,24 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         .where((event) => event.severity == _DiagnosticSeverity.high)
         .toList(growable: false);
     if (highEvents.isEmpty) {
-      _setDiagnosticsMessage('no high events to export.');
+      _setDiagnosticsMessage(
+        'no high events to export.',
+        tone: _DiagnosticsFeedbackTone.info,
+      );
       return;
     }
     final String snapshot = _buildBlockedSummary(highEvents);
     try {
       await Clipboard.setData(ClipboardData(text: snapshot));
-      _setDiagnosticsMessage('high summary copied.');
+      _setDiagnosticsMessage(
+        'high summary copied.',
+        tone: _DiagnosticsFeedbackTone.success,
+      );
     } catch (_) {
-      _setDiagnosticsMessage('high summary copy failed.');
+      _setDiagnosticsMessage(
+        'high summary copy failed.',
+        tone: _DiagnosticsFeedbackTone.alert,
+      );
     }
   }
 
@@ -1285,9 +1303,15 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     final String note = _buildIncidentNote(visibleEvents);
     try {
       await Clipboard.setData(ClipboardData(text: note));
-      _setDiagnosticsMessage('incident note copied.');
+      _setDiagnosticsMessage(
+        'incident note copied.',
+        tone: _DiagnosticsFeedbackTone.success,
+      );
     } catch (_) {
-      _setDiagnosticsMessage('incident note copy failed.');
+      _setDiagnosticsMessage(
+        'incident note copy failed.',
+        tone: _DiagnosticsFeedbackTone.alert,
+      );
     }
   }
 
@@ -1299,7 +1323,10 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       return;
     }
     if (highEvents.isEmpty) {
-      _setDiagnosticsMessage('no high event available to pin.');
+      _setDiagnosticsMessage(
+        'no high event available to pin.',
+        tone: _DiagnosticsFeedbackTone.info,
+      );
       return;
     }
     final _DiagnosticEvent latest = highEvents.first;
@@ -1307,6 +1334,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       _pinnedHighEventNote =
           'Pinned high event: ${latest.at.toIso8601String()} :: ${latest.message}';
       _diagnosticsActionMessage = 'Diagnostics: latest high event pinned.';
+      _diagnosticsFeedbackTone = _DiagnosticsFeedbackTone.success;
     });
   }
 
@@ -1317,25 +1345,59 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     setState(() {
       _pinnedHighEventNote = 'No pinned high event.';
       _diagnosticsActionMessage = 'Diagnostics: pinned event cleared.';
+      _diagnosticsFeedbackTone = _DiagnosticsFeedbackTone.info;
     });
   }
 
   Future<void> _copyPinnedHighEvent() async {
     try {
       await Clipboard.setData(ClipboardData(text: _pinnedHighEventNote));
-      _setDiagnosticsMessage('pinned note copied.');
+      _setDiagnosticsMessage(
+        'pinned note copied.',
+        tone: _DiagnosticsFeedbackTone.success,
+      );
     } catch (_) {
-      _setDiagnosticsMessage('pinned note copy failed.');
+      _setDiagnosticsMessage(
+        'pinned note copy failed.',
+        tone: _DiagnosticsFeedbackTone.alert,
+      );
     }
   }
 
-  void _setDiagnosticsMessage(String message) {
+  void _setDiagnosticsMessage(
+    String message, {
+    _DiagnosticsFeedbackTone tone = _DiagnosticsFeedbackTone.info,
+  }) {
     if (!mounted) {
       return;
     }
     setState(() {
       _diagnosticsActionMessage = 'Diagnostics: $message';
+      _diagnosticsFeedbackTone = tone;
     });
+  }
+
+  _StatusBadgeData _diagnosticsFeedbackBadge(ThemeData theme) {
+    switch (_diagnosticsFeedbackTone) {
+      case _DiagnosticsFeedbackTone.info:
+        return _StatusBadgeData(
+          label: 'INFO',
+          textColor: theme.colorScheme.onSurfaceVariant,
+          bgColor: theme.colorScheme.surfaceContainerHighest,
+        );
+      case _DiagnosticsFeedbackTone.success:
+        return _StatusBadgeData(
+          label: 'OK',
+          textColor: theme.colorScheme.secondary,
+          bgColor: theme.colorScheme.secondary.withValues(alpha: 0.16),
+        );
+      case _DiagnosticsFeedbackTone.alert:
+        return _StatusBadgeData(
+          label: 'ALERT',
+          textColor: theme.colorScheme.error,
+          bgColor: theme.colorScheme.error.withValues(alpha: 0.16),
+        );
+    }
   }
 
   String _buildDiagnosticsSnapshot(List<_DiagnosticEvent> events) {
@@ -1862,6 +1924,8 @@ class _DiagnosticEvent {
 enum _DiagnosticFilter { all, transport, manual }
 
 enum _DiagnosticSeverity { high, medium, low }
+
+enum _DiagnosticsFeedbackTone { info, success, alert }
 
 enum _DiagnosticSeverityFilter {
   all(null),

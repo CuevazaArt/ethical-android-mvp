@@ -337,6 +337,24 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `109.x` as done and queued `110.0` successor chain.
 
+## [2026-05-02] V2.110.0 — Diagnostics UX chain kickoff
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked kickoff done and executed `110.x` software-only diagnostics chain.
+
+## [2026-05-02] V2.110.1 — Diagnostics action feedback hierarchy
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added diagnostics feedback status badge hierarchy (`INFO`/`OK`/`ALERT`) while preserving concise feedback copy.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertion for diagnostics feedback hierarchy marker.
+
+## [2026-05-02] V2.110.2 — Diagnostics empty-state affordance trim
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Collapsed idle diagnostics guidance into one actionable line and retained direct `Run check now` CTA.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Updated idle-state guidance assertion to match condensed copy.
+
+## [2026-05-02] V2.110.3 — Software-lane checkpoint
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `110.x` as done and queued `111.0` successor chain.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
