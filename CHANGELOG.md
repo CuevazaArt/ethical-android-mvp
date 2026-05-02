@@ -201,6 +201,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added `104.0` to `104.4` execution pulses: synthetic evidence seed, incident taxonomy lock, deterministic go/no-go rubric lock, and pilot lane handoff checkpoint.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `104.0`-`104.4` as done and advanced sequence to `105.0` controlled hardware run with balanced potency.
 
+## [2026-05-01] V2.105.0 — Controlled pilot evidence run
+### Changed
+- **`scripts/eval/perception_pilot_evidence_validator.py`:** Added rubric validator for pilot evidence payloads and declared-vs-computed decision matching.
+- **`tests/eval/test_perception_pilot_evidence_validator.py`:** Added unit tests for GO / GO-WITH-CONSTRAINTS / NO-GO and required-field enforcement.
+- **`docs/collaboration/evidence/PERCEPTION_PILOT_1_CONTROLLED_RUN.json`:** Added first controlled pilot evidence payload with deterministic `NO-GO` result.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.0` as done and queued `105.1` physical hardware execution.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

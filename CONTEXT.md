@@ -305,6 +305,16 @@
   - ambient-noise sensitivity for intelligibility scoring.
 - Next execution owner: single operator in autopilot lane, using locked checklist + evidence template + rubric.
 
+### Execution pulse 105.0 (controlled pilot run evidence)
+
+- Added executable evidence validator: `scripts/eval/perception_pilot_evidence_validator.py`.
+- Added unit coverage: `tests/eval/test_perception_pilot_evidence_validator.py`.
+- Generated controlled pilot evidence payload:
+  - `docs/collaboration/evidence/PERCEPTION_PILOT_1_CONTROLLED_RUN.json`
+  - validated with `--require-decision-match`.
+- Controlled run decision: **NO-GO** (expected) due missing physical mic/camera path and unstable capture envelope.
+- Next step is `105.1`: physical hardware execution with the same validator/rubric to update decision status.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

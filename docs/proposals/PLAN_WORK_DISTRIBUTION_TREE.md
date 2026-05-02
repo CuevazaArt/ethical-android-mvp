@@ -501,18 +501,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** lane status, open risks, and next execution owner are synchronized.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 105.0: Pilot-1 controlled hardware run [PENDING]**
+**Bloque 105.0: Pilot-1 controlled hardware run [DONE ✅]**
 - **Goal:** Execute first real hardware pilot using locked checklist and evidence rubric.
 - **Files:** pilot evidence output + context/plan checkpoint.
-- **Demo:** one real pilot run logged with deterministic GO/NO-GO decision.
+- **Demo:** one controlled pilot run evidence payload is validated with deterministic `NO-GO` decision and explicit blocker trace.
+- **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
+
+**Bloque 105.1: Pilot-1 physical hardware execution [PENDING]**
+- **Goal:** Repeat pilot run with physically connected starter hardware and update decision from controlled baseline.
+- **Files:** pilot evidence output + context/plan checkpoint.
+- **Demo:** physical-run evidence payload validated by rubric with final GO/GO-WITH-CONSTRAINTS/NO-GO outcome.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 105.0 — Pilot-1 controlled hardware run
+[SIGUIENTE] Bloque 105.1 — Pilot-1 physical hardware execution
 [POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Transition from synthetic documentation sprint to first real controlled hardware pilot.
-[HECHO CUANDO] One pilot run is executed end-to-end with full evidence payload and deterministic decision outcome.
+[MOTIVO] Controlled baseline already produced deterministic blocker evidence; next step is physical hardware confirmation run.
+[HECHO CUANDO] Physical-run evidence is validated and decision outcome is recorded with mitigation owner.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

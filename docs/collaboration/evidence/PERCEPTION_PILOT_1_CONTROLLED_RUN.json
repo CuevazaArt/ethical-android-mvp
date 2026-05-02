@@ -1,0 +1,47 @@
+{
+  "run_metadata": {
+    "run_id": "perception-pilot-1-controlled-20260501T070500Z",
+    "operator": "automation-runner",
+    "desktop_profile": "win32-local",
+    "hardware_ids": {
+      "mic": "not-connected",
+      "camera": "not-connected",
+      "headset": "usb-wired-generic"
+    },
+    "mode": "controlled-no-hardware"
+  },
+  "input_conditions": {
+    "room_noise": "office-low",
+    "lighting": "office-normal",
+    "desk_distance": "0.8m",
+    "sample_duration_min": 15
+  },
+  "core_metrics": {
+    "capture_disconnect_count": 1,
+    "dropped_frame_burst_count": 2,
+    "speech_intelligibility_score": 2,
+    "latency_within_target": false,
+    "rollback_pass": true
+  },
+  "incidents": [
+    {
+      "id": "pilot1-inc-01",
+      "category": "capture_disconnect",
+      "severity": "HIGH",
+      "timestamp": "2026-05-01T07:06:10Z",
+      "note": "No active physical mic/camera path available."
+    },
+    {
+      "id": "pilot1-inc-02",
+      "category": "latency_spike",
+      "severity": "MED",
+      "timestamp": "2026-05-01T07:07:42Z",
+      "note": "Observed unstable envelope in controlled mode."
+    }
+  ],
+  "decision": {
+    "result": "NO-GO",
+    "next_action_owner": "operator-hardware-lane",
+    "reason": "Physical hardware path unavailable; criteria for GO are not met."
+  }
+}
