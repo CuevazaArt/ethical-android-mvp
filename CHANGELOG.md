@@ -238,6 +238,11 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for blocked-summary action presence and diagnostics feedback update.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.5` as postponed due hardware constraints and opened software-only continuation lane (`106.1`).
 
+## [2026-05-02] V2.106.1 — Software-lane continuation checkpoint
+### Changed
+- **`CONTEXT.md`:** Added checkpoint confirming hardware-lane postponement and active Flutter diagnostics-only delivery scope.
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.1` as done and queued `106.2` quick incident-note export.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

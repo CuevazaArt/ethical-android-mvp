@@ -543,18 +543,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics card now includes `Copy blocked summary` action with deterministic feedback.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 106.1: Flutter diagnostics lane continuation checkpoint [PENDING]**
+**Bloque 106.1: Flutter diagnostics lane continuation checkpoint [DONE ✅]**
 - **Goal:** Keep sprint velocity on Flutter UX while hardware lane stays paused.
 - **Files:** context/plan checkpoint.
 - **Demo:** checkpoint explicitly tracks hardware postponement and active software-only next step.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 106.2: Flutter diagnostics quick incident note [PENDING]**
+- **Goal:** Add one-click note template export for incident tickets (status, counters, latest high event).
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** diagnostics card exports deterministic incident-note text without backend/hardware dependencies.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 106.1 — Flutter diagnostics lane continuation checkpoint
+[SIGUIENTE] Bloque 106.2 — Flutter diagnostics quick incident note
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Hardware-dependent rerun is postponed by current constraints; continue shipping software-only value.
-[HECHO CUANDO] Active software lane and postponed hardware dependency are synchronized without ambiguity.
+[MOTIVO] Operators still need faster issue handoff text while hardware lane remains paused.
+[HECHO CUANDO] Incident-note export action generates deterministic summary from current diagnostics state.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

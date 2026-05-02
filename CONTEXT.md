@@ -373,6 +373,16 @@
 - Widget coverage updated for the new diagnostics action and feedback line.
 - Active execution lane is now Flutter diagnostics continuity until hardware availability changes.
 
+### Execution pulse 106.1 (software-lane continuation checkpoint)
+
+- Confirmed lane policy:
+  - hardware-dependent pilot rerun remains postponed,
+  - active delivery remains Flutter diagnostics UX only.
+- Checkpoint keeps execution unblocked by preserving a strict dependency boundary:
+  - no new perception-hardware requirements,
+  - no backend contract changes needed for current UI increments.
+- Next software slice queued: `106.2` quick incident-note export from diagnostics state.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
