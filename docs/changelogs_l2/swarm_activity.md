@@ -3039,3 +3039,14 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `src/clients/flutter_desktop_shell/lib/main.dart`
   - `src/clients/flutter_desktop_shell/test/widget_test.dart`
+
+### Execution (Swarm) | Date: 2026-05-02 09:58:10 | Author: Anonymous Agent
+- **Block:** `V2.112.1`
+- **Message:** Pivot to gate-driven execution and add executable local G4 desktop demo runner
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/collaboration/evidence/DESKTOP_E2E_DEMO_REPORT.json`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/desktop_e2e_demo_runner.py`
+  - `tests/eval/test_desktop_e2e_demo_runner.py`

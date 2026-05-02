@@ -546,6 +546,21 @@
 - Closed `111.x` with local validation still green (`flutter test` + invariants).
 - Queued successor software-only chain as `112.x`.
 
+### Execution pulse 112.0 (gate-driven pivot kickoff)
+
+- Scope pivot is now explicit: diagnostics-card feature work is frozen unless a critical defect appears.
+- Active lane shifts from UI micro-polish to MVP closure gates (`G4` first, `G2` provisional next).
+
+### Execution pulse 112.1 (G4 executable desktop demo runner)
+
+- Added reproducible local desktop E2E runner:
+  - `scripts/eval/desktop_e2e_demo_runner.py`
+  - flow: `/api/ping -> /api/status -> /api/perception/audio -> /api/status`
+- Runner emits auditable evidence report:
+  - `docs/collaboration/evidence/DESKTOP_E2E_DEMO_REPORT.json`
+- Added dedicated tests for the runner:
+  - `tests/eval/test_desktop_e2e_demo_runner.py`
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

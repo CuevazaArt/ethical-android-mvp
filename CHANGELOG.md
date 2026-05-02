@@ -373,6 +373,16 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `111.x` as done and queued `112.0` successor chain.
 
+## [2026-05-02] V2.112.0 — Gate-driven pivot kickoff
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md` + `CONTEXT.md`:** Replaced diagnostics-card continuation with gate-driven sequence and explicit freeze of non-critical diagnostics UI changes.
+
+## [2026-05-02] V2.112.1 — G4 executable desktop demo runner
+### Added
+- **`scripts/eval/desktop_e2e_demo_runner.py`:** New reproducible local desktop E2E runner for auditable G4 evidence (`ping -> status -> audio turn -> status`).
+- **`tests/eval/test_desktop_e2e_demo_runner.py`:** Unit coverage for deterministic run order and report persistence.
+- **`docs/collaboration/evidence/DESKTOP_E2E_DEMO_REPORT.json`:** Generated report artifact from executable local demo runner.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

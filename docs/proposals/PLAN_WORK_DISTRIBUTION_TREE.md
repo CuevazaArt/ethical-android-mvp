@@ -717,35 +717,53 @@ Use this fixed structure in each planning handoff:
 - **Demo:** 111.x completion is synchronized and successor chain is queued.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 112.0: Diagnostics flow kickoff [PENDING]**
-- **Goal:** Open next bounded diagnostics flow chain after 111.x closure.
-- **Files:** context/plan checkpoint.
-- **Demo:** successor chain is explicit and executable in autopilot.
+**Bloque 112.0: Gate-driven pivot kickoff [DONE ✅]**
+- **Goal:** Freeze diagnostics-card feature expansion and pivot execution toward MVP re-entry gates.
+- **Files:** context/plan/changelog.
+- **Demo:** active chain is now gate-driven (`G4`/`G2`) instead of diagnostics UI polish.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 112.1: G4 executable desktop demo runner [DONE ✅]**
+- **Goal:** Deliver reproducible local desktop E2E demo evidence (`ping -> status -> audio turn -> status`).
+- **Files:** new eval runner + tests + evidence artifact.
+- **Demo:** `scripts/eval/desktop_e2e_demo_runner.py` produces deterministic JSON report for auditable G4 posture.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 112.2: G2 provisional synthetic latency harness [PENDING]**
+- **Goal:** Unblock latency tracking without hardware by defining provisional synthetic p95 runner.
+- **Files:** eval runner + tests + evidence wiring.
+- **Demo:** p95 report generated with explicit `PROVISIONAL` status and clear hardware caveat.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 112.3: Gate scoreboard checkpoint [PENDING]**
+- **Goal:** Close mini-wave with explicit G1..G5 scoreboard progress, not just local test status.
+- **Files:** context/plan/changelog.
+- **Demo:** checkpoint aligns docs with gate movement and queues gate-driven successor chain.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 112.0 — Diagnostics flow kickoff
+[SIGUIENTE] Bloque 112.2 — G2 provisional synthetic latency harness
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep software-only momentum with incremental diagnostics flow refinements.
+[MOTIVO] Unblock measurable latency progress while hardware remains unavailable.
 [HECHO CUANDO] New successor chain is documented in strict execution order.
 
 ### Sprint prompts (112.x chain)
 
-[SIGUIENTE] Bloque 112.1 — Diagnostics quick-action ordering pass
+[SIGUIENTE] Bloque 112.2 — G2 provisional synthetic latency harness
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep primary diagnostics actions first for faster triage flow.
-[HECHO CUANDO] Action order reflects operator priority without changing feature scope.
+[MOTIVO] Produce p95 evidence pipeline even before physical mic/cam are available.
+[HECHO CUANDO] Synthetic latency report is deterministic and explicitly tagged `PROVISIONAL`.
 
-[SIGUIENTE] Bloque 112.2 — Diagnostics feedback persistence polish
+[SIGUIENTE] Bloque 112.3 — Gate scoreboard checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Ensure latest feedback remains clear when multiple actions run in sequence.
-[HECHO CUANDO] Feedback behavior is deterministic and widget-covered.
+[MOTIVO] Verify that current wave advances MVP gates instead of diagnostics micro-UX.
+[HECHO CUANDO] Context/plan/changelog include explicit G1..G5 movement summary.
 
-[SIGUIENTE] Bloque 112.3 — Software-lane checkpoint
+[SIGUIENTE] Bloque 113.0 — Gate-driven successor kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Close mini-wave with explicit scope and next-step readiness.
-[HECHO CUANDO] Context/plan/changelog align on 112.x completion and queued successor block.
+[MOTIVO] Continue MVP closure path with gate-first sequencing.
+[HECHO CUANDO] Next ordered chain is queued after 112.x checkpoint.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
