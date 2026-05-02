@@ -44,6 +44,10 @@ void main() {
     expect(find.text('Copy snapshot'), findsOneWidget);
     expect(find.text('Copy blocked summary'), findsOneWidget);
     expect(find.text('Copy incident note'), findsOneWidget);
+    expect(find.text('Pin latest high'), findsOneWidget);
+    expect(find.text('Clear pin'), findsOneWidget);
+    expect(find.text('Copy pinned note'), findsOneWidget);
+    expect(find.text('No pinned high event.'), findsOneWidget);
     expect(find.text('No diagnostics export yet.'), findsOneWidget);
     expect(find.text('Short'), findsOneWidget);
     expect(find.text('Medium'), findsOneWidget);
@@ -142,5 +146,32 @@ void main() {
     await tester.tap(incidentNoteButton);
     await tester.pump();
     expect(find.textContaining('incident note'), findsOneWidget);
+
+    final Finder pinLatestHighButton = find.widgetWithText(
+      OutlinedButton,
+      'Pin latest high',
+    );
+    await tester.ensureVisible(pinLatestHighButton);
+    await tester.tap(pinLatestHighButton);
+    await tester.pump();
+    expect(find.textContaining('Pinned high event:'), findsOneWidget);
+
+    final Finder copyPinnedNoteButton = find.widgetWithText(
+      OutlinedButton,
+      'Copy pinned note',
+    );
+    await tester.ensureVisible(copyPinnedNoteButton);
+    await tester.tap(copyPinnedNoteButton);
+    await tester.pump();
+    expect(find.textContaining('pinned note'), findsOneWidget);
+
+    final Finder clearPinButton = find.widgetWithText(
+      OutlinedButton,
+      'Clear pin',
+    );
+    await tester.ensureVisible(clearPinButton);
+    await tester.tap(clearPinButton);
+    await tester.pump();
+    expect(find.text('No pinned high event.'), findsOneWidget);
   });
 }

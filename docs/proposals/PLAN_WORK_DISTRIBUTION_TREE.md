@@ -561,18 +561,47 @@ Use this fixed structure in each planning handoff:
 - **Demo:** checkpoint captures current software lane scope, validation posture, and next low-risk UI increment.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 106.4: Flutter diagnostics event-pin action [PENDING]**
+**Bloque 106.4: Flutter diagnostics event-pin action [DONE ✅]**
 - **Goal:** Add one-click "pin latest high event" helper for operator handoff continuity.
 - **Files:** Flutter shell module + widget tests.
-- **Demo:** diagnostics card can pin latest high event into a persistent note line without backend dependency.
+- **Demo:** diagnostics card now pins latest high-severity event into persistent note line.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 106.5: Flutter pinned-note export action [DONE ✅]**
+- **Goal:** Let operators copy the pinned event note directly for incident handoff.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** `Copy pinned note` action exports current pinned note and emits deterministic feedback.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 106.6: Flutter prompt-sprint kickoff (software lane) [PENDING]**
+- **Goal:** Open next chained sprint for diagnostics UX polish while hardware lane remains paused.
+- **Files:** context/plan checkpoint.
+- **Demo:** chained prompt sequence is explicit and ordered for autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 106.4 — Flutter diagnostics event-pin action
+[SIGUIENTE] Bloque 106.6 — Flutter prompt-sprint kickoff (software lane)
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Improve operator continuity by keeping a stable pinned reference for the latest critical event.
-[HECHO CUANDO] Pin action is available, deterministic, and covered in widget tests.
+[MOTIVO] Continue momentum with software-only improvements using chained prompts.
+[HECHO CUANDO] New prompt chain is documented and ready for sequential autopilot execution.
+
+### Sprint prompts (106.6+ chain)
+
+[SIGUIENTE] Bloque 106.7 — Pinned note visibility polish
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Improve readability/scannability of pinned diagnostics note in crowded event states.
+[HECHO CUANDO] Pinned note styling clearly communicates pinned vs default state.
+
+[SIGUIENTE] Bloque 106.8 — Diagnostics action bar grouping pass
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Reduce operator cognitive load by grouping copy/pin/filter actions in consistent order.
+[HECHO CUANDO] Action ordering is deterministic and covered by baseline widget assertions.
+
+[SIGUIENTE] Bloque 106.9 — Software-lane handoff checkpoint
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Close mini-wave with explicit scope and validation posture before next UI expansion.
+[HECHO CUANDO] Context/plan/changelog align on completed chain and queued successor block.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

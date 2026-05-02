@@ -403,6 +403,21 @@
   - collaboration invariants check for docs/plan sync.
 - Next increment is intentionally low-risk and local-state only (`106.4`: event pinning helper).
 
+### Execution pulse 106.4 (event pin action)
+
+- Added `Pin latest high` action to diagnostics card.
+- Added `Clear pin` action to reset pinned state.
+- Pinned note now persists in-card as operator handoff anchor even as filters/depth change.
+
+### Execution pulse 106.5 (pinned-note export)
+
+- Added `Copy pinned note` action for one-click handoff export.
+- Diagnostics feedback line now reflects pin/export lifecycle:
+  - pinned latest event,
+  - copied pinned note,
+  - cleared pin.
+- Next software mini-wave opened as chained prompts (`106.6+`).
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

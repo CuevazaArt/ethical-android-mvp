@@ -254,6 +254,17 @@ All notable changes to this project are summarized here. For narrative context a
 - **`CONTEXT.md`:** Added stabilization checkpoint confirming software-only diagnostics lane remains active and green.
 - **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.3` as done and queued `106.4` event-pin action.
 
+## [2026-05-02] V2.106.4 — Diagnostics event pin action
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Pin latest high` and `Clear pin` actions with persistent pinned high-event note line.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline + interaction assertions for pin/clear controls and pinned note visibility.
+
+## [2026-05-02] V2.106.5 — Diagnostics pinned-note export
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Copy pinned note` action and diagnostics feedback transitions for pinned-note export.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for pinned-note copy interaction feedback.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.4` and `106.5` as done and opened chained software prompt sprint (`106.6+`).
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

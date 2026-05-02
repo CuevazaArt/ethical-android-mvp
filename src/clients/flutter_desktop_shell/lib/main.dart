@@ -72,6 +72,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   bool _payloadHasFocus = false;
   String _payloadActionMessage = 'No payload action yet.';
   String _diagnosticsActionMessage = 'No diagnostics export yet.';
+  String _pinnedHighEventNote = 'No pinned high event.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
   _DiagnosticSeverityFilter _diagnosticSeverityFilter =
@@ -878,6 +879,27 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   icon: const Icon(Icons.note_add_rounded, size: 16),
                   label: const Text('Copy incident note'),
                 ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _pinLatestHighEvent();
+                  },
+                  icon: const Icon(Icons.push_pin_rounded, size: 16),
+                  label: const Text('Pin latest high'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _clearPinnedHighEvent();
+                  },
+                  icon: const Icon(Icons.remove_circle_outline_rounded, size: 16),
+                  label: const Text('Clear pin'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    unawaited(_copyPinnedHighEvent());
+                  },
+                  icon: const Icon(Icons.assignment_rounded, size: 16),
+                  label: const Text('Copy pinned note'),
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -885,6 +907,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               _diagnosticsActionMessage,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _pinnedHighEventNote,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
               ),
             ),
             const SizedBox(height: 8),
@@ -1206,6 +1236,56 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       }
       setState(() {
         _diagnosticsActionMessage = 'Unable to copy incident note.';
+      });
+    }
+  }
+
+  void _pinLatestHighEvent() {
+    final List<_DiagnosticEvent> highEvents = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.high)
+        .toList(growable: false);
+    if (!mounted) {
+      return;
+    }
+    if (highEvents.isEmpty) {
+      setState(() {
+        _diagnosticsActionMessage = 'No high-severity event available to pin.';
+      });
+      return;
+    }
+    final _DiagnosticEvent latest = highEvents.first;
+    setState(() {
+      _pinnedHighEventNote =
+          'Pinned high event: ${latest.at.toIso8601String()} :: ${latest.message}';
+      _diagnosticsActionMessage = 'Pinned latest high-severity event.';
+    });
+  }
+
+  void _clearPinnedHighEvent() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _pinnedHighEventNote = 'No pinned high event.';
+      _diagnosticsActionMessage = 'Pinned event cleared.';
+    });
+  }
+
+  Future<void> _copyPinnedHighEvent() async {
+    try {
+      await Clipboard.setData(ClipboardData(text: _pinnedHighEventNote));
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'Pinned note copied.';
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'Unable to copy pinned note.';
       });
     }
   }
