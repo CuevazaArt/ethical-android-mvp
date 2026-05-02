@@ -220,6 +220,13 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/collaboration/evidence/PERCEPTION_HARDWARE_PREFLIGHT.json`:** Added current hardware readiness snapshot (`preflight_ready=false` in this environment).
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.2` as done and queued `105.3` physical rerun gate.
 
+## [2026-05-02] V2.105.3 — Physical rerun gate evaluator
+### Changed
+- **`scripts/eval/perception_pilot_rerun_gate.py`:** Added gate evaluator that fuses preflight readiness and physical evidence validation into deterministic `PASS`/`BLOCKED`.
+- **`tests/eval/test_perception_pilot_rerun_gate.py`:** Added gate-pass and gate-block unit scenarios.
+- **`docs/collaboration/evidence/PERCEPTION_PILOT_RERUN_GATE_REPORT.json`:** Added current rerun gate snapshot (`BLOCKED` while `preflight_ready=false`).
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.3` as done and queued `105.4` hardware unblock action list.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

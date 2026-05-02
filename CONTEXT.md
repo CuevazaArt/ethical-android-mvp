@@ -338,6 +338,22 @@
   - `tests/eval/test_perception_hardware_preflight.py`.
 - Next gate is `105.3`: physical rerun once preflight flips to ready.
 
+### Execution pulse 105.3 (physical rerun gate)
+
+- Added rerun gate evaluator:
+  - `scripts/eval/perception_pilot_rerun_gate.py`
+  - writes `docs/collaboration/evidence/PERCEPTION_PILOT_RERUN_GATE_REPORT.json`.
+- Gate combines:
+  - hardware preflight readiness,
+  - physical-run evidence structure/decision integrity,
+  - rubric-compatible decision progression.
+- Current gate output:
+  - `preflight_ready=false`,
+  - `computed_decision=NO-GO`,
+  - `status=BLOCKED`.
+- Added coverage:
+  - `tests/eval/test_perception_pilot_rerun_gate.py`.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

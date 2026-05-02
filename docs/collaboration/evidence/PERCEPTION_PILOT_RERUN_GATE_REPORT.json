@@ -1,0 +1,12 @@
+{
+  "preflight_ready": false,
+  "evidence": {
+    "missing_keys": [],
+    "declared_decision": "NO-GO",
+    "computed_decision": "NO-GO",
+    "decision_matches": true
+  },
+  "computed_decision": "NO-GO",
+  "gate_pass": false,
+  "status": "BLOCKED"
+}
