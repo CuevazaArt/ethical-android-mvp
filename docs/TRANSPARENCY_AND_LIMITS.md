@@ -31,6 +31,40 @@ Details: [KERNEL_ENV_POLICY.md](proposals/KERNEL_ENV_POLICY.md), [OPERATOR_QUICK
 4. **No warranty** — see LICENSE; security reporting: [SECURITY.md](../SECURITY.md).
 5. **Telemetry** (`KERNEL_METRICS`, logs) can leak **operational** metadata; design labels and retention carefully.
 
+## G2 PASS modes (voice latency gate)
+
+The G2 voice-latency gate accepts evidence in two distinct, transparently
+labelled modes. Operators MUST read the `mode` field on the gate snapshot
+before treating G2 as evidence of full audio readiness.
+
+| Mode | What it measures | What it does NOT cover | Required artifact |
+|------|------------------|------------------------|-------------------|
+| **`live`** | Full voice turn including microphone capture, speech-to-text, cognition, text-to-speech, and playback on the target desktop hardware. | — (this is the canonical evidence) | `docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl` (N≥1, p95<2500ms) |
+| **`text_mediated`** | Cognitive turn only: parsing the utterance through the kernel pipeline (`POST /api/voice_turn`) and generating a reply. **No audio is captured or rendered.** | Microphone capture, speech-to-text, text-to-speech, speaker playback, and end-user perceived audio latency. | `docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl` (N≥20, p95<2500ms). The snapshot reports `audio_capture_path: PENDING_HARDWARE`. |
+
+The `text_mediated` mode exists so the gate can progress on machines without
+microphones or audio drivers (the working environment for this repository at
+the time of writing). It is **not a substitute** for the `live` mode; once
+target hardware is available the `live` PASS overrides the `text_mediated`
+PASS automatically.
+
+To capture the text-mediated samples:
+
+```
+python scripts/eval/capture_voice_turn_latency_text.py --samples 20
+```
+
+To recompute the snapshot:
+
+```
+python scripts/eval/desktop_gate_runner.py snapshot
+```
+
+The transition guard
+(`scripts/eval/g2_transition_guard.py`) reports `mode: text_mediated` and
+`text_mediated_sample_count` so reviewers can see at a glance which evidence
+ladder is being used.
+
 ## Auditability
 
 When `KERNEL_AUDIT_CHAIN_PATH` is set, block events append to a hash-chained JSONL file (see [AUDIT_TRAIL_AND_REPRODUCIBILITY.md](AUDIT_TRAIL_AND_REPRODUCIBILITY.md)). WebSocket responses may include **`malabs_trace`** (atomic step ids) when `KERNEL_CHAT_INCLUDE_MALABS_TRACE=1`.

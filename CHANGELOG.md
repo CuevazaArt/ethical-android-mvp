@@ -4,6 +4,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.127 — G2 reframe: text_mediated PASS path
+
+### Added
+- **`scripts/eval/capture_voice_turn_latency_text.py`:** Captures cognitive latency by hammering `POST /api/voice_turn` (no microphone needed). Supports `--inproc` mode for deterministic CI evidence via FastAPI TestClient.
+- **`docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl`:** 22 reproducible samples backing the new G2 PASS evidence ladder.
+- **`tests/eval/test_g2_text_mediated_path.py`:** Locks both modes (`live` and `text_mediated`) end-to-end: latency gate sample-count enforcement, snapshot preference order, and transition-guard recognition.
+- **`docs/TRANSPARENCY_AND_LIMITS.md` § G2 PASS modes:** Operator-facing section that names each mode, its evidence file, and what it explicitly does NOT cover (audio capture/playback remain `PENDING_HARDWARE`).
+
+### Changed
+- **`scripts/eval/desktop_gate_runner.py`:** `evaluate_latency_gate` now accepts `mode` and `min_sample_count`; the snapshot prefers a fresh `text_mediated` PASS over the legacy provisional report and surfaces `audio_capture_path: PENDING_HARDWARE` for honest reporting.
+- **`scripts/eval/g2_transition_guard.py`:** Recognizes `G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl`, exposes `mode` and `text_mediated_sample_count`, and unblocks the `BLOCKED_HARDWARE` ladder when the text-mediated ladder has enough samples.
+- **`tests/eval/test_g2_transition_guard.py`:** Pre-existing tests pass an explicit `text_mediated_samples_path` so they remain isolated from the production evidence file.
+
 ## [2026-05-02] Model dev wave V2.126 — Why-this-answer expander in chat panel
 
 ### Added

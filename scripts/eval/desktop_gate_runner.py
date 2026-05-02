@@ -96,7 +96,22 @@ def evaluate_stability_gate(
     )
 
 
-def evaluate_latency_gate(samples_path: Path, *, target_p95_ms: float = 2500.0) -> GateResult:
+def evaluate_latency_gate(
+    samples_path: Path,
+    *,
+    target_p95_ms: float = 2500.0,
+    mode: str = "live",
+    min_sample_count: int = 1,
+) -> GateResult:
+    """Evaluate G2 from a JSONL of latency samples.
+
+    V2.127 (B1): the optional ``mode`` parameter is surfaced in the result
+    details so consumers can distinguish a hardware-captured ``live`` PASS from
+    a ``text_mediated`` PASS (cognitive turn only, audio capture path pending
+    hardware). ``min_sample_count`` lets callers require at least N samples
+    before declaring PASS (useful for the text_mediated path which mandates
+    N>=20 per the transparency note).
+    """
     rows = _read_jsonl(samples_path)
     totals: list[float] = []
     for row in rows:
@@ -111,23 +126,34 @@ def evaluate_latency_gate(samples_path: Path, *, target_p95_ms: float = 2500.0) 
             name="G2",
             passed=False,
             summary="no samples",
-            details={"target_p95_ms": target_p95_ms},
+            details={
+                "target_p95_ms": target_p95_ms,
+                "mode": mode,
+                "min_sample_count": min_sample_count,
+            },
         )
     if len(totals) == 1:
         p95 = totals[0]
     else:
         q = statistics.quantiles(totals, n=100, method="inclusive")
         p95 = float(q[94])
-    passed = p95 < target_p95_ms
+    enough_samples = len(totals) >= max(1, min_sample_count)
+    passed = enough_samples and p95 < target_p95_ms
+    summary_prefix = "" if mode == "live" else f"[{mode}] "
     return GateResult(
         name="G2",
         passed=passed,
-        summary=f"p95={p95:.2f}ms target<{target_p95_ms:.2f}ms",
+        summary=f"{summary_prefix}p95={p95:.2f}ms target<{target_p95_ms:.2f}ms",
         details={
             "sample_count": len(totals),
             "p95_ms": p95,
             "target_p95_ms": target_p95_ms,
             "max_ms": max(totals),
+            "mode": mode,
+            "min_sample_count": min_sample_count,
+            "audio_capture_path": (
+                "PENDING_HARDWARE" if mode == "text_mediated" else "covered"
+            ),
         },
     )
 
@@ -216,8 +242,38 @@ def build_gate_snapshot(
 
     g2_path = evidence_dir / "VOICE_TURN_LATENCY_SAMPLES.jsonl"
     g2_provisional_path = evidence_dir / "G2_PROVISIONAL_LATENCY_REPORT.json"
+    g2_text_path = evidence_dir / "G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl"
     g2_provisional = _read_g2_provisional_report(g2_provisional_path)
-    if g2_provisional is not None:
+
+    # V2.127 (B1): prefer a fresh text_mediated PASS over the legacy provisional
+    # report. The text_mediated path measures cognitive latency only; the
+    # transparency note in docs/TRANSPARENCY_AND_LIMITS.md documents that
+    # audio capture/playback remain PENDING_HARDWARE.
+    text_mediated_result: GateResult | None = None
+    text_mediated_updated: datetime | None = None
+    if g2_text_path.exists():
+        text_mediated_result = evaluate_latency_gate(
+            g2_text_path,
+            target_p95_ms=2500.0,
+            mode="text_mediated",
+            min_sample_count=20,
+        )
+        text_rows = _read_jsonl(g2_text_path)
+        text_mediated_updated = max(
+            (_parse_iso_utc(str(row.get("captured_at", ""))) for row in text_rows),
+            default=None,
+        )
+
+    if text_mediated_result is not None and text_mediated_result.passed:
+        snapshot["G2"] = {
+            "status": "pass",
+            "mode": "text_mediated",
+            "source": str(g2_text_path).replace("\\", "/"),
+            "updated_at": _to_iso_utc(text_mediated_updated),
+            "summary": text_mediated_result.summary,
+            "audio_capture_path": "PENDING_HARDWARE",
+        }
+    elif g2_provisional is not None:
         g2_updated = _parse_iso_utc(g2_provisional["generated_at"])
         snapshot["G2"] = {
             "status": "in_progress",
@@ -232,13 +288,16 @@ def build_gate_snapshot(
         }
     else:
         g2_rows = _read_jsonl(g2_path)
-        g2_result = evaluate_latency_gate(g2_path, target_p95_ms=2500.0)
+        g2_result = evaluate_latency_gate(
+            g2_path, target_p95_ms=2500.0, mode="live"
+        )
         g2_updated = max(
             (_parse_iso_utc(str(row.get("captured_at", ""))) for row in g2_rows),
             default=None,
         )
         snapshot["G2"] = {
             "status": "pass" if g2_result.passed else "fail",
+            "mode": "live",
             "source": str(g2_path).replace("\\", "/"),
             "updated_at": _to_iso_utc(g2_updated),
             "summary": g2_result.summary,

@@ -722,6 +722,16 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 127.0 (B1 — G2 reframe: text_mediated PASS path)
+
+- New canonical evidence `docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl` (22 samples, p95=1.97 ms).
+- `desktop_gate_runner.py snapshot` now reports:
+  - `G2.status=pass`, `G2.mode=text_mediated`, `G2.audio_capture_path=PENDING_HARDWARE`, `G2.summary=[text_mediated] p95=1.97ms target<2500.00ms`.
+- `g2_transition_guard.py` exposes `mode` and `text_mediated_sample_count`; `BLOCKED_HARDWARE` no longer prevents progression when text-mediated samples are sufficient.
+- New script `scripts/eval/capture_voice_turn_latency_text.py` supports `--inproc` mode (FastAPI TestClient) so CI and ops can regenerate evidence deterministically without a running server or LLM.
+- Transparency note added to `docs/TRANSPARENCY_AND_LIMITS.md § G2 PASS modes` clearly labels what each mode covers and what remains pending hardware.
+- Coverage: new `tests/eval/test_g2_text_mediated_path.py` (5 cases) + isolated pre-existing transition-guard tests. Full Python suite 332 green.
+
 ### Execution pulse 126.0 (C4 — Why-this-answer expander)
 
 - Each Ethos bubble now exposes a `Why this answer` `ExpansionTile` (key `chatWhyExpander`) that renders the decision trace as plain text:

@@ -20,6 +20,7 @@ def test_transition_blocks_when_hardware_is_not_ready(tmp_path: Path) -> None:
     provisional = tmp_path / "provisional.json"
     preflight = tmp_path / "preflight.json"
     samples = tmp_path / "samples.jsonl"
+    text_samples = tmp_path / "text_samples.jsonl"
     _write_json(
         provisional,
         {
@@ -42,6 +43,7 @@ def test_transition_blocks_when_hardware_is_not_ready(tmp_path: Path) -> None:
         provisional_report_path=provisional,
         preflight_report_path=preflight,
         live_samples_path=samples,
+        text_mediated_samples_path=text_samples,
         now=datetime(2026, 5, 2, 12, 0, tzinfo=UTC),
     )
 
@@ -54,6 +56,7 @@ def test_transition_ready_for_live_capture_when_hardware_ready(tmp_path: Path) -
     provisional = tmp_path / "provisional.json"
     preflight = tmp_path / "preflight.json"
     samples = tmp_path / "samples.jsonl"
+    text_samples = tmp_path / "text_samples.jsonl"
     _write_json(
         provisional,
         {
@@ -82,6 +85,7 @@ def test_transition_ready_for_live_capture_when_hardware_ready(tmp_path: Path) -
         provisional_report_path=provisional,
         preflight_report_path=preflight,
         live_samples_path=samples,
+        text_mediated_samples_path=text_samples,
         target_live_sample_count=5,
         now=datetime(2026, 5, 2, 12, 0, tzinfo=UTC),
     )
@@ -96,6 +100,7 @@ def test_transition_blocks_when_provisional_is_stale(tmp_path: Path) -> None:
     provisional = tmp_path / "provisional.json"
     preflight = tmp_path / "preflight.json"
     samples = tmp_path / "samples.jsonl"
+    text_samples = tmp_path / "text_samples.jsonl"
     _write_json(
         provisional,
         {
@@ -118,6 +123,7 @@ def test_transition_blocks_when_provisional_is_stale(tmp_path: Path) -> None:
         provisional_report_path=provisional,
         preflight_report_path=preflight,
         live_samples_path=samples,
+        text_mediated_samples_path=text_samples,
         now=datetime(2026, 5, 2, 12, 0, tzinfo=UTC),
         max_provisional_age_days=14,
     )
@@ -131,6 +137,7 @@ def test_transition_blocks_when_provisional_flag_false(tmp_path: Path) -> None:
     provisional = tmp_path / "provisional.json"
     preflight = tmp_path / "preflight.json"
     samples = tmp_path / "samples.jsonl"
+    text_samples = tmp_path / "text_samples.jsonl"
     _write_json(
         provisional,
         {
@@ -147,6 +154,7 @@ def test_transition_blocks_when_provisional_flag_false(tmp_path: Path) -> None:
         provisional_report_path=provisional,
         preflight_report_path=preflight,
         live_samples_path=samples,
+        text_mediated_samples_path=text_samples,
         now=datetime(2026, 5, 2, 12, 0, tzinfo=UTC),
     )
 
@@ -158,6 +166,7 @@ def test_live_sample_count_ignores_invalid_rows(tmp_path: Path) -> None:
     provisional = tmp_path / "provisional.json"
     preflight = tmp_path / "preflight.json"
     samples = tmp_path / "samples.jsonl"
+    text_samples = tmp_path / "text_samples.jsonl"
     _write_json(
         provisional,
         {
@@ -187,6 +196,7 @@ def test_live_sample_count_ignores_invalid_rows(tmp_path: Path) -> None:
         provisional_report_path=provisional,
         preflight_report_path=preflight,
         live_samples_path=samples,
+        text_mediated_samples_path=text_samples,
         target_live_sample_count=5,
         now=datetime(2026, 5, 2, 12, 0, tzinfo=UTC),
     )
