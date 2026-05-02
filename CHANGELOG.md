@@ -4,6 +4,17 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.119 — Real chat panel in Flutter desktop shell
+
+### Added
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** Real chat surface streaming `/ws/chat` typed frames, with metadata/token/done handling and bounded reconnect.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Widget tests covering idle render, streaming chat bubble assembly, send-frame contract, and retry transition.
+
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Chat | Diagnostics` segmented selector, defaulting to Chat. Diagnostics surface preserved unchanged behind the new tab.
+- **`src/clients/flutter_desktop_shell/pubspec.yaml`:** Added `web_socket_channel: ^3.0.0` dependency for the chat transport.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Existing diagnostics assertions now switch to the Diagnostics tab first; new test locks Chat as default.
+
 ## [2026-05-02] Gate sprint 116.0 — Eval harness, vendor lint scope, and operator maintenance
 
 ### Added

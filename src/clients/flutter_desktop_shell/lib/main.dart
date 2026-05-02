@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
+import 'chat_panel.dart';
+
 void main() {
   runApp(const KernelDesktopApp());
 }
@@ -80,6 +82,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   _DiagnosticSeverityFilter _diagnosticSeverityFilter =
       _DiagnosticSeverityFilter.all;
   _DiagnosticDepth _diagnosticDepth = _DiagnosticDepth.medium;
+  _ShellTab _activeTab = _ShellTab.chat;
   Map<String, String> _readinessGates = <String, String>{
     'G1': 'unknown',
     'G2': 'unknown',
@@ -456,42 +459,68 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final bool isWide = constraints.maxWidth >= 1050;
-              final Widget statusCard = _buildStatusCard(theme, badge);
-              final Widget diagnosticsCard = _buildDiagnosticsCard(theme);
-              final Widget voiceCard = _buildVoiceCard(theme);
-              final Widget gatesCard = _buildGateReadinessCard(theme);
-              final Widget payloadCard = _buildPayloadCard(theme);
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildShellTabSelector(theme),
+              const SizedBox(height: 16),
+              Expanded(child: _buildActiveTabBody(theme, badge)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-              if (isWide) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: Column(
-                        children: [
-                          statusCard,
-                          const SizedBox(height: 16),
-                          diagnosticsCard,
-                          const SizedBox(height: 16),
-                          voiceCard,
-                          const SizedBox(height: 16),
-                          gatesCard,
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(flex: 7, child: payloadCard),
-                  ],
-                );
-              }
+  Widget _buildShellTabSelector(ThemeData theme) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SegmentedButton<_ShellTab>(
+        segments: const <ButtonSegment<_ShellTab>>[
+          ButtonSegment<_ShellTab>(
+            value: _ShellTab.chat,
+            label: Text('Chat'),
+            icon: Icon(Icons.chat_bubble_outline_rounded),
+          ),
+          ButtonSegment<_ShellTab>(
+            value: _ShellTab.diagnostics,
+            label: Text('Diagnostics'),
+            icon: Icon(Icons.monitor_heart_outlined),
+          ),
+        ],
+        selected: <_ShellTab>{_activeTab},
+        onSelectionChanged: (Set<_ShellTab> selection) {
+          if (selection.isEmpty) {
+            return;
+          }
+          setState(() {
+            _activeTab = selection.first;
+          });
+        },
+      ),
+    );
+  }
 
-              return SingleChildScrollView(
+  Widget _buildActiveTabBody(ThemeData theme, _StatusBadgeData badge) {
+    if (_activeTab == _ShellTab.chat) {
+      return ChatPanel(startTransport: widget.startTransport);
+    }
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool isWide = constraints.maxWidth >= 1050;
+        final Widget statusCard = _buildStatusCard(theme, badge);
+        final Widget diagnosticsCard = _buildDiagnosticsCard(theme);
+        final Widget voiceCard = _buildVoiceCard(theme);
+        final Widget gatesCard = _buildGateReadinessCard(theme);
+        final Widget payloadCard = _buildPayloadCard(theme);
+
+        if (isWide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     statusCard,
                     const SizedBox(height: 16),
@@ -500,15 +529,32 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                     voiceCard,
                     const SizedBox(height: 16),
                     gatesCard,
-                    const SizedBox(height: 16),
-                    SizedBox(height: 360, child: payloadCard),
                   ],
                 ),
-              );
-            },
+              ),
+              const SizedBox(width: 16),
+              Expanded(flex: 7, child: payloadCard),
+            ],
+          );
+        }
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              statusCard,
+              const SizedBox(height: 16),
+              diagnosticsCard,
+              const SizedBox(height: 16),
+              voiceCard,
+              const SizedBox(height: 16),
+              gatesCard,
+              const SizedBox(height: 16),
+              SizedBox(height: 360, child: payloadCard),
+            ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1941,6 +1987,8 @@ class _DiagnosticEvent {
   final _DiagnosticFilter type;
   final _DiagnosticSeverity severity;
 }
+
+enum _ShellTab { chat, diagnostics }
 
 enum _DiagnosticFilter { all, transport, manual }
 

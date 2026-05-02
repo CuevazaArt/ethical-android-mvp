@@ -722,6 +722,14 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 119.0 (A1 — chat panel in Flutter desktop shell)
+
+- Flutter shell now exposes a real chat surface bound to `/ws/chat`:
+  - new `src/clients/flutter_desktop_shell/lib/chat_panel.dart` (WS client, streaming bubbles, bounded retry).
+  - `Chat | Diagnostics` segmented selector in `main.dart`, defaulting to Chat.
+- Dedicated widget tests added in `test/chat_panel_test.dart`; existing diagnostics tests switch tabs explicitly so legacy coverage is preserved.
+- Local validation: `flutter test` → 8 passed; collaboration invariants pass.
+
 ### Execution pulse 118.0 (core model audit autopilot — 20 prompts)
 
 - Audited and hardened core model runtime paths in:

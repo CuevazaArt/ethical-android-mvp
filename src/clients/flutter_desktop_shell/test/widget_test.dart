@@ -1,22 +1,40 @@
-// This is a basic Flutter widget test.
+// Widget tests for the Ethos desktop shell.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// V2.119 (A1): the shell now renders a Chat | Diagnostics segmented control,
+// defaulting to Chat. Diagnostics-focused tests switch tabs explicitly so the
+// existing diagnostics surface is still validated.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_desktop_shell/main.dart';
 
+Future<void> _switchToDiagnostics(WidgetTester tester) async {
+  await tester.tap(find.text('Diagnostics'));
+  await tester.pumpAndSettle();
+}
+
 void main() {
-  testWidgets('renders desktop shell transport view', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('default tab is chat panel', (WidgetTester tester) async {
     await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
 
     expect(find.text('Ethos Desktop Shell'), findsOneWidget);
+    expect(find.text('Chat'), findsOneWidget);
+    expect(find.text('Diagnostics'), findsOneWidget);
+    expect(find.text('Chat with Ethos'), findsOneWidget);
+    expect(find.text('Transport disabled for tests.'), findsOneWidget);
+    expect(
+      find.text('No conversation yet. Send a message to begin.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('diagnostics tab still renders transport surface', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
+    await _switchToDiagnostics(tester);
+
     expect(find.text('Offline'), findsWidgets);
     expect(find.text('Transport disabled for tests.'), findsOneWidget);
     expect(find.text('Connection states'), findsOneWidget);
@@ -87,6 +105,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
+    await _switchToDiagnostics(tester);
     expect(find.text('Voice source:'), findsOneWidget);
     expect(
       find.text('fallback (waiting for backend voice state)'),
@@ -102,8 +121,11 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const KernelDesktopApp(startTransport: false));
+    await _switchToDiagnostics(tester);
 
-    await tester.tap(find.text('Check now'));
+    final Finder checkNowFinder = find.text('Check now');
+    await tester.ensureVisible(checkNowFinder);
+    await tester.tap(checkNowFinder);
     await tester.pump();
 
     expect(find.text('MANUAL'), findsOneWidget);
