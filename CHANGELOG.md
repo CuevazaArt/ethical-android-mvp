@@ -355,6 +355,24 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `110.x` as done and queued `111.0` successor chain.
 
+## [2026-05-02] V2.111.0 — Diagnostics continuity kickoff
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked kickoff done and executed `111.x` software-only diagnostics chain.
+
+## [2026-05-02] V2.111.1 — Diagnostics timeline readability pass
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Timeline rows now render compact timestamp and message on separate lines for better scanability.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Baseline coverage remains aligned with updated timeline/action surface.
+
+## [2026-05-02] V2.111.2 — Diagnostics action copy consistency pass
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Standardized diagnostics action labels and feedback wording around `Export ...` / `... exported|export failed`.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Updated action label assertions and interaction selectors to the new export naming.
+
+## [2026-05-02] V2.111.3 — Software-lane checkpoint
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `111.x` as done and queued `112.0` successor chain.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

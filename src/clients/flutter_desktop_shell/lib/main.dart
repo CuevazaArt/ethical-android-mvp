@@ -880,28 +880,28 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                     unawaited(_copyDiagnosticsSnapshot(visibleEvents));
                   },
                   icon: const Icon(Icons.copy_all_rounded, size: 16),
-                  label: const Text('Copy snapshot'),
+                  label: const Text('Export snapshot'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
                     unawaited(_copyBlockedSummary());
                   },
                   icon: const Icon(Icons.report_problem_rounded, size: 16),
-                  label: const Text('Copy blocked summary'),
+                  label: const Text('Export blocked summary'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
                     unawaited(_copyIncidentNote(visibleEvents));
                   },
                   icon: const Icon(Icons.note_add_rounded, size: 16),
-                  label: const Text('Copy incident note'),
+                  label: const Text('Export incident note'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
                     unawaited(_copyPinnedHighEvent());
                   },
                   icon: const Icon(Icons.assignment_rounded, size: 16),
-                  label: const Text('Copy pinned note'),
+                  label: const Text('Export pinned note'),
                 ),
               ],
             ),
@@ -1065,11 +1065,24 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                         _ConnectionBadge(data: severityBadge),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            '${event.at.toIso8601String()}  •  ${event.message}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _formatDiagnosticEventTimestamp(event.at),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  letterSpacing: 0.15,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                event.message,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1262,12 +1275,12 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     try {
       await Clipboard.setData(ClipboardData(text: snapshot));
       _setDiagnosticsMessage(
-        'snapshot copied.',
+        'snapshot exported.',
         tone: _DiagnosticsFeedbackTone.success,
       );
     } catch (_) {
       _setDiagnosticsMessage(
-        'snapshot copy failed.',
+        'snapshot export failed.',
         tone: _DiagnosticsFeedbackTone.alert,
       );
     }
@@ -1288,12 +1301,12 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     try {
       await Clipboard.setData(ClipboardData(text: snapshot));
       _setDiagnosticsMessage(
-        'high summary copied.',
+        'high summary exported.',
         tone: _DiagnosticsFeedbackTone.success,
       );
     } catch (_) {
       _setDiagnosticsMessage(
-        'high summary copy failed.',
+        'high summary export failed.',
         tone: _DiagnosticsFeedbackTone.alert,
       );
     }
@@ -1304,12 +1317,12 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     try {
       await Clipboard.setData(ClipboardData(text: note));
       _setDiagnosticsMessage(
-        'incident note copied.',
+        'incident note exported.',
         tone: _DiagnosticsFeedbackTone.success,
       );
     } catch (_) {
       _setDiagnosticsMessage(
-        'incident note copy failed.',
+        'incident note export failed.',
         tone: _DiagnosticsFeedbackTone.alert,
       );
     }
@@ -1353,12 +1366,12 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     try {
       await Clipboard.setData(ClipboardData(text: _pinnedHighEventNote));
       _setDiagnosticsMessage(
-        'pinned note copied.',
+        'pinned note exported.',
         tone: _DiagnosticsFeedbackTone.success,
       );
     } catch (_) {
       _setDiagnosticsMessage(
-        'pinned note copy failed.',
+        'pinned note export failed.',
         tone: _DiagnosticsFeedbackTone.alert,
       );
     }
@@ -1398,6 +1411,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
           bgColor: theme.colorScheme.error.withValues(alpha: 0.16),
         );
     }
+  }
+
+  String _formatDiagnosticEventTimestamp(DateTime timestamp) {
+    final DateTime local = timestamp.toLocal();
+    final String hh = local.hour.toString().padLeft(2, '0');
+    final String mm = local.minute.toString().padLeft(2, '0');
+    final String ss = local.second.toString().padLeft(2, '0');
+    return '$hh:$mm:$ss';
   }
 
   String _buildDiagnosticsSnapshot(List<_DiagnosticEvent> events) {

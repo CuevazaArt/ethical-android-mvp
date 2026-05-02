@@ -41,12 +41,12 @@ void main() {
     expect(find.text('Low'), findsOneWidget);
     expect(find.text('Clear timeline'), findsOneWidget);
     expect(find.text('Showing 0 event(s)'), findsOneWidget);
-    expect(find.text('Copy snapshot'), findsOneWidget);
-    expect(find.text('Copy blocked summary'), findsOneWidget);
-    expect(find.text('Copy incident note'), findsOneWidget);
+    expect(find.text('Export snapshot'), findsOneWidget);
+    expect(find.text('Export blocked summary'), findsOneWidget);
+    expect(find.text('Export incident note'), findsOneWidget);
     expect(find.text('Pin latest high'), findsOneWidget);
     expect(find.text('Clear pin'), findsOneWidget);
-    expect(find.text('Copy pinned note'), findsOneWidget);
+    expect(find.text('Export pinned note'), findsOneWidget);
     expect(find.text('Export actions'), findsOneWidget);
     expect(find.text('Pin actions'), findsOneWidget);
     expect(find.text('Pinned high event note'), findsOneWidget);
@@ -139,7 +139,7 @@ void main() {
 
     final Finder blockedSummaryButton = find.widgetWithText(
       OutlinedButton,
-      'Copy blocked summary',
+      'Export blocked summary',
     );
     await tester.ensureVisible(blockedSummaryButton);
     await tester.tap(blockedSummaryButton);
@@ -148,7 +148,7 @@ void main() {
 
     final Finder incidentNoteButton = find.widgetWithText(
       OutlinedButton,
-      'Copy incident note',
+      'Export incident note',
     );
     await tester.ensureVisible(incidentNoteButton);
     await tester.tap(incidentNoteButton);
@@ -166,7 +166,7 @@ void main() {
 
     final Finder copyPinnedNoteButton = find.widgetWithText(
       OutlinedButton,
-      'Copy pinned note',
+      'Export pinned note',
     );
     await tester.ensureVisible(copyPinnedNoteButton);
     await tester.tap(copyPinnedNoteButton);

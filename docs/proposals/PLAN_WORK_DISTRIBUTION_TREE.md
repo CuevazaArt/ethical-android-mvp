@@ -693,35 +693,59 @@ Use this fixed structure in each planning handoff:
 - **Demo:** 110.x completion is synchronized and successor chain is queued.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 111.0: Diagnostics continuity kickoff [PENDING]**
+**Bloque 111.0: Diagnostics continuity kickoff [DONE ✅]**
 - **Goal:** Open next bounded diagnostics UX chain after 110.x closure.
 - **Files:** context/plan checkpoint.
 - **Demo:** successor chain is explicit and ready for autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 111.1: Diagnostics timeline readability pass [DONE ✅]**
+- **Goal:** Improve timeline scan speed under repeated events.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** timeline rows now separate timestamp and message for faster visual parsing.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 111.2: Diagnostics action copy consistency pass [DONE ✅]**
+- **Goal:** Remove remaining microcopy drift across diagnostics actions.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** export actions and feedback messages use one concise "export" style.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 111.3: Software-lane checkpoint [DONE ✅]**
+- **Goal:** Close mini-wave with explicit scope and next-step readiness.
+- **Files:** context/plan/changelog.
+- **Demo:** 111.x completion is synchronized and successor chain is queued.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 112.0: Diagnostics flow kickoff [PENDING]**
+- **Goal:** Open next bounded diagnostics flow chain after 111.x closure.
+- **Files:** context/plan checkpoint.
+- **Demo:** successor chain is explicit and executable in autopilot.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 111.0 — Diagnostics continuity kickoff
+[SIGUIENTE] Bloque 112.0 — Diagnostics flow kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep software-only momentum with incremental diagnostics UX polish.
+[MOTIVO] Keep software-only momentum with incremental diagnostics flow refinements.
 [HECHO CUANDO] New successor chain is documented in strict execution order.
 
-### Sprint prompts (111.x chain)
+### Sprint prompts (112.x chain)
 
-[SIGUIENTE] Bloque 111.1 — Diagnostics timeline readability pass
+[SIGUIENTE] Bloque 112.1 — Diagnostics quick-action ordering pass
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Improve timeline scan speed under repeated events.
-[HECHO CUANDO] Timeline rows remain compact but easier to parse visually.
+[MOTIVO] Keep primary diagnostics actions first for faster triage flow.
+[HECHO CUANDO] Action order reflects operator priority without changing feature scope.
 
-[SIGUIENTE] Bloque 111.2 — Diagnostics action copy consistency pass
+[SIGUIENTE] Bloque 112.2 — Diagnostics feedback persistence polish
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Remove remaining microcopy drift across diagnostics actions.
-[HECHO CUANDO] Action labels and feedback wording follow one concise style.
+[MOTIVO] Ensure latest feedback remains clear when multiple actions run in sequence.
+[HECHO CUANDO] Feedback behavior is deterministic and widget-covered.
 
-[SIGUIENTE] Bloque 111.3 — Software-lane checkpoint
+[SIGUIENTE] Bloque 112.3 — Software-lane checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
 [MOTIVO] Close mini-wave with explicit scope and next-step readiness.
-[HECHO CUANDO] Context/plan/changelog align on 111.x completion and queued successor block.
+[HECHO CUANDO] Context/plan/changelog align on 112.x completion and queued successor block.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
