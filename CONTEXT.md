@@ -722,6 +722,14 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 124.0 (C2 — Bayesian posterior_assisted feedback loop)
+
+- New `src/core/feedback.py` with `FeedbackCalibrationLedger`: append-only JSONL ledger plus capped (`±0.10`) `posterior_bias` per action.
+- `EthicalEvaluator` now applies the ledger nudge per action when wired in; `ChatEngine` auto-wires it under `KERNEL_BAYESIAN_MODE=posterior_assisted`.
+- New `POST /api/feedback` records `{turn_id, action, signal: ±1}`; `POST /api/voice_turn` now mints `turn_id` and threads it through the trace so feedback is attributable.
+- Flutter chat bubbles render thumbs-up/thumbs-down per Ethos reply, post to `/api/feedback`, and confirm via snackbar.
+- Coverage: `tests/core/test_feedback_loop.py` (4 cases) + `tests/server/test_feedback_endpoint.py` (5 cases) + new Flutter widget test. Full Python suite 323 green; Flutter 11/11.
+
 ### Execution pulse 123.0 (C1 — decision trace surfaced on every reply)
 
 - New `build_decision_trace(...)` returns the same canonical dict for chat WS and voice_turn HTTP paths.

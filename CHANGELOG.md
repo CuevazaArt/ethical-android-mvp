@@ -4,6 +4,20 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.124 — Bayesian posterior_assisted feedback loop
+
+### Added
+- **`src/core/feedback.py`:** `FeedbackCalibrationLedger` (append-only JSONL at `docs/collaboration/evidence/FEEDBACK_CALIBRATION_LEDGER.jsonl`) plus `posterior_bias`, `stats`, and `is_posterior_assisted_enabled()` toggle bound to `KERNEL_BAYESIAN_MODE=posterior_assisted`.
+- **`tests/core/test_feedback_loop.py`:** Locks ledger persistence, posterior bias cap (±0.10), evaluator nudge effect on chosen action, and the env-toggle contract.
+- **`tests/server/test_feedback_endpoint.py`:** Integration tests for `POST /api/feedback` covering recording, malformed payload rejection, and `posterior_assisted` flag reporting.
+
+### Changed
+- **`src/core/ethics.py`:** `EthicalEvaluator` accepts an optional `ledger`; when present, each candidate action's score is nudged by the ledger's bounded posterior bias before selection.
+- **`src/core/chat.py`:** `ChatEngine` auto-wires a `FeedbackCalibrationLedger` into the evaluator when `is_posterior_assisted_enabled()` is true. `build_decision_trace` now carries an optional `turn_id`.
+- **`src/server/app.py`:** Added `POST /api/feedback` endpoint backed by a global ledger, generates `turn_id` for each `voice_turn`, and threads it through the trace so feedback can be attributed.
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** Ethos bubbles render thumbs-up/down icon buttons; pressing one POSTs to `/api/feedback`, locks the bubble's signal, and surfaces a confirmation snackbar.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** New widget test exercises the thumbs-up flow end-to-end against a `MockClient` for `/api/voice_turn` + `/api/feedback`.
+
 ## [2026-05-02] Model dev wave V2.123 — Decision trace surfaced on every reply
 
 ### Added

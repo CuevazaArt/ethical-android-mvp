@@ -81,6 +81,7 @@ def build_decision_trace(
     blocked: bool,
     blocked_reason: str | None = None,
     weights: dict[str, float] | None = None,
+    turn_id: str | None = None,
 ) -> dict[str, Any]:
     """V2.123 (C1): canonical decision trace returned with every chat reply.
 
@@ -104,7 +105,7 @@ def build_decision_trace(
         float(weight_mix.get("virtue", 0.0)),
     ]
     if blocked:
-        return {
+        trace: dict[str, Any] = {
             "malabs": "blocked",
             "context": getattr(signals, "context", None) or "safety_violation",
             "action": "safety_block",
@@ -114,6 +115,9 @@ def build_decision_trace(
             "weights": weight_list,
             "blocked_reason": blocked_reason or "safety",
         }
+        if turn_id:
+            trace["turn_id"] = turn_id
+        return trace
     score = 0.0
     if evaluation is not None:
         try:
@@ -122,7 +126,7 @@ def build_decision_trace(
             score = 0.0
         if not math.isfinite(score):
             score = 0.0
-    return {
+    trace = {
         "malabs": "pass",
         "context": getattr(signals, "context", None) or "everyday_ethics",
         "action": evaluation.chosen.name if evaluation else "casual_chat",
@@ -131,6 +135,9 @@ def build_decision_trace(
         "verdict": evaluation.verdict if evaluation else "Neutral",
         "weights": weight_list,
     }
+    if turn_id:
+        trace["turn_id"] = turn_id
+    return trace
 
 
 def _non_negative_int_or_none(x: Any, *, cap: int = 64) -> int | None:
@@ -250,7 +257,20 @@ class ChatEngine:
         memory: Memory | None = None,
     ):
         self.llm = llm if llm is not None else OllamaClient()
-        self.ethics = ethics if ethics is not None else EthicalEvaluator()
+        # V2.124 (C2): when posterior_assisted is on, attach the feedback ledger
+        # so the evaluator nudges scores from accumulated thumbs feedback.
+        if ethics is None:
+            from src.core.feedback import (
+                FeedbackCalibrationLedger,
+                is_posterior_assisted_enabled,
+            )
+
+            ledger = (
+                FeedbackCalibrationLedger() if is_posterior_assisted_enabled() else None
+            )
+            self.ethics = EthicalEvaluator(ledger=ledger)
+        else:
+            self.ethics = ethics
         self.memory = memory if memory is not None else Memory()
         self.perception = PerceptionClassifier()  # V2.40: deterministic, no LLM
         self.identity = Identity()  # V2.15: evolves with each episode

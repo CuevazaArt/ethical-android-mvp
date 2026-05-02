@@ -59,9 +59,14 @@ class ChatMessage {
   String? context;
   bool blocked;
   Map<String, dynamic>? trace;
+  int feedbackSignal = 0; // 0 = none, +1 = up, -1 = down
+  bool feedbackInFlight = false;
   final List<String> tokens = <String>[];
 
   String displayText() => text.isNotEmpty ? text : tokens.join();
+
+  String? get turnId => trace?['turn_id']?.toString();
+  String? get traceAction => trace?['action']?.toString();
 }
 
 class _ChatPanelState extends State<ChatPanel> {
@@ -458,6 +463,69 @@ class _ChatPanelState extends State<ChatPanel> {
     _scrollToBottom();
   }
 
+  Future<void> _sendFeedback(ChatMessage message, int signal) async {
+    if (message.feedbackInFlight) {
+      return;
+    }
+    final String? action = message.traceAction ?? message.action;
+    if (action == null || action.isEmpty) {
+      return;
+    }
+    final String turnId = message.turnId ?? 'unknown';
+    final http.Client? client = _httpClient;
+    if (client == null) {
+      return;
+    }
+    setState(() {
+      message.feedbackInFlight = true;
+    });
+    final Uri feedbackUri = Uri.parse('$_baseUrl/api/feedback');
+    final Map<String, dynamic> body = <String, dynamic>{
+      'turn_id': turnId,
+      'action': action,
+      'signal': signal,
+    };
+    try {
+      final http.Response response = await client
+          .post(
+            feedbackUri,
+            headers: const <String, String>{
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            message.feedbackSignal = signal;
+            _statusLine = signal > 0
+                ? 'Feedback +1 recorded for $action'
+                : 'Feedback -1 recorded for $action';
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _statusLine = 'Feedback rejected (${response.statusCode})';
+          });
+        }
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _statusLine = 'Feedback failed: $error';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          message.feedbackInFlight = false;
+        });
+      }
+    }
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) {
@@ -520,7 +588,13 @@ class _ChatPanelState extends State<ChatPanel> {
                       itemCount: _messages.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (BuildContext context, int index) {
-                        return _ChatBubble(message: _messages[index]);
+                        final ChatMessage msg = _messages[index];
+                        return _ChatBubble(
+                          message: msg,
+                          onFeedback: msg.role == 'ethos'
+                              ? (int signal) => _sendFeedback(msg, signal)
+                              : null,
+                        );
                       },
                     ),
             ),
@@ -623,9 +697,10 @@ class _ChatStatusBadge extends StatelessWidget {
 }
 
 class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({required this.message});
+  const _ChatBubble({required this.message, this.onFeedback});
 
   final ChatMessage message;
+  final void Function(int signal)? onFeedback;
 
   @override
   Widget build(BuildContext context) {
@@ -703,6 +778,42 @@ class _ChatBubble extends StatelessWidget {
               if (meta.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Wrap(spacing: 6, runSpacing: 4, children: meta),
+              ],
+              if (onFeedback != null) ...[
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      key: const Key('chatThumbsUp'),
+                      tooltip: 'Helpful',
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(
+                        message.feedbackSignal > 0
+                            ? Icons.thumb_up_alt
+                            : Icons.thumb_up_alt_outlined,
+                      ),
+                      onPressed: message.feedbackInFlight
+                          ? null
+                          : () => onFeedback!(1),
+                    ),
+                    IconButton(
+                      key: const Key('chatThumbsDown'),
+                      tooltip: 'Not helpful',
+                      iconSize: 18,
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(
+                        message.feedbackSignal < 0
+                            ? Icons.thumb_down_alt
+                            : Icons.thumb_down_alt_outlined,
+                      ),
+                      onPressed: message.feedbackInFlight
+                          ? null
+                          : () => onFeedback!(-1),
+                    ),
+                  ],
+                ),
               ],
             ],
           ),

@@ -266,6 +266,88 @@ void main() {
     expect(find.text('voice_turn ok (listen)'), findsOneWidget);
   });
 
+  testWidgets('Thumbs-up posts feedback envelope and toggles state', (
+    WidgetTester tester,
+  ) async {
+    Uri? voiceUri;
+    Map<String, dynamic>? feedbackBody;
+    final MockClient client = MockClient((http.Request request) async {
+      if (request.url.path == '/api/voice_turn') {
+        voiceUri = request.url;
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'version': '1.0',
+            'contract': 'voice_turn',
+            'request': <String, dynamic>{'utterance': 'hola'},
+            'response': <String, dynamic>{
+              'reply_text': 'Hola.',
+              'should_listen': true,
+              'trace': <String, dynamic>{
+                'malabs': 'pass',
+                'context': 'everyday_ethics',
+                'action': 'comfort_user',
+                'mode': 'D_delib',
+                'score': 0.4,
+                'verdict': 'Good',
+                'turn_id': 'voice-99',
+                'weights': <double>[0.4, 0.35, 0.25],
+              },
+            },
+            'error': null,
+            'latency_ms': 150.0,
+          }),
+          200,
+        );
+      }
+      if (request.url.path == '/api/feedback') {
+        feedbackBody = jsonDecode(request.body) as Map<String, dynamic>;
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'ok': true,
+            'posterior_assisted': false,
+            'stats': <String, dynamic>{
+              'action': feedbackBody!['action'],
+              'up': 1,
+              'down': 0,
+            },
+          }),
+          200,
+        );
+      }
+      return http.Response('not found', 404);
+    });
+
+    await tester.pumpWidget(
+      _harness(
+        child: ChatPanel(
+          startTransport: false,
+          httpClient: client,
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byKey(const Key('chatInput')), 'hola');
+    await tester.tap(find.byKey(const Key('chatSpeak')));
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(voiceUri, isNotNull);
+
+    final Finder thumbsUp = find.byKey(const Key('chatThumbsUp'));
+    expect(thumbsUp, findsOneWidget);
+    await tester.tap(thumbsUp);
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(feedbackBody, isNotNull);
+    expect(feedbackBody!['turn_id'], 'voice-99');
+    expect(feedbackBody!['action'], 'comfort_user');
+    expect(feedbackBody!['signal'], 1);
+    expect(
+      find.text('Feedback +1 recorded for comfort_user'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Speak surfaces server-side voice_turn errors as blocked bubble', (
     WidgetTester tester,
   ) async {
