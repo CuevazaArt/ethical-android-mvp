@@ -98,6 +98,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
+          pip install edge-tts
           pip freeze
 
       - name: L1 collaboration invariants
@@ -169,6 +170,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
+          pip install opencv-python-headless
 
       - name: L1 collaboration invariants
         run: python scripts/eval/verify_collaboration_invariants.py
@@ -209,6 +211,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
+          pip install edge-tts
 
       - name: Desktop MVP status contract smoke
         run: python -m pytest tests/server/test_app_integration.py::test_desktop_mvp_status_contract_smoke -q --tb=short
