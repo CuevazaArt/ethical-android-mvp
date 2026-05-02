@@ -42,6 +42,7 @@ void main() {
     expect(find.text('Clear timeline'), findsOneWidget);
     expect(find.text('Showing 0 event(s)'), findsOneWidget);
     expect(find.text('Copy snapshot'), findsOneWidget);
+    expect(find.text('Copy blocked summary'), findsOneWidget);
     expect(find.text('No diagnostics export yet.'), findsOneWidget);
     expect(find.text('Short'), findsOneWidget);
     expect(find.text('Medium'), findsOneWidget);
@@ -122,5 +123,14 @@ void main() {
     await tester.tap(resetFiltersButton);
     await tester.pump();
     expect(find.text('Showing 2 event(s)'), findsOneWidget);
+
+    final Finder blockedSummaryButton = find.widgetWithText(
+      OutlinedButton,
+      'Copy blocked summary',
+    );
+    await tester.ensureVisible(blockedSummaryButton);
+    await tester.tap(blockedSummaryButton);
+    await tester.pump();
+    expect(find.textContaining('summary'), findsOneWidget);
   });
 }

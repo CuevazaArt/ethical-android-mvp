@@ -864,6 +864,13 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   icon: const Icon(Icons.copy_all_rounded, size: 16),
                   label: const Text('Copy snapshot'),
                 ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    unawaited(_copyBlockedSummary());
+                  },
+                  icon: const Icon(Icons.report_problem_rounded, size: 16),
+                  label: const Text('Copy blocked summary'),
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -1144,6 +1151,38 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
     }
   }
 
+  Future<void> _copyBlockedSummary() async {
+    final List<_DiagnosticEvent> highEvents = _diagnosticEvents
+        .where((event) => event.severity == _DiagnosticSeverity.high)
+        .toList(growable: false);
+    if (highEvents.isEmpty) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'No high-severity events to export.';
+      });
+      return;
+    }
+    final String snapshot = _buildBlockedSummary(highEvents);
+    try {
+      await Clipboard.setData(ClipboardData(text: snapshot));
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'High-severity summary copied.';
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _diagnosticsActionMessage = 'Unable to copy high-severity summary.';
+      });
+    }
+  }
+
   String _buildDiagnosticsSnapshot(List<_DiagnosticEvent> events) {
     final String connection = _connectionState.name;
     final String voice = _voiceUiState.name;
@@ -1163,6 +1202,21 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       'visible_events: ${events.length}',
       'events:',
       eventsSection,
+    ].join('\n');
+  }
+
+  String _buildBlockedSummary(List<_DiagnosticEvent> highEvents) {
+    final List<String> eventLines = highEvents
+        .map((event) => '- ${event.at.toIso8601String()} :: ${event.message}')
+        .toList(growable: false);
+    return [
+      'Ethos Flutter blocked-summary',
+      'status: BLOCKED',
+      'high_events: ${highEvents.length}',
+      'retry_count: $_retryCount',
+      'gate_source: $_gateSource',
+      'events:',
+      eventLines.join('\n'),
     ].join('\n');
   }
 

@@ -232,6 +232,12 @@ All notable changes to this project are summarized here. For narrative context a
 - **`docs/collaboration/evidence/PERCEPTION_HARDWARE_UNBLOCK_ACTIONS.md`:** Added operator-ready unblock checklist for mic/camera path recovery and gate rerun commands.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.4` as done and queued `105.5` rerun execution after hardware unblock.
 
+## [2026-05-02] V2.106.0 — Software-lane pivot (blocked summary export)
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added `Copy blocked summary` diagnostics action for exporting high-severity-only triage snapshot.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for blocked-summary action presence and diagnostics feedback update.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `105.5` as postponed due hardware constraints and opened software-only continuation lane (`106.1`).
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

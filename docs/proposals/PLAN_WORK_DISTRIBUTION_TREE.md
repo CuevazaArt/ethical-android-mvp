@@ -531,18 +531,30 @@ Use this fixed structure in each planning handoff:
 - **Demo:** operator checklist now includes physical reconnect, Windows privacy/driver recovery, preflight rerun, and gate pass criteria.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 105.5: Pilot rerun execution after unblock [PENDING]**
+**Bloque 105.5: Pilot rerun execution after unblock [POSTPONED ⏸️]**
 - **Goal:** Execute rerun gate with connected mic/camera and update pilot decision status.
 - **Files:** updated preflight + rerun gate reports + context/plan checkpoint.
-- **Demo:** rerun gate flips from `BLOCKED` to `PASS` or records a new deterministic blocker with mitigation owner.
+- **Demo:** deferred until physical perception hardware is available in the active environment.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 106.0: Flutter blocked-summary export [DONE ✅]**
+- **Goal:** Add software-only triage export focused on blocking/high-severity diagnostics.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** diagnostics card now includes `Copy blocked summary` action with deterministic feedback.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 106.1: Flutter diagnostics lane continuation checkpoint [PENDING]**
+- **Goal:** Keep sprint velocity on Flutter UX while hardware lane stays paused.
+- **Files:** context/plan checkpoint.
+- **Demo:** checkpoint explicitly tracks hardware postponement and active software-only next step.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 105.5 — Pilot rerun execution after unblock
-[POTENCIA SUGERIDA] B (Auto equilibrado)
-[MOTIVO] Unblock checklist is now explicit; next step is executing rerun with physical capture path available.
-[HECHO CUANDO] Updated preflight/rerun reports show final pilot gate status with decision trace.
+[SIGUIENTE] Bloque 106.1 — Flutter diagnostics lane continuation checkpoint
+[POTENCIA SUGERIDA] A (Auto eficiencia)
+[MOTIVO] Hardware-dependent rerun is postponed by current constraints; continue shipping software-only value.
+[HECHO CUANDO] Active software lane and postponed hardware dependency are synchronized without ambiguity.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

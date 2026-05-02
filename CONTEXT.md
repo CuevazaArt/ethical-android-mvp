@@ -364,6 +364,15 @@
   - exact preflight and rerun-gate commands with pass criteria.
 - This closes preparation loop before `105.5` rerun execution with real hardware path.
 
+### Execution pulse 106.0 (software-lane pivot, blocked summary export)
+
+- Hardware-dependent rerun (`105.5`) is postponed while perception devices are unavailable.
+- Added software-only diagnostics feature in Flutter desktop shell:
+  - `Copy blocked summary` action in diagnostics card.
+  - action exports high-severity-only snapshot for fast incident triage notes.
+- Widget coverage updated for the new diagnostics action and feedback line.
+- Active execution lane is now Flutter diagnostics continuity until hardware availability changes.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`
