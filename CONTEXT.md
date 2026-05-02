@@ -354,6 +354,16 @@
 - Added coverage:
   - `tests/eval/test_perception_pilot_rerun_gate.py`.
 
+### Execution pulse 105.4 (hardware unblock actions)
+
+- Added concrete operator unblock checklist:
+  - `docs/collaboration/evidence/PERCEPTION_HARDWARE_UNBLOCK_ACTIONS.md`.
+- Checklist includes:
+  - physical reconnect sequence for mic/camera/audio endpoint,
+  - Windows privacy and driver recovery steps,
+  - exact preflight and rerun-gate commands with pass criteria.
+- This closes preparation loop before `105.5` rerun execution with real hardware path.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

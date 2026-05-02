@@ -525,18 +525,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** executable rerun gate report now emits deterministic `BLOCKED`/`PASS`; current state is `BLOCKED` until camera+mic path is available.
 - **[POTENCIA SUGERIDA]:** B (Auto equilibrado).
 
-**Bloque 105.4: Hardware unblock action list [PENDING]**
+**Bloque 105.4: Hardware unblock action list [DONE ✅]**
 - **Goal:** Produce minimal operator checklist to flip preflight from `false` to `true`.
 - **Files:** context/plan checkpoint.
-- **Demo:** actionable unplug/reconnect/driver checks are explicit for immediate rerun preparation.
+- **Demo:** operator checklist now includes physical reconnect, Windows privacy/driver recovery, preflight rerun, and gate pass criteria.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 105.5: Pilot rerun execution after unblock [PENDING]**
+- **Goal:** Execute rerun gate with connected mic/camera and update pilot decision status.
+- **Files:** updated preflight + rerun gate reports + context/plan checkpoint.
+- **Demo:** rerun gate flips from `BLOCKED` to `PASS` or records a new deterministic blocker with mitigation owner.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 105.4 — Hardware unblock action list
-[POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Rerun gate now reports deterministic BLOCKED status; next value step is explicit operator unblock actions.
-[HECHO CUANDO] Checklist to achieve `preflight_ready=true` is documented and linked to rerun gate execution.
+[SIGUIENTE] Bloque 105.5 — Pilot rerun execution after unblock
+[POTENCIA SUGERIDA] B (Auto equilibrado)
+[MOTIVO] Unblock checklist is now explicit; next step is executing rerun with physical capture path available.
+[HECHO CUANDO] Updated preflight/rerun reports show final pilot gate status with decision trace.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
