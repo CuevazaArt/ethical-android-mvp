@@ -223,7 +223,9 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
             p95 = float("nan")
             target = float("nan")
             sample_count = 0
-        g2_prov_updated = _parse_iso_utc(str(g2_provisional_payload.get("generated_at", "")))
+        g2_prov_updated = _parse_iso_utc(
+            str(g2_provisional_payload.get("generated_at", ""))
+        )
         if math.isfinite(p95) and p95 >= 0.0 and math.isfinite(target) and target > 0.0:
             g2 = "in_progress"
             g2_summary = (
