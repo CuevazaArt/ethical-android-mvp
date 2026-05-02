@@ -48,6 +48,7 @@ class ChatMessage {
     this.action,
     this.context,
     this.blocked = false,
+    this.trace,
   });
 
   /// One of: `user`, `ethos`, `system`.
@@ -57,6 +58,7 @@ class ChatMessage {
   String? action;
   String? context;
   bool blocked;
+  Map<String, dynamic>? trace;
   final List<String> tokens = <String>[];
 
   String displayText() => text.isNotEmpty ? text : tokens.join();
@@ -183,12 +185,16 @@ class _ChatPanelState extends State<ChatPanel> {
             (decoded['evaluation'] is Map)
             ? (decoded['evaluation'] as Map).cast<String, dynamic>()
             : null;
+        final Map<String, dynamic>? trace = (decoded['trace'] is Map)
+            ? (decoded['trace'] as Map).cast<String, dynamic>()
+            : null;
         setState(() {
           final ChatMessage placeholder = ChatMessage(
             role: 'ethos',
             text: '',
             context: decoded?['context']?.toString(),
             action: evaluation?['chosen']?.toString(),
+            trace: trace,
           );
           _activeStream = placeholder;
           _messages.add(placeholder);
@@ -223,6 +229,9 @@ class _ChatPanelState extends State<ChatPanel> {
         }
         final String message = decoded['message']?.toString() ?? '';
         final bool blocked = decoded['blocked'] == true;
+        final Map<String, dynamic>? doneTrace = (decoded['trace'] is Map)
+            ? (decoded['trace'] as Map).cast<String, dynamic>()
+            : null;
         setState(() {
           final ChatMessage? active = _activeStream;
           if (active != null) {
@@ -232,6 +241,9 @@ class _ChatPanelState extends State<ChatPanel> {
             active.text = active.tokens.join();
             active.latencyMs = totalMs;
             active.blocked = blocked;
+            if (doneTrace != null) {
+              active.trace = doneTrace;
+            }
           } else if (message.isNotEmpty) {
             _messages.add(
               ChatMessage(
@@ -239,6 +251,7 @@ class _ChatPanelState extends State<ChatPanel> {
                 text: message,
                 latencyMs: totalMs,
                 blocked: blocked,
+                trace: doneTrace,
               ),
             );
           }
@@ -401,6 +414,7 @@ class _ChatPanelState extends State<ChatPanel> {
     String reply = '';
     bool shouldListen = true;
     String? audioB64;
+    Map<String, dynamic>? voiceTrace;
     if (response is Map) {
       reply = response['reply_text']?.toString() ?? '';
       final dynamic listen = response['should_listen'];
@@ -408,6 +422,9 @@ class _ChatPanelState extends State<ChatPanel> {
         shouldListen = listen;
       }
       audioB64 = response['audio_b64']?.toString();
+      if (response['trace'] is Map) {
+        voiceTrace = (response['trace'] as Map).cast<String, dynamic>();
+      }
     }
     setState(() {
       _messages.add(
@@ -416,6 +433,7 @@ class _ChatPanelState extends State<ChatPanel> {
           text: reply.isEmpty ? '[empty reply]' : reply,
           latencyMs: latencyMs,
           action: 'voice_turn',
+          trace: voiceTrace,
         ),
       );
       _statusLine = shouldListen
@@ -624,8 +642,29 @@ class _ChatBubble extends StatelessWidget {
     final String body = message.displayText();
 
     final List<Widget> meta = <Widget>[];
+    final Map<String, dynamic>? trace = message.trace;
+    final String? traceMode = trace?['mode']?.toString();
+    final String? traceVerdict = trace?['verdict']?.toString();
+    final String? traceMalabs = trace?['malabs']?.toString();
+    final dynamic traceScoreRaw = trace?['score'];
+    final double? traceScore = traceScoreRaw is num
+        ? traceScoreRaw.toDouble()
+        : null;
+
     if (message.action != null && message.action!.isNotEmpty) {
       meta.add(_metaChip('action: ${message.action}', theme));
+    }
+    if (traceMode != null && traceMode.isNotEmpty) {
+      meta.add(_metaChip('mode: $traceMode', theme));
+    }
+    if (traceScore != null) {
+      meta.add(_metaChip('score: ${traceScore.toStringAsFixed(2)}', theme));
+    }
+    if (traceVerdict != null && traceVerdict.isNotEmpty) {
+      meta.add(_metaChip('verdict: $traceVerdict', theme));
+    }
+    if (traceMalabs != null && traceMalabs == 'blocked') {
+      meta.add(_metaChip('malabs: blocked', theme));
     }
     if (message.context != null && message.context!.isNotEmpty) {
       meta.add(_metaChip('ctx: ${message.context}', theme));
@@ -638,7 +677,7 @@ class _ChatBubble extends StatelessWidget {
         ),
       );
     }
-    if (message.blocked) {
+    if (message.blocked && traceMalabs != 'blocked') {
       meta.add(_metaChip('blocked', theme));
     }
 

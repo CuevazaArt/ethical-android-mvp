@@ -137,10 +137,22 @@ void main() {
       'message': 'Hola mundo',
       'latency': <String, dynamic>{'total': 432.0},
       'blocked': false,
+      'trace': <String, dynamic>{
+        'malabs': 'pass',
+        'context': 'everyday_ethics',
+        'action': 'comfort_user',
+        'mode': 'D_delib',
+        'score': 0.62,
+        'verdict': 'Good',
+        'weights': <double>[0.4, 0.35, 0.25],
+      },
     });
     await tester.pumpAndSettle();
 
     expect(find.textContaining('action: comfort_user'), findsOneWidget);
+    expect(find.textContaining('mode: D_delib'), findsOneWidget);
+    expect(find.textContaining('score: 0.62'), findsOneWidget);
+    expect(find.textContaining('verdict: Good'), findsOneWidget);
     expect(find.textContaining('ctx: everyday_ethics'), findsOneWidget);
     expect(find.textContaining('latency: 432ms'), findsOneWidget);
   });
@@ -207,6 +219,15 @@ void main() {
           'response': <String, dynamic>{
             'reply_text': 'Estoy aquí.',
             'should_listen': true,
+            'trace': <String, dynamic>{
+              'malabs': 'pass',
+              'context': 'everyday_ethics',
+              'action': 'comfort_user',
+              'mode': 'D_delib',
+              'score': 0.55,
+              'verdict': 'Good',
+              'weights': <double>[0.4, 0.35, 0.25],
+            },
           },
           'error': null,
           'latency_ms': 712.0,
@@ -239,6 +260,9 @@ void main() {
     expect(find.text('Estoy aquí.'), findsOneWidget);
     expect(find.textContaining('latency: 712ms'), findsOneWidget);
     expect(find.textContaining('action: voice_turn'), findsOneWidget);
+    expect(find.textContaining('mode: D_delib'), findsOneWidget);
+    expect(find.textContaining('score: 0.55'), findsOneWidget);
+    expect(find.textContaining('verdict: Good'), findsOneWidget);
     expect(find.text('voice_turn ok (listen)'), findsOneWidget);
   });
 

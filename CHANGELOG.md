@@ -4,6 +4,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.123 — Decision trace surfaced on every reply
+
+### Added
+- **`src/core/chat.py`:** New `build_decision_trace` helper that produces a canonical `{malabs, context, action, mode, score, verdict, weights[, blocked_reason]}` dict for every chat reply.
+- **`tests/core/test_decision_trace.py`:** Locks the trace contract for pass, blocked, casual, and weight-override paths plus non-finite-score clamping.
+
+### Changed
+- **`src/core/chat.py`:** `turn_stream` now emits the decision trace inside the `metadata` and `done` events (and the safety-block path); the active `EthicalEvaluator` weights are passed through.
+- **`src/server/app.py`:** `POST /api/voice_turn` returns the same canonical trace inside `response.trace` for both pass and blocked outcomes.
+- **`src/clients/flutter_desktop_shell/lib/chat_panel.dart`:** Chat bubbles now render `mode`, `score`, `verdict`, and `malabs: blocked` chips from the trace; voice_turn replies pick up the same surface.
+- **`tests/server/test_voice_turn_endpoint.py`:** Asserts the new `response.trace` shape for both success and blocked paths.
+- **`src/clients/flutter_desktop_shell/test/chat_panel_test.dart`:** Streaming and Speak tests now feed and assert the trace dictionary.
+
 ## [2026-05-02] Model dev wave V2.122 — Operator runbook and demo runner voice_turn step
 
 ### Added

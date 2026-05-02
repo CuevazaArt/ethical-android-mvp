@@ -16,7 +16,7 @@ from typing import Any
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
-from src.core.chat import ChatEngine
+from src.core.chat import ChatEngine, build_decision_trace
 from src.core.memory import Memory
 from src.core.perception import SensoryBuffer
 from src.core.sleep import PsiSleepDaemon
@@ -541,6 +541,7 @@ async def api_voice_turn(request: Request):
 
     _set_voice_turn_state("responding")
     blocked = False
+    blocked_reason: str | None = None
     try:
         result = await engine.turn(parsed.utterance)
         reply_text = (result.message or "").strip()
@@ -548,6 +549,14 @@ async def api_voice_turn(request: Request):
             "blocked"
         ):
             blocked = True
+            blocked_reason = str(result.perception_raw.get("reason") or "safety")
+        trace = build_decision_trace(
+            signals=result.signals,
+            evaluation=result.evaluation,
+            blocked=blocked,
+            blocked_reason=blocked_reason,
+            weights=engine.ethics.weights,
+        )
     except Exception as exc:
         _log.error("[VoiceTurn] turn failed: %s", exc)
         envelope = build_voice_turn_error_envelope(
@@ -583,6 +592,7 @@ async def api_voice_turn(request: Request):
         latency_ms=latency_ms,
         audio_b64=audio_b64,
     )
+    envelope["response"]["trace"] = trace
     _log.info(
         "[VoiceTurn] ok | utterance_len=%s | reply_len=%s | latency_ms=%.2f | blocked=%s",
         len(parsed.utterance),

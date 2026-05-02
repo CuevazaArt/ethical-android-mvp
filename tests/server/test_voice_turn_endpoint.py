@@ -84,14 +84,42 @@ def test_parse_voice_turn_accepts_valid_request() -> None:
     assert parsed.utterance == "hola"
 
 
+class _StubSignals:
+    def __init__(self, context: str = "everyday_ethics") -> None:
+        self.context = context
+        self.risk = 0.1
+        self.urgency = 0.1
+        self.hostility = 0.1
+
+
+class _StubAction:
+    def __init__(self, name: str = "comfort_user") -> None:
+        self.name = name
+
+
+class _StubEvaluation:
+    def __init__(self) -> None:
+        self.chosen = _StubAction("comfort_user")
+        self.score = 0.42
+        self.uncertainty = 0.1
+        self.mode = "D_delib"
+        self.verdict = "Good"
+        self.reasoning = "stub"
+        self.pole_scores = {"util": 0.5, "deonto": 0.4, "virtue": 0.3}
+
+
 def _patch_chat_engine(reply_text: str = "Estoy aquí", *, blocked: bool = False):
-    perception = {"blocked": blocked} if blocked else {"risk": 0.1, "context": "ok"}
+    perception = (
+        {"blocked": blocked, "reason": "lex"}
+        if blocked
+        else {"risk": 0.1, "context": "everyday_ethics"}
+    )
 
     class _StubResult:
         def __init__(self) -> None:
             self.message = reply_text
-            self.signals = None
-            self.evaluation = None
+            self.signals = _StubSignals()
+            self.evaluation = None if blocked else _StubEvaluation()
             self.perception_raw = perception
             self.latency_ms = {"total": 12.0}
 
@@ -137,6 +165,14 @@ def test_voice_turn_endpoint_returns_success_envelope() -> None:
     assert body["response"]["should_listen"] is True
     assert isinstance(body["latency_ms"], (int, float))
     assert math.isfinite(body["latency_ms"]) and body["latency_ms"] >= 0.0
+    trace = body["response"].get("trace")
+    assert isinstance(trace, dict), "voice_turn response must include decision trace"
+    assert trace["malabs"] == "pass"
+    assert trace["action"] == "comfort_user"
+    assert trace["mode"] == "D_delib"
+    assert trace["verdict"] == "Good"
+    assert math.isfinite(float(trace["score"]))
+    assert isinstance(trace["weights"], list) and len(trace["weights"]) == 3
 
 
 def test_voice_turn_endpoint_marks_should_listen_false_when_blocked() -> None:
@@ -157,6 +193,11 @@ def test_voice_turn_endpoint_marks_should_listen_false_when_blocked() -> None:
     assert response.status_code == 200
     assert body["response"]["should_listen"] is False
     assert body["error"] is None
+    trace = body["response"].get("trace")
+    assert isinstance(trace, dict)
+    assert trace["malabs"] == "blocked"
+    assert trace["action"] == "safety_block"
+    assert trace["blocked_reason"] == "lex"
 
 
 def test_voice_turn_endpoint_returns_400_on_empty_utterance() -> None:

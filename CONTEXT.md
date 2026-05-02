@@ -722,6 +722,13 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 123.0 (C1 — decision trace surfaced on every reply)
+
+- New `build_decision_trace(...)` returns the same canonical dict for chat WS and voice_turn HTTP paths.
+- `/ws/chat` `metadata`/`done` events and `POST /api/voice_turn` now embed the trace; engine weights flow through so future Bayesian updates surface in the UI without contract drift.
+- Flutter chat bubble renders `mode`, `score`, `verdict`, and `malabs: blocked` chips alongside the existing latency/context.
+- Coverage: new `tests/core/test_decision_trace.py` (5 cases) + extended server and Flutter tests; full suite at 313 + Flutter 10/10.
+
 ### Execution pulse 122.0 (A4 — operator runbook + demo runner voice_turn coverage)
 
 - Desktop E2E runner now exercises `POST /api/voice_turn` (5 steps total) with a stubbed LLM and validates envelope contract + latency.

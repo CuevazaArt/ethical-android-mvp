@@ -35,7 +35,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Any
 
-from src.core.ethics import Action, EthicalEvaluator, EvalResult, Signals
+from src.core.ethics import WEIGHTS, Action, EthicalEvaluator, EvalResult, Signals
 from src.core.identity import Identity
 from src.core.llm import OllamaClient
 from src.core.memory import Memory
@@ -72,6 +72,65 @@ def _finite01_or_none(x: Any) -> float | None:
     if not math.isfinite(v):
         return None
     return max(0.0, min(1.0, v))
+
+
+def build_decision_trace(
+    *,
+    signals: Signals | None,
+    evaluation: EvalResult | None,
+    blocked: bool,
+    blocked_reason: str | None = None,
+    weights: dict[str, float] | None = None,
+) -> dict[str, Any]:
+    """V2.123 (C1): canonical decision trace returned with every chat reply.
+
+    The shape is intentionally narrow so that chat clients can render it as a
+    human-readable card without carrying internal-only fields:
+
+    - ``malabs``: ``pass`` or ``blocked``.
+    - ``context``: perception context label.
+    - ``action``: chosen action name (or ``safety_block`` / ``casual_chat``).
+    - ``mode``: ``D_fast`` / ``D_delib`` / ``gray_zone`` / ``casual``.
+    - ``score``: chosen weighted score, finite float in [-1.5, 1.5] post-clamp.
+    - ``verdict``: ``Good`` / ``Bad`` / ``Gray Zone`` / ``Neutral``.
+    - ``weights``: ordered list ``[util, deonto, virtue]`` from the active mix.
+    - ``blocked_reason``: present only when ``malabs == "blocked"``.
+    """
+
+    weight_mix = dict(weights or WEIGHTS)
+    weight_list = [
+        float(weight_mix.get("util", 0.0)),
+        float(weight_mix.get("deonto", 0.0)),
+        float(weight_mix.get("virtue", 0.0)),
+    ]
+    if blocked:
+        return {
+            "malabs": "blocked",
+            "context": getattr(signals, "context", None) or "safety_violation",
+            "action": "safety_block",
+            "mode": "blocked",
+            "score": 0.0,
+            "verdict": "Blocked",
+            "weights": weight_list,
+            "blocked_reason": blocked_reason or "safety",
+        }
+    score = 0.0
+    if evaluation is not None:
+        try:
+            score = float(evaluation.score)
+        except (TypeError, ValueError):
+            score = 0.0
+        if not math.isfinite(score):
+            score = 0.0
+    return {
+        "malabs": "pass",
+        "context": getattr(signals, "context", None) or "everyday_ethics",
+        "action": evaluation.chosen.name if evaluation else "casual_chat",
+        "mode": evaluation.mode if evaluation else "casual",
+        "score": score,
+        "verdict": evaluation.verdict if evaluation else "Neutral",
+        "weights": weight_list,
+    }
 
 
 def _non_negative_int_or_none(x: Any, *, cap: int = 64) -> int | None:
@@ -502,6 +561,13 @@ class ChatEngine:
                 "blocked": True,
                 "reason": reason,
                 "latency": latency,
+                "trace": build_decision_trace(
+                    signals=None,
+                    evaluation=None,
+                    blocked=True,
+                    blocked_reason=reason,
+                    weights=self.ethics.weights,
+                ),
             }
             return
 
@@ -545,6 +611,12 @@ class ChatEngine:
             }
             if evaluation
             else None,
+            "trace": build_decision_trace(
+                signals=signals,
+                evaluation=evaluation,
+                blocked=False,
+                weights=self.ethics.weights,
+            ),
         }
 
         # V2.73b / V2.74: Proactive real-time data pre-fetch — Weather first, Web as fallback
@@ -693,6 +765,12 @@ class ChatEngine:
             "latency": latency,
             "vault_key": vault_key,  # V2.71
             "plugin_used": plugin_used,  # V2.74: telemetry
+            "trace": build_decision_trace(
+                signals=signals,
+                evaluation=evaluation,
+                blocked=False,
+                weights=self.ethics.weights,
+            ),
         }
 
     async def repl(self) -> None:
