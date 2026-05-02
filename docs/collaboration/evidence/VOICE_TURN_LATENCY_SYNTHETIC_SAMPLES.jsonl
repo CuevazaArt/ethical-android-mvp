@@ -1,0 +1,10 @@
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-001", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 1840.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-002", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 1915.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-003", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 1980.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-004", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 2035.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-005", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 2102.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-006", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 2166.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-007", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 2214.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-008", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 2290.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-009", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 2365.0}
+{"captured_at": "2026-05-02T16:06:15Z", "sample_id": "synthetic-turn-010", "source": "synthetic_fixture", "endpoint": "fixture://audio_turn", "http_status": 200, "total_ms": 2420.0}

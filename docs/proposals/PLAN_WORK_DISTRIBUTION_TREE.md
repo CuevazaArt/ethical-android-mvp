@@ -729,41 +729,47 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `scripts/eval/desktop_e2e_demo_runner.py` produces deterministic JSON report for auditable G4 posture.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 112.2: G2 provisional synthetic latency harness [PENDING]**
+**Bloque 112.2: G2 provisional synthetic latency harness [DONE ✅]**
 - **Goal:** Unblock latency tracking without hardware by defining provisional synthetic p95 runner.
 - **Files:** eval runner + tests + evidence wiring.
-- **Demo:** p95 report generated with explicit `PROVISIONAL` status and clear hardware caveat.
+- **Demo:** synthetic report now generated with explicit `PROVISIONAL` status and consumed by gate snapshot/status payload.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 112.3: Gate scoreboard checkpoint [PENDING]**
+**Bloque 112.3: Gate scoreboard checkpoint [DONE ✅]**
 - **Goal:** Close mini-wave with explicit G1..G5 scoreboard progress, not just local test status.
 - **Files:** context/plan/changelog.
-- **Demo:** checkpoint aligns docs with gate movement and queues gate-driven successor chain.
+- **Demo:** checkpoint now reports gate posture (`G1/G2/G3 in_progress`, `G4/G5 pass`) and queues successor chain.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 113.0: Gate stability sprint kickoff [PENDING]**
+- **Goal:** Open next gate-driven sprint focused on converting provisional/in-progress gates into deterministic closure evidence.
+- **Files:** context/plan checkpoint.
+- **Demo:** ordered successor chain is explicit for autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 112.2 — G2 provisional synthetic latency harness
+[SIGUIENTE] Bloque 113.0 — Gate stability sprint kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Unblock measurable latency progress while hardware remains unavailable.
+[MOTIVO] Continue gate-first execution to close remaining `in_progress` gates.
 [HECHO CUANDO] New successor chain is documented in strict execution order.
 
-### Sprint prompts (112.x chain)
+### Sprint prompts (113.x chain)
 
-[SIGUIENTE] Bloque 112.2 — G2 provisional synthetic latency harness
+[SIGUIENTE] Bloque 113.1 — G1 stability ledger acceleration
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Produce p95 evidence pipeline even before physical mic/cam are available.
-[HECHO CUANDO] Synthetic latency report is deterministic and explicitly tagged `PROVISIONAL`.
+[MOTIVO] Move G1 from rolling deficit to closure-ready coverage.
+[HECHO CUANDO] Stability evidence reaches required day coverage without failures.
 
-[SIGUIENTE] Bloque 112.3 — Gate scoreboard checkpoint
+[SIGUIENTE] Bloque 113.2 — G3 no-drift execution cadence
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Verify that current wave advances MVP gates instead of diagnostics micro-UX.
-[HECHO CUANDO] Context/plan/changelog include explicit G1..G5 movement summary.
+[MOTIVO] Reduce month-window gap for contract no-drift gate progression.
+[HECHO CUANDO] G3 evidence records deterministic run cadence with zero failures.
 
-[SIGUIENTE] Bloque 113.0 — Gate-driven successor kickoff
+[SIGUIENTE] Bloque 113.3 — Gate scoreboard checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Continue MVP closure path with gate-first sequencing.
-[HECHO CUANDO] Next ordered chain is queued after 112.x checkpoint.
+[MOTIVO] Close sprint with explicit gate movement and successor readiness.
+[HECHO CUANDO] Context/plan/changelog align on 113.x completion and queued successor block.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

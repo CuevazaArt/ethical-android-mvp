@@ -206,34 +206,66 @@ def _build_reentry_gate_payload() -> tuple[dict[str, str], dict[str, dict[str, A
         max_age_hours=24,
     )
 
-    g2_source = "docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl"
-    g2_rows = _read_jsonl(_EVIDENCE_DIR / "VOICE_TURN_LATENCY_SAMPLES.jsonl")
-    totals = []
-    g2_updated: datetime | None = None
-    for row in g2_rows:
-        ts = _parse_iso_utc(str(row.get("captured_at", "")))
-        if ts is not None and (g2_updated is None or ts > g2_updated):
-            g2_updated = ts
+    g2_provisional_source = "docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json"
+    g2_provisional_payload = _read_json(_EVIDENCE_DIR / "G2_PROVISIONAL_LATENCY_REPORT.json")
+    if isinstance(g2_provisional_payload, dict) and bool(g2_provisional_payload.get("provisional")):
         try:
-            total = float(row.get("total_ms", 0.0))
+            p95 = float(g2_provisional_payload.get("p95_ms"))
+            target = float(g2_provisional_payload.get("target_p95_ms", 2500.0))
+            sample_count = int(g2_provisional_payload.get("sample_count", 0))
         except (TypeError, ValueError):
-            continue
-        if math.isfinite(total) and total >= 0.0:
-            totals.append(total)
-    if totals:
-        p95 = float(statistics.quantiles(totals, n=100, method="inclusive")[94])
-        g2 = "pass" if p95 < 2500.0 else "fail"
-        g2_summary = f"p95={p95:.2f}ms target<2500ms (n={len(totals)})"
+            p95 = float("nan")
+            target = float("nan")
+            sample_count = 0
+        g2_updated = _parse_iso_utc(str(g2_provisional_payload.get("generated_at", "")))
+        if math.isfinite(p95) and p95 >= 0.0 and math.isfinite(target) and target > 0.0:
+            g2 = "in_progress"
+            g2_summary = (
+                f"PROVISIONAL p95={p95:.2f}ms target<{target:.2f}ms "
+                f"(synthetic fixture, n={sample_count})"
+            )
+        else:
+            g2 = "in_progress"
+            g2_summary = "PROVISIONAL latency report exists but metrics are invalid."
+        details["G2"] = _gate_detail(
+            status=g2,
+            source=g2_provisional_source,
+            updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
+            summary=g2_summary,
+            max_age_hours=24 * 7,
+        )
     else:
-        g2 = "in_progress"
-        g2_summary = "No valid live latency samples captured."
-    details["G2"] = _gate_detail(
-        status=g2,
-        source=g2_source,
-        updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
-        summary=g2_summary,
-        max_age_hours=24 * 7,
-    )
+        g2_source = "docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl"
+        g2_rows = _read_jsonl(_EVIDENCE_DIR / "VOICE_TURN_LATENCY_SAMPLES.jsonl")
+        totals = []
+        g2_updated: datetime | None = None
+        for row in g2_rows:
+            ts = _parse_iso_utc(str(row.get("captured_at", "")))
+            if ts is not None and (g2_updated is None or ts > g2_updated):
+                g2_updated = ts
+            try:
+                total = float(row.get("total_ms", 0.0))
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(total) and total >= 0.0:
+                totals.append(total)
+        if totals:
+            if len(totals) == 1:
+                p95 = totals[0]
+            else:
+                p95 = float(statistics.quantiles(totals, n=100, method="inclusive")[94])
+            g2 = "pass" if p95 < 2500.0 else "fail"
+            g2_summary = f"p95={p95:.2f}ms target<2500ms (n={len(totals)})"
+        else:
+            g2 = "in_progress"
+            g2_summary = "No valid live latency samples captured."
+        details["G2"] = _gate_detail(
+            status=g2,
+            source=g2_source,
+            updated_at=_to_iso_utc(g2_updated) if g2_updated else None,
+            summary=g2_summary,
+            max_age_hours=24 * 7,
+        )
 
     g3_source = "docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl"
     g3_rows = _read_jsonl(_EVIDENCE_DIR / "G3_CONTRACT_NO_DRIFT_HISTORY.jsonl")

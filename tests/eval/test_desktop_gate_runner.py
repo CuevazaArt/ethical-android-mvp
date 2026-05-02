@@ -134,3 +134,40 @@ def test_snapshot_marks_stale_when_updated_at_missing(tmp_path: Path) -> None:
     snapshot = build_gate_snapshot(evidence_dir=evidence)
 
     assert snapshot["gates"]["G1"]["stale"] is True
+
+
+def test_snapshot_marks_g2_as_in_progress_with_provisional_report(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence"
+    evidence.mkdir(parents=True, exist_ok=True)
+    _write_jsonl(
+        evidence / "DESKTOP_STABILITY_LEDGER.jsonl",
+        [{"date": "2099-01-01T09:00:00Z", "status": "pass", "cycle": "desktop-smoke"}],
+    )
+    _write_jsonl(
+        evidence / "VOICE_TURN_LATENCY_SAMPLES.jsonl",
+        [{"captured_at": "2099-01-01T10:00:00Z", "total_ms": 999.0}],
+    )
+    (evidence / "G2_PROVISIONAL_LATENCY_REPORT.json").write_text(
+        json.dumps(
+            {
+                "generated_at": "2099-01-01T11:00:00Z",
+                "provisional": True,
+                "source": "synthetic_fixture",
+                "sample_count": 10,
+                "p95_ms": 2200.0,
+                "target_p95_ms": 2500.0,
+            }
+        ),
+        encoding="utf-8",
+    )
+    _write_jsonl(evidence / "G3_CONTRACT_NO_DRIFT_HISTORY.jsonl", [])
+    (evidence / "DEMO_RELIABILITY_CHECKLIST.json").write_text(
+        json.dumps({"items": []}),
+        encoding="utf-8",
+    )
+
+    snapshot = build_gate_snapshot(evidence_dir=evidence)
+
+    g2 = snapshot["gates"]["G2"]
+    assert g2["status"] == "in_progress"
+    assert "PROVISIONAL" in g2["summary"]

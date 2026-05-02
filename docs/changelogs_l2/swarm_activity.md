@@ -3050,3 +3050,18 @@ This file is automatically managed by `scripts/swarm_sync.py`.
   - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
   - `scripts/eval/desktop_e2e_demo_runner.py`
   - `tests/eval/test_desktop_e2e_demo_runner.py`
+
+### Execution (Swarm) | Date: 2026-05-02 10:06:38 | Author: Anonymous Agent
+- **Block:** `V2.112.3`
+- **Message:** Ship provisional G2 synthetic harness and close gate scoreboard checkpoint
+- **Files Modified:**
+  - `CHANGELOG.md`
+  - `CONTEXT.md`
+  - `docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json`
+  - `docs/collaboration/evidence/VOICE_TURN_LATENCY_SYNTHETIC_SAMPLES.jsonl`
+  - `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`
+  - `scripts/eval/desktop_gate_runner.py`
+  - `scripts/eval/g2_synthetic_latency_harness.py`
+  - `src/server/app.py`
+  - `tests/eval/test_desktop_gate_runner.py`
+  - `tests/eval/test_g2_synthetic_latency_harness.py`

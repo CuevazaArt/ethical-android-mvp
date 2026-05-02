@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-05-02T16:06:15.409881Z",
+  "provisional": true,
+  "status": "PROVISIONAL",
+  "source": "synthetic_fixture",
+  "sample_count": 10,
+  "p95_ms": 2395.25,
+  "target_p95_ms": 2500.0,
+  "within_target": true,
+  "hardware_caveat": "Synthetic fixtures used because physical perception hardware is unavailable.",
+  "promotion_criteria": "Replace with live captured latency samples once mic/camera hardware is available."
+}

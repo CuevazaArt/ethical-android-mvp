@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import statistics
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -88,7 +89,14 @@ def evaluate_stability_gate(ledger_path: Path, *, days: int = 14) -> GateResult:
 
 def evaluate_latency_gate(samples_path: Path, *, target_p95_ms: float = 2500.0) -> GateResult:
     rows = _read_jsonl(samples_path)
-    totals = [float(row["total_ms"]) for row in rows]
+    totals: list[float] = []
+    for row in rows:
+        try:
+            total = float(row["total_ms"])
+        except (TypeError, ValueError, KeyError):
+            continue
+        if math.isfinite(total) and total >= 0.0:
+            totals.append(total)
     if not totals:
         return GateResult(
             name="G2",
@@ -96,8 +104,11 @@ def evaluate_latency_gate(samples_path: Path, *, target_p95_ms: float = 2500.0) 
             summary="no samples",
             details={"target_p95_ms": target_p95_ms},
         )
-    q = statistics.quantiles(totals, n=100, method="inclusive")
-    p95 = float(q[94])
+    if len(totals) == 1:
+        p95 = totals[0]
+    else:
+        q = statistics.quantiles(totals, n=100, method="inclusive")
+        p95 = float(q[94])
     passed = p95 < target_p95_ms
     return GateResult(
         name="G2",
@@ -127,6 +138,32 @@ def evaluate_demo_gate(checklist_path: Path, *, required_count: int = 10) -> Gat
             "passed_items": len(passed_items),
         },
     )
+
+
+def _read_g2_provisional_report(path: Path) -> dict[str, Any] | None:
+    payload = _read_json(path)
+    if not isinstance(payload, dict):
+        return None
+    if not bool(payload.get("provisional")):
+        return None
+    try:
+        p95 = float(payload.get("p95_ms"))
+        target = float(payload.get("target_p95_ms", 2500.0))
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(p95) or p95 < 0.0:
+        return None
+    if not math.isfinite(target) or target <= 0.0:
+        return None
+    generated_at = str(payload.get("generated_at", "")).strip()
+    source = str(payload.get("source", "synthetic_fixture")).strip() or "synthetic_fixture"
+    return {
+        "p95_ms": p95,
+        "target_p95_ms": target,
+        "generated_at": generated_at,
+        "source": source,
+        "sample_count": int(payload.get("sample_count", 0)),
+    }
 
 
 def _print_result(result: GateResult) -> None:
@@ -165,18 +202,34 @@ def build_gate_snapshot(*, evidence_dir: Path) -> dict[str, Any]:
     }
 
     g2_path = evidence_dir / "VOICE_TURN_LATENCY_SAMPLES.jsonl"
-    g2_rows = _read_jsonl(g2_path)
-    g2_result = evaluate_latency_gate(g2_path, target_p95_ms=2500.0)
-    g2_updated = max(
-        (_parse_iso_utc(str(row.get("captured_at", ""))) for row in g2_rows),
-        default=None,
-    )
-    snapshot["G2"] = {
-        "status": "pass" if g2_result.passed else "fail",
-        "source": str(g2_path).replace("\\", "/"),
-        "updated_at": _to_iso_utc(g2_updated),
-        "summary": g2_result.summary,
-    }
+    g2_provisional_path = evidence_dir / "G2_PROVISIONAL_LATENCY_REPORT.json"
+    g2_provisional = _read_g2_provisional_report(g2_provisional_path)
+    if g2_provisional is not None:
+        g2_updated = _parse_iso_utc(g2_provisional["generated_at"])
+        snapshot["G2"] = {
+            "status": "in_progress",
+            "source": str(g2_provisional_path).replace("\\", "/"),
+            "updated_at": _to_iso_utc(g2_updated),
+            "summary": (
+                "PROVISIONAL "
+                f"p95={g2_provisional['p95_ms']:.2f}ms "
+                f"target<{g2_provisional['target_p95_ms']:.2f}ms "
+                f"(source={g2_provisional['source']}, n={g2_provisional['sample_count']})"
+            ),
+        }
+    else:
+        g2_rows = _read_jsonl(g2_path)
+        g2_result = evaluate_latency_gate(g2_path, target_p95_ms=2500.0)
+        g2_updated = max(
+            (_parse_iso_utc(str(row.get("captured_at", ""))) for row in g2_rows),
+            default=None,
+        )
+        snapshot["G2"] = {
+            "status": "pass" if g2_result.passed else "fail",
+            "source": str(g2_path).replace("\\", "/"),
+            "updated_at": _to_iso_utc(g2_updated),
+            "summary": g2_result.summary,
+        }
 
     g3_path = evidence_dir / "G3_CONTRACT_NO_DRIFT_HISTORY.jsonl"
     g3_rows = _read_jsonl(g3_path)

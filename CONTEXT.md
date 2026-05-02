@@ -561,6 +561,28 @@
 - Added dedicated tests for the runner:
   - `tests/eval/test_desktop_e2e_demo_runner.py`
 
+### Execution pulse 112.2 (G2 provisional synthetic harness)
+
+- Added synthetic latency harness for hardware-blocked periods:
+  - `scripts/eval/g2_synthetic_latency_harness.py`
+  - outputs:
+    - `docs/collaboration/evidence/VOICE_TURN_LATENCY_SYNTHETIC_SAMPLES.jsonl`
+    - `docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json`
+- Updated gate evaluators to consume provisional report explicitly:
+  - `scripts/eval/desktop_gate_runner.py`
+  - `src/server/app.py` (`/api/status` re-entry payload)
+- G2 now remains `in_progress` with explicit `PROVISIONAL` summary (no false definitive PASS).
+
+### Execution pulse 112.3 (gate scoreboard checkpoint)
+
+- Gate posture after 112.x execution:
+  - `G1`: in_progress (coverage gap remaining)
+  - `G2`: in_progress (PROVISIONAL synthetic evidence active)
+  - `G3`: in_progress (month-window still accumulating)
+  - `G4`: pass (executable local demo runner evidence)
+  - `G5`: pass (packaging + rollback validated)
+- Successor chain opened as `113.x`, focused on moving `G1` and `G3` toward closure.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

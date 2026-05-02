@@ -383,6 +383,22 @@ All notable changes to this project are summarized here. For narrative context a
 - **`tests/eval/test_desktop_e2e_demo_runner.py`:** Unit coverage for deterministic run order and report persistence.
 - **`docs/collaboration/evidence/DESKTOP_E2E_DEMO_REPORT.json`:** Generated report artifact from executable local demo runner.
 
+## [2026-05-02] V2.112.2 — G2 provisional synthetic latency harness
+### Added
+- **`scripts/eval/g2_synthetic_latency_harness.py`:** Synthetic latency evidence generator for hardware-blocked periods with explicit provisional posture.
+- **`tests/eval/test_g2_synthetic_latency_harness.py`:** Unit coverage for synthetic sample generation and provisional report structure.
+- **`docs/collaboration/evidence/VOICE_TURN_LATENCY_SYNTHETIC_SAMPLES.jsonl`:** Synthetic latency samples used to compute provisional p95.
+- **`docs/collaboration/evidence/G2_PROVISIONAL_LATENCY_REPORT.json`:** Provisional latency report (`PROVISIONAL`) with p95 and promotion criteria.
+
+### Changed
+- **`scripts/eval/desktop_gate_runner.py`:** G2 snapshot now consumes provisional latency report and keeps status as `in_progress` instead of definitive `pass/fail`.
+- **`src/server/app.py`:** `/api/status` re-entry gate payload now reflects provisional G2 status with explicit synthetic-evidence summary.
+- **`tests/eval/test_desktop_gate_runner.py`:** Added snapshot test locking `G2` behavior when provisional report is present.
+
+## [2026-05-02] V2.112.3 — Gate scoreboard checkpoint
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `112.2` and `112.3` done, recorded gate scoreboard state, and queued `113.0` successor gate sprint.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]
