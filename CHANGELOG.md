@@ -4,6 +4,15 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.120 — Text-mediated voice_turn endpoint
+
+### Added
+- **`src/server/desktop_voice_adapter.py`:** Envelope helpers for the `voice_turn` capability (parse + success/error builders) aligned with `DESKTOP_CONTRACT_SPINE_V1`.
+- **`tests/server/test_voice_turn_endpoint.py`:** Unit + integration coverage for parse failures, blocked replies, LLM-unavailable path, and the success envelope shape.
+
+### Changed
+- **`src/server/app.py`:** New `POST /api/voice_turn` endpoint that runs a single `ChatEngine` turn on the supplied utterance, measures end-to-end latency in ms, and optionally embeds TTS audio via `KERNEL_DESKTOP_TTS=1`.
+
 ## [2026-05-02] Model dev wave V2.119 — Real chat panel in Flutter desktop shell
 
 ### Added

@@ -722,6 +722,14 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 120.0 (A2 — text-mediated voice_turn endpoint)
+
+- New HTTP capability `POST /api/voice_turn` returns a `DESKTOP_CONTRACT_SPINE_V1` envelope:
+  - `request.utterance` (text), `response.{reply_text, should_listen}`, `error`, `latency_ms`.
+  - Optional `response.audio_b64` when `KERNEL_DESKTOP_TTS=1` (additive, not part of v1 required schema).
+- Implemented via `src/server/desktop_voice_adapter.py` (parse + builders) reusing the audio adapter's `ContractError` and `safe_latency_ms`.
+- Coverage: `tests/server/test_voice_turn_endpoint.py` (10 cases, all green); full server suite still 27/27.
+
 ### Execution pulse 119.0 (A1 — chat panel in Flutter desktop shell)
 
 - Flutter shell now exposes a real chat surface bound to `/ws/chat`:

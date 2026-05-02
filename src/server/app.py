@@ -32,6 +32,11 @@ from src.server.desktop_audio_adapter import (
     safe_latency_ms,
 )
 from src.server.desktop_video_adapter import DesktopVideoAdapter
+from src.server.desktop_voice_adapter import (
+    build_voice_turn_error_envelope,
+    build_voice_turn_success_envelope,
+    parse_voice_turn_payload,
+)
 from src.server.mesh_server import router as mesh_router
 
 logging.basicConfig(level=logging.INFO)
@@ -471,6 +476,119 @@ async def api_audio_perception(request: Request):
         parsed.sample_rate_hz,
         len(pcm_bytes),
         latency_ms,
+    )
+    return JSONResponse(envelope, status_code=200)
+
+
+@app.post("/api/voice_turn")
+async def api_voice_turn(request: Request):
+    """V2.120 (A2): text-mediated voice_turn endpoint.
+
+    Conforms to `DESKTOP_CONTRACT_SPINE_V1.md`. Drives a single ChatEngine turn
+    on the supplied utterance and returns the generated reply with end-to-end
+    latency, so G2 can be measured on hardware without microphone capture.
+
+    When `KERNEL_DESKTOP_TTS=1`, the response also embeds a base64 audio payload
+    synthesized through the existing TTS adapter. The audio field is additive
+    and not part of contract v1's required schema.
+    """
+    import os as _os
+
+    t0 = time.perf_counter()
+    try:
+        payload = await request.json()
+    except Exception:
+        envelope = build_voice_turn_error_envelope(
+            request_payload={},
+            error=ContractError(
+                code="INVALID_JSON",
+                message="Request body must be valid JSON.",
+                retryable=False,
+            ),
+            latency_ms=safe_latency_ms(t0),
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    parsed, parse_error = parse_voice_turn_payload(payload)
+    if parse_error is not None:
+        request_payload = (
+            payload.get("request", {}) if isinstance(payload, dict) else {}
+        )
+        if not isinstance(request_payload, dict):
+            request_payload = {}
+        envelope = build_voice_turn_error_envelope(
+            request_payload=request_payload,
+            error=parse_error,
+            latency_ms=safe_latency_ms(t0),
+        )
+        return JSONResponse(envelope, status_code=400)
+
+    assert parsed is not None
+    engine = ChatEngine()
+    ready = await engine.start()
+    if not ready:
+        envelope = build_voice_turn_error_envelope(
+            request_payload=parsed.request_payload,
+            error=ContractError(
+                code="LLM_UNAVAILABLE",
+                message="Local LLM backend is not reachable.",
+                retryable=True,
+            ),
+            latency_ms=safe_latency_ms(t0),
+        )
+        await engine.close()
+        return JSONResponse(envelope, status_code=503)
+
+    _set_voice_turn_state("responding")
+    blocked = False
+    try:
+        result = await engine.turn(parsed.utterance)
+        reply_text = (result.message or "").strip()
+        if isinstance(result.perception_raw, dict) and result.perception_raw.get(
+            "blocked"
+        ):
+            blocked = True
+    except Exception as exc:
+        _log.error("[VoiceTurn] turn failed: %s", exc)
+        envelope = build_voice_turn_error_envelope(
+            request_payload=parsed.request_payload,
+            error=ContractError(
+                code="TURN_FAILED",
+                message=f"Turn execution failed: {exc.__class__.__name__}",
+                retryable=True,
+            ),
+            latency_ms=safe_latency_ms(t0),
+        )
+        await engine.close()
+        _set_voice_turn_state("mic_off")
+        return JSONResponse(envelope, status_code=500)
+
+    audio_b64: str | None = None
+    if _os.environ.get("KERNEL_DESKTOP_TTS", "0") == "1" and reply_text and not blocked:
+        try:
+            audio_bytes = await synthesize(reply_text)
+            if audio_bytes:
+                audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+        except Exception as exc:
+            _log.warning("[VoiceTurn] TTS synthesis failed: %s", exc)
+
+    await engine.close()
+    _set_voice_turn_state("mic_off")
+
+    latency_ms = safe_latency_ms(t0)
+    envelope = build_voice_turn_success_envelope(
+        request_payload=parsed.request_payload,
+        reply_text=reply_text,
+        should_listen=not blocked,
+        latency_ms=latency_ms,
+        audio_b64=audio_b64,
+    )
+    _log.info(
+        "[VoiceTurn] ok | utterance_len=%s | reply_len=%s | latency_ms=%.2f | blocked=%s",
+        len(parsed.utterance),
+        len(reply_text),
+        latency_ms,
+        blocked,
     )
     return JSONResponse(envelope, status_code=200)
 
