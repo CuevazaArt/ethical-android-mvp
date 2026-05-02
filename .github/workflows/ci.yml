@@ -99,6 +99,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
           pip install edge-tts
+          pip install opencv-python-headless
           pip freeze
 
       - name: L1 collaboration invariants
@@ -212,6 +213,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
           pip install edge-tts
+          pip install opencv-python-headless
 
       - name: Desktop MVP status contract smoke
         run: python -m pytest tests/server/test_app_integration.py::test_desktop_mvp_status_contract_smoke -q --tb=short
