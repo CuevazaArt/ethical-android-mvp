@@ -821,34 +821,34 @@ Use this fixed structure in each planning handoff:
 
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 117.0 — Premium autopilot 20-prompt execution
+[SIGUIENTE] Bloque 118.0 — Core model audit autopilot (20 prompts)
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Convert premium hardening scope into an executable, auditable, repeatable chain.
-[HECHO CUANDO] 20 premium prompts are generated, executed, and recorded with machine-readable evidence.
+[MOTIVO] Harden core runtime reliability using bounded exception paths and regression tests.
+[HECHO CUANDO] `scripts/eval/model_audit_runner_20.py` reports `20/20` passed.
 
-### Sprint prompts (117.x premium chain, 20 prompts)
+### Sprint prompts (118.x model-audit chain, 20 prompts)
 
-[SIGUIENTE] Bloque 117.1 — Premium prompt board scaffold  
-[SIGUIENTE] Bloque 117.2 — Deterministic G1 clock compliance check  
-[SIGUIENTE] Bloque 117.3 — Snapshot clock propagation check  
-[SIGUIENTE] Bloque 117.4 — G1 cutoff boundary coverage check  
-[SIGUIENTE] Bloque 117.5 — Injectable G3 daily helper check  
-[SIGUIENTE] Bloque 117.6 — G3 skip/append test coverage check  
-[SIGUIENTE] Bloque 117.7 — G2 stale provisional edge check  
-[SIGUIENTE] Bloque 117.8 — Evidence contract test check  
-[SIGUIENTE] Bloque 117.9 — Maintenance one-shot script check  
-[SIGUIENTE] Bloque 117.10 — Ruff audit helper check  
-[SIGUIENTE] Bloque 117.11 — CI eval harness check  
-[SIGUIENTE] Bloque 117.12 — Ruff vendor exclusion check  
-[SIGUIENTE] Bloque 117.13 — Mypy vendor exclusion check  
-[SIGUIENTE] Bloque 117.14 — English language policy check  
-[SIGUIENTE] Bloque 117.15 — Freeze matrix operator discoverability check  
-[SIGUIENTE] Bloque 117.16 — Changelog audit entry check  
-[SIGUIENTE] Bloque 117.17 — Context pulse continuity check  
-[SIGUIENTE] Bloque 117.18 — Plan state synchronization check  
-[SIGUIENTE] Bloque 117.19 — Checklist execute-mode check  
-[SIGUIENTE] Bloque 117.20 — Premium contract test check  
-[HECHO CUANDO] `scripts/eval/premium_autopilot_20.py` reports `20/20` passed.
+[SIGUIENTE] Bloque 118.1 — Safety base64 hardening  
+[SIGUIENTE] Bloque 118.2 — Safety overlong token guard  
+[SIGUIENTE] Bloque 118.3 — Safety invalid payload regression  
+[SIGUIENTE] Bloque 118.4 — Identity load type guards  
+[SIGUIENTE] Bloque 118.5 — Identity malformed storage resilience  
+[SIGUIENTE] Bloque 118.6 — Identity reflection warning paths  
+[SIGUIENTE] Bloque 118.7 — Chronicle warning paths  
+[SIGUIENTE] Bloque 118.8 — Archetype warning paths  
+[SIGUIENTE] Bloque 118.9 — Identity regression tests  
+[SIGUIENTE] Bloque 118.10 — Status callable typing  
+[SIGUIENTE] Bloque 118.11 — Status timeout resilience  
+[SIGUIENTE] Bloque 118.12 — Status encoding fallback guard  
+[SIGUIENTE] Bloque 118.13 — Status timeout test  
+[SIGUIENTE] Bloque 118.14 — Sleep latency telemetry  
+[SIGUIENTE] Bloque 118.15 — Sleep telemetry API  
+[SIGUIENTE] Bloque 118.16 — Sleep note_activity test  
+[SIGUIENTE] Bloque 118.17 — 20-prompt model audit board  
+[SIGUIENTE] Bloque 118.18 — 20-prompt machine check runner  
+[SIGUIENTE] Bloque 118.19 — Audit evidence report generation  
+[SIGUIENTE] Bloque 118.20 — Core+eval targeted regression suite  
+[HECHO CUANDO] Model audit evidence is committed with all prompts marked PASS.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

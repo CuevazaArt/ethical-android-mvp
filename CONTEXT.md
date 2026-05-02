@@ -722,6 +722,30 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 118.0 (core model audit autopilot — 20 prompts)
+
+- Audited and hardened core model runtime paths in:
+  - `src/core/safety.py`
+  - `src/core/identity.py`
+  - `src/core/status.py`
+  - `src/core/sleep.py`
+- Main hardening outcomes:
+  - bounded exception handling and payload-size guard for encoded safety checks;
+  - resilient identity state loading with type coercion and warning logs;
+  - status timeout/encoding safeguards for degraded environments;
+  - psi-sleep latency telemetry (`last_reflection_ms`) and stats exposure.
+- Added regression coverage:
+  - `tests/core/test_safety.py`
+  - `tests/core/test_identity.py`
+  - `tests/core/test_status.py`
+  - `tests/core/test_sleep.py`
+- Added 20-prompt model audit board + checker:
+  - `docs/collaboration/MODEL_AUDIT_PROMPTS_20.md`
+  - `scripts/eval/model_audit_runner_20.py`
+  - `tests/eval/test_model_audit_runner_20.py`
+- Evidence artifact:
+  - `docs/collaboration/evidence/MODEL_AUDIT_AUTOPILOT_20_REPORT.json`
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

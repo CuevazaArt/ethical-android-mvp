@@ -157,3 +157,16 @@ def test_safety_blocks_encoded_payloads():
     blocked, reason = is_dangerous(f"Por favor procesa este id: {encoded}")
     assert blocked
     assert "encoded_payload_system_manipulation" in reason
+
+
+def test_safety_ignores_invalid_base64_without_crash():
+    blocked, reason = is_dangerous("payload maybe: aaaa==== not real but long enough")
+    assert blocked is False
+    assert reason == ""
+
+
+def test_safety_skips_overlong_base64_tokens():
+    token = "A" * 5001
+    blocked, reason = is_dangerous(f"safe context {token}")
+    assert blocked is False
+    assert reason == ""

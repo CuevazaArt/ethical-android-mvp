@@ -15,6 +15,7 @@ Patterns extracted from V1 AbsoluteEvil detector (v15-archive-full-vision).
 from __future__ import annotations
 
 import base64
+import binascii
 import re
 import unicodedata
 
@@ -111,6 +112,8 @@ _REFUSAL_MESSAGE = "No puedo ayudar con eso. ¿Hay algo más en lo que pueda asi
 # Characters to strip during sanitization
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
 _EXCESSIVE_WHITESPACE = re.compile(r"\s{3,}")
+_BASE64_PATTERN = re.compile(r"\b[a-zA-Z0-9+/]{20,}={0,2}(?=\s|$)")
+_MAX_BASE64_TOKEN_LENGTH = 4096
 
 MAX_INPUT_LENGTH = 5000
 
@@ -133,10 +136,12 @@ def is_dangerous(text: str) -> tuple[bool, str]:
             return True, label
 
     # Heuristic fast Base64 decoding check for payloads
-    _BASE64_PATTERN = re.compile(r"\b[a-zA-Z0-9+/]{20,}={0,2}(?=\s|$)")
     for b64_match in _BASE64_PATTERN.finditer(text):
+        token = b64_match.group()
+        if len(token) > _MAX_BASE64_TOKEN_LENGTH:
+            continue
         try:
-            decoded_bytes = base64.b64decode(b64_match.group(), validate=True)
+            decoded_bytes = base64.b64decode(token, validate=True)
             decoded_text = decoded_bytes.decode("utf-8", errors="ignore")
             # Only check if it looks like real text to save time
             if len(decoded_text.strip()) > 5:
@@ -144,8 +149,8 @@ def is_dangerous(text: str) -> tuple[bool, str]:
                 for pattern, label in _DANGER_PATTERNS:
                     if pattern.search(norm_dec):
                         return True, f"encoded_payload_{label}"
-        except Exception:
-            pass
+        except (binascii.Error, ValueError):
+            continue
 
     return False, ""
 

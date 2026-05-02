@@ -26,6 +26,24 @@ All notable changes to this project are summarized here. For narrative context a
 - **`pyproject.toml`:** Ruff and Mypy exclude the vendored `llama_cpp` tree under Nomad Android so local checks match kernel scope.
 - **`src/server/app.py`:** Renamed overlapping `g2_updated` bindings to satisfy Mypy `no-redef` after Ruff format.
 
+## [2026-05-02] Core model audit 118.0 — 20-prompt hardening autopilot
+
+### Added
+- **`scripts/eval/model_audit_runner_20.py`:** Executes a 20-point core-model audit board with machine-verifiable checks and JSON report output.
+- **`tests/eval/test_model_audit_runner_20.py`:** Locks the 20-prompt contract and validates end-to-end audit pass behavior.
+- **`docs/collaboration/MODEL_AUDIT_PROMPTS_20.md`:** Detailed prompt queue for model hardening work executed 1-by-1.
+- **`docs/collaboration/evidence/MODEL_AUDIT_AUTOPILOT_20_REPORT.json`:** Evidence artifact proving `20/20` prompt completion.
+
+### Changed
+- **`src/core/safety.py`:** Hardened base64 payload handling with module-level regex, token-length cap, and narrowed decode exceptions.
+- **`src/core/identity.py`:** Added resilient profile loading/coercion and explicit warning logs for reflection/distillation failures.
+- **`src/core/status.py`:** Added typed callbacks, timeout handling in test execution, and safe stdout-encoding fallback behavior.
+- **`src/core/sleep.py`:** Added reflection latency telemetry (`last_reflection_ms`) plus daemon `stats()` exposure.
+- **`tests/core/test_safety.py`:** Added regressions for invalid/overlong encoded payload handling.
+- **`tests/core/test_identity.py`:** Added malformed JSON load and LLM exception reflection tests.
+- **`tests/core/test_status.py`:** Added timeout-path test coverage for status test runner.
+- **`tests/core/test_sleep.py`:** Added daemon telemetry and activity counter coverage.
+
 ## [2026-05-01] V2.100.0 — Repository truth sync for Flutter-first MVP
 ### Changed
 - **`README.md`:** Reframed project scope to the active product reality (Flutter Desktop MVP + Python kernel), removed stale Android-primary messaging, and documented current quality verification commands.

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import time
 
 from src.core.identity import Identity
@@ -38,6 +39,7 @@ class PsiSleepDaemon:
         self._identity = Identity()
         self._llm = OllamaClient()
         self._unreflected_turns = 0
+        self._last_reflection_ms = 0.0
 
     def note_activity(self) -> None:
         """Called by ChatEngine on every turn to reset the sleep timer."""
@@ -77,8 +79,23 @@ class PsiSleepDaemon:
                 )
                 try:
                     # Trigger reflection and memory consolidation
+                    t0 = time.perf_counter()
                     await self._identity.reflect(self._memory, self._llm)
+                    elapsed_ms = (time.perf_counter() - t0) * 1000.0
+                    if not math.isfinite(elapsed_ms) or elapsed_ms < 0.0:
+                        elapsed_ms = 0.0
+                    self._last_reflection_ms = elapsed_ms
                     self._unreflected_turns = 0
-                    _log.info("[Psi-Sleep] Waking up. Identity consolidated.")
+                    _log.info(
+                        "[Psi-Sleep] Waking up. Identity consolidated in %.2f ms.",
+                        elapsed_ms,
+                    )
                 except Exception as e:
                     _log.error("[Psi-Sleep] Error during consolidation: %s", e)
+
+    def stats(self) -> dict[str, float | int]:
+        return {
+            "idle_threshold_seconds": int(self.idle_threshold),
+            "unreflected_turns": int(self._unreflected_turns),
+            "last_reflection_ms": float(self._last_reflection_ms),
+        }
