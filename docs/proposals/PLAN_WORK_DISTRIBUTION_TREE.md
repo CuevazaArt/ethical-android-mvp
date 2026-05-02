@@ -645,35 +645,59 @@ Use this fixed structure in each planning handoff:
 - **Demo:** 108.x completion and successor queue are synchronized with local validation posture.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 109.0: Diagnostics UX continuity kickoff [PENDING]**
+**Bloque 109.0: Diagnostics UX continuity kickoff [DONE ✅]**
 - **Goal:** Open next software-only UX sequence after 108.x closure.
 - **Files:** context/plan checkpoint.
 - **Demo:** successor prompt chain is explicit and ready for autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 109.1: Diagnostics idle guidance refinement [DONE ✅]**
+- **Goal:** Tighten operator idle-state guidance copy for faster action.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** idle-state copy is concise, unambiguous, and includes actionable CTA.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 109.2: Diagnostics feedback compactness pass [DONE ✅]**
+- **Goal:** Reduce visual noise in repeated status messages while preserving signal.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** diagnostics feedback uses shorter, consistent microcopy through shared helper.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 109.3: Software-lane checkpoint [DONE ✅]**
+- **Goal:** Close mini-wave with explicit scope and next-step readiness.
+- **Files:** context/plan/changelog.
+- **Demo:** 109.x completion and successor queue are synchronized.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 110.0: Diagnostics UX chain kickoff [PENDING]**
+- **Goal:** Open next software-only diagnostics chain after 109.x closure.
+- **Files:** context/plan checkpoint.
+- **Demo:** ordered prompt chain is explicit and ready for autopilot execution.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 109.0 — Diagnostics UX continuity kickoff
+[SIGUIENTE] Bloque 110.0 — Diagnostics UX chain kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Keep software-only momentum with bounded diagnostics UX improvements.
-[HECHO CUANDO] New ordered chain is documented and executable in autopilot.
+[MOTIVO] Continue software-only momentum with bounded diagnostics UX improvements.
+[HECHO CUANDO] New chain is documented in strict execution order.
 
-### Sprint prompts (109.x chain)
+### Sprint prompts (110.x chain)
 
-[SIGUIENTE] Bloque 109.1 — Diagnostics idle guidance refinement
+[SIGUIENTE] Bloque 110.1 — Diagnostics action feedback hierarchy
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Tighten operator idle-state guidance copy for faster action.
-[HECHO CUANDO] Idle-state copy is concise and unambiguous with widget baseline coverage.
+[MOTIVO] Improve visual hierarchy between success/info/failure feedback states.
+[HECHO CUANDO] Feedback emphasis is clearer while preserving concise wording.
 
-[SIGUIENTE] Bloque 109.2 — Diagnostics feedback compactness pass
+[SIGUIENTE] Bloque 110.2 — Diagnostics empty-state affordance trim
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Reduce visual noise in repeated status messages while preserving signal.
-[HECHO CUANDO] Diagnostics feedback remains consistent but shorter and clearer.
+[MOTIVO] Keep idle state minimal while preserving operator guidance.
+[HECHO CUANDO] Empty-state layout is cleaner and guidance remains actionable.
 
-[SIGUIENTE] Bloque 109.3 — Software-lane checkpoint
+[SIGUIENTE] Bloque 110.3 — Software-lane checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Close mini-wave with explicit scope and next-step readiness.
-[HECHO CUANDO] Context/plan/changelog align on 109.x completion and queued successor.
+[MOTIVO] Close mini-wave with explicit scope and successor readiness.
+[HECHO CUANDO] Context/plan/changelog align on 110.x completion and queued successor block.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.

@@ -484,6 +484,27 @@
   - collaboration invariants.
 - Queued successor software-only chain as `109.x`.
 
+### Execution pulse 109.0 (UX continuity kickoff)
+
+- Opened and executed `109.x` software-only chain under autopilot.
+- Scope remained limited to diagnostics microcopy and idle-state affordances.
+
+### Execution pulse 109.1 (idle guidance refinement)
+
+- Idle diagnostics copy tightened for faster operator scan:
+  - retains explicit idle-state message,
+  - keeps actionable `Run check now` CTA path.
+
+### Execution pulse 109.2 (feedback compactness pass)
+
+- Diagnostics feedback remains consistent through `_setDiagnosticsMessage(...)`.
+- Copy is shorter and uniform, reducing repeated-line visual noise during rapid actions.
+
+### Execution pulse 109.3 (software-lane checkpoint)
+
+- Closed `109.x` with local validation still green (`flutter test` + invariants).
+- Queued successor software-only chain as `110.x`.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

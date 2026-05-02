@@ -31,7 +31,7 @@ void main() {
     expect(find.text('Low: 0'), findsOneWidget);
     expect(find.text('Focus high'), findsOneWidget);
     expect(find.text('Reset filters'), findsOneWidget);
-    expect(find.text('high-severity event(s) require triage.'), findsNothing);
+    expect(find.text('high event(s) require triage.'), findsNothing);
     expect(find.text('All'), findsOneWidget);
     expect(find.text('Transport'), findsOneWidget);
     expect(find.text('Manual'), findsOneWidget);
@@ -51,14 +51,11 @@ void main() {
     expect(find.text('Pin actions'), findsOneWidget);
     expect(find.text('Pinned high event note'), findsOneWidget);
     expect(find.text('No pinned high event.'), findsOneWidget);
-    expect(find.text('Diagnostics: no export yet.'), findsOneWidget);
+    expect(find.text('Diagnostics: idle.'), findsOneWidget);
     expect(find.text('Short'), findsOneWidget);
     expect(find.text('Medium'), findsOneWidget);
-    expect(find.text('No diagnostics events yet.'), findsOneWidget);
-    expect(
-      find.text('Tip: use Check now to seed a fresh diagnostics sample.'),
-      findsOneWidget,
-    );
+    expect(find.text('No events yet.'), findsOneWidget);
+    expect(find.text('Tip: run Check now to seed diagnostics.'), findsOneWidget);
     expect(find.text('Run check now'), findsOneWidget);
     expect(find.text('Voice loop surface'), findsOneWidget);
     expect(find.text('Mic off'), findsWidgets);
@@ -117,7 +114,7 @@ void main() {
     expect(find.text('High: 1'), findsOneWidget);
     expect(find.text('Med: 1'), findsOneWidget);
     expect(find.text('Low: 0'), findsOneWidget);
-    expect(find.text('1 high-severity event(s) require triage.'), findsOneWidget);
+    expect(find.text('1 high event(s) require triage.'), findsOneWidget);
 
     final Finder focusHighButton = find.widgetWithText(
       OutlinedButton,

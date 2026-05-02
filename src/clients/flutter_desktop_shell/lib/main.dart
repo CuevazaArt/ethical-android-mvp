@@ -71,7 +71,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
   bool _hasServerVoiceState = false;
   bool _payloadHasFocus = false;
   String _payloadActionMessage = 'No payload action yet.';
-  String _diagnosticsActionMessage = 'Diagnostics: no export yet.';
+  String _diagnosticsActionMessage = 'Diagnostics: idle.';
   String _pinnedHighEventNote = 'No pinned high event.';
   final List<_DiagnosticEvent> _diagnosticEvents = <_DiagnosticEvent>[];
   _DiagnosticFilter _diagnosticFilter = _DiagnosticFilter.all;
@@ -741,7 +741,7 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          '$highSeverityCount high-severity event(s) require triage.',
+                          '$highSeverityCount high event(s) require triage.',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.error,
                             fontWeight: FontWeight.w600,
@@ -1010,14 +1010,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
             const SizedBox(height: 10),
             if (visibleEvents.isEmpty)
               Text(
-                'No diagnostics events yet.',
+                'No events yet.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             if (visibleEvents.isEmpty)
               Text(
-                'Tip: use Check now to seed a fresh diagnostics sample.',
+                'Tip: run Check now to seed diagnostics.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
@@ -1269,15 +1269,15 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
         .where((event) => event.severity == _DiagnosticSeverity.high)
         .toList(growable: false);
     if (highEvents.isEmpty) {
-      _setDiagnosticsMessage('no high-severity events to export.');
+      _setDiagnosticsMessage('no high events to export.');
       return;
     }
     final String snapshot = _buildBlockedSummary(highEvents);
     try {
       await Clipboard.setData(ClipboardData(text: snapshot));
-      _setDiagnosticsMessage('high-severity summary copied.');
+      _setDiagnosticsMessage('high summary copied.');
     } catch (_) {
-      _setDiagnosticsMessage('high-severity summary copy failed.');
+      _setDiagnosticsMessage('high summary copy failed.');
     }
   }
 
@@ -1299,14 +1299,14 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
       return;
     }
     if (highEvents.isEmpty) {
-      _setDiagnosticsMessage('no high-severity event available to pin.');
+      _setDiagnosticsMessage('no high event available to pin.');
       return;
     }
     final _DiagnosticEvent latest = highEvents.first;
     setState(() {
       _pinnedHighEventNote =
           'Pinned high event: ${latest.at.toIso8601String()} :: ${latest.message}';
-      _diagnosticsActionMessage = 'Diagnostics: latest high-severity event pinned.';
+      _diagnosticsActionMessage = 'Diagnostics: latest high event pinned.';
     });
   }
 
