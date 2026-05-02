@@ -72,9 +72,13 @@ class Identity:
                             else {}
                         )
                         self._journal = self._coerce_str_list(data.get("journal", []))
-                        self._chronicle = self._coerce_str_list(data.get("chronicle", []))
+                        self._chronicle = self._coerce_str_list(
+                            data.get("chronicle", [])
+                        )
                         archetype = data.get("archetype", "")
-                        self._archetype = archetype if isinstance(archetype, str) else ""
+                        self._archetype = (
+                            archetype if isinstance(archetype, str) else ""
+                        )
         except (json.JSONDecodeError, OSError, TypeError, ValueError):
             _log.warning("Identity profile load failed, using defaults.", exc_info=True)
             self._profile = {}

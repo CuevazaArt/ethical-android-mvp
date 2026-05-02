@@ -7,7 +7,11 @@ from scripts.eval.desktop_e2e_demo_runner import run_demo_session, write_report
 
 
 def test_run_demo_session_passes_and_keeps_step_order() -> None:
-    report = run_demo_session(transcript="demo transcript")
+    report = run_demo_session(
+        transcript="demo transcript",
+        voice_utterance="hola demo",
+        voice_reply="reply demo",
+    )
 
     assert report["passed"] is True
     assert report["mode"] == "local-testclient-stt-mocked"
@@ -18,11 +22,17 @@ def test_run_demo_session_passes_and_keeps_step_order() -> None:
         "status_before_turn",
         "audio_turn",
         "status_after_turn",
+        "voice_turn",
     ]
     for step in report["steps"]:
         assert step["passed"] is True
         assert isinstance(step["latency_ms"], float)
         assert step["latency_ms"] >= 0.0
+
+    voice_step = next(step for step in report["steps"] if step["name"] == "voice_turn")
+    assert voice_step["details"]["contract"] == "voice_turn"
+    assert voice_step["details"]["reply_chars"] >= 1
+    assert voice_step["details"]["should_listen"] is True
 
 
 def test_write_report_persists_json_payload(tmp_path: Path) -> None:

@@ -722,6 +722,14 @@
 - CI desktop gate report now includes premium autopilot artifact generation:
   - `gate-reports/premium-autopilot-20.json`
 
+### Execution pulse 122.0 (A4 — operator runbook + demo runner voice_turn coverage)
+
+- Desktop E2E runner now exercises `POST /api/voice_turn` (5 steps total) with a stubbed LLM and validates envelope contract + latency.
+- New `MVP_OPERATOR_RUNBOOK.md` provides copy-paste steps for a non-author operator to reproduce the full interactive cycle.
+- Evidence artifact `OPERATOR_INTERACTION_DEMO.json` regenerated; CI-equivalent checks (ruff/mypy/pytest 308) pass locally.
+
+**Phase A (Operator demo) closed.** The README promise is now executable: server + Flutter shell + chat WS + push-to-talk + auditable evidence.
+
 ### Execution pulse 121.0 (A3 — push-to-talk button in chat panel)
 
 - Chat panel now exposes a `Speak` action that posts a `voice_turn` envelope over HTTP.

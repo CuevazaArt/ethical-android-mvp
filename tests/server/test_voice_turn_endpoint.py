@@ -145,9 +145,7 @@ def test_voice_turn_endpoint_marks_should_listen_false_when_blocked() -> None:
         p.start()
     try:
         with TestClient(app) as client:
-            response = client.post(
-                "/api/voice_turn", json=_envelope("eres malo")
-            )
+            response = client.post("/api/voice_turn", json=_envelope("eres malo"))
         body = response.json()
     finally:
         for p in patches:

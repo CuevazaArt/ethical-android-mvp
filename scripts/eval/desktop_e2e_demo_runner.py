@@ -34,6 +34,17 @@ def _audio_contract_payload(*, audio_b64: str, sample_rate_hz: int = 16000) -> d
     }
 
 
+def _voice_turn_payload(*, utterance: str) -> dict[str, Any]:
+    return {
+        "version": "1.0",
+        "contract": "voice_turn",
+        "request": {"utterance": utterance},
+        "response": {},
+        "error": None,
+        "latency_ms": 0.0,
+    }
+
+
 def _safe_latency_ms(start_t: float) -> float:
     elapsed_ms = (time.perf_counter() - start_t) * 1000.0
     if not math.isfinite(elapsed_ms) or elapsed_ms < 0.0:
@@ -60,10 +71,26 @@ def _run_step(name: str, fn: Any) -> dict[str, Any]:
         }
 
 
-def run_demo_session(*, transcript: str = "ethos demo turn acknowledged") -> dict[str, Any]:
+def run_demo_session(
+    *,
+    transcript: str = "ethos demo turn acknowledged",
+    voice_utterance: str = "Hola Ethos, este es un turno de demo.",
+    voice_reply: str = "Entendido. Estoy aquí para ayudarte.",
+) -> dict[str, Any]:
     fake_pcm = b"\x01\x00" * 2048
-    payload = _audio_contract_payload(audio_b64=base64.b64encode(fake_pcm).decode("utf-8"))
+    audio_payload = _audio_contract_payload(
+        audio_b64=base64.b64encode(fake_pcm).decode("utf-8"),
+    )
+    voice_payload = _voice_turn_payload(utterance=voice_utterance)
     steps: list[dict[str, Any]] = []
+
+    class _StubVoiceResult:
+        def __init__(self) -> None:
+            self.message = voice_reply
+            self.signals = None
+            self.evaluation = None
+            self.perception_raw = {"context": "demo", "blocked": False}
+            self.latency_ms = {"total": 12.0}
 
     with (
         patch(
@@ -71,30 +98,41 @@ def run_demo_session(*, transcript: str = "ethos demo turn acknowledged") -> dic
             new_callable=AsyncMock,
             return_value=transcript,
         ),
+        patch(
+            "src.server.app.ChatEngine.start",
+            new_callable=AsyncMock,
+            return_value=True,
+        ),
+        patch(
+            "src.server.app.ChatEngine.turn",
+            new_callable=AsyncMock,
+            return_value=_StubVoiceResult(),
+        ),
+        patch(
+            "src.server.app.ChatEngine.close",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
         TestClient(app) as client,
     ):
+        steps.append(_run_step("ping", lambda: _assert_ping(client)))
+        steps.append(
+            _run_step("status_before_turn", lambda: _assert_status(client))
+        )
         steps.append(
             _run_step(
-                "ping",
-                lambda: _assert_ping(client),
+                "audio_turn", lambda: _assert_audio_turn(client, audio_payload)
             )
         )
         steps.append(
             _run_step(
-                "status_before_turn",
-                lambda: _assert_status(client),
+                "status_after_turn", lambda: _assert_status_after_turn(client)
             )
         )
         steps.append(
             _run_step(
-                "audio_turn",
-                lambda: _assert_audio_turn(client, payload),
-            )
-        )
-        steps.append(
-            _run_step(
-                "status_after_turn",
-                lambda: _assert_status_after_turn(client),
+                "voice_turn",
+                lambda: _assert_voice_turn(client, voice_payload, voice_reply),
             )
         )
 
@@ -170,6 +208,40 @@ def _assert_status_after_turn(client: TestClient) -> dict[str, Any]:
     return {
         "status_code": response.status_code,
         "voice_turn_state": state,
+    }
+
+
+def _assert_voice_turn(
+    client: TestClient,
+    payload: dict[str, Any],
+    expected_reply: str,
+) -> dict[str, Any]:
+    response = client.post("/api/voice_turn", json=payload)
+    if response.status_code != 200:
+        raise ValueError(f"unexpected voice_turn status: {response.status_code}")
+    body = response.json()
+    if str(body.get("contract", "")) != "voice_turn":
+        raise ValueError("voice_turn response contract drift")
+    response_body = body.get("response", {})
+    reply = str(response_body.get("reply_text", ""))
+    if not reply.strip():
+        raise ValueError("voice_turn returned empty reply_text")
+    if reply.strip() != expected_reply.strip():
+        raise ValueError(
+            f"voice_turn reply mismatch: expected={expected_reply!r} got={reply!r}"
+        )
+    listen = response_body.get("should_listen")
+    if not isinstance(listen, bool):
+        raise ValueError("voice_turn should_listen must be bool")
+    latency_ms = float(body.get("latency_ms", 0.0))
+    if not math.isfinite(latency_ms) or latency_ms < 0.0:
+        raise ValueError("voice_turn latency is non-finite")
+    return {
+        "status_code": response.status_code,
+        "contract": "voice_turn",
+        "reply_chars": len(reply),
+        "should_listen": listen,
+        "latency_ms": latency_ms,
     }
 
 

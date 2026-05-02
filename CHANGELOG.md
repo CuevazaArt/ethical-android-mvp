@@ -4,6 +4,16 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-02] Model dev wave V2.122 — Operator runbook and demo runner voice_turn step
+
+### Added
+- **`docs/collaboration/MVP_OPERATOR_RUNBOOK.md`:** Copy-paste runbook for a non-author operator covering install, server start, Flutter shell launch, chat conversation, push-to-talk, diagnostics inspection, and reproducible evidence capture.
+- **`docs/collaboration/evidence/OPERATOR_INTERACTION_DEMO.json`:** Latest evidence artifact showing the desktop E2E loop closing with 5/5 steps including the new `voice_turn` step.
+
+### Changed
+- **`scripts/eval/desktop_e2e_demo_runner.py`:** Added `voice_turn` step that exercises `POST /api/voice_turn` end-to-end with a stubbed LLM, validating envelope, latency finiteness, and `should_listen` flag.
+- **`tests/eval/test_desktop_e2e_demo_runner.py`:** Updated step ordering assertions and added explicit checks for the new `voice_turn` step.
+
 ## [2026-05-02] Model dev wave V2.121 — Push-to-talk button in chat panel
 
 ### Added
