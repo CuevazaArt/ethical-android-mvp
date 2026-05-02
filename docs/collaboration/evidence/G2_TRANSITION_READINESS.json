@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-05-02T16:18:53.060778Z",
+  "status": "BLOCKED_HARDWARE",
+  "provisional_valid": true,
+  "hardware_ready": false,
+  "live_sample_count": 20,
+  "target_live_sample_count": 20,
+  "checklist": [
+    "keep G2 as in_progress while evidence remains provisional",
+    "unblock hardware and rerun perception_hardware_preflight.py",
+    "collect live hardware latency samples with capture_voice_turn_latency.py",
+    "refresh gate snapshot after live sample capture"
+  ],
+  "notes": [
+    "provisional report is valid and fresh",
+    "preflight_ready=false (camera_count=0, microphone_count=0)",
+    "live_sample_count=20",
+    "target_live_sample_count=20"
+  ]
+}

@@ -620,6 +620,45 @@
   - `G5`: pass
 - Successor chain opened as `114.x` for remaining in-progress gates.
 
+### Execution pulse 114.0 (gate closure sprint kickoff)
+
+- Executed full `114.x` sprint in-order under autopilot.
+- Scope stayed gate-first and avoided diagnostics-card scope expansion.
+
+### Execution pulse 114.1 (G2 provisional-to-live transition prep)
+
+- Added executable transition guard:
+  - `scripts/eval/g2_transition_guard.py`
+- Added dedicated coverage:
+  - `tests/eval/test_g2_transition_guard.py`
+- Generated explicit transition artifact:
+  - `docs/collaboration/evidence/G2_TRANSITION_READINESS.json`
+- Current transition posture:
+  - `status=BLOCKED_HARDWARE` with valid provisional report and explicit unblock checklist.
+
+### Execution pulse 114.2 (G3 cadence reinforcement)
+
+- Extended monthly runner with cadence planning output:
+  - `scripts/eval/freeze_lane_monthly_report.py --cadence-output ...`
+- Added cadence-plan tests in:
+  - `tests/eval/test_freeze_lane_monthly_report.py`
+- Generated deterministic cadence artifact:
+  - `docs/collaboration/evidence/G3_CADENCE_PLAN.json`
+- Current cadence posture:
+  - `covered_days=2/28`, `next_run_due_at=2026-05-03T09:00:00Z`, failures remain `0`.
+
+### Execution pulse 114.3 (gate scoreboard checkpoint)
+
+- Refreshed gate scoreboard artifact:
+  - `docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`
+- Posture remains explicit and auditable:
+  - `G1`: pass
+  - `G2`: in_progress (PROVISIONAL + transition report `BLOCKED_HARDWARE`)
+  - `G3`: in_progress (cadence plan active)
+  - `G4`: pass
+  - `G5`: pass
+- Successor chain opened as `115.x` for daily cadence closure loops.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

@@ -423,6 +423,27 @@ All notable changes to this project are summarized here. For narrative context a
 ### Changed
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `113.x` done, logged gate movement (`G1` pass; `G2`/`G3` in_progress), and queued `114.0`.
 
+## [2026-05-02] V2.114.0 — Gate closure sprint kickoff
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `114.x` sprint kickoff done and executed in-order closure prep for remaining in-progress gates.
+
+## [2026-05-02] V2.114.1 — G2 provisional-to-live transition prep
+### Added
+- **`scripts/eval/g2_transition_guard.py`:** New executable transition evaluator that keeps G2 truthful while moving from provisional evidence toward live hardware capture.
+- **`tests/eval/test_g2_transition_guard.py`:** Unit coverage for hardware-blocked and ready-for-live-capture transition states.
+- **`docs/collaboration/evidence/G2_TRANSITION_READINESS.json`:** Deterministic transition artifact with checklist and current `BLOCKED_HARDWARE` posture.
+
+## [2026-05-02] V2.114.2 — G3 cadence reinforcement
+### Changed
+- **`scripts/eval/freeze_lane_monthly_report.py`:** Added cadence-plan generation (`--cadence-output`) with deterministic `missing_days`, `overdue_missing_days`, and `next_run_due_at`.
+- **`tests/eval/test_freeze_lane_monthly_report.py`:** Added cadence-plan tests to lock overdue-day and next-due-date behavior.
+- **`docs/collaboration/evidence/G3_CADENCE_PLAN.json`:** Added monthly cadence artifact to drive recurring no-drift runs.
+
+## [2026-05-02] V2.114.3 — Gate scoreboard checkpoint
+### Changed
+- **`docs/collaboration/evidence/GATE_SCOREBOARD_SNAPSHOT.json`:** Refreshed gate snapshot after transition/cadence reinforcement.
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `114.x` done, recorded gate posture, and queued `115.0` daily cadence loop.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

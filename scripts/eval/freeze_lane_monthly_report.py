@@ -5,7 +5,7 @@ import json
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +18,16 @@ class MonthlySnapshot:
     failed_runs: int
     covered_days: int
     required_days: int
+
+
+@dataclass(frozen=True)
+class CadencePlan:
+    month: str
+    required_days: int
+    covered_days: int
+    missing_days: list[str]
+    overdue_missing_days: list[str]
+    next_run_due_at: str
 
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -67,6 +77,47 @@ def evaluate_monthly_status(
         failed_runs=len(failed),
         covered_days=len(covered_days),
         required_days=required_days,
+    )
+
+
+def build_cadence_plan(
+    history_path: Path,
+    *,
+    month: str | None = None,
+    required_days: int = 28,
+    now: datetime | None = None,
+) -> CadencePlan:
+    clock = now or datetime.now(UTC)
+    target_month = month or _month_key(clock)
+    rows = [row for row in _read_jsonl(history_path) if str(row.get("month")) == target_month]
+    covered = {
+        str(row.get("executed_at", ""))[:10]
+        for row in rows
+        if str(row.get("executed_at", "")).strip()
+    }
+    target_days = [f"{target_month}-{day:02d}" for day in range(1, required_days + 1)]
+    missing_days = [day for day in target_days if day not in covered]
+    today_key = clock.date().isoformat()
+    overdue_missing_days = [day for day in missing_days if day <= today_key]
+    if today_key in covered:
+        next_due_day = (clock + timedelta(days=1)).date()
+    else:
+        next_due_day = clock.date()
+    next_run_due_at = datetime(
+        next_due_day.year,
+        next_due_day.month,
+        next_due_day.day,
+        9,
+        0,
+        tzinfo=UTC,
+    ).isoformat().replace("+00:00", "Z")
+    return CadencePlan(
+        month=target_month,
+        required_days=required_days,
+        covered_days=len(set(target_days).intersection(covered)),
+        missing_days=missing_days,
+        overdue_missing_days=overdue_missing_days,
+        next_run_due_at=next_run_due_at,
     )
 
 
@@ -132,6 +183,12 @@ def main() -> int:
         action="store_true",
         help="Return exit code 0 when status is IN_PROGRESS.",
     )
+    parser.add_argument(
+        "--cadence-output",
+        type=Path,
+        default=None,
+        help="Optional path to write deterministic cadence plan JSON.",
+    )
     args = parser.parse_args()
 
     if args.record_run:
@@ -151,6 +208,26 @@ def main() -> int:
         month=args.month,
         required_days=args.required_days,
     )
+    if args.cadence_output is not None:
+        cadence = build_cadence_plan(
+            args.history,
+            month=snapshot.month,
+            required_days=args.required_days,
+        )
+        payload = {
+            "gate": "G3",
+            "month": cadence.month,
+            "required_days": cadence.required_days,
+            "covered_days": cadence.covered_days,
+            "missing_days": cadence.missing_days,
+            "overdue_missing_days": cadence.overdue_missing_days,
+            "next_run_due_at": cadence.next_run_due_at,
+        }
+        args.cadence_output.parent.mkdir(parents=True, exist_ok=True)
+        args.cadence_output.write_text(
+            json.dumps(payload, ensure_ascii=True, indent=2) + "\n",
+            encoding="utf-8",
+        )
     _print_snapshot(snapshot)
     if snapshot.status == "PASS":
         return 0
