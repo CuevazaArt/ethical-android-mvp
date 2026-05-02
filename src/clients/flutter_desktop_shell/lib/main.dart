@@ -858,6 +858,21 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Export actions',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
                 OutlinedButton.icon(
                   onPressed: () {
                     unawaited(_copyDiagnosticsSnapshot(visibleEvents));
@@ -881,6 +896,28 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
+                    unawaited(_copyPinnedHighEvent());
+                  },
+                  icon: const Icon(Icons.assignment_rounded, size: 16),
+                  label: const Text('Copy pinned note'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Pin actions',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
                     _pinLatestHighEvent();
                   },
                   icon: const Icon(Icons.push_pin_rounded, size: 16),
@@ -893,13 +930,6 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
                   icon: const Icon(Icons.remove_circle_outline_rounded, size: 16),
                   label: const Text('Clear pin'),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    unawaited(_copyPinnedHighEvent());
-                  },
-                  icon: const Icon(Icons.assignment_rounded, size: 16),
-                  label: const Text('Copy pinned note'),
-                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -910,11 +940,42 @@ class _TransportStatusPageState extends State<TransportStatusPage> {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              _pinnedHighEventNote,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: _pinnedHighEventNote == 'No pinned high event.'
+                    ? theme.colorScheme.surfaceContainerHighest
+                    : theme.colorScheme.secondaryContainer.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _pinnedHighEventNote == 'No pinned high event.'
+                      ? theme.colorScheme.outlineVariant
+                      : theme.colorScheme.secondary.withValues(alpha: 0.6),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Pinned high event note',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _pinnedHighEventNote,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: _pinnedHighEventNote == 'No pinned high event.'
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.onSecondaryContainer,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 8),

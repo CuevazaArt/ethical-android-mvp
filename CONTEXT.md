@@ -418,6 +418,28 @@
   - cleared pin.
 - Next software mini-wave opened as chained prompts (`106.6+`).
 
+### Execution pulse 106.6 (software prompt-sprint kickoff)
+
+- Chained software-only sprint executed in-order under autopilot.
+- Scope constrained to diagnostics UX polish with no backend or hardware dependencies.
+
+### Execution pulse 106.7 (pinned note visibility polish)
+
+- Pinned note now renders in a dedicated visual container with explicit title (`Pinned high event note`).
+- Visual treatment distinguishes default/no-pin state from active pinned state.
+
+### Execution pulse 106.8 (action bar grouping pass)
+
+- Diagnostics action controls are now grouped for scanability:
+  - `Export actions` (snapshot/blocked/incident/pinned copy),
+  - `Pin actions` (pin latest, clear pin).
+- Interaction ordering is deterministic and reflected in widget baseline assertions.
+
+### Execution pulse 106.9 (software-lane handoff checkpoint)
+
+- Closed `106.6`-`106.9` mini-wave with local validation still green (`flutter test` + invariants).
+- Next queue opened as `107.x` software-only chain while hardware lane remains paused.
+
 ## System references
 
 - **Freeze policy and evidence matrix:** `docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`

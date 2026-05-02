@@ -265,6 +265,24 @@ All notable changes to this project are summarized here. For narrative context a
 - **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added assertions for pinned-note copy interaction feedback.
 - **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.4` and `106.5` as done and opened chained software prompt sprint (`106.6+`).
 
+## [2026-05-02] V2.106.6 — Software prompt-sprint kickoff
+### Changed
+- **`docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked kickoff done and advanced software-only chained sprint execution.
+
+## [2026-05-02] V2.106.7 — Pinned note visibility polish
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Added dedicated styled container and label for pinned high-event note with state-aware appearance.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Added baseline assertions for pinned-note section title and grouped action headers.
+
+## [2026-05-02] V2.106.8 — Diagnostics action bar grouping pass
+### Changed
+- **`src/clients/flutter_desktop_shell/lib/main.dart`:** Grouped diagnostics action controls into deterministic `Export actions` and `Pin actions` sections.
+- **`src/clients/flutter_desktop_shell/test/widget_test.dart`:** Interaction flow remains covered under grouped action layout.
+
+## [2026-05-02] V2.106.9 — Software-lane handoff checkpoint
+### Changed
+- **`CONTEXT.md` + `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`:** Marked `106.6`-`106.9` as done and queued `107.0` software mini-wave kickoff.
+
 ## [2026-04-24] V2 Stabilization Pulse — L1 Audit
 ### Antigravity (L1)
 - **Tag:** [REVISADO] [ACTUALIZADO]

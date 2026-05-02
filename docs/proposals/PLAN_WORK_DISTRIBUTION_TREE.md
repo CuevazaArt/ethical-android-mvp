@@ -573,35 +573,59 @@ Use this fixed structure in each planning handoff:
 - **Demo:** `Copy pinned note` action exports current pinned note and emits deterministic feedback.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 106.6: Flutter prompt-sprint kickoff (software lane) [PENDING]**
+**Bloque 106.6: Flutter prompt-sprint kickoff (software lane) [DONE ✅]**
 - **Goal:** Open next chained sprint for diagnostics UX polish while hardware lane remains paused.
 - **Files:** context/plan checkpoint.
 - **Demo:** chained prompt sequence is explicit and ordered for autopilot execution.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 106.7: Pinned note visibility polish [DONE ✅]**
+- **Goal:** Improve readability/scannability of pinned diagnostics note in crowded event states.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** pinned note now renders inside a dedicated styled container with explicit title.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 106.8: Diagnostics action bar grouping pass [DONE ✅]**
+- **Goal:** Reduce operator cognitive load by grouping copy/pin/filter actions in consistent order.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** diagnostics action area now has deterministic groups (`Export actions`, `Pin actions`).
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 106.9: Software-lane handoff checkpoint [DONE ✅]**
+- **Goal:** Close mini-wave with explicit scope and validation posture before next UI expansion.
+- **Files:** context/plan/changelog.
+- **Demo:** chain completion and next software-only successor block are synchronized.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
+**Bloque 107.0: Diagnostics mini-wave kickoff [PENDING]**
+- **Goal:** Open the next software-only UX mini-wave after 106.6-106.9 closure.
+- **Files:** context/plan checkpoint.
+- **Demo:** next chain is explicit and ready for autopilot execution.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 106.6 — Flutter prompt-sprint kickoff (software lane)
+[SIGUIENTE] Bloque 107.0 — Diagnostics mini-wave kickoff
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Continue momentum with software-only improvements using chained prompts.
-[HECHO CUANDO] New prompt chain is documented and ready for sequential autopilot execution.
+[MOTIVO] Maintain software-only momentum with another bounded UX chain.
+[HECHO CUANDO] New mini-wave prompts are documented in strict execution order.
 
-### Sprint prompts (106.6+ chain)
+### Sprint prompts (107.x chain)
 
-[SIGUIENTE] Bloque 106.7 — Pinned note visibility polish
+[SIGUIENTE] Bloque 107.1 — Diagnostics empty-state guidance polish
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Improve readability/scannability of pinned diagnostics note in crowded event states.
-[HECHO CUANDO] Pinned note styling clearly communicates pinned vs default state.
+[MOTIVO] Clarify operator next actions when diagnostics list is empty.
+[HECHO CUANDO] Empty-state text is more actionable and covered by widget baseline assertions.
 
-[SIGUIENTE] Bloque 106.8 — Diagnostics action bar grouping pass
+[SIGUIENTE] Bloque 107.2 — Diagnostics feedback tone normalization
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Reduce operator cognitive load by grouping copy/pin/filter actions in consistent order.
-[HECHO CUANDO] Action ordering is deterministic and covered by baseline widget assertions.
+[MOTIVO] Keep action feedback messages concise and consistent for faster scanning.
+[HECHO CUANDO] Diagnostics action messages follow one consistent verbal pattern.
 
-[SIGUIENTE] Bloque 106.9 — Software-lane handoff checkpoint
+[SIGUIENTE] Bloque 107.3 — Software-lane checkpoint
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Close mini-wave with explicit scope and validation posture before next UI expansion.
-[HECHO CUANDO] Context/plan/changelog align on completed chain and queued successor block.
+[MOTIVO] Close the mini-wave with explicit scope and validation posture.
+[HECHO CUANDO] Context/plan/changelog align on 107.x completion and next queued block.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
