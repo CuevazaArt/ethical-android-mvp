@@ -555,18 +555,24 @@ Use this fixed structure in each planning handoff:
 - **Demo:** diagnostics card now exports deterministic incident-note text via `Copy incident note`.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
-**Bloque 106.3: Flutter software-lane stabilization checkpoint [PENDING]**
+**Bloque 106.3: Flutter software-lane stabilization checkpoint [DONE ✅]**
 - **Goal:** Consolidate software-only diagnostics gains after 106.0-106.2 before new UX expansion.
 - **Files:** context/plan checkpoint.
 - **Demo:** checkpoint captures current software lane scope, validation posture, and next low-risk UI increment.
 - **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
 
+**Bloque 106.4: Flutter diagnostics event-pin action [PENDING]**
+- **Goal:** Add one-click "pin latest high event" helper for operator handoff continuity.
+- **Files:** Flutter shell module + widget tests.
+- **Demo:** diagnostics card can pin latest high event into a persistent note line without backend dependency.
+- **[POTENCIA SUGERIDA]:** A (Auto eficiencia).
+
 ### Next prompts (mandatory format)
 
-[SIGUIENTE] Bloque 106.3 — Flutter software-lane stabilization checkpoint
+[SIGUIENTE] Bloque 106.4 — Flutter diagnostics event-pin action
 [POTENCIA SUGERIDA] A (Auto eficiencia)
-[MOTIVO] Hold stability after multiple diagnostics UX increments before opening another interaction surface.
-[HECHO CUANDO] Checkpoint syncs active scope, test posture, and the next software-only action block.
+[MOTIVO] Improve operator continuity by keeping a stable pinned reference for the latest critical event.
+[HECHO CUANDO] Pin action is available, deterministic, and covered in widget tests.
 
 ### Re-entry gates (authoritative checklist)
 - **Gate G1 (stability):** 14 consecutive days with no critical desktop crash in smoke cycle.
