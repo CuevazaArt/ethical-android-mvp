@@ -58,6 +58,13 @@ Thumbs.db
 *.tar.gz
 *.zip
 
+# Hendrycks ETHICS dataset (downloaded at runtime via copilot-setup-steps.yml;
+# never commit — these can be hundreds of MB and are not repo artifacts).
+# Exception: smoke_sample.csv (tiny fixture used by CI without internet access).
+evals/ethics/external/**/*.csv
+!evals/ethics/external/**/smoke_sample.csv
+evals/ethics/external/ethics.tar
+
 # Optimization artifacts (Optuna DBs, results)
 artifacts/
 

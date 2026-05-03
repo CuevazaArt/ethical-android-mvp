@@ -1,0 +1,137 @@
+name: "Copilot Setup Steps"
+
+# Runs automatically when this file changes (to validate the setup steps work),
+# and is picked up by Copilot cloud agent before each task session starts.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # Job name MUST be exactly `copilot-setup-steps` to be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    # Download can be slow on large tarballs; keep well under the 59-minute cap.
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Download and verify Hendrycks ETHICS dataset
+        # Integrity gate: hardcode the sha256 of the official tarball here after
+        # the first successful download (read it from this step's log output).
+        # Until KNOWN_SHA256 is set, the check is skipped and the actual hash
+        # is printed so a maintainer can fill it in via a deliberate PR.
+        #
+        # To update the hash:
+        #   1. Run this workflow manually (Actions tab → Run workflow).
+        #   2. Copy "Tarball sha256: <hash>" from the step log.
+        #   3. Set KNOWN_SHA256 below to that value in a new PR.
+        env:
+          KNOWN_SHA256: ""  # TODO: fill in after first verified download.
+        run: |
+          set -euo pipefail
+          TAR_URL="https://people.eecs.berkeley.edu/~hendrycks/ethics.tar"
+          TAR_PATH="/tmp/ethics.tar"
+          DATA_DIR="evals/ethics/external"
+
+          echo "Downloading ETHICS tarball …"
+          curl -fsSL \
+               --connect-timeout 30 \
+               --max-time 600 \
+               -o "${TAR_PATH}" \
+               "${TAR_URL}"
+
+          ACTUAL_SHA256=$(sha256sum "${TAR_PATH}" | awk '{print $1}')
+          echo "Tarball sha256: ${ACTUAL_SHA256}"
+
+          if [ -n "${KNOWN_SHA256}" ] && [ "${ACTUAL_SHA256}" != "${KNOWN_SHA256}" ]; then
+            echo "ERROR: sha256 mismatch — expected ${KNOWN_SHA256}, got ${ACTUAL_SHA256}."
+            echo "If the tarball was legitimately updated upstream, rotate KNOWN_SHA256"
+            echo "deliberately in a reviewed PR. Do not auto-skip this check."
+            exit 1
+          fi
+
+          # Extract into a staging area first so we can locate the actual root
+          # regardless of whether the tarball uses a 'ethics/' prefix or not.
+          STAGE_DIR="/tmp/ethics_stage"
+          mkdir -p "${STAGE_DIR}"
+          tar --no-same-owner --no-same-permissions \
+              -xf "${TAR_PATH}" -C "${STAGE_DIR}"
+
+          # Find the directory that directly contains commonsense/.
+          ETHICS_ROOT=$(find "${STAGE_DIR}" -maxdepth 3 -name "commonsense" -type d \
+                          | head -1 | xargs -I{} dirname {})
+
+          if [ -z "${ETHICS_ROOT}" ]; then
+            echo "ERROR: could not locate commonsense/ inside the tarball."
+            echo "Tarball contents (first 40 lines):"
+            tar -tf "${TAR_PATH}" | head -40
+            exit 1
+          fi
+
+          echo "Tarball root found at: ${ETHICS_ROOT}"
+
+          # Copy each subset directory into DATA_DIR, preserving the canonical layout:
+          #   evals/ethics/external/commonsense/cm_test.csv
+          #   evals/ethics/external/justice/justice_test.csv
+          #   evals/ethics/external/deontology/deontology_test.csv
+          #   evals/ethics/external/virtue/virtue_test.csv
+          mkdir -p "${DATA_DIR}"
+          for SUBSET in commonsense justice deontology virtue; do
+            if [ -d "${ETHICS_ROOT}/${SUBSET}" ]; then
+              cp -r "${ETHICS_ROOT}/${SUBSET}/." "${DATA_DIR}/${SUBSET}/"
+              echo "  copied ${SUBSET}/"
+            else
+              echo "WARNING: ${SUBSET}/ not found in tarball root ${ETHICS_ROOT}"
+            fi
+          done
+
+          rm -rf "${STAGE_DIR}" "${TAR_PATH}"
+
+          # Verify the four test CSV files are present.
+          MISSING=0
+          for ENTRY in \
+              "commonsense/cm_test.csv" \
+              "justice/justice_test.csv" \
+              "deontology/deontology_test.csv" \
+              "virtue/virtue_test.csv"; do
+            TARGET="${DATA_DIR}/${ENTRY}"
+            if [ ! -f "${TARGET}" ]; then
+              echo "  MISSING: ${TARGET}"
+              MISSING=1
+            else
+              LINES=$(wc -l < "${TARGET}")
+              echo "  OK: ${TARGET} (${LINES} lines)"
+            fi
+          done
+
+          if [ "${MISSING}" -ne 0 ]; then
+            echo "ERROR: one or more expected CSV files are missing after extraction."
+            exit 1
+          fi
+
+          echo "ETHICS dataset is ready at ${DATA_DIR}/"
