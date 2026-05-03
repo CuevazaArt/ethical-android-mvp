@@ -249,11 +249,35 @@ def test_cbr_does_not_anchor_high_force_protection_intervention():
         "test_on_prisoner_without_consent must NOT be chosen: non-consensual testing violates the categorical constraint"
     )
 
-    # Invariant: the fixed-weights path (explicit constructor) must NOT be affected.
-    fixed_ev = EthicalEvaluator(weights={"util": 0.40, "deonto": 0.35, "virtue": 0.25})
-    score_high_force, _ = fixed_ev.score_action(
-        Action(name="force_action", description="", impact=0.3, confidence=0.5, force=0.9),
-        Signals(),
+    # Invariant: the fixed-weights path (explicit constructor) must NOT apply the
+    # force > 0.7 override.  Callers that pre-set weights retain full control.
+    explicit_weights = {"util": 0.40, "deonto": 0.35, "virtue": 0.25}
+    fixed_ev = EthicalEvaluator(weights=explicit_weights)
+    signals_plain = Signals()
+    high_force_action = Action(
+        name="force_action", description="", impact=0.3, confidence=0.5, force=0.9
     )
-    # Just verifying it runs without error and returns a finite number.
-    assert math.isfinite(score_high_force)
+    # Score with fixed weights (no summary → default contextual weights would also apply;
+    # but fixed_ev uses explicit_weights unconditionally, so the override must NOT fire).
+    score_fixed, poles_fixed = fixed_ev.score_action(high_force_action, signals_plain)
+
+    # Score the same action with the default evaluator (no fixed weights) on the same
+    # plain signals — the override WILL fire here because force=0.9 > 0.7.
+    score_default, poles_default = EthicalEvaluator().score_action(high_force_action, signals_plain)
+
+    # Both scores must be finite.
+    assert math.isfinite(score_fixed)
+    assert math.isfinite(score_default)
+
+    # The deontological pole raw score is the same regardless of weights.
+    assert math.isclose(poles_fixed["deonto"], poles_default["deonto"], rel_tol=1e-6)
+
+    # But the overall scores differ because different weight vectors are applied.
+    # fixed_ev uses explicit_weights (util=0.40, deonto=0.35) → higher util contribution.
+    # default_ev applies deonto override (util=0.25, deonto=0.55) → higher deonto contribution.
+    # Both scenarios have impact=0.3 (positive util) and force=0.9 (negative deonto), so
+    # the fixed-weights score will be higher (more util-weighted) than the override score.
+    assert score_fixed > score_default, (
+        "Fixed-weights evaluator should score higher for a high-impact/high-force action "
+        "than the override (deonto-boosted) evaluator, confirming the override did not fire."
+    )

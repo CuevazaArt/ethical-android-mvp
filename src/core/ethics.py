@@ -138,6 +138,10 @@ _AGGREGATE_MARKERS: frozenset[str] = frozenset(
 def select_weights(signals: Signals) -> dict[str, float]:
     """Return contextual pole weights based on auditable rule-based markers.
 
+    Returns:
+        dict with keys ``"util"``, ``"deonto"``, ``"virtue"`` whose values
+        are non-negative floats that sum exactly to **1.0** (normalised).
+
     Rules (explicit, not LLM-inferred):
     - If the situation summary contains absolute-rule markers
       (duties, rights, promises, deception) → boost deontological weight.
