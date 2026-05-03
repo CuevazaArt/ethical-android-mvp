@@ -7,9 +7,9 @@ For the repository-level active documentation set, use [`docs/INDEX.md`](../INDE
 
 | Document | Role |
 |----------|------|
-| [PLAN_WORK_DISTRIBUTION_TREE.md](PLAN_WORK_DISTRIBUTION_TREE.md) | Primary execution backlog and block lifecycle (`[PENDING]` / `[DONE]`). |
 | [README.md](README.md) | Proposal lane conventions and scope notes. |
 | [ASPIRATIONAL_DISCLAIMER.md](ASPIRATIONAL_DISCLAIMER.md) | Clarifies vision language vs implemented behavior. |
+| [ETHICAL_BENCHMARK_BASELINE.md](ETHICAL_BENCHMARK_BASELINE.md) | Frozen baseline and post-fix delta of the ethics benchmark. |
 
 ## Archive lane
 

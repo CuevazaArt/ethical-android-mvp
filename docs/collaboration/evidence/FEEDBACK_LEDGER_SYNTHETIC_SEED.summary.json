@@ -1,0 +1,33 @@
+{
+  "schema": "feedback_ledger_seed_summary",
+  "schema_version": "1",
+  "total_events": 50,
+  "actions": {
+    "comfort_user": {
+      "up": 8,
+      "down": 2,
+      "posterior_bias": 0.1
+    },
+    "share_information": {
+      "up": 7,
+      "down": 3,
+      "posterior_bias": 0.08
+    },
+    "ask_clarifying_question": {
+      "up": 3,
+      "down": 7,
+      "posterior_bias": -0.08
+    },
+    "decline_request": {
+      "up": 1,
+      "down": 9,
+      "posterior_bias": -0.1
+    },
+    "escalate_to_human": {
+      "up": 0,
+      "down": 10,
+      "posterior_bias": -0.1
+    }
+  },
+  "notes": "Synthetic seed used to demonstrate the posterior_assisted nudge end-to-end. Every event carries source='synthetic_seed_v1' so it can be filtered out of real-operator analysis."
+}

@@ -1,0 +1,98 @@
+# V2.129 + V2.133: scheduled gate maintenance.
+#
+# Daily cadence keeps two gates from going stale on their own:
+#   - G3: append one no-drift run for the current UTC day (idempotent).
+#   - G4: regenerate DEMO_RELIABILITY_CHECKLIST.json so the freshness SLA
+#     in the desktop-gate-report job stays inside its 14-day window.
+#
+# The job opens a PR with the refreshed evidence so the changes land via
+# normal review (no direct push to main, per L0-only policy).
+name: Gate maintenance (G3/G4)
+
+on:
+  schedule:
+    # 09:00 UTC daily — early enough to land before the existing
+    # desktop-gate-report cron at 14:15 UTC reads the evidence.
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh-gate-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+          pip install opencv-python-headless
+
+      - name: G3 — append today's no-drift run (idempotent)
+        run: |
+          set -euo pipefail
+          python scripts/eval/record_g3_daily_contract_run.py | tee g3-run.json
+          # Refresh the cadence plan so the artifact stays consistent
+          # with the new history line.
+          python scripts/eval/freeze_lane_monthly_report.py \
+            --cadence-output docs/collaboration/evidence/G3_CADENCE_PLAN.json \
+            --allow-in-progress > /dev/null
+
+      - name: G4 — regenerate demo reliability checklist
+        run: |
+          set -euo pipefail
+          python scripts/eval/run_demo_reliability_checklist.py \
+            --output docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json
+
+      - name: Regenerate MVP closure report
+        run: |
+          set -euo pipefail
+          python scripts/eval/generate_mvp_closure_report.py
+
+      - name: Detect changes
+        id: changes
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/collaboration/evidence/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR with refreshed evidence
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(gates): scheduled G3/G4 evidence refresh"
+          title: "chore(gates): scheduled G3/G4 evidence refresh"
+          body: |
+            Automated daily refresh produced by `.github/workflows/gate-maintenance.yml`.
+
+            - G3: appended today's no-drift run (idempotent — skipped if already present).
+            - G4: regenerated `DEMO_RELIABILITY_CHECKLIST.json` from the current suite.
+            - MVP closure report regenerated to reflect the new gate snapshot.
+
+            L0 review required before merge (no direct pushes to main).
+          branch: chore/gate-maintenance
+          base: main
+          delete-branch: true
+          add-paths: |
+            docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl
+            docs/collaboration/evidence/G3_CADENCE_PLAN.json
+            docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json
+            docs/collaboration/evidence/MVP_CLOSURE_REPORT.json

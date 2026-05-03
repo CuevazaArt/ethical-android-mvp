@@ -12,10 +12,10 @@ All other documentation is historical or reference material unless explicitly li
 
 ## Product and execution
 
-- [`proposals/PLAN_WORK_DISTRIBUTION_TREE.md`](proposals/PLAN_WORK_DISTRIBUTION_TREE.md) — active block roadmap.
 - [`collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md`](collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md) — gate policy, freshness SLA, and reopen decision criteria.
 - [`TRANSPARENCY_AND_LIMITS.md`](TRANSPARENCY_AND_LIMITS.md) — public claims boundary.
 - [`WEAKNESSES_AND_BOTTLENECKS.md`](WEAKNESSES_AND_BOTTLENECKS.md) — known limits and bottlenecks.
+- [`CRITIQUE_SPRINT_V2_141_146.md`](CRITIQUE_SPRINT_V2_141_146.md) — honest reading of the most recent sprint and the proposed way forward.
 
 ## Architecture and contracts
 

@@ -30,7 +30,7 @@ Si requieres aislar una prueba muy riesgosa, tienes autorización de L0 para cre
 
 ## 4. Próxima Asignación
 
-Espera el prompt de despliegue que L0 te entregará, proveniente del documento maestro `SWARM_MESH_CYCLE_01.md`. Tus objetivos inmediatos serán:
+Objetivos inmediatos para esta lane (mantenimiento del freeze-lane Android):
 1. Implementar `AudioRecord` (16kHz PCM).
 2. Crear `NodeProfiler` (Batería, RAM).
 3. Añadir Permisos de Micrófono en `MainActivity`.

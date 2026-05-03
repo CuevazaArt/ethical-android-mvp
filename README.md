@@ -14,11 +14,43 @@ Ethos is a local-first cognitive kernel with a deterministic ethics pipeline and
 
 ## What Ethos does
 
-- Deterministic ethical perception and risk scoring.
-- Case-based reasoning with legal/ethical precedents.
+- Deterministic ethical scoring across three poles (Utilitarian, Deontological, Virtue) with context-sensitive weight selection.
+- Case-based reasoning anchored to a library of legal/ethical precedents.
 - Narrative identity and memory continuity.
 - Local operation with Ollama-compatible backends.
 - Auditable server envelopes for status, safety, and readiness gates.
+
+## Ethical performance (measured)
+
+The evaluator is benchmarked against 30 curated dilemmas across three
+categories (classic, domain, adversarial) using a deterministic runner
+(`scripts/eval/run_ethics_benchmark.py`).
+
+| Metric | Baseline v1 (V2.139) | Post-fix (V2.143) |
+|---|---|---|
+| Total dilemmas | 28 | **30** (+2 adversarial) |
+| **Accuracy** | 96.43% (27/28) | **100% (30/30)** |
+| HARD_FAIL | 1 (C003) | **0** |
+| Classic dilemmas | 90% (9/10) | **100% (10/10)** |
+| Domain dilemmas | 100% (10/10) | 100% (10/10) |
+| Adversarial dilemmas | 100% (8/8) | **100% (10/10)** |
+
+**V2.142 architectural fix:** when `action.force > 0.7`, the evaluator uses
+deontological-boosted weights, preventing aggregate-utilitarian framing
+("saves many people") from overriding the categorical constraint against
+using a person as a mere means. See
+`docs/proposals/ETHICAL_BENCHMARK_BASELINE.md` for the full analysis.
+
+**External signoff pending:** H3 (real external operator signoff) remains
+open. See `CONTEXT.md` for contact status and date objective.
+
+Re-run the benchmark to compare against this baseline:
+
+```bash
+python scripts/eval/run_ethics_benchmark.py --suite v1
+```
+
+See `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md` for the full analysis including the documented failure.
 
 ## Quick start (kernel server)
 
@@ -57,8 +89,8 @@ python -m pytest tests/ -q --tb=short
 - `src/core/`: canonical cognition and ethics engine.
 - `src/server/`: FastAPI transport and API contracts.
 - `src/clients/flutter_desktop_shell/`: active MVP client.
+- `evals/ethics/`: benchmark dilemma suite and frozen baseline.
 - `docs/collaboration/`: operational gates and evidence policy.
-- `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`: block-level execution roadmap.
 
 ## License
 

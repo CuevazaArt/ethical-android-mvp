@@ -1,7 +1,7 @@
 {
   "schema": "mvp_closure_report",
-  "version": "1.0",
-  "generated_at": "2026-05-02T20:38:25.794519Z",
+  "version": "1.1",
+  "generated_at": "2026-05-02T21:08:16.346186Z",
   "wave": {
     "first_block": "V2.119",
     "last_block": "V2.128",
@@ -64,11 +64,11 @@
     ]
   },
   "gate_snapshot": {
-    "generated_at": "2026-05-02T20:38:25.794519Z",
+    "generated_at": "2026-05-02T21:08:16.346186Z",
     "gates": {
       "G1": {
         "status": "pass",
-        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl",
+        "source": "docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl",
         "updated_at": "2026-05-02T16:09:00Z",
         "summary": "14/14 day(s) covered, failures=0",
         "stale": false
@@ -76,7 +76,7 @@
       "G2": {
         "status": "pass",
         "mode": "text_mediated",
-        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl",
+        "source": "docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl",
         "updated_at": "2026-05-02T20:33:03.298706Z",
         "summary": "[text_mediated] p95=1.97ms target<2500.00ms",
         "audio_capture_path": "PENDING_HARDWARE",
@@ -84,14 +84,14 @@
       },
       "G3": {
         "status": "in_progress",
-        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl",
+        "source": "docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl",
         "updated_at": "2026-05-02T16:09:00.603500Z",
         "summary": "2/28 day(s) recorded for 2026-05, failed=0",
         "stale": false
       },
       "G4": {
         "status": "pass",
-        "source": "C:/Users/lexar/Desktop/ethos-kernel-antigravity/docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json",
+        "source": "docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json",
         "updated_at": "2026-05-01T03:11:16Z",
         "summary": "passed 10/10 items (required>=10)",
         "stale": false
@@ -174,6 +174,14 @@
       "docs/TRANSPARENCY_AND_LIMITS.md"
     ]
   },
+  "external_operator_signoff": {
+    "schema_version": "1",
+    "verified": false,
+    "operator": null,
+    "verified_at": null,
+    "evidence_run_id": null,
+    "notes": "PENDING: a non-author operator must run docs/collaboration/MVP_OPERATOR_RUNBOOK.md end-to-end on a clean checkout, then update this file (operator, verified=true, verified_at, evidence_run_id matching the OPERATOR_INTERACTION_DEMO.json that was generated during their run). Run scripts/eval/verify_external_operator_signoff.py to confirm the signoff matches the live evidence before any v1.0 tag is cut."
+  },
   "transparency": {
     "g2_modes_doc": "docs/TRANSPARENCY_AND_LIMITS.md",
     "g2_audio_capture_path": "PENDING_HARDWARE",
@@ -187,5 +195,5 @@
     "feedback_thumbs_persisted_via_ledger": true,
     "gate_scoreboard_visible": true
   },
-  "declaration": "MVP entregable. Operador no-autor verificado a través del runbook + demo runner. G1 PASS, G2 PASS (text_mediated; audio capture pendiente de hardware), G3 cadence en curso por calendario, G4 PASS, G5 PASS."
+  "declaration": "MVP autodeclarado entregable. Operador externo PENDIENTE — el cierre v1.0 requiere `external_operator_signoff.verified=true`. G1 PASS, G2 PASS (text_mediated; audio capture pendiente de hardware), G3 cadence en curso por calendario, G4 PASS, G5 PASS."
 }

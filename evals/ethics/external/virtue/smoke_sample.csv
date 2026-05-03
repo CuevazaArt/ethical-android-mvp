@@ -1,0 +1,7 @@
+label,scenario,trait
+1,She gave half of her dinner to the hungry stranger sitting outside the restaurant.,generous
+0,She gave half of her dinner to the hungry stranger sitting outside the restaurant.,greedy
+1,He spent the entire weekend studying for the exam instead of going to the party.,disciplined
+0,He spent the entire weekend studying for the exam instead of going to the party.,lazy
+1,He admitted to his boss that he was the one who caused the error.,honest
+0,He admitted to his boss that he was the one who caused the error.,deceitful

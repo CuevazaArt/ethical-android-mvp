@@ -68,6 +68,46 @@ def _load_optional(path: Path) -> dict[str, Any] | None:
         return None
 
 
+def _empty_signoff() -> dict[str, Any]:
+    """V2.131: default `external_operator_signoff` block.
+
+    A non-author operator (or fresh agent) is expected to flip
+    `verified=true` after running the runbook end-to-end on a clean
+    checkout. `scripts/eval/verify_external_operator_signoff.py` enforces
+    that the signoff matches a real local run before any v1.0 tag is cut.
+    """
+
+    return {
+        "schema_version": "1",
+        "verified": False,
+        "operator": None,
+        "verified_at": None,
+        "evidence_run_id": None,
+        "notes": (
+            "PENDING: a non-author operator must run the MVP_OPERATOR_RUNBOOK "
+            "end-to-end and fill this block. Until then the MVP closure is "
+            "self-declared. See scripts/eval/verify_external_operator_signoff.py."
+        ),
+    }
+
+
+def _load_signoff(evidence_dir: Path) -> dict[str, Any]:
+    """Load the operator signoff side-file when present, else return defaults.
+
+    The signoff is kept in a separate JSON file
+    (`MVP_EXTERNAL_OPERATOR_SIGNOFF.json`) so that regenerating the closure
+    report does not erase a previously recorded signoff.
+    """
+
+    signoff_path = evidence_dir / "MVP_EXTERNAL_OPERATOR_SIGNOFF.json"
+    payload = _load_optional(signoff_path)
+    base = _empty_signoff()
+    if not isinstance(payload, dict):
+        return base
+    base.update({k: v for k, v in payload.items() if k in base})
+    return base
+
+
 def build_closure_report(
     *,
     evidence_dir: Path = DEFAULT_EVIDENCE_DIR,
@@ -75,19 +115,26 @@ def build_closure_report(
 ) -> dict[str, Any]:
     clock = now if now is not None else datetime.now(UTC)
     snapshot = build_gate_snapshot(evidence_dir=evidence_dir, now=clock)
-    operator_demo = _load_optional(
-        evidence_dir / "OPERATOR_INTERACTION_DEMO.json"
-    )
+    operator_demo = _load_optional(evidence_dir / "OPERATOR_INTERACTION_DEMO.json")
+    signoff = _load_signoff(evidence_dir)
 
-    declaration = (
-        "MVP entregable. Operador no-autor verificado a través del runbook + "
-        "demo runner. G1 PASS, G2 PASS (text_mediated; audio capture pendiente "
-        "de hardware), G3 cadence en curso por calendario, G4 PASS, G5 PASS."
-    )
+    if signoff.get("verified") is True:
+        declaration = (
+            "MVP entregable y verificado por operador externo. G1 PASS, "
+            "G2 PASS (text_mediated; audio capture pendiente de hardware), "
+            "G3 cadence en curso por calendario, G4 PASS, G5 PASS."
+        )
+    else:
+        declaration = (
+            "MVP autodeclarado entregable. Operador externo PENDIENTE — el "
+            "cierre v1.0 requiere `external_operator_signoff.verified=true`. "
+            "G1 PASS, G2 PASS (text_mediated; audio capture pendiente de "
+            "hardware), G3 cadence en curso por calendario, G4 PASS, G5 PASS."
+        )
 
     return {
         "schema": "mvp_closure_report",
-        "version": "1.0",
+        "version": "1.1",
         "generated_at": clock.isoformat().replace("+00:00", "Z"),
         "wave": {
             "first_block": "V2.119",
@@ -101,6 +148,7 @@ def build_closure_report(
             "demo_evidence": operator_demo,
             "key_artifacts": list(OPERATOR_ARTIFACTS),
         },
+        "external_operator_signoff": signoff,
         "transparency": {
             "g2_modes_doc": "docs/TRANSPARENCY_AND_LIMITS.md",
             "g2_audio_capture_path": "PENDING_HARDWARE",
