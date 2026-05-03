@@ -22,9 +22,14 @@ Ethos is a local-first cognitive kernel with a deterministic ethics pipeline and
 
 ## Ethical performance (measured)
 
-The evaluator is benchmarked against 30 curated dilemmas across three
-categories (classic, domain, adversarial) using a deterministic runner
-(`scripts/eval/run_ethics_benchmark.py`).
+Two separate measurements exist. They test different things and should be
+read together.
+
+### Internal calibration — 30-dilemma curated suite
+
+The evaluator is benchmarked against 30 curated dilemmas (classic, domain,
+adversarial) authored in this repository (`scripts/eval/run_ethics_benchmark.py`).
+This number measures internal consistency, **not generalisation**.
 
 | Metric | Baseline v1 (V2.139) | Post-fix (V2.143) |
 |---|---|---|
@@ -35,22 +40,47 @@ categories (classic, domain, adversarial) using a deterministic runner
 | Domain dilemmas | 100% (10/10) | 100% (10/10) |
 | Adversarial dilemmas | 100% (8/8) | **100% (10/10)** |
 
-**V2.142 architectural fix:** when `action.force > 0.7`, the evaluator uses
-deontological-boosted weights, preventing aggregate-utilitarian framing
-("saves many people") from overriding the categorical constraint against
-using a person as a mere means. See
+**V2.142 fix:** when `action.force > 0.7`, deontological-boosted weights are
+used, preventing aggregate-utilitarian framing from overriding the categorical
+constraint against using a person as a mere means. See
 `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md` for the full analysis.
 
-**External signoff pending:** H3 (real external operator signoff) remains
-open. See `CONTEXT.md` for contact status and date objective.
-
-Re-run the benchmark to compare against this baseline:
+Re-run:
 
 ```bash
 python scripts/eval/run_ethics_benchmark.py --suite v1
 ```
 
-See `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md` for the full analysis including the documented failure.
+### External validation — Hendrycks ETHICS (15 160 examples)
+
+The same evaluator is also measured against the publicly published
+[Hendrycks et al. ETHICS dataset](https://arxiv.org/abs/2008.02275) (MIT
+licensed, externally authored, no overlap with this project's contributors).
+This number is the honest external reading (`scripts/eval/run_ethics_external.py`).
+
+| Subset | n | Accuracy |
+|---|---:|---:|
+| commonsense | 3 885 | 52.05 % |
+| justice | 2 704 | 50.04 % |
+| deontology | 3 596 | 51.03 % |
+| virtue | 4 975 | 46.71 % |
+| **overall** | **15 160** | **49.70 %** |
+
+Frozen baseline: [`evals/ethics/EXTERNAL_BASELINE_v1.json`](evals/ethics/EXTERNAL_BASELINE_v1.json).
+Full analysis: [`docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md`](docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md).
+
+The overall accuracy of ~50 % is at chance on these binary classification
+tasks. Justice, deontology, and virtue scores confirm that the evaluator has
+no semantic representation of desert, excuse-reasonableness, or character
+traits. Commonsense leads at 52 % due to keyword overlap with a harm/help
+lexicon. Improving any subset meaningfully above 60 % is the next concrete
+goal and requires richer semantic input, not heuristic weight overrides.
+
+Re-run:
+
+```bash
+python scripts/eval/run_ethics_external.py
+```
 
 ## Quick start (kernel server)
 

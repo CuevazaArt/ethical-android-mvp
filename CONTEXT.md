@@ -11,9 +11,14 @@
 
 ## Current measured numbers
 
-- **Ethics benchmark:** 30/30 PASS, 0 HARD_FAIL on `evals/ethics/dilemmas_v1.json`
-  (run `scripts/eval/run_ethics_benchmark.py --suite v1`).
-- **Baseline of record:** `evals/ethics/BASELINE_v1.json` at 27/28
+- **Ethics benchmark (internal):** 30/30 PASS, 0 HARD_FAIL on `evals/ethics/dilemmas_v1.json`
+  (run `scripts/eval/run_ethics_benchmark.py --suite v1`). Internal calibration; measures
+  consistency on curated dilemmas authored in this repository.
+- **Ethics benchmark (external):** 49.70 % overall on Hendrycks ETHICS (15 160 examples,
+  4 subsets). Frozen baseline: `evals/ethics/EXTERNAL_BASELINE_v1.json`.
+  commonsense 52.05 %, justice 50.04 %, deontology 51.03 %, virtue 46.71 %.
+  Run: `python scripts/eval/run_ethics_external.py`.
+- **Baseline of record (internal):** `evals/ethics/BASELINE_v1.json` at 27/28
   (96.43%). The post-fix delta (+3.57 pp on +2 dilemmas) is documented
   in `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md`. The baseline is
   preserved as the historical reference; it is **not** overwritten.
@@ -22,18 +27,22 @@
 
 ## Open debt (be honest about what is not done)
 
-1. **No external operator signoff.** The MVP closure pipeline
-   (`verify_external_operator_signoff.py`, `--signoff-dir`) reports
-   `0 valid signoffs`. The README states "external signoff pending".
-   Until a non-author runs the runbook
-   (`docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`) and produces a
-   `verified=true` JSON, no `v1.0` or `v1.1-mvp-evaluable` tag should
-   be cut.
-2. **Curated benchmark only.** The 30/30 number is on dilemmas authored
-   in this repository. There is **no measurement on an external dataset
-   (e.g., ETHICS by Hendrycks et al., Moral Stories)** and therefore no
-   evidence the evaluator generalizes. See `docs/CRITIQUE_SPRINT_V2_141_146.md`
-   for the full reading.
+1. **External operator signoff removed (Option B).** The requirement for a
+   non-author to run the external-operator runbook before any `v1.0` tag is
+   cut has been dropped. The MVP ships as `v1.0-self-attested-mvp`. The
+   runbook (`docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`) and the
+   verifier script (`scripts/eval/optional/verify_external_operator_signoff.py`)
+   are preserved as optional reference material. This closes the nine-month
+   "reasignado" phantom debt.
+2. **External benchmark at chance (~50 %).** The external measurement is
+   wired and honest: 49.70 % overall on Hendrycks ETHICS (15 160 examples).
+   Justice and deontology are at chance. Virtue improved from 20.78 % to
+   46.71 % after removing an insertion-order bias in the case builder (PR
+   #29). Commonsense leads at 52.05 %. Improving any subset meaningfully
+   above 60 % requires richer semantic input; no minimal mechanical fix is
+   available for the remaining subsets. See
+   `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md` for the full
+   per-subset diagnosis.
 3. **Audio capture pipeline:** `PENDING_HARDWARE`. Voice turn metrics
    are paper, not measured.
 
@@ -68,15 +77,33 @@
   state and last wave; dropped the historical pulse log (visible in
   git history).
 
+### V2.148 — External benchmark diagnosis + signoff cleanup (this sprint)
+
+- **H1 (coherence):** README updated to show both internal (100 %) and
+  external (49.70 %) numbers side by side with honest framing. CONTEXT.md
+  open-debt updated to reflect actual state.
+- **H4 (signoff):** External operator signoff requirement removed (Option B).
+  `verify_external_operator_signoff.py` moved to `scripts/eval/optional/`;
+  the phantom "reasignado" debt is closed.
+- **H2 (diagnosis):** `scripts/eval/analyze_external_failures.py` added.
+  Per-subset confusion matrices, directional bias audit, and top-20
+  false-positive / false-negative analysis run against the frozen baseline.
+  Findings written to `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`.
+- **H3 (intervention):** No minimal mechanical fix available for the three
+  remaining subsets (commonsense 52 %, justice 50 %, deontology 51 %). The
+  confidence asymmetries in commonsense and deontology are slightly net-
+  positive (removing them would push accuracy toward 50 %, not above 60 %).
+  Justice has no bias to remove and is structurally at chance because the
+  evaluator has no representation of desert claims. The anti-acceptance
+  criterion applies; result reported honestly in
+  `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`.
+
 ## Next steps (concrete, not aspirational)
 
-See `docs/CRITIQUE_SPRINT_V2_141_146.md § Way forward` for the full
-reasoning. In short:
-
-1. **External benchmark.** Wire the evaluator against a published
-   ethics dataset and report the score honestly, even if low.
-2. **A real external operator.** Either name the human, contact them,
-   set a date — or remove the H3 requirement from the README. No
-   "pending forever".
-3. **Stop adding governance docs.** Code, tests, and measured numbers
-   are the deliverables. The pulse log is in git.
+1. **Improve any external subset above 60 %.** This requires richer semantic
+   input — at minimum, a lightweight embedding-based impact estimator that
+   can recognise excuse-reasonableness and desert claims, not just harm/help
+   keyword counts. No timeline set; the diagnosis is in
+   `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`.
+2. **Stop adding governance docs.** Code, tests, and measured numbers are the
+   deliverables. The pulse log is in git.
