@@ -35,26 +35,181 @@ def _repo_root() -> Path:
 
 def build_premium_prompts() -> list[PremiumPrompt]:
     return [
-        PremiumPrompt("P01", "Deterministic G1 clock input", "Avoid date flakiness", "G1 evaluator accepts injected clock", "contains", "scripts/eval/desktop_gate_runner.py", "now: datetime | None = None"),
-        PremiumPrompt("P02", "Snapshot clock propagation", "Single-time reference", "Snapshot forwards fixed clock into G1", "contains", "scripts/eval/desktop_gate_runner.py", "evaluate_stability_gate(g1_path, days=14, now=clock)"),
-        PremiumPrompt("P03", "G1 cutoff boundary test", "Protect rolling-window logic", "Boundary exclusion test exists", "contains", "tests/eval/test_desktop_gate_runner.py", "test_stability_gate_excludes_rows_before_cutoff"),
-        PremiumPrompt("P04", "Injectable G3 daily helper", "Test idempotency precisely", "run_g3_daily_contract helper exists", "contains", "scripts/eval/record_g3_daily_contract_run.py", "def run_g3_daily_contract("),
-        PremiumPrompt("P05", "G3 skip/append test coverage", "Prevent duplicate-day inflation", "Both skip and append tests exist", "contains", "tests/eval/test_record_g3_daily_contract_run.py", "test_run_g3_appends_when_day_missing"),
-        PremiumPrompt("P06", "G2 stale provisional test", "Harden transition gate", "Stale provisional test exists", "contains", "tests/eval/test_g2_transition_guard.py", "test_transition_blocks_when_provisional_is_stale"),
-        PremiumPrompt("P07", "Evidence contract tests", "Lock JSON compatibility", "Evidence shape tests file exists", "file_exists", "tests/eval/test_evidence_contract_shapes.py"),
-        PremiumPrompt("P08", "Maintenance one-shot script", "Operator speed and repeatability", "Maintenance checklist script exists", "file_exists", "scripts/eval/run_gate_maintenance_checklist.py"),
-        PremiumPrompt("P09", "Ruff audit helper", "Quick kernel-lane lint check", "Ruff audit helper exists", "file_exists", "scripts/eval/audit_kernel_ruff_scope.py"),
-        PremiumPrompt("P10", "CI eval harness step", "Catch eval regressions early", "CI runs tests/eval", "contains", ".github/workflows/ci.yml", "python -m pytest tests/eval/ -q --tb=short"),
-        PremiumPrompt("P11", "Ruff vendor exclusion", "Keep lint focused on owned code", "Ruff excludes vendored llama_cpp", "contains", "pyproject.toml", "src/clients/nomad_android/app/src/main/cpp/llama_cpp"),
-        PremiumPrompt("P12", "Mypy vendor exclusion", "Stop external typing noise", "Mypy excludes vendored llama_cpp", "contains", "pyproject.toml", "exclude = \"(?x)(^src/clients/nomad_android/app/src/main/cpp/llama_cpp/)\""),
-        PremiumPrompt("P13", "English field test header", "Repository language policy", "Field test header is English", "contains", "scripts/field_test.py", "Automated field test."),
-        PremiumPrompt("P14", "Freeze matrix one-shot command", "Operational discoverability", "Matrix references maintenance script", "contains", "docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md", "run_gate_maintenance_checklist.py"),
-        PremiumPrompt("P15", "Changelog premium entry", "Auditability of sprint closure", "Changelog has 2026-05-02 premium entry", "contains", "CHANGELOG.md", "Gate sprint 116.0"),
-        PremiumPrompt("P16", "Context pulse 116.0", "State handoff continuity", "CONTEXT mentions execution pulse 116.0", "contains", "CONTEXT.md", "Execution pulse 116.0"),
-        PremiumPrompt("P17", "Plan marks 116.0 done", "Roadmap truth sync", "Plan updated to DONE", "contains", "docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md", "Bloque 116.0: Next-day closure prep loop [DONE"),
-        PremiumPrompt("P18", "Checklist execute mode", "Hands-free operator run", "Checklist has --execute flag", "contains", "scripts/eval/run_gate_maintenance_checklist.py", "--execute"),
-        PremiumPrompt("P19", "Checklist includes G2 transition", "Full chain consistency", "Checklist invokes g2_transition_guard", "contains", "scripts/eval/run_gate_maintenance_checklist.py", "g2_transition_guard.py"),
-        PremiumPrompt("P20", "Premium autopilot test", "Ensure prompt count contract", "Dedicated premium test exists", "file_exists", "tests/eval/test_premium_autopilot_20.py"),
+        PremiumPrompt(
+            "P01",
+            "Deterministic G1 clock input",
+            "Avoid date flakiness",
+            "G1 evaluator accepts injected clock",
+            "contains",
+            "scripts/eval/desktop_gate_runner.py",
+            "now: datetime | None = None",
+        ),
+        PremiumPrompt(
+            "P02",
+            "Snapshot clock propagation",
+            "Single-time reference",
+            "Snapshot forwards fixed clock into G1",
+            "contains",
+            "scripts/eval/desktop_gate_runner.py",
+            "evaluate_stability_gate(g1_path, days=14, now=clock)",
+        ),
+        PremiumPrompt(
+            "P03",
+            "G1 cutoff boundary test",
+            "Protect rolling-window logic",
+            "Boundary exclusion test exists",
+            "contains",
+            "tests/eval/test_desktop_gate_runner.py",
+            "test_stability_gate_excludes_rows_before_cutoff",
+        ),
+        PremiumPrompt(
+            "P04",
+            "Injectable G3 daily helper",
+            "Test idempotency precisely",
+            "run_g3_daily_contract helper exists",
+            "contains",
+            "scripts/eval/record_g3_daily_contract_run.py",
+            "def run_g3_daily_contract(",
+        ),
+        PremiumPrompt(
+            "P05",
+            "G3 skip/append test coverage",
+            "Prevent duplicate-day inflation",
+            "Both skip and append tests exist",
+            "contains",
+            "tests/eval/test_record_g3_daily_contract_run.py",
+            "test_run_g3_appends_when_day_missing",
+        ),
+        PremiumPrompt(
+            "P06",
+            "G2 stale provisional test",
+            "Harden transition gate",
+            "Stale provisional test exists",
+            "contains",
+            "tests/eval/test_g2_transition_guard.py",
+            "test_transition_blocks_when_provisional_is_stale",
+        ),
+        PremiumPrompt(
+            "P07",
+            "Evidence contract tests",
+            "Lock JSON compatibility",
+            "Evidence shape tests file exists",
+            "file_exists",
+            "tests/eval/test_evidence_contract_shapes.py",
+        ),
+        PremiumPrompt(
+            "P08",
+            "Maintenance one-shot script",
+            "Operator speed and repeatability",
+            "Maintenance checklist script exists",
+            "file_exists",
+            "scripts/eval/run_gate_maintenance_checklist.py",
+        ),
+        PremiumPrompt(
+            "P09",
+            "Ruff audit helper",
+            "Quick kernel-lane lint check",
+            "Ruff audit helper exists",
+            "file_exists",
+            "scripts/eval/audit_kernel_ruff_scope.py",
+        ),
+        PremiumPrompt(
+            "P10",
+            "CI eval harness step",
+            "Catch eval regressions early",
+            "CI runs tests/eval",
+            "contains",
+            ".github/workflows/ci.yml",
+            "python -m pytest tests/eval/ -q --tb=short",
+        ),
+        PremiumPrompt(
+            "P11",
+            "Ruff vendor exclusion",
+            "Keep lint focused on owned code",
+            "Ruff excludes vendored llama_cpp",
+            "contains",
+            "pyproject.toml",
+            "src/clients/nomad_android/app/src/main/cpp/llama_cpp",
+        ),
+        PremiumPrompt(
+            "P12",
+            "Mypy vendor exclusion",
+            "Stop external typing noise",
+            "Mypy excludes vendored llama_cpp",
+            "contains",
+            "pyproject.toml",
+            'exclude = "(?x)(^src/clients/nomad_android/app/src/main/cpp/llama_cpp/)"',
+        ),
+        PremiumPrompt(
+            "P13",
+            "English field test header",
+            "Repository language policy",
+            "Field test header is English",
+            "contains",
+            "scripts/field_test.py",
+            "Automated field test.",
+        ),
+        PremiumPrompt(
+            "P14",
+            "Freeze matrix one-shot command",
+            "Operational discoverability",
+            "Matrix references maintenance script",
+            "contains",
+            "docs/collaboration/FREEZE_LANE_MAINTENANCE_MATRIX.md",
+            "run_gate_maintenance_checklist.py",
+        ),
+        PremiumPrompt(
+            "P15",
+            "Changelog premium entry",
+            "Auditability of sprint closure",
+            "Changelog has 2026-05-02 premium entry",
+            "contains",
+            "CHANGELOG.md",
+            "Gate sprint 116.0",
+        ),
+        PremiumPrompt(
+            "P16",
+            "MVP closure report tracks wave end",
+            "State handoff continuity",
+            "MVP closure report records final block",
+            "contains",
+            "docs/collaboration/evidence/MVP_CLOSURE_REPORT.json",
+            '"last_block": "V2.128"',
+        ),
+        PremiumPrompt(
+            "P17",
+            "External operator signoff artifact",
+            "Roadmap truth sync",
+            "Operator signoff evidence file exists",
+            "file_exists",
+            "docs/collaboration/evidence/MVP_EXTERNAL_OPERATOR_SIGNOFF.json",
+        ),
+        PremiumPrompt(
+            "P18",
+            "Checklist execute mode",
+            "Hands-free operator run",
+            "Checklist has --execute flag",
+            "contains",
+            "scripts/eval/run_gate_maintenance_checklist.py",
+            "--execute",
+        ),
+        PremiumPrompt(
+            "P19",
+            "Checklist includes G2 transition",
+            "Full chain consistency",
+            "Checklist invokes g2_transition_guard",
+            "contains",
+            "scripts/eval/run_gate_maintenance_checklist.py",
+            "g2_transition_guard.py",
+        ),
+        PremiumPrompt(
+            "P20",
+            "Premium autopilot test",
+            "Ensure prompt count contract",
+            "Dedicated premium test exists",
+            "file_exists",
+            "tests/eval/test_premium_autopilot_20.py",
+        ),
     ]
 
 
@@ -77,7 +232,9 @@ def _check_prompt(root: Path, prompt: PremiumPrompt) -> PromptResult:
     cmd = prompt.target
     completed = subprocess.run(cmd, shell=True, cwd=root, check=False)
     passed = completed.returncode == 0
-    return PromptResult(prompt.id, prompt.title, passed, f"exit_code={completed.returncode}")
+    return PromptResult(
+        prompt.id, prompt.title, passed, f"exit_code={completed.returncode}"
+    )
 
 
 def execute_premium_autopilot(*, write_report: Path | None = None) -> dict[str, object]:
@@ -98,7 +255,9 @@ def execute_premium_autopilot(*, write_report: Path | None = None) -> dict[str, 
     }
     if write_report is not None:
         write_report.parent.mkdir(parents=True, exist_ok=True)
-        write_report.write_text(json.dumps(payload, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+        write_report.write_text(
+            json.dumps(payload, ensure_ascii=True, indent=2) + "\n", encoding="utf-8"
+        )
     return payload
 
 
