@@ -30,9 +30,14 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
 import math
+import os
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from src.core.ethics import WEIGHTS, Action, EthicalEvaluator, EvalResult, Signals
@@ -141,6 +146,17 @@ def build_decision_trace(
         }
         if turn_id:
             trace["turn_id"] = turn_id
+        trace["ethical_audit_id"] = _compute_ethical_audit_id(
+            blocked=True,
+            context=str(trace["context"]),
+            action=str(trace["action"]),
+            mode=str(trace["mode"]),
+            verdict=str(trace["verdict"]),
+            score=float(trace["score"]),
+            weights=weight_list,
+            blocked_reason=str(trace.get("blocked_reason") or ""),
+            turn_id=turn_id,
+        )
         return trace
     score = 0.0
     if evaluation is not None:
@@ -162,6 +178,142 @@ def build_decision_trace(
     }
     if turn_id:
         trace["turn_id"] = turn_id
+    trace["ethical_audit_id"] = _compute_ethical_audit_id(
+        blocked=False,
+        context=str(trace["context"]),
+        action=str(trace["action"]),
+        mode=str(trace["mode"]),
+        verdict=str(trace["verdict"]),
+        score=float(trace["score"]),
+        weights=weight_list,
+        blocked_reason=None,
+        turn_id=turn_id,
+    )
+    return trace
+
+
+def _compute_ethical_audit_id(
+    *,
+    blocked: bool,
+    context: str,
+    action: str,
+    mode: str,
+    verdict: str,
+    score: float,
+    weights: list[float],
+    blocked_reason: str | None,
+    turn_id: str | None,
+) -> str:
+    """V2.150: deterministic 16-hex-char audit id for the canonical trace.
+
+    Computed as a SHA-256 over a canonical, ordered tuple of trace fields.
+    Two properties hold by construction:
+
+    * **Reproducible.** Re-deriving the id from the same trace fields always
+      yields the same string, so an auditor can recompute it from the on-disk
+      ledger row and confirm it matches the trace stored in the chat reply.
+    * **Discriminating enough.** 16 hex chars = 64 bits of entropy: collisions
+      between distinct ethical decisions are negligible at any realistic
+      kernel-traffic volume; longer adds bytes without auditing benefit.
+
+    The id is not a security token and is not authenticated; it is an
+    audit *handle* meant to make post-hoc traceability cheap. See
+    ``docs/proposals/AUTONOMY_LIMITS_V1.md`` §"Audit handle".
+    """
+
+    canonical = "|".join(
+        [
+            f"blocked={1 if blocked else 0}",
+            f"context={context}",
+            f"action={action}",
+            f"mode={mode}",
+            f"verdict={verdict}",
+            # Round to 4 dp so floating-point noise across runs cannot perturb
+            # the id while preserving enough granularity to distinguish
+            # genuinely different scores.
+            f"score={score:.4f}" if math.isfinite(score) else "score=nan",
+            "weights=" + ",".join(f"{w:.4f}" for w in weights),
+            f"blocked_reason={blocked_reason or ''}",
+            f"turn_id={turn_id or ''}",
+        ]
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+
+
+def _trace_is_casual(trace: dict[str, Any]) -> bool:
+    """V2.150: "casual" = no ethical decision was made.
+
+    Casual turns are excluded from the audit ledger because there is no
+    ethical decision to audit. Blocked turns and any turn with an
+    evaluation present are considered non-casual.
+    """
+
+    if trace.get("malabs") == "blocked":
+        return False
+    return trace.get("mode") == "casual" and trace.get("action") == "casual_chat"
+
+
+def append_audit_ledger(
+    trace: dict[str, Any],
+    *,
+    ledger_path: Path | None = None,
+) -> Path | None:
+    """V2.150: append a non-casual trace to the audit ledger (JSONL).
+
+    Returns the path written to, or ``None`` if the trace was casual /
+    skipped. Failures (disk full, permission denied, etc.) are logged at
+    WARNING and swallowed: the audit ledger is best-effort and must never
+    break a chat turn.
+
+    The ledger location defaults to ``<repo>/runs/audit_ledger.jsonl``,
+    overridable via the ``ETHOS_AUDIT_LEDGER`` environment variable.
+    """
+
+    if _trace_is_casual(trace):
+        return None
+    if ledger_path is None:
+        env_path = os.environ.get("ETHOS_AUDIT_LEDGER")
+        if env_path:
+            ledger_path = Path(env_path)
+        else:
+            ledger_path = Path(__file__).resolve().parents[2] / "runs" / "audit_ledger.jsonl"
+    try:
+        ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        # Slim the row: id + minimal trace fields. The full trace is
+        # always available in the chat reply; the ledger is for
+        # post-hoc audit, not replay.
+        row = {
+            "ethical_audit_id": trace.get("ethical_audit_id"),
+            "ts": datetime.now(UTC).isoformat(),
+            "turn_id": trace.get("turn_id"),
+            "context": trace.get("context"),
+            "action": trace.get("action"),
+            "mode": trace.get("mode"),
+            "verdict": trace.get("verdict"),
+            "score": trace.get("score"),
+            "weights": trace.get("weights"),
+            "malabs": trace.get("malabs"),
+            "blocked_reason": trace.get("blocked_reason"),
+        }
+        with ledger_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(row, sort_keys=True) + "\n")
+        return ledger_path
+    except OSError as exc:
+        _log.warning("audit ledger append failed (%s): %s", ledger_path, exc)
+        return None
+
+
+def _build_trace_with_ledger(**kwargs: Any) -> dict[str, Any]:
+    """V2.150: build a decision_trace and append it to the audit ledger.
+
+    Thin wrapper around :func:`build_decision_trace` that additionally
+    persists the row via :func:`append_audit_ledger`. Casual chat turns
+    are skipped by the ledger itself, so this wrapper is safe at every
+    trace site. Failures inside the ledger never raise.
+    """
+
+    trace = build_decision_trace(**kwargs)
+    append_audit_ledger(trace)
     return trace
 
 
@@ -695,7 +847,7 @@ class ChatEngine:
                 "blocked": True,
                 "reason": reason,
                 "latency": latency,
-                "trace": build_decision_trace(
+                "trace": _build_trace_with_ledger(
                     signals=None,
                     evaluation=None,
                     blocked=True,
@@ -749,7 +901,7 @@ class ChatEngine:
             }
             if evaluation
             else None,
-            "trace": build_decision_trace(
+            "trace": _build_trace_with_ledger(
                 signals=signals,
                 evaluation=evaluation,
                 blocked=False,
@@ -912,7 +1064,7 @@ class ChatEngine:
             "latency": latency,
             "vault_key": vault_key,  # V2.71
             "plugin_used": plugin_used,  # V2.74: telemetry
-            "trace": build_decision_trace(
+            "trace": _build_trace_with_ledger(
                 signals=signals,
                 evaluation=evaluation,
                 blocked=False,

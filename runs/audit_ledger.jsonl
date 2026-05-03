@@ -1,0 +1,1 @@
+{"action": "safety_block", "blocked_reason": "Simulated block", "context": "safety_violation", "ethical_audit_id": "85485ee2d40f8c89", "malabs": "blocked", "mode": "blocked", "score": 0.0, "ts": "2026-05-03T05:55:54.626408+00:00", "turn_id": null, "verdict": "Blocked", "weights": [0.4, 0.35, 0.25]}

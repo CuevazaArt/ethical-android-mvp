@@ -16,7 +16,7 @@ from typing import Any
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
-from src.core.chat import ChatEngine, build_decision_trace
+from src.core.chat import ChatEngine, append_audit_ledger, build_decision_trace
 from src.core.feedback import (
     FeedbackCalibrationLedger,
     is_posterior_assisted_enabled,
@@ -565,6 +565,8 @@ async def api_voice_turn(request: Request):
             turn_id=turn_id,
             memory_used=getattr(result, "memory_used", []) or [],
         )
+        # V2.150: persist non-casual traces to the audit ledger.
+        append_audit_ledger(trace)
     except Exception as exc:
         _log.error("[VoiceTurn] turn failed: %s", exc)
         envelope = build_voice_turn_error_envelope(

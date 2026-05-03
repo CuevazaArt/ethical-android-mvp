@@ -14,6 +14,16 @@ Key properties:
 - No LLM calls: fully testable without a running model.
 - Single responsibility: voice ≠ ethics ≠ identity. Voice *expresses* identity.
 
+Scope disclaimer (V2.150):
+    This module is a **UX layer**, not a capability layer. A coherent voice,
+    a calibrated charm level, and a stable ``voice_signature`` measure how
+    *recognisable* the kernel sounds, not how *well it decides*. Ethical
+    capability is measured separately by ``scripts/eval/run_ethics_external.py``
+    (currently ~49.7 % on Hendrycks ETHICS) and by
+    ``scripts/eval/run_adversarial_consistency.py`` (V2.150). A stable
+    voice_signature is **not** evidence of moral consistency. See
+    ``SAFETY_CARD.md`` for the public framing of this distinction.
+
 Public API:
     charm_level(signals, evaluation, risk_band) -> float
     VoiceEngine().describe(archetype, last_chronicle, risk_band, context, charm) -> StyleDescriptor
