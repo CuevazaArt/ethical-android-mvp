@@ -26,20 +26,7 @@ class DeviceEmulator:
     
     def start(self):
         print(f"[Device] ID {self.cfg.get('id', 'Unknown')} inicializado con EthicalKernel v1.0.")
-        # Simulate Swarm Discovery (I7)
-        if hasattr(self.kernel, 'swarm'):
-            from src.modules.social.swarm_negotiator import SwarmMessage
-            # Simulate hearing from 2 other peers in the LAN
-            for peer_id in ["PEER-77", "PEER-99"]:
-                msg = SwarmMessage(
-                    sender_id=peer_id,
-                    timestamp=time.time(),
-                    payload_type="identity_digest",
-                    data={"epitome": "Safe civic partner", "leans": {"civic": 0.8, "care": 0.7}}
-                )
-                self.kernel.swarm.process_incoming(msg, self.kernel)
-            print(f"[Device] Red Swarm detectada: {len(self.kernel.swarm.state.known_peers)} peers activos.")
-        
+        # Fleet Peer Discovery (I7) — deferred until fleet stub is re-implemented
         self.state["status"] = "running"
     
     def step(self):

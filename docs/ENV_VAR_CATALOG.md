@@ -139,7 +139,7 @@ variable read by the codebase (`src/`). Variables are grouped by functional tier
 | `KERNEL_METAPLAN_HINT` | `""` | str | Override metaplan directive. |
 | `KERNEL_METAPLAN_DRIVE_FILTER` | `""` | str | Filter drives by name (comma-separated). |
 | `KERNEL_METAPLAN_DRIVE_EXTRA` | `""` | str | Extra drive names to inject. |
-| `KERNEL_FLEET_STUB` | `0` | bool | Enable fleet peer stub digest (lab). **Deprecated alias:** `KERNEL_SWARM_STUB` (retired V2.159). |
+| `KERNEL_FLEET_STUB` | `0` | bool | Enable fleet peer stub digest helpers (lab). Opt-in; no live network. |
 | `KERNEL_ADVISORY_INTERVAL_S` | `""` | float | Interval (s) for advisory telemetry loop per session. |
 
 ---

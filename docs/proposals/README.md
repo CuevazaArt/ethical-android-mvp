@@ -69,7 +69,7 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [PROPOSAL_VITALITY_SACRIFICE_AND_CLOSURE.md](PROPOSAL_VITALITY_SACRIFICE_AND_CLOSURE.md) | v8 extension: vitality, sacrifice, dignified closure, narrative legacy — *English* |
 | [DEMO_SITUATED_V8.md](DEMO_SITUATED_V8.md) | Situated v8 demo |
 | [PROPOSAL_GUARDIAN_ANGEL.md](PROPOSAL_GUARDIAN_ANGEL.md) | Guardian Angel mode (tone only; no second veto) — *English* |
-| [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md) | v9 pillars (epistemic, generative, swarm, metaplanning) — *English* |
+| [PROPOSAL_EXPANDED_CAPABILITY_V9.md](PROPOSAL_EXPANDED_CAPABILITY_V9.md) | v9 pillars (epistemic, generative, fleet peer stub, metaplanning) — *English* |
 | [PROPOSAL_OPERATIONAL_STRATEGY_V10.md](PROPOSAL_OPERATIONAL_STRATEGY_V10.md) | v10 operations: gray-zone diplomacy, skills, somatic markers — *English* |
 | [PROPOSAL_DISTRIBUTED_JUSTICE_V11.md](PROPOSAL_DISTRIBUTED_JUSTICE_V11.md) | V11 governance, DAO audit, roadmap — *English* |
 | [PROPOSAL_REALITY_VERIFICATION_V11.md](PROPOSAL_REALITY_VERIFICATION_V11.md) | Reality verification (design) |
@@ -157,7 +157,6 @@ Legacy Spanish filenames (`PROPUESTA_*.md`, `ESTRATEGIA_Y_RUTA.md`, `PAPER_AFECT
 | [ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md](ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md) | External vs circular ethical evaluation (expert baselines, rubrics) |
 | [EMPIRICAL_METHODOLOGY.md](EMPIRICAL_METHODOLOGY.md) | Issue 3 — interpreting agreement metrics; not moral certification |
 | [EMPIRICAL_PILOT_PROTOCOL.md](EMPIRICAL_PILOT_PROTOCOL.md) | Empirical pilot protocol |
-| [SWARM_P2P_THREAT_MODEL.md](SWARM_P2P_THREAT_MODEL.md) | Swarm P2P threat model |
 
 ---
 

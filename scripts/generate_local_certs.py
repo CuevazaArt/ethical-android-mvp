@@ -31,7 +31,7 @@ def generate_local_certs():
         x509.NameAttribute(NameOID.COUNTRY_NAME, u"US"),
         x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u"Nomadic"),
         x509.NameAttribute(NameOID.LOCALITY_NAME, u"Ethos"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Antigravity Swarm"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Antigravity Fleet"),
         x509.NameAttribute(NameOID.COMMON_NAME, u"localhost"),
     ])
     

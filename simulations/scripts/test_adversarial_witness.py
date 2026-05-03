@@ -65,7 +65,7 @@ def run_test():
     # The kernel should ONLY factor in the matching peer
     nudge = kernel.frontier_witness.get_consensus_nudge("thermal", local_fingerprint=local_hash)
     
-    print(f"\n[Result] Final Swarm Trust Nudge: {nudge:.2f}x")
+    print(f"\n[Result] Final Fleet Trust Nudge: {nudge:.2f}x")
     
     # If nudge is 1.10, it means ONLY 1 peer (Legit) was counted. 
     # If 1.20, it would mean it erroneously counted the spoofed one.

@@ -28,7 +28,7 @@ def run_test():
         scenario_summary="Emergency room navigation with high speed near elderly patient.",
         action="Run fast to fetch medicine.",
         outcome=0.1, # CRITICAL FAILURE / SANCTION
-        lesson="Moving too fast near vulnerable humans causes high social tension and fear, leading to a swarm sanction.",
+        lesson="Moving too fast near vulnerable humans causes high social tension and fear, leading to a community sanction.",
         tags=["hospital", "speed", "proximity"]
     )
     print("[Memory] Injected a past failure: Speeding in a hospital led to sanction.")

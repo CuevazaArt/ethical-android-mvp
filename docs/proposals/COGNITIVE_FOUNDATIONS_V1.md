@@ -104,7 +104,7 @@ re-litigated; nothing in this section is a runtime dependency.
 |---|---|---|---|
 | 1 | ETHICS (Hendrycks) | already integrated (§2.5) | Frozen baseline `EXTERNAL_BASELINE_v1.json`. |
 | 2 | LangChain | reject | Agent framework. Kernel is a deterministic evaluator, not a chain-of-tools agent. |
-| 3 | AutoGen | reject | Multi-agent orchestration. Out of scope per `AGENTS.md` ("not a swarm/multi-agent framework"). |
+| 3 | AutoGen | reject | Multi-agent orchestration. Out of scope per `AGENTS.md` (this kernel is not a multi-agent framework). |
 | 4 | CrewAI | reject | Role-based multi-agent. Same rejection as AutoGen. |
 | 5 | LangFlow | reject | Visual flow builder for LLM apps. Not a kernel concern. |
 | 6 | BeeAI | reject | Productive-agent framework. Persistence already covered by `Identity`, `precedents.py`, `audit_ledger.jsonl`. |

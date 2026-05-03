@@ -2,7 +2,7 @@
 """
 Fleet Synchronization Script (V2.159)
 
-Replaces the deprecated swarm_sync.py (retired V2.159).
+Replaces the deprecated fleet synchronization script (fleet_sync superseded older tooling, retired V2.159).
 Automates the 'log' and 'commit' process for kernel instances.
 
 Usage:

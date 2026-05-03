@@ -12,7 +12,7 @@ Covers:
     degrading language, no false positive on neutral response.
   - cite_school(): correct school IDs for deontology and justice categories.
   - dilemma_resolution_v1.json: loads correctly and has exactly 7 ordered steps.
-  - Swarm sanitation: fleet_telemetry import works; swarm_telemetry emits
+  - Fleet sanitation: fleet_telemetry import works; legacy shim emits
     DeprecationWarning.
 """
 
@@ -190,11 +190,12 @@ class TestDilemmaResolutionProcedure:
 
 
 # ---------------------------------------------------------------------------
-# Swarm sanitation tests
+# ---------------------------------------------------------------------------
+# Fleet sanitation tests
 # ---------------------------------------------------------------------------
 
 
-class TestSwarmSanitation:
+class TestFleetSanitation:
     """Regression tests confirming fleet vocabulary sanitation."""
 
     def test_fleet_telemetry_imports_cleanly(self) -> None:
@@ -204,8 +205,8 @@ class TestSwarmSanitation:
         assert hasattr(ft, "InstanceReport")
         assert hasattr(ft, "FleetLedger")
 
-    def test_swarm_telemetry_emits_deprecation_warning(self) -> None:
-        """Importing swarm_telemetry must emit a DeprecationWarning."""
+    def test_legacy_shim_emits_deprecation_warning(self) -> None:
+        """Importing the legacy telemetry shim must emit a DeprecationWarning."""
         sys.modules.pop("src.core.swarm_telemetry", None)
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
@@ -214,5 +215,5 @@ class TestSwarmSanitation:
             w for w in caught if issubclass(w.category, DeprecationWarning)
         ]
         assert deprecation_warnings, (
-            "swarm_telemetry must emit DeprecationWarning to signal retirement"
+            "legacy telemetry shim must emit DeprecationWarning to signal retirement"
         )

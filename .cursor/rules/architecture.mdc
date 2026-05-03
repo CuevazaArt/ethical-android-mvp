@@ -35,4 +35,4 @@ When modifying kernel architecture:
 
 1. Pick highest-priority `[PENDING]` task from `PLAN_WORK_DISTRIBUTION_TREE.md`.
 2. Execute with Boy Scout rules (see `code-quality.mdc`).
-3. Commit via `python scripts/swarm_sync.py --block <ID> --msg "<description>"`.
+3. Commit via `python scripts/fleet_sync.py --block <ID> --msg "<description>"`.

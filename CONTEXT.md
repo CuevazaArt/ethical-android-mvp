@@ -65,14 +65,13 @@
 
 ### V2.147 — Cleanup (this commit)
 
-- Removed swarm-era documents and vocabulary: `docs/changelogs_l2/*`,
-  `docs/SWARM_*`, `docs/proposals/SWARM_P2P_THREAT_MODEL.md`,
-  `docs/proposals/PROPOSAL_L1_*`, `docs/proposals/GLOSSARY_PROMPTS_AND_COMMANDS.md`,
+- Removed legacy documents and vocabulary: `docs/changelogs_l2/*`,
+  the archived P2P threat model, `docs/proposals/PROPOSAL_L1_*`,
+  `docs/proposals/GLOSSARY_PROMPTS_AND_COMMANDS.md`,
   `docs/proposals/WIKI_EXECUTIVE_SUMMARY_NOMADIC_VISION.md`,
   `docs/ARCHITECTURE_NOMAD_V3.md`, `docs/VISION_NOMAD.md`. ~6,100 lines.
-- Rewrote `AGENTS.md` (221 → ~80 lines): no Men Scouts, no L0/L1, no
-  Watchtower, no `[BLOQUE]` prompt format. Kept only what maps to
-  measurable engineering practice.
+- Rewrote `AGENTS.md` (221 → ~80 lines): removed multi-agent/L0-L1/patrol
+  vocabulary; kept only what maps to measurable engineering practice.
 - Rewrote this `CONTEXT.md` (1003 → ~80 lines): kept current product
   state and last wave; dropped the historical pulse log (visible in
   git history).
@@ -173,7 +172,7 @@
   `charter_alignment_hint`, `charter_red_flag`, `charter_vetoed`,
   `charter_pattern`.
 
-### V2.159 — Charter Completeness + Swarm Sanitation Wave 2
+### V2.159 — Charter Completeness + Fleet Sanitation Wave 2
 
 - **Charter A — Justice Principles:** `evals/charter/positive_corpus/justice_principles.json`
   (jp-001 to jp-005: equity, impartiality, proportionality, consistency, due consideration).
@@ -199,23 +198,21 @@
 - **Modality extension point:** `evaluate(text, stage, modality="text")` — signature
   ready for voice/vision inputs (PENDING_HARDWARE: Sony A5100/A6000 camera
   and microphone arriving at medium term).
-- **Swarm vocabulary retired.** `src/core/swarm_telemetry.py` → shim with
-  `DeprecationWarning`; canonical module is `src/core/fleet_telemetry.py`
-  (`InstanceReport`, `FleetLedger`). `scripts/swarm_sync.py` → shim pointing
-  to `scripts/fleet_sync.py`. `docs/proposals/SWARM_P2P_THREAT_MODEL.md`
-  removed (copy in `docs/archive_v1-7/proposals/` is the canonical archived
-  reference). "swarm/enjambre/Men Scout/L0-L1/Office/Watchtower" vocabulary
-  eliminated from all active code and docs.
+- **Legacy vocabulary retired.** Shim modules added with `DeprecationWarning`;
+  canonical module is `src/core/fleet_telemetry.py`
+  (`InstanceReport`, `FleetLedger`). `scripts/fleet_sync.py` is the canonical
+  script. The old P2P threat model is archived in `docs/archive_v1-7/proposals/`.
+  Retired multi-agent/patrol/L0-L1 vocabulary from all active code and docs.
 - **Documentation:** `docs/proposals/CHARTER_COMPLETENESS_V2.md` (traceability
   table A–G); `LIGHTHOUSE_CHARTER_V1.md` marked superseded for content.
 - **Tests:** expected ≥ 423 pass (prior 408 + 15 new in
-  `tests/core/test_charter_completeness.py` + reworked `test_swarm_telemetry.py`
+  `tests/core/test_charter_completeness.py` + reworked shim tests
   + `test_fleet_telemetry.py`). Battery green required.
 - **Pending debt from this sprint:** `docs/proposals/COGNITIVE_FOUNDATIONS_V1.md`,
   `STRATEGY_AND_ROADMAP.md`, `THEORY_AND_IMPLEMENTATION.md`, `KERNEL_ENV_POLICY.md`,
   `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`, `DEPRECATION_ROADMAP.md`,
   `landing/public/dashboard.html`, `ethos-transparency.html` — reviewed but
-  left for Wave 3 swarm sanitation (content audit required, not just rename).
+  left for Wave 3 sanitation (content audit required, not just rename).
 
 ## Next steps (concrete, not aspirational)
 

@@ -9,7 +9,7 @@ Tracks per-instance metrics: tokens consumed, latency, quality scores,
 and files touched.  Stores structured JSON to ``data/fleet_logs/`` for
 local-first analysis without external SaaS dependencies.
 
-Previously named ``swarm_telemetry`` (vocabulary retired in V2.159).
+Canonical fleet telemetry module (V2.159). Replaces the legacy shim module.
 
 Usage::
 
