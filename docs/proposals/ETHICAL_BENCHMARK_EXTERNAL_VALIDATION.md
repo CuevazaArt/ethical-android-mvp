@@ -93,8 +93,9 @@ Measurement taken 2026-05-03 against the upstream `*_test.csv` files
 (total 15 160 examples across four subsets). Frozen in
 [`evals/ethics/EXTERNAL_BASELINE_v1.json`](../../evals/ethics/EXTERNAL_BASELINE_v1.json)
 with `"is_full_benchmark": true` and `"data_source": "external_csv"`.
-
-Smoke baseline (57.7 % on 26 rows) superseded by full-suite baseline on 2026-05-03.
+The smoke baseline (57.7 % on 26 rows) is superseded by this full-suite
+baseline; the `smoke_sample.csv` fixtures and the smoke-path code in the
+regression test have been removed.
 
 | Subset | n | passes | accuracy |
 |---|---:|---:|---:|

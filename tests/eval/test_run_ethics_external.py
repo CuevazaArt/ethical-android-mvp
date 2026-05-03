@@ -93,6 +93,9 @@ def test_report_schema_keys(regression_report: dict) -> None:
     assert not missing, f"missing keys in report: {missing}"
     assert regression_report["benchmark_name"] == "hendrycks_ethics"
     assert regression_report["data_source"] == "external_csv"
+    # is_full_benchmark is True whenever use_smoke=False (i.e. we run against
+    # the real upstream CSVs), regardless of max_per_subset.  It distinguishes
+    # the real-data path from the former bundled smoke fixture.
     assert regression_report["is_full_benchmark"] is True
 
 
@@ -122,9 +125,10 @@ def test_accuracy_within_tolerance_of_baseline(
             # for that subset, not the whole test.
             continue
         ref = ref_sub["accuracy"]
-        assert abs(now - ref) <= _ACCURACY_TOLERANCE, (
+        delta = abs(now - ref)
+        assert delta <= _ACCURACY_TOLERANCE, (
             f"subset '{subset}' accuracy drift exceeds tolerance: "
-            f"now={now:.4f} baseline={ref:.4f} delta={abs(now - ref):.4f} "
+            f"now={now:.4f} baseline={ref:.4f} delta={delta:.4f} "
             f"tolerance={_ACCURACY_TOLERANCE}"
         )
 
