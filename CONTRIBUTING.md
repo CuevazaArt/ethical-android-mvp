@@ -156,9 +156,9 @@ This project enforces **responsible, efficient, and effective use of CI resource
 
 The CI workflow (`.github/workflows/ci.yml`) uses [`dorny/paths-filter@v3`](https://github.com/dorny/paths-filter) to detect whether source code changed. The `quality` (3×Python matrix) and `windows-smoke` jobs are conditional on that detection.
 
-#### Swarm workflow: batch before push
+#### Batch before push
 
-When running swarm cycles (multiple agents producing micro-commits), **accumulate commits locally** and push once per cycle. This reduces CI runs from N× to 1×. A single validated push is better than five redundant ones.
+When producing multiple micro-commits, **accumulate commits locally** and push once per logical unit of work. This reduces CI runs from N× to 1×. A single validated push is better than five redundant ones.
 
 #### Client validation policy (Flutter-first)
 

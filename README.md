@@ -91,7 +91,6 @@ python -m pytest tests/ -q --tb=short
 - `src/clients/flutter_desktop_shell/`: active MVP client.
 - `evals/ethics/`: benchmark dilemma suite and frozen baseline.
 - `docs/collaboration/`: operational gates and evidence policy.
-- `docs/proposals/PLAN_WORK_DISTRIBUTION_TREE.md`: block-level execution roadmap.
 
 ## License
 

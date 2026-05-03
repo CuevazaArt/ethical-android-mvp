@@ -6,7 +6,6 @@
 **Related:**
 
 - [`PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md`](../proposals/PROPOSAL_MULTIMODAL_CHARM_ENGINE_DIGEST.md)
-- [`PLAN_WORK_DISTRIBUTION_TREE.md`](../proposals/PLAN_WORK_DISTRIBUTION_TREE.md) (Módulo 10)
 - Modules: [`prefetch_ack.py`](../../src/modules/prefetch_ack.py), [`transparency_s10.py`](../../src/modules/transparency_s10.py), [`basal_ganglia.py`](../../src/modules/basal_ganglia.py), [`llm_layer.py`](../../src/modules/llm_layer.py)
 
 ---

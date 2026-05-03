@@ -9,7 +9,7 @@
 - **Promotion path:** `master-cursor` → `master-antigravity` → `main` (**L0** merge to `main` only with explicit authorization).
 - **Adversarial / red-team lane (named slot):** [`CURSOR_ROJO1.md`](CURSOR_ROJO1.md) — Cursor Rojo1; use for adversarial suite, gate discipline, and safety-doc alignment (not a separate hub branch unless you create a topic branch).
 
-## Plan alignment ([`PLAN_WORK_DISTRIBUTION_TREE.md`](../proposals/PLAN_WORK_DISTRIBUTION_TREE.md))
+## Plan alignment
 
 | Track | Cursor responsibility (typical) |
 |------|-----------------------------------|

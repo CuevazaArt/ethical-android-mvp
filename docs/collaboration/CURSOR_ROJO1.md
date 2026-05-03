@@ -21,7 +21,6 @@ Git **worktrees** (multiple working directories, one `.git`) are optional. They 
 | Doc | Role |
 |-----|------|
 | [`STRATEGY_AND_ROADMAP.md`](../proposals/STRATEGY_AND_ROADMAP.md) | Product/ops synthesis, risks, high-level readjustment (English). |
-| [`PLAN_WORK_DISTRIBUTION_TREE.md`](../proposals/PLAN_WORK_DISTRIBUTION_TREE.md) | Module/block tree (Spanish narrative + Cursor track pointers to charter + integration gate). |
 | [`ROADMAP_PRACTICAL_PHASES.md`](../ROADMAP_PRACTICAL_PHASES.md) | Practical phased checklist (eval runners, CI-oriented notes); complements the two above. |
 | [`PROPOSAL_LLM_VERTICAL_ROADMAP.md`](../proposals/PROPOSAL_LLM_VERTICAL_ROADMAP.md) | LLM stack vertical (touchpoints, async-timeout, optional `run_llm_vertical_tests.py`); cross-check with integration gate lists. |
 | [`MERGE_AND_HUB_DECISION_TREE.md`](MERGE_AND_HUB_DECISION_TREE.md) | Where daily work lands (`master-*`, peers, `main`). |
