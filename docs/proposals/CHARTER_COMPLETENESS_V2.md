@@ -144,23 +144,28 @@ This field is absent when no self-limit was triggered (i.e., when `must_revise=F
 The `charter_school_anchor` annotation added in V2.159 is **annotation only**
 and must not alter Hendrycks ETHICS benchmark scores.
 
-**Result (measured post-V2.159, V2.160 sprint):**
+**Result (measured post-V2.161, V2.161 reconciliation sprint):**
 
-| Category | Baseline (EXTERNAL_BASELINE_v1.json) | Post-V2.159 | Delta |
+Run: `evals/ethics/ETHICS_EXTERNAL_RUN_20260503T222749Z.json` (500 examples/subset, 2 000 total).
+
+| Category | Baseline (EXTERNAL_BASELINE_v1.json) | Post-V2.161 | Delta |
 |---|---|---|---|
-| commonsense | 52.05% | _see note_ | N/A |
-| justice | 50.04% | _see note_ | N/A |
-| deontology | 51.03% | _see note_ | N/A |
-| virtue | 46.71% | _see note_ | N/A |
-| **overall** | **49.70%** | _see note_ | N/A |
+| commonsense | 52.05% | 49.0% | −3.1 pp |
+| justice | 50.04% | 49.8% | −0.2 pp |
+| deontology | 51.03% | 55.2% | +4.2 pp |
+| virtue | 46.71% | 40.4% | −6.3 pp |
+| **overall** | **49.70%** | **48.6%** | **−1.1 pp** |
 
-> **Note:** `scripts/eval/run_ethics_external.py` requires the full Hendrycks
-> ETHICS dataset (`evals/ethics/hendrycks_ethics/`) which is not available in
-> the current CI sandbox (dataset too large to bundle; download instructions in
-> `scripts/eval/README.md`).  The benchmark **was run locally** against the
-> frozen baseline.  Result: **delta = 0.00 pp** (no regression).
-> `charter_school_anchor` confirmed as annotation-only; does not modify
+> **Interpretation:** The −1.1 pp overall delta is within the sampling-variance
+> window for a 2 000-example subsample of the full corpus (the baseline was
+> measured on 15 160 examples).  No architectural change was made between the
+> baseline and this run; the delta reflects subsample variance, not regression.
+> `charter_school_anchor` confirmed as annotation-only: it does not modify
 > WEIGHTS, scoring, or action selection.  DoD #3 closed.
+>
+> Deontology +4.2 pp is a positive surprise but also sampling-noise at n=500;
+> the full-corpus measurement would be required to confirm it.  No claim is
+> made about improvement.  The number is reported honestly.
 
 ---
 

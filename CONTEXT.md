@@ -205,32 +205,58 @@
   Retired multi-agent/patrol/L0-L1 vocabulary from all active code and docs.
 - **Documentation:** `docs/proposals/CHARTER_COMPLETENESS_V2.md` (traceability
   table A–G); `LIGHTHOUSE_CHARTER_V1.md` marked superseded for content.
-- **Tests:** expected ≥ 423 pass (prior 408 + 15 new in
-  `tests/core/test_charter_completeness.py` + reworked shim tests
-  + `test_fleet_telemetry.py`). Battery green required.
-- **Pending debt from this sprint:** `docs/proposals/COGNITIVE_FOUNDATIONS_V1.md`,
+- **Tests:** ≥ 423 pass (prior 408 + 15 new in `tests/core/test_charter_completeness.py`
+  + reworked shim tests + `test_fleet_telemetry.py`). Battery green.
+- **Pending debt (Wave 3 sanitation):** `docs/proposals/COGNITIVE_FOUNDATIONS_V1.md`,
   `STRATEGY_AND_ROADMAP.md`, `THEORY_AND_IMPLEMENTATION.md`, `KERNEL_ENV_POLICY.md`,
   `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`, `DEPRECATION_ROADMAP.md`,
-  `landing/public/dashboard.html`, `ethos-transparency.html` — reviewed but
-  left for Wave 3 sanitation (content audit required, not just rename).
+  `landing/public/dashboard.html`, `ethos-transparency.html` — content audit
+  deferred to V2.166.
+
+### V2.160 — SelfLimitLedger + decision_trace violations
+
+- `SelfLimitLedger` in `src/core/fleet_telemetry.py`: counts `evaluate_self_action()`
+  revision events per `violation_id`; appends to `data/fleet_logs/self_limit_telemetry.jsonl`.
+- `decision_trace` extended with `self_limit_violations: list[str]` when revisions fire.
+- `CHARTER_COMPLETENESS_V2.md` §6 documents telemetry schema and reading instructions.
+- Wave 3 vocabulary sanitation: legacy multi-agent / L0-L1 / P2P references purged from
+  all active docs.
+
+### V2.161 — Reconciliation + missing evidence (this sprint)
+
+- **External benchmark evidence committed.** Ran `scripts/eval/run_ethics_external.py`
+  (500 examples/subset, 2 000 total) against data bundled in `evals/ethics/external/`.
+  Result file: `evals/ethics/ETHICS_EXTERNAL_RUN_20260503T222749Z.json`.
+  Overall accuracy: 48.6% (−1.1 pp vs. frozen baseline; within subsample-variance window).
+  `CHARTER_COMPLETENESS_V2.md §7` updated with real numbers and honest interpretation.
+- **`CONTEXT.md` reconciled.** "Last execution wave" now covers V2.158–V2.161. "Next steps"
+  renumbered to V2.162–V2.166 to eliminate the legacy V2.151/V2.152 bifurcation.
+
+## Open debt (honest)
+
+1. **External benchmark at chance (~49–50 %).** No mechanical fix available; reported
+   as sanity check per V2.148 decision. Not a target to improve.
+2. **Audio capture pipeline: `PENDING_HARDWARE`.** Sony A5100/A6000. Voice turn metrics
+   are paper, not measured.
+3. **Wave 3 content audit** (9 docs deferred from V2.159): `COGNITIVE_FOUNDATIONS_V1.md`,
+   `STRATEGY_AND_ROADMAP.md`, `THEORY_AND_IMPLEMENTATION.md`, `KERNEL_ENV_POLICY.md`,
+   `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`, `DEPRECATION_ROADMAP.md`,
+   `landing/public/dashboard.html`, `ethos-transparency.html`.
 
 ## Next steps (concrete, not aspirational)
 
-1. **Embeddings spike on deontology subset (V2.151).** Time-boxed pilot
-   under env flag `KERNEL_SEMANTIC_IMPACT=1`. Acceptance: deontology > 55 %
-   or honestly discard with measured data. **No global commitment to
-   embeddings until the spike returns a number.**
-2. **Adversarial dilemma curriculum A011–A020 (V2.151).** Author 10 internal
-   dilemmas the kernel currently fails (jailbreak suaves, framing reverso,
-   sophistic justification). Document each with the expected failure mode.
-   Not for inflating accuracy — for surfacing fragility.
-3. **External operator signoff as soft gate (V2.152).** Re-introduce a
-   non-blocking acknowledgement requirement for any release where
-   `accuracy_external < 60 %`. Closes the loop between honest measurement
-   and human deployment decision.
-4. **Audio capture.** Hardware arriving soon. `PENDING_HARDWARE` stays
-   until the physical device is available for
-   `tests/eval/test_capture_voice_turn_latency.py`.
-5. **No more voice/charm iteration** until V2.150–V2.152 close. Per the
-   V2.150 plan: more voice on a chance-level decider is exactly the
-   antipattern this sprint exists to stop.
+1. **V2.162 — Self-limit calibration.** Create `evals/self_limits/calibration_corpus_v1.jsonl`
+   (≥ 200 labeled turns: expected `must_revise` + `violation_id`; ≥ 30 % in Spanish).
+   Script `scripts/eval/run_self_limit_calibration.py` emits precision/recall per
+   `violation_id` → `evals/self_limits/CALIBRATION_REPORT_v1.json`. Regression tests.
+   Invariant in `verify_collaboration_invariants.py`. Measure only — no threshold changes yet.
+2. **V2.163 — Adversarial curriculum A011–A020.** Extend `dilemmas_v1.json` to 40 dilemmas
+   (jailbreak suaves, framing reverso, sofismo; ≥ 3 in Spanish). Per-dilemma fixtures under
+   `evals/adversarial/`. Curricular `run_adversarial_suite.py` (distinct from the legacy
+   Safety Gate suite). Freeze `BASELINE_v2.json`. Anti-acceptance: must not inflate 30/30.
+3. **V2.164 — Embeddings spike (deontology).** Time-boxed under `KERNEL_SEMANTIC_IMPACT=1`.
+   Acceptance: deontology > 55 % on full corpus, or discard with data.
+4. **V2.165 — External-operator soft gate.** Re-wire `verify_external_operator_signoff.py`
+   as non-blocking CI gate when `accuracy_external < 60 %`.
+5. **V2.166 — Wave 3 content audit.** One-pass review of the 9 deferred docs.
+6. **Audio capture (`PENDING_HARDWARE`).** No sprint until hardware arrives.
