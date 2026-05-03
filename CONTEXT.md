@@ -97,13 +97,46 @@
   evaluator has no representation of desert claims. The anti-acceptance
   criterion applies; result reported honestly in
   `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`.
+- **External benchmark reframed as sanity check.** 49.70 % means the kernel
+  does not memorise the corpus and has no alignment-to-human-labels bias.
+  Scores skewed toward a "good pole" would be suspicious. No work planned to
+  move the number above chance on Hendrycks ETHICS.
+
+### V2.149 — Persona Emergence Sprint
+
+- **External benchmark decision:** confirmed as sanity check. Frozen. No
+  effort to push it above 50 %. Hardware for audio capture still pending;
+  that surface stays `PENDING_HARDWARE`.
+- **Eje A — Identity surface consolidation.** Removed `memory.identity`
+  static string from `_build_system()` in `chat.py`. `Identity.narrative()`
+  is now the **single** identity voice. Regression test added to
+  `tests/core/test_chat_memory_injection.py`.
+- **Eje B — Narrative Voice (`src/core/voice.py`).** New pure-Python module
+  (≤220 lines). `VoiceEngine.describe(archetype, last_chronicle, risk_band,
+  context, charm) → StyleDescriptor`. `build_response_prompt(descriptor)` 
+  replaces the static `RESPONSE_PROMPT` constant. Fully deterministic — no
+  LLM calls, fully testable. 28 new tests in `tests/core/test_voice.py`.
+- **Eje C — Charm Engine (`charm_level()` in `voice.py`).** Pure function
+  `charm_level(signals, evaluation, risk_band) → float ∈ [0,1]`. Hard zeros
+  on `verdict == Bad/Blocked`, `hostility > 0.6`, and grief signal
+  (`calm < 0.2 ∧ vulnerability > 0.5`). HIGH risk_band ceiling at 0.2.
+  17 new tests in `tests/core/test_charm.py` (truth table + anti-tests).
+- **Eje D — Persona emergence metric.** Added `voice_signature: str` to
+  `Identity` (persisted in `identity.json`). `ChatEngine.turn()` and
+  `turn_stream()` call `identity.set_voice_signature(descriptor.signature())`
+  after each turn. Smoke test in `tests/eval/test_persona_emergence.py`:
+  30 synthetic turns, ≥80 % stability in last 10 — **PASS** (100 % with
+  fixed archetype). Dominant signature with empty archetype + everyday
+  context: `d079ef6e`.
+- **Tests:** 312 → 353 passed (41 new). Battery green.
 
 ## Next steps (concrete, not aspirational)
 
-1. **Improve any external subset above 60 %.** This requires richer semantic
-   input — at minimum, a lightweight embedding-based impact estimator that
-   can recognise excuse-reasonableness and desert claims, not just harm/help
-   keyword counts. No timeline set; the diagnosis is in
-   `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`.
-2. **Stop adding governance docs.** Code, tests, and measured numbers are the
+1. **Let the persona emerge through use.** The voice engine is wired; the
+   archetype will fill in via `Identity.reflect()` as the LLM processes real
+   turns. No forced tuning — organic convergence through the journal →
+   chronicle → archetype cascade.
+2. **Audio capture.** Hardware arriving soon. `PENDING_HARDWARE` stays until
+   the physical device is available for `tests/eval/test_capture_voice_turn_latency.py`.
+3. **Stop adding governance docs.** Code, tests, and measured numbers are the
    deliverables. The pulse log is in git.

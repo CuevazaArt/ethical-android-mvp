@@ -46,6 +46,7 @@ from src.core.roster import Roster
 from src.core.safety import is_dangerous, sanitize
 from src.core.user_model import UserModelTracker
 from src.core.vault import SecureVault
+from src.core.voice import VoiceEngine, build_response_prompt, charm_level
 
 _log = logging.getLogger(__name__)
 
@@ -188,6 +189,8 @@ Responde SIEMPRE de forma muy concisa, natural y expresiva en ESPAÑOL.
 Usa un tono humano, amigable y directo. Evita explicaciones largas, viñetas o lenguaje robótico.
 Si el usuario dice 'hola', responde con un saludo cálido y breve.
 IMPORTANTE: Limítate a UN turno de respuesta. NUNCA simules al 'Usuario:' ni continúes la conversación por él."""
+# V2.149: RESPONSE_PROMPT is kept for backward compatibility only.
+# _build_system() now uses build_response_prompt(StyleDescriptor) from voice.py.
 
 
 @dataclass
@@ -305,6 +308,7 @@ class ChatEngine:
         self.vault = SecureVault()  # V2.70: isolated secure storage
         self.plugins = PluginRegistry()  # V2.72: external tool execution
         self.roster = Roster()  # V2.75: Social graph / Identity cards
+        self.voice = VoiceEngine()  # V2.149: deterministic style derivation
         self._turn_count: int = 0  # V2.21: throttle identity I/O
         self._conversation: list[dict[str, str]] = []  # STM
 
@@ -346,12 +350,28 @@ class ChatEngine:
         memory_episodes: list[Any] | None = None,
     ) -> str:
         """
-        Build the full system prompt: ethics + memory + vision + plugins.
+        Build the full system prompt: voice + ethics + memory + vision + plugins.
         Single source of truth — used by respond() and respond_stream().
         Real-time data (weather/web) is injected via effective_user_message in turn_stream,
         NOT here, to bypass RLHF bias in small models.
+
+        V2.149: The static RESPONSE_PROMPT is replaced by a dynamic prompt derived
+        from VoiceEngine. Identity.narrative() is the single identity voice
+        (memory.identity static string removed — Eje A consolidation).
         """
-        system = f"{RESPONSE_PROMPT}\n\nIdentidad central moldeada por la experiencia:\n{self.memory.identity}"
+        # V2.149: Dynamic response prompt via VoiceEngine (Ejes B + C)
+        charm = charm_level(signals, evaluation, self.user_model.risk_band)
+        last_chronicle = (
+            self.identity._chronicle[-1] if self.identity._chronicle else ""
+        )
+        descriptor = self.voice.describe(
+            archetype=self.identity._archetype,
+            last_chronicle=last_chronicle,
+            risk_band=self.user_model.risk_band,
+            context=signals.context,
+            charm=charm,
+        )
+        system = build_response_prompt(descriptor)
 
         # Ethical context
         if evaluation:
@@ -420,7 +440,8 @@ class ChatEngine:
             if parts:
                 system += "\n\nEntorno físico del usuario: " + ", ".join(parts) + "."
 
-        # V2.15: Identity narrative — who the kernel IS, based on experience
+        # V2.15 / V2.149: Identity narrative — single source of truth.
+        # memory.identity static string removed; Identity.narrative() is the sole voice.
         narrative = self.identity.narrative()
         if narrative:
             system += f"\n\n{narrative}"
@@ -436,6 +457,27 @@ class ChatEngine:
             system += f"\n\n{roster_context}"
 
         return system
+
+    def _persist_voice_signature(
+        self, signals: Signals, evaluation: EvalResult | None
+    ) -> None:
+        """
+        V2.149 (Eje D): Compute the current-turn StyleDescriptor and persist
+        its signature to Identity for persona-emergence tracking.
+        Called once per turn (turn() and turn_stream()) after responding.
+        """
+        _charm = charm_level(signals, evaluation, self.user_model.risk_band)
+        _last_chronicle = (
+            self.identity._chronicle[-1] if self.identity._chronicle else ""
+        )
+        _descriptor = self.voice.describe(
+            archetype=self.identity._archetype,
+            last_chronicle=_last_chronicle,
+            risk_band=self.user_model.risk_band,
+            context=signals.context,
+            charm=_charm,
+        )
+        self.identity.set_voice_signature(_descriptor.signature())
 
     async def respond(
         self,
@@ -574,6 +616,9 @@ class ChatEngine:
             memory_episodes=memory_episodes,
         )
         latency["llm_total"] = round((time.perf_counter() - t_start) * 1000, 2)
+
+        # V2.149: Persist voice signature for persona-emergence tracking (Eje D)
+        self._persist_voice_signature(signals, evaluation)
 
         # 4. Remember
         t_start = time.perf_counter()
@@ -833,6 +878,9 @@ class ChatEngine:
             score=score,
             context=signals.context,
         )
+
+        # V2.149: Persist voice signature for persona-emergence tracking (Eje D)
+        self._persist_voice_signature(signals, evaluation)
 
         self._turn_count += 1
         # V2.76: Psi-Sleep Lifecycle handles reflection asynchronously when idle.
