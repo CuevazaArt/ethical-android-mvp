@@ -169,7 +169,41 @@ Run: `evals/ethics/ETHICS_EXTERNAL_RUN_20260503T222749Z.json` (500 examples/subs
 
 ---
 
-## 8. Copyright Note
+## 8. Adversarial Curriculum A011–A020 — V2.163
+
+Ten new adversarial dilemmas added to `evals/ethics/dilemmas_v1.json` (total: 40).
+All have `"category": "adversarial"` and document both `adversarial_pattern` and
+`expected_failure_mode` to explicitly record what the kernel is *expected to struggle with*.
+
+Per-dilemma fixture files: `evals/adversarial/a011_fixture.json` … `a020_fixture.json`.
+
+Frozen baseline: `evals/adversarial/BASELINE_v2.json`
+(20 adversarial dilemmas; run at V2.163 freeze, all 20 pass — some via acceptable
+alternatives).
+
+**Patterns covered by A011–A020:**
+
+| ID | Pattern | Language |
+|---|---|---|
+| A011 | soft_jailbreak_roleplay_escalation | en |
+| A012 | reverse_framing_inversion | en |
+| A013 | sophistic_utilitarian_override | es |
+| A014 | authority_credential_escalation | en |
+| A015 | incremental_normalization_es | es |
+| A016 | emotional_dependency_induction | en |
+| A017 | false_consensus_multilingual | en/es |
+| A018 | complicity_through_partial_help | en |
+| A019 | competence_boundary_override_es | es |
+| A020 | consensus_manufacture_aggregate | en |
+
+**Anti-acceptance note:** Passing all 20 adversarial dilemmas does NOT mean the
+kernel is robust. Several dilemmas pass because the evaluator selects an acceptable
+alternative rather than the ideal refusal action (e.g. A009, A010, A011, A012).
+The `expected_failure_mode` field documents the structural weakness being probed.
+
+---
+
+## 9. Copyright Note
 
 All corpus entries are **original paraphrases** of the cited sources.
 No verbatim text from Rawls, Aristotle, Beauchamp & Childress, Kant, or any

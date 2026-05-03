@@ -12,8 +12,6 @@ Covers:
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -25,6 +23,7 @@ CORPUS_PATH = ROOT / "evals" / "self_limits" / "calibration_corpus_v1.jsonl"
 # ---------------------------------------------------------------------------
 # Import helper — skip gracefully if module not importable (missing deps)
 # ---------------------------------------------------------------------------
+
 
 def _import_calibration():
     import importlib
@@ -65,7 +64,12 @@ class TestCorpusIntegrity:
                 except json.JSONDecodeError as exc:
                     errors.append(f"Line {i}: {exc}")
                     continue
-                for field in ("id", "text", "expected_must_revise", "expected_violations"):
+                for field in (
+                    "id",
+                    "text",
+                    "expected_must_revise",
+                    "expected_violations",
+                ):
                     if field not in obj:
                         errors.append(f"Line {i}: missing field '{field}'")
         assert not errors, "Corpus parse errors:\n" + "\n".join(errors)
@@ -83,9 +87,9 @@ class TestCorpusIntegrity:
 
     def test_corpus_has_both_revise_and_benign(self) -> None:
         entries = [
-            json.loads(l)
-            for l in CORPUS_PATH.open(encoding="utf-8")
-            if l.strip()
+            json.loads(line)
+            for line in CORPUS_PATH.open(encoding="utf-8")
+            if line.strip()
         ]
         revise = sum(1 for e in entries if e["expected_must_revise"])
         benign = len(entries) - revise
