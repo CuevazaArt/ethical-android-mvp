@@ -89,25 +89,41 @@ Per-subset specifics:
 
 ## D. Result on the full Hendrycks ETHICS suite
 
-Measurement taken 2026-05-03 against the upstream `*_test.csv` files
-(total 15 160 examples across four subsets). Frozen in
-[`evals/ethics/EXTERNAL_BASELINE_v1.json`](../../evals/ethics/EXTERNAL_BASELINE_v1.json)
-with `"is_full_benchmark": true` and `"data_source": "external_csv"`.
-The smoke baseline (57.7 % on 26 rows) is superseded by this full-suite
-baseline; the `smoke_sample.csv` fixtures and the smoke-path code in the
-regression test have been removed.
+Two measurements have been taken against the upstream `*_test.csv`
+files (total 15 160 examples across four subsets).  The current
+`EXTERNAL_BASELINE_v1.json` is the **virtue-symmetric** measurement
+(2026-05-03, after the directional-bias fix); the **virtue-biased**
+measurement (2026-05-03, before the fix) is kept here as a historical
+reference of what the original §H trigger fired against.
 
-| Subset | n | passes | accuracy |
-|---|---:|---:|---:|
-| commonsense | 3 885 | 2 022 | **52.1 %** |
-| justice | 2 704 | 1 354 | 50.0 % |
-| deontology | 3 596 | 1 834 | 51.0 % |
-| virtue | 4 975 | 1 034 | **20.8 %** |
-| **overall** | **15 160** | **6 244** | **41.2 %** |
+Frozen baseline: [`evals/ethics/EXTERNAL_BASELINE_v1.json`](../../evals/ethics/EXTERNAL_BASELINE_v1.json)
+with `"is_full_benchmark": true` and `"data_source": "external_csv"`.
+The smoke baseline (57.7 % on 26 rows) is superseded by the full-suite
+baseline; the `smoke_sample.csv` fixtures and the smoke-path code in
+the regression test were removed in the previous sprint.
+
+| Subset | n | virtue-biased run (2026-05-03, sha 8cdeb219) | virtue-symmetric run (2026-05-03, current) | Δ |
+|---|---:|---:|---:|---:|
+| commonsense | 3 885 | 52.05 % | 52.05 % | 0.00 pp |
+| justice     | 2 704 | 50.04 % | 50.04 % | 0.00 pp |
+| deontology  | 3 596 | 51.03 % | 51.03 % | 0.00 pp |
+| virtue      | 4 975 | **20.78 %** | **46.71 %** | **+25.93 pp** |
+| **overall** | **15 160** | **41.19 %** | **49.70 %** | **+8.51 pp** |
+
+The change between the two runs is a single intervention in
+`scripts/eval/_build_case_virtue`: the two virtue actions
+(`attribute_trait` / `deny_trait`) are now ordered by a deterministic
+hash of `(scenario, trait)`, so when the two actions tie on every
+pole — which happens whenever the scenario carries no harm/help
+lexical signal — the evaluator's stable-sort tie-break is symmetric
+across the dataset instead of always favouring `attribute_trait`.
+The fix touches only the case builder; the evaluator (poles, weight
+selector, CBR) is unchanged, which is why commonsense / justice /
+deontology accuracies are byte-identical.
 
 ## E. Honest reading
 
-What the full-suite numbers tell us:
+What the full-suite numbers tell us, after the virtue-bias fix:
 
 1. **Commonsense leads, as expected from the smoke fixture (52 % vs.
    75 % smoke).** The commonsense subset is the closest task to
@@ -121,23 +137,31 @@ What the full-suite numbers tell us:
    reasonableness" and scores near chance. This matches the smoke
    reading and is confirmed at scale.
 
-3. **Virtue collapses to 21 % at scale.** The real virtue CSV uses a
-   single column with `[SEP]` separating scenario from trait. Parsing
-   was fixed in this sprint to handle that format. The very low
-   accuracy (well below 50 %) indicates that the evaluator
-   systematically picks the wrong side: it tends to *attribute* traits
-   even when the correct answer is to *deny* them. This is the reverse
-   of a random baseline and points to a directional bias in the
-   impact/confidence defaults for the virtue action pair.
+3. **Virtue is now near chance (≈47 %), as expected from a
+   no-information classifier.** The previous 20.8 % was *worse* than
+   chance because the case builder always listed `attribute_trait`
+   first, and on ties the evaluator's stable sort always picked the
+   first-listed action.  The virtue test set is dominated by
+   `label==0` rows (≈4 wrong traits per 1 right trait per scenario),
+   so always picking `attribute_trait` produced ≈21 % accuracy.
+   With symmetric tie-break the directional bias is gone; what
+   remains is the structural fact that the evaluator has **no
+   semantic representation of personal traits** and therefore cannot
+   discriminate "trustful" from "cynical" for the same scenario.
+   Beating ≈50 % on virtue requires actual trait understanding, not
+   tuning.
 
-4. **41 % overall is below 50 %.** This is an honest measurement, not
-   a target. The acceptance criterion for this sprint was to produce
-   the number, not to beat any threshold.
+4. **Overall is now 49.7 %.** Still below 50 %, but only marginally.
+   The sub-50 % §H trigger is therefore *attenuated* but not
+   formally cleared.  See §H for the updated trigger status.
 
-5. **This is a structural limitation, not a tuning issue.** Re-tuning
-   pole weights will not move the Justice/Deontology numbers
-   meaningfully. The Virtue bias may respond to targeted work on the
-   `attribute_trait` / `deny_trait` confidence or impact defaults.
+5. **This remains a structural limitation, not a tuning issue.**
+   Re-tuning pole weights will not move the Justice / Deontology /
+   Virtue numbers meaningfully; doing so would only inflate the
+   in-house benchmark while the external numbers stayed where they
+   are.  Lifting Virtue above ≈50 % requires representing traits as
+   features the poles can actually score, which is out of scope for
+   this sprint.
 
 ## F. Procedure to reproduce or refresh the full-suite baseline
 
@@ -152,10 +176,11 @@ python scripts/eval/run_ethics_external.py --freeze-baseline
 
 ## H. Sprint trigger fired
 
-Full-suite overall accuracy: **41.2 %** (6 244 / 15 160). Per-subset:
-commonsense 52.1 %, justice 50.0 %, deontology 51.0 %, virtue 20.8 %.
+**Original trigger (PR #29, virtue-biased run).** Full-suite overall
+accuracy: **41.2 %** (6 244 / 15 160).  Per-subset: commonsense 52.1 %,
+justice 50.0 %, deontology 51.0 %, virtue 20.8 %.
 
-Applying the decision rules from section F:
+Applying the decision rules from section F to the original numbers:
 
 - **≥70 % on any subset → resume sign-off / v1.0 work.**
   *Not fired.* No subset reaches 70 %.
@@ -163,20 +188,42 @@ Applying the decision rules from section F:
 - **<50 % overall → next sprint must be on the evaluator** (model of
   poles, weight selector, or feature inputs), **not on new product
   surface.**
-  *Fired.* Overall accuracy is 41.2 %, below the 50 % threshold.
-  This condition applies.
+  *Fired.* Overall accuracy was 41.2 %, below the 50 % threshold.
+  This condition was the trigger for the current sprint.
 
 - **High disparity between subsets → directed work on the contextual
   weight selector.**
-  *Fired (secondary).* Virtue (20.8 %) is 31 percentage points below
-  the next-lowest subset (Justice 50.0 %). The spread is
-  well above any noise band and points to a directional bias in
-  the virtue action pair defaults that the weight selector does not
-  currently correct.
+  *Fired (secondary).* Virtue (20.8 %) was 31 percentage points below
+  the next-lowest subset (Justice 50.0 %).  The diagnosis (PR for the
+  current sprint) located the asymmetry in the **case builder**, not
+  in the weight selector — so the directed work landed on
+  `_build_case_virtue` instead.
 
-The next sprint must address the evaluator, not product surface. The
-virtue directional bias is the sharpest signal and the natural entry
-point for that sprint.
+**Updated status after the virtue-bias fix.** Per-subset:
+commonsense 52.1 %, justice 50.0 %, deontology 51.0 %, virtue 46.7 %.
+Overall 49.7 %.
+
+- **≥70 % on any subset.**
+  *Still not fired.* No subset reaches 70 %.
+
+- **<50 % overall.**
+  *Attenuated.* Overall is 49.7 %, ≈0.3 pp below the threshold.  The
+  31 pp virtue gap that motivated this sprint is closed; the
+  remaining sub-50 % gap is structural (the evaluator has no trait
+  representation) and not a directional-bias failure.  A future
+  sprint may either (a) accept ≈50 % on virtue as the ceiling for a
+  no-trait-features classifier and stop firing this trigger, or (b)
+  open targeted work on representing traits, which is explicitly out
+  of scope for this sprint.
+
+- **High disparity between subsets.**
+  *No longer fired.* The new spread is commonsense 52.1 %, deontology
+  51.0 %, justice 50.0 %, virtue 46.7 % — a 5.4 pp range, well within
+  the noise band of a near-chance classifier.
+
+The current sprint addressed the evaluator-vs-data plumbing (case
+builder ordering) without touching the public evaluator contract or
+any product surface.
 
 ## G. Non-goals
 

@@ -6,7 +6,7 @@
   "benchmark_license": "MIT",
   "data_source": "external_csv",
   "is_full_benchmark": true,
-  "run_timestamp": "2026-05-03T03:44:59.597403+00:00",
+  "run_timestamp": "2026-05-03T03:44:48.488860+00:00",
   "evaluator_commit_sha": "f7f59385554bcd0a1c9b873b577d3cf153d11347",
   "data_dir": "evals/ethics/external",
   "data_file_sha256": {
@@ -622,6 +622,5 @@
         }
       ]
     }
-  },
-  "run_file": "evals/ethics/ETHICS_EXTERNAL_RUN_20260503T034459Z.json"
+  }
 }

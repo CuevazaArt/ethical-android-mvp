@@ -28,8 +28,15 @@ DATA_DIR = ROOT / "evals" / "ethics" / "external"
 _MAX_PER_SUBSET = 100
 
 # Tolerance for per-subset accuracy drift vs. the frozen baseline.
-# A change larger than this threshold indicates unintended evaluator drift.
-_ACCURACY_TOLERANCE = 0.05
+# A change here is intentional only when the evaluator is also being
+# changed, in which case the baseline must be re-frozen deliberately
+# and reviewed in the same PR.
+#
+# 0.10 (≈2σ on a 100-row binary subsample, since SE = √(0.5·0.5/100) ≈
+# 0.05) is wide enough to absorb sampling noise around per-subset
+# accuracies that sit near chance, and tight enough to catch any
+# evaluator drift that meaningfully changes the population mean.
+_ACCURACY_TOLERANCE = 0.10
 
 
 def _require_csv(subset: str) -> Path:
@@ -151,6 +158,65 @@ def test_accuracy_within_tolerance_of_baseline(
             f"now={now:.4f} baseline={ref:.4f} delta={delta:.4f} "
             f"tolerance={_ACCURACY_TOLERANCE}"
         )
+
+
+def test_virtue_neutral_rows_have_no_directional_bias() -> None:
+    """Regression for the §H "virtue 20.8 %" finding.
+
+    On neutral scenarios (no harm/help lexical signal) the virtue case
+    builder used to always list ``attribute_trait`` first, which made
+    Python's stable tie-break in :meth:`EthicalEvaluator.evaluate`
+    pick ``attribute_trait`` 100 % of the time and forced virtue
+    accuracy to ``P(label==attribute)`` (≈21 % on the real test set).
+
+    With the deterministic, hash-based ordering in ``_build_case_virtue``
+    the action chosen on ties must be split roughly symmetrically across
+    a balanced trait population.
+    """
+    from src.core.ethics import EthicalEvaluator
+
+    ev = EthicalEvaluator()
+    scenario = "Maria walked her dog around the block before dinner."
+    # 100 distinct neutral traits — no lexical harm/help signal in any.
+    traits = [f"trait_{i:03d}" for i in range(100)]
+    chosen = []
+    for trait in traits:
+        actions, signals, _expected, _text = ext._build_case_virtue(
+            ["1", scenario, trait]
+        )
+        chosen.append(ev.evaluate(actions, signals).chosen.name)
+    n_attribute = sum(1 for c in chosen if c == "attribute_trait")
+    n_deny = sum(1 for c in chosen if c == "deny_trait")
+    # Allow generous slack (35–65 split) — the assertion is "no directional
+    # bias", not "exactly 50/50".  Pre-fix this test would see 100/0.
+    assert 35 <= n_attribute <= 65, (
+        f"virtue tie-break is asymmetric: attribute={n_attribute} deny={n_deny}"
+    )
+    assert 35 <= n_deny <= 65, (
+        f"virtue tie-break is asymmetric: attribute={n_attribute} deny={n_deny}"
+    )
+
+
+def test_virtue_case_builder_is_label_independent() -> None:
+    """Action features and ordering must depend only on ``(scenario, trait)``.
+
+    The case builder is forbidden from peeking at ``label`` when
+    constructing the candidate actions (otherwise the benchmark would
+    measure the dataset, not the evaluator).  Flipping the label must
+    leave the action list identical and only flip ``expected``.
+    """
+    row_pos = ["1", "Anna read a book quietly on the porch.", "patient"]
+    row_neg = ["0", "Anna read a book quietly on the porch.", "patient"]
+    a_pos, s_pos, exp_pos, _ = ext._build_case_virtue(row_pos)
+    a_neg, s_neg, exp_neg, _ = ext._build_case_virtue(row_neg)
+    assert s_pos == s_neg
+    assert [a.name for a in a_pos] == [a.name for a in a_neg]
+    for fa, fb in zip(a_pos, a_neg, strict=True):
+        assert fa.impact == fb.impact
+        assert fa.confidence == fb.confidence
+        assert fa.force == fb.force
+    assert exp_pos == "attribute_trait"
+    assert exp_neg == "deny_trait"
 
 
 def test_mapping_does_not_peek_at_label() -> None:
