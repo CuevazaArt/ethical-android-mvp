@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "description": "Index of ethical reference frameworks used as anchors when reasoning about moral categories. Each entry identifies a school, its core principle, key authors for citation purposes, and the Hendrycks ETHICS categories where it is most relevant. These are NOT complete summaries of the theories — they are named reference points only.",
+  "last_reviewed": "2026-05-03",
+  "schools": [
+    {
+      "id": "school-care",
+      "school": "Ethics of Care",
+      "core_principle": "Moral action centers on relationships, context, and responsiveness to the needs of particular others, not on abstract universal rules.",
+      "key_authors": ["Carol Gilligan", "Nel Noddings", "Virginia Held"],
+      "when_to_invoke": ["commonsense", "everyday_relational_dilemmas", "vulnerability_present"],
+      "hendrycks_categories": ["commonsense"],
+      "keywords": ["care", "relationship", "context", "empathy", "responsive", "particular needs"]
+    },
+    {
+      "id": "school-virtue",
+      "school": "Virtue Ethics",
+      "core_principle": "Ethical conduct flows from stable character traits (virtues) such as honesty, courage, justice, and practical wisdom, rather than from following rules or maximizing outcomes.",
+      "key_authors": ["Aristotle", "Alasdair MacIntyre", "Philippa Foot"],
+      "when_to_invoke": ["character_assessment", "habitual_conduct", "long_term_identity"],
+      "hendrycks_categories": ["virtue"],
+      "keywords": ["virtue", "character", "honesty", "courage", "practical wisdom", "integrity", "phronesis"]
+    },
+    {
+      "id": "school-deontology",
+      "school": "Deontology",
+      "core_principle": "Actions are intrinsically right or wrong based on their conformity to duties and rules, independent of their consequences. Persons must be treated as ends in themselves, never merely as means.",
+      "key_authors": ["Immanuel Kant", "W.D. Ross", "Christine Korsgaard"],
+      "when_to_invoke": ["rule_following", "rights_violation", "means_ends_conflict", "categorical_duty"],
+      "hendrycks_categories": ["deontology"],
+      "keywords": ["duty", "obligation", "rule", "categorical imperative", "rights", "means", "ends", "Kant"]
+    },
+    {
+      "id": "school-utilitarianism",
+      "school": "Moderate Utilitarianism",
+      "core_principle": "Actions are evaluated by their tendency to produce the greatest overall wellbeing for all affected parties, while recognizing side-constraints that prevent treating persons merely as vessels for aggregate utility.",
+      "key_authors": ["John Stuart Mill", "Peter Singer", "Derek Parfit"],
+      "when_to_invoke": ["aggregate_outcome", "policy_level_decision", "harm_minimization"],
+      "hendrycks_categories": ["utilitarianism", "commonsense"],
+      "keywords": ["utility", "wellbeing", "greatest good", "harm reduction", "aggregate", "consequences", "outcome"]
+    },
+    {
+      "id": "school-rawls",
+      "school": "Rawlsian Justice",
+      "core_principle": "A just arrangement is one that rational persons would choose behind a veil of ignorance — not knowing their own place in the outcome. This favors fairness, equal basic liberties, and arrangements that benefit the least advantaged.",
+      "key_authors": ["John Rawls"],
+      "when_to_invoke": ["distributive_justice", "fairness_under_uncertainty", "institutional_design"],
+      "hendrycks_categories": ["justice", "deontology"],
+      "keywords": ["veil of ignorance", "Rawls", "fairness", "difference principle", "least advantaged", "equal liberty", "just arrangement"]
+    },
+    {
+      "id": "school-ai-responsible",
+      "school": "Responsible AI Principles",
+      "core_principle": "AI systems must be transparent, accountable, fair, inclusive, reliable, and privacy-preserving. They must support human oversight and avoid reinforcing discrimination or enabling misuse.",
+      "key_authors": ["UNESCO Recommendation on AI Ethics (2021)", "OECD AI Principles (2019)", "Microsoft Responsible AI"],
+      "when_to_invoke": ["AI_specific_dilemmas", "autonomy_limits", "fairness_audit", "explainability_needed"],
+      "hendrycks_categories": ["deontology", "justice", "commonsense"],
+      "keywords": ["responsible AI", "transparency", "accountability", "fairness", "inclusive", "oversight", "explainability", "bias", "UNESCO", "OECD"]
+    }
+  ]
+}

@@ -3,10 +3,10 @@
 # See LICENSE file for details.
 
 """
-Ethos Core — Charter Layer (V2.158)
+Ethos Core — Charter Layer (V2.159)
 
 Intermediate ethical layer between the innate safety gate and the learned
-FeedbackCalibrationLedger.  Provides two signals:
+FeedbackCalibrationLedger.  Provides signals for:
 
 * ``charter_alignment_hint`` — soft positive nudge when user message aligns
   with a corpus-positive statement (human rights, biological life, etc.).
@@ -15,6 +15,11 @@ FeedbackCalibrationLedger.  Provides two signals:
   - infant / child: ANY match vetoes.
   - adolescent: vetoes if keyword confidence > 0.70.
   - young_adult: vetoes if keyword confidence > 0.85.
+* ``evaluate_self_action`` — checks a *kernel-generated* draft response
+  against the self_limits corpus to catch violations before delivery.
+* ``cite_school`` — returns ethical-school IDs relevant to a given category
+  (e.g. Hendrycks ETHICS subsets) for use as a charter_school_anchor in
+  decision traces.
 
 Additionally provides an authenticated emergency halt command via HMAC-SHA256.
 
@@ -22,17 +27,30 @@ Contract (architectural):
   - Reads only; never writes WEIGHTS or _DANGER_PATTERNS (innate layer).
   - Score cap, NOT weight modification.
   - Local-first: zero network calls.
+  - evaluate() accepts an optional ``modality`` parameter ("text", "voice",
+    "vision") to prepare for future hardware; no differentiated logic yet
+    (PENDING_HARDWARE).
 
 Usage::
 
     evaluator = CharterEvaluator()
+
+    # Evaluate incoming user message
     result = evaluator.evaluate(user_message, stage)
     if result.emergency_halt:
-        # handle halt — caller must persist and abort
         ...
     if result.vetoed:
-        # evaluation should be capped (score ≤ 0.0)
         ...
+
+    # Evaluate the kernel's own draft response
+    sl_result = evaluator.evaluate_self_action(draft_response, stage)
+    if sl_result.must_revise:
+        # replace draft with a safe fallback
+        ...
+
+    # Annotate a decision trace with the relevant ethical school
+    schools = evaluator.cite_school("deontology")
+    # → ["school-deontology", "school-rawls", ...]
 """
 
 from __future__ import annotations
@@ -60,6 +78,8 @@ _POSITIVE_FILES = [
     _CHARTER_DIR / "positive_corpus" / "biological_life.json",
     _CHARTER_DIR / "positive_corpus" / "physical_basics.json",
     _CHARTER_DIR / "positive_corpus" / "coexistence.json",
+    _CHARTER_DIR / "positive_corpus" / "justice_principles.json",
+    _CHARTER_DIR / "positive_corpus" / "non_maleficence.json",
 ]
 
 _MANIPULATION_FILES = [
@@ -69,6 +89,16 @@ _MANIPULATION_FILES = [
     _CHARTER_DIR / "manipulation_corpus" / "rationalizations_of_harm.json",
     _CHARTER_DIR / "manipulation_corpus" / "jailbreak_attempts.json",
 ]
+
+_SELF_LIMIT_FILES = [
+    _CHARTER_DIR / "self_limits" / "no_emotional_manipulation.json",
+    _CHARTER_DIR / "self_limits" / "no_deceptive_advantage.json",
+    _CHARTER_DIR / "self_limits" / "no_unbounded_third_party_decisions.json",
+    _CHARTER_DIR / "self_limits" / "competence_boundaries.json",
+    _CHARTER_DIR / "self_limits" / "conversational_justice.json",
+]
+
+_ETHICAL_SCHOOLS_FILE = _CHARTER_DIR / "references" / "ethical_schools.json"
 
 _EMERGENCY_STOP_FILE = _CHARTER_DIR / "emergency_stop.json"
 
@@ -130,6 +160,20 @@ class CharterResult:
 
     matched_keywords: list[str] = field(default_factory=list)
     """Keywords from the manipulation corpus that were found in the message."""
+
+
+@dataclass
+class SelfLimitResult:
+    """Signals produced by the self-limit evaluation of a *kernel-generated* draft."""
+
+    violations: list[str] = field(default_factory=list)
+    """IDs of self-limit entries matched in the draft response."""
+
+    must_revise: bool = False
+    """True when at least one self-limit was violated and the response must be revised."""
+
+    matched_patterns: list[str] = field(default_factory=list)
+    """Human-readable topic names of the matched self-limit entries."""
 
 
 # ---------------------------------------------------------------------------
@@ -225,6 +269,23 @@ def _check_emergency_halt(message: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def _load_ethical_schools(path: Path) -> list[dict]:
+    """Load the ethical_schools.json reference file."""
+    if not path.exists():
+        _log.warning("Charter: ethical schools file not found: %s", path)
+        return []
+    try:
+        with path.open(encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, json.JSONDecodeError) as exc:
+        _log.warning("Charter: ethical schools file unreadable (%s): %s", path, exc)
+        return []
+    schools = data.get("schools", [])
+    if not isinstance(schools, list):
+        return []
+    return [s for s in schools if isinstance(s, dict) and s.get("id")]
+
+
 class CharterEvaluator:
     """Loads the charter corpus once and evaluates each user message.
 
@@ -235,6 +296,8 @@ class CharterEvaluator:
     def __init__(self) -> None:
         self._positive: list[CharterEntry] | None = None
         self._manipulation: list[CharterEntry] | None = None
+        self._self_limits: list[CharterEntry] | None = None
+        self._ethical_schools: list[dict] | None = None
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -248,6 +311,15 @@ class CharterEvaluator:
             self._manipulation = _load_entries(_MANIPULATION_FILES, "manipulation")
             _log.debug(
                 "Charter: loaded %d manipulation entries.", len(self._manipulation)
+            )
+        if self._self_limits is None:
+            self._self_limits = _load_entries(_SELF_LIMIT_FILES, "self_limits")
+            _log.debug("Charter: loaded %d self-limit entries.", len(self._self_limits))
+        if self._ethical_schools is None:
+            self._ethical_schools = _load_ethical_schools(_ETHICAL_SCHOOLS_FILE)
+            _log.debug(
+                "Charter: loaded %d ethical school entries.",
+                len(self._ethical_schools),
             )
 
     @staticmethod
@@ -269,6 +341,7 @@ class CharterEvaluator:
         self,
         message: str,
         stage: MaturityStage | None = None,
+        modality: str = "text",
     ) -> CharterResult:
         """Evaluate ``message`` against the full charter corpus.
 
@@ -276,6 +349,9 @@ class CharterEvaluator:
             message: Raw (already sanitized) user message.
             stage: Active maturity stage.  Resolved from the governance ledger
                 if not supplied.  Pass explicitly in tests for determinism.
+            modality: Input modality — "text" (default), "voice", or "vision".
+                Currently unused for logic differentiation (PENDING_HARDWARE);
+                present for forward-compatibility when camera/mic arrive.
 
         Returns:
             :class:`CharterResult` with all signals populated.
@@ -327,7 +403,72 @@ class CharterEvaluator:
 
         return result
 
+    def evaluate_self_action(
+        self,
+        draft_response: str,
+        stage: MaturityStage | None = None,
+    ) -> SelfLimitResult:
+        """Check a *kernel-generated* draft response against the self_limits corpus.
+
+        Called after the LLM generates a response and before it is returned to
+        the user.  Detects if the kernel's own output violates any self-imposed
+        ethical limit (e.g., humiliating language, deceptive framing,
+        emotional manipulation).
+
+        Args:
+            draft_response: The raw string the kernel is about to return.
+            stage: Active maturity stage (unused in current logic; reserved for
+                future graduated thresholds on self-limit strictness).
+
+        Returns:
+            :class:`SelfLimitResult`.  ``must_revise=True`` when any self-limit
+            entry matches with at least one keyword hit.
+        """
+        self._ensure_loaded()
+        text_lower = draft_response.lower()
+
+        violations: list[str] = []
+        patterns: list[str] = []
+
+        for entry in self._self_limits or []:
+            _conf, matched = self._keyword_confidence(text_lower, entry.keywords)
+            if matched:
+                violations.append(entry.entry_id)
+                patterns.append(entry.topic_or_pattern)
+
+        return SelfLimitResult(
+            violations=violations,
+            must_revise=bool(violations),
+            matched_patterns=patterns,
+        )
+
+    def cite_school(self, category: str) -> list[str]:
+        """Return IDs of ethical schools relevant to a given category.
+
+        Args:
+            category: A category string.  Recognized values match Hendrycks
+                ETHICS subsets: "deontology", "justice", "virtue",
+                "commonsense", "utilitarianism".  Unknown categories return
+                an empty list without raising.
+
+        Returns:
+            List of school IDs from ``references/ethical_schools.json`` whose
+            ``hendrycks_categories`` list includes the requested category.
+        """
+        self._ensure_loaded()
+        cat_lower = category.lower()
+        result: list[str] = []
+        for school in self._ethical_schools or []:
+            cats = school.get("hendrycks_categories", [])
+            if cat_lower in [c.lower() for c in cats]:
+                sid = school.get("id", "")
+                if sid:
+                    result.append(sid)
+        return result
+
     def reload(self) -> None:
         """Force a reload of the corpus on the next evaluation call."""
         self._positive = None
         self._manipulation = None
+        self._self_limits = None
+        self._ethical_schools = None

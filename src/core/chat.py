@@ -40,7 +40,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from src.core.charter import CharterEvaluator, CharterResult
+from src.core.charter import CharterEvaluator, CharterResult, SelfLimitResult
 from src.core.ethics import WEIGHTS, Action, EthicalEvaluator, EvalResult, Signals
 from src.core.identity import Identity
 from src.core.llm import OllamaClient
@@ -112,6 +112,7 @@ def build_decision_trace(
     turn_id: str | None = None,
     memory_used: list[dict[str, Any]] | None = None,
     charter_result: CharterResult | None = None,
+    charter_school_anchor: list[str] | None = None,
 ) -> dict[str, Any]:
     """V2.123 (C1) / V2.151: canonical decision trace returned with every chat reply.
 
@@ -174,6 +175,7 @@ def build_decision_trace(
             "charter_pattern": charter_result.red_flag_pattern
             if charter_result
             else None,
+            "charter_school_anchor": list(charter_school_anchor or []),
         }
         if turn_id:
             trace["turn_id"] = turn_id
@@ -219,6 +221,7 @@ def build_decision_trace(
         "charter_red_flag": charter_result.red_flag if charter_result else False,
         "charter_vetoed": charter_vetoed,
         "charter_pattern": charter_result.red_flag_pattern if charter_result else None,
+        "charter_school_anchor": list(charter_school_anchor or []),
     }
     if turn_id:
         trace["turn_id"] = turn_id
@@ -894,6 +897,18 @@ class ChatEngine:
         )
         latency["llm_total"] = round((time.perf_counter() - t_start) * 1000, 2)
 
+        # 3.1 V2.159: Self-limit gate — check kernel's own draft before delivery
+        self_limit_result: SelfLimitResult = self.charter.evaluate_self_action(message)
+        if self_limit_result.must_revise:
+            _log.warning(
+                "Charter self-limit violation in draft response: %s",
+                self_limit_result.violations,
+            )
+            message = (
+                "Necesito reconsiderar mi respuesta para mantener los estándares éticos. "
+                "¿Puedo ayudarte de otra forma?"
+            )
+
         # V2.149: Persist voice signature for persona-emergence tracking (Eje D)
         self._persist_voice_signature(signals, evaluation)
 
@@ -1184,6 +1199,24 @@ class ChatEngine:
                 vault_key = match.group(1)
                 _log.warning("Ethos requested vault key: %s", vault_key)
 
+        # V2.159: Self-limit gate — check kernel's own draft before delivery
+        _sl_result: SelfLimitResult = self.charter.evaluate_self_action(message)
+        if _sl_result.must_revise:
+            _log.warning(
+                "Charter self-limit violation in stream draft: %s",
+                _sl_result.violations,
+            )
+            revised = (
+                "Necesito reconsiderar mi respuesta para mantener los estándares éticos. "
+                "¿Puedo ayudarte de otra forma?"
+            )
+            yield {"type": "token", "content": revised}
+            message = revised
+
+        # V2.159: cite_school anchor for done trace
+        _school_cat_stream = getattr(signals, "context", "everyday_ethics")
+        charter_school_anchor_stream = self.charter.cite_school(_school_cat_stream)
+
         # 4. Remember
         t_start = time.perf_counter()
         score = evaluation.score if evaluation else 0.0
@@ -1237,6 +1270,7 @@ class ChatEngine:
                 weights=self.ethics.weights,
                 memory_used=memory_used,
                 charter_result=charter_result,
+                charter_school_anchor=charter_school_anchor_stream,
             ),
         }
 

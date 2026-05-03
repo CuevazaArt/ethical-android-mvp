@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "corpus": "positive",
+  "description": "Principles of non-maleficence: the duty to avoid causing harm across four recognized dimensions (physical, psychological, economic, social) plus the duty to avoid contributing to indirect harm. Grounded in: Beauchamp & Childress, Principles of Biomedical Ethics (8th ed., 2019) Ch. 5 — paraphrase only, NOT verbatim text. Also informed by UNESCO AI Ethics Recommendation (2021) §§33-36.",
+  "entries": [
+    {
+      "id": "nm-001",
+      "topic": "no_physical_harm",
+      "statement": "Any action that causes or knowingly risks bodily injury, physical pain, or impairment of physical health must be avoided.",
+      "keywords": ["physical harm", "injury", "bodily", "pain", "physical damage", "violence", "hurt", "daño físico"],
+      "source": "Beauchamp & Childress, Principles of Biomedical Ethics (8th ed.) Ch. 5 §1 (paraphrase)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nm-002",
+      "topic": "no_psychological_harm",
+      "statement": "Actions that cause emotional distress, psychological trauma, humiliation, or deliberate damage to a person's mental wellbeing must be avoided.",
+      "keywords": ["psychological harm", "emotional harm", "trauma", "distress", "mental harm", "humiliation", "wellbeing", "daño psicológico", "angustia"],
+      "source": "Beauchamp & Childress, Principles of Biomedical Ethics (8th ed.) Ch. 5 §2 (paraphrase)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nm-003",
+      "topic": "no_economic_harm",
+      "statement": "Actions that knowingly expose persons to financial loss, fraud, exploitation, or economic deprivation must be avoided.",
+      "keywords": ["economic harm", "financial harm", "fraud", "exploitation", "financial loss", "economic damage", "daño económico", "fraude"],
+      "source": "Beauchamp & Childress, Principles of Biomedical Ethics (8th ed.) Ch. 5 §3 (paraphrase); UNESCO AI Ethics (2021) §34",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nm-004",
+      "topic": "no_social_harm",
+      "statement": "Actions that damage a person's social relationships, reputation, standing in a community, or access to social goods must be avoided.",
+      "keywords": ["social harm", "reputation", "social damage", "community", "social standing", "exclusion", "daño social", "reputación"],
+      "source": "Beauchamp & Childress, Principles of Biomedical Ethics (8th ed.) Ch. 5 §4 (paraphrase)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nm-005",
+      "topic": "no_indirect_harm",
+      "statement": "Even when an action does not directly harm, contributing to chains of events that foreseeably cause harm to others — including through amplifying conflicts or providing means for harm — is itself a violation of the duty of non-maleficence.",
+      "keywords": ["indirect harm", "amplify", "conflict", "foresee", "chain of harm", "contribute to harm", "daño indirecto", "amplificar"],
+      "source": "Beauchamp & Childress, Principles of Biomedical Ethics (8th ed.) Ch. 5 §5 (paraphrase); UNESCO AI Ethics (2021) §35",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

@@ -161,6 +161,62 @@
   context: `d079ef6e`.
 - **Tests:** 312 → 353 passed (41 new). Battery green.
 
+### V2.158 — Charter Layer
+
+- Intermediate ethical layer `src/core/charter.py` between innate safety gate
+  and learned `FeedbackCalibrationLedger`. Corpus-based: positive statements
+  (human rights, biological life, coexistence, physical basics) + manipulation
+  patterns (dark patterns, NLP persuasion, scams, jailbreak).
+- Maturity-aware veto: infant/child=0.0, adolescent=0.70, young_adult=0.85.
+- Emergency halt via HMAC-SHA256 (`ETHOS_OPERATOR_KEY` env var).
+- Integrated into `turn()` and `turn_stream()`. Decision trace extended with
+  `charter_alignment_hint`, `charter_red_flag`, `charter_vetoed`,
+  `charter_pattern`.
+
+### V2.159 — Charter Completeness + Swarm Sanitation Wave 2
+
+- **Charter A — Justice Principles:** `evals/charter/positive_corpus/justice_principles.json`
+  (jp-001 to jp-005: equity, impartiality, proportionality, consistency, due consideration).
+  Sources: Rawls §11–13, Aristotle *Nicomachean Ethics* V, UNESCO AI Ethics 2021.
+  Original paraphrases only; no verbatim transcription.
+- **Charter B — Non-Maleficence:** `evals/charter/positive_corpus/non_maleficence.json`
+  (nm-001 to nm-005: physical/psychological/economic/social harm + indirect harm).
+  Source: Beauchamp & Childress paraphrase.
+- **Charter D — Self-Limits:** `evals/charter/self_limits/` (5 files, 13 entries).
+  `no_emotional_manipulation.json`, `no_deceptive_advantage.json`,
+  `no_unbounded_third_party_decisions.json`, `competence_boundaries.json`,
+  `conversational_justice.json`. First time charter evaluates the **kernel's
+  own output**, not only the user's input.
+- **Charter E — Dilemma Procedure:** `evals/charter/procedures/dilemma_resolution_v1.json`
+  — 7-step auditable protocol.
+- **Charter G — Ethical Schools:** `evals/charter/references/ethical_schools.json`
+  (6 schools: care, virtue, deontology, utilitarianism, Rawls, Responsible AI).
+  `cite_school(category)` returns school IDs for Hendrycks categories as
+  `charter_school_anchor` in the decision trace (annotation only; no WEIGHTS change).
+- **Self-limit gate:** `CharterEvaluator.evaluate_self_action()` + `SelfLimitResult`.
+  Called in `turn()` and `turn_stream()` after `respond()`; revises draft if
+  self-limit violated.
+- **Modality extension point:** `evaluate(text, stage, modality="text")` — signature
+  ready for voice/vision inputs (PENDING_HARDWARE: Sony A5100/A6000 camera
+  and microphone arriving at medium term).
+- **Swarm vocabulary retired.** `src/core/swarm_telemetry.py` → shim with
+  `DeprecationWarning`; canonical module is `src/core/fleet_telemetry.py`
+  (`InstanceReport`, `FleetLedger`). `scripts/swarm_sync.py` → shim pointing
+  to `scripts/fleet_sync.py`. `docs/proposals/SWARM_P2P_THREAT_MODEL.md`
+  removed (copy in `docs/archive_v1-7/proposals/` is the canonical archived
+  reference). "swarm/enjambre/Men Scout/L0-L1/Office/Watchtower" vocabulary
+  eliminated from all active code and docs.
+- **Documentation:** `docs/proposals/CHARTER_COMPLETENESS_V2.md` (traceability
+  table A–G); `LIGHTHOUSE_CHARTER_V1.md` marked superseded for content.
+- **Tests:** expected ≥ 423 pass (prior 408 + 15 new in
+  `tests/core/test_charter_completeness.py` + reworked `test_swarm_telemetry.py`
+  + `test_fleet_telemetry.py`). Battery green required.
+- **Pending debt from this sprint:** `docs/proposals/COGNITIVE_FOUNDATIONS_V1.md`,
+  `STRATEGY_AND_ROADMAP.md`, `THEORY_AND_IMPLEMENTATION.md`, `KERNEL_ENV_POLICY.md`,
+  `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`, `DEPRECATION_ROADMAP.md`,
+  `landing/public/dashboard.html`, `ethos-transparency.html` — reviewed but
+  left for Wave 3 swarm sanitation (content audit required, not just rename).
+
 ## Next steps (concrete, not aspirational)
 
 1. **Embeddings spike on deontology subset (V2.151).** Time-boxed pilot

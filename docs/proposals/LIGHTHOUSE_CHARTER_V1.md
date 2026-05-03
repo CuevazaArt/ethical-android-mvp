@@ -1,8 +1,11 @@
 # LIGHTHOUSE_CHARTER_V1 — Preloaded Ethical Buffer
 
-**Status:** Implemented (V2.158)
+**Status:** Implemented (V2.158) — Architecture sections superseded by CHARTER_COMPLETENESS_V2.md (V2.159)
 **Author:** Juan Cuevaz / Mos Ex Machina
 **Supersedes:** N/A — new layer
+**Superseded by (content):** `docs/proposals/CHARTER_COMPLETENESS_V2.md` for the full
+seven-section buffer traceability table.  This document remains the canonical reference
+for the V2.158 architecture overview (veto thresholds, corpus structure, emergency halt).
 **Relates to:** AUTONOMY_LIMITS_V1.md, COGNITIVE_FOUNDATIONS_V1.md §2.4
 
 ---
