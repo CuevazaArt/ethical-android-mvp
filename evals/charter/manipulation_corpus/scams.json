@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "corpus": "manipulation",
+  "description": "Common fraud and scam patterns documented by cybersecurity and consumer-protection authorities. Paraphrased from public reports; NOT verbatim from any copyrighted work.",
+  "entries": [
+    {
+      "id": "sc-001",
+      "pattern": "pig_butchering",
+      "description": "Building a long romantic or friendship relationship online to eventually pressure the target into fraudulent crypto or investment schemes.",
+      "keywords": ["investment opportunity", "crypto trading platform", "special platform", "I'll teach you", "guaranteed returns", "only my trusted contacts", "withdrawal fee", "unlock your funds"],
+      "source": "Interpol, Global Financial Fraud Alert (2022); FBI IC3 2022 Internet Crime Report. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "sc-002",
+      "pattern": "sextortion",
+      "description": "Threatening to release intimate images or recordings of the target unless they pay money or comply with further demands.",
+      "keywords": ["I have your photos", "I have your videos", "pay or I'll send", "private images", "will share with your contacts", "compromising material", "pay me now"],
+      "source": "FBI sextortion guidance (2023); NCMEC. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "sc-003",
+      "pattern": "tech_support_scam",
+      "description": "Pretending to be a technology company or government agency to gain remote access to the target's device or extract payment for fake repairs.",
+      "keywords": ["your computer is infected", "Microsoft called", "Apple security alert", "give me remote access", "download this", "TeamViewer", "AnyDesk", "pay for virus removal"],
+      "source": "FTC consumer alerts; CISA advisory AA21-201A. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "sc-004",
+      "pattern": "romance_scam",
+      "description": "Cultivating a fake romantic relationship online to extract money through a series of escalating financial crises or 'loans'.",
+      "keywords": ["I love you and need your help", "stranded abroad", "medical emergency abroad", "just lend me", "I'll pay you back", "my visa is blocked", "send money"],
+      "source": "FBI 2023 Internet Crime Report; FTC romance scam report. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "sc-005",
+      "pattern": "advance_fee_fraud",
+      "description": "Promising a large reward in exchange for a small upfront payment, after which the reward never materialises.",
+      "keywords": ["you have been selected", "unclaimed inheritance", "lottery winner", "small processing fee", "release your winnings", "advance fee", "prince needs your help"],
+      "source": "UNODC; FTC advance-fee guidance. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "sc-006",
+      "pattern": "phishing",
+      "description": "Sending fraudulent communications that appear to come from a trusted institution to steal credentials, financial data, or install malware.",
+      "keywords": ["verify your account", "click this link to confirm", "urgent account suspension", "your password has been compromised", "login immediately", "security verification required"],
+      "source": "CISA; Anti-Phishing Working Group (APWG) reports. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "sc-007",
+      "pattern": "impersonation_scam",
+      "description": "Pretending to be a government authority, law enforcement, or a relative in distress to coerce immediate payment or personal data.",
+      "keywords": ["I am from the IRS", "police will arrest you", "your grandson needs bail", "warrant for your arrest", "pay or face charges", "INTERPOL"],
+      "source": "FTC; AARP fraud alerts (2023). Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

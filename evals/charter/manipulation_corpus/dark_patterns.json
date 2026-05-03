@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "corpus": "manipulation",
+  "description": "Psychological dark patterns: covert manipulation tactics used to undermine a target's perception, autonomy, or decision-making. Paraphrased from psychological literature; NOT a verbatim transcript of any copyrighted work.",
+  "entries": [
+    {
+      "id": "dp-001",
+      "pattern": "gaslighting",
+      "description": "Persistently denying or distorting someone's perception of events to make them doubt their own memory, sanity, or judgement.",
+      "keywords": ["you're imagining", "that never happened", "you're too sensitive", "you're crazy", "you made that up", "no one believes you", "your memory is wrong", "you're overreacting"],
+      "source": "Psychology: Dorpat (1994); Stern (2007) 'Gaslighting: The Art of Psychological Manipulation'. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "dp-002",
+      "pattern": "love_bombing",
+      "description": "Overwhelming a person with excessive affection, flattery, and attention as a precursor to control or exploitation.",
+      "keywords": ["you're perfect", "I've never met anyone like you", "soulmate", "you're the only one who understands me", "move in together", "overwhelming affection"],
+      "source": "Psychology: Lancer (2014); Singer (1995) on cult recruitment patterns. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "dp-003",
+      "pattern": "foot_in_the_door",
+      "description": "Escalating a sequence of requests from small and innocuous to large and harmful, exploiting the target's tendency for consistency.",
+      "keywords": ["just this small thing", "you already agreed to", "consistency", "you said yes before", "just one more step", "after all you've done"],
+      "source": "Freedman & Fraser (1966), J. Personality & Social Psychology. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "dp-004",
+      "pattern": "fake_scarcity",
+      "description": "Creating artificial urgency or false scarcity to pressure someone into making a hasty decision they might not otherwise make.",
+      "keywords": ["limited time offer", "only a few left", "act now", "this offer expires", "don't miss out", "last chance", "exclusive access"],
+      "source": "Cialdini (1984) Influence: paraphrased principle of scarcity. Not verbatim.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "dp-005",
+      "pattern": "isolation",
+      "description": "Systematically cutting a person off from friends, family, or support networks to increase their dependence on the manipulator.",
+      "keywords": ["your friends don't care", "your family is toxic", "only I understand you", "they don't deserve you", "stay away from them", "I'm all you need"],
+      "source": "Domestic abuse literature: Evan Stark (2007) Coercive Control. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "dp-006",
+      "pattern": "DARVO",
+      "description": "Deny, Attack, Reverse Victim and Offender — a defensive manipulation pattern where the perpetrator denies wrongdoing, attacks the accuser, and claims to be the real victim.",
+      "keywords": ["you're the real abuser", "I'm the victim here", "how dare you accuse me", "look what you made me do", "you started it", "I never did anything"],
+      "source": "Freyd (1997) DARVO acronym in Journal of Trauma & Dissociation. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "dp-007",
+      "pattern": "triangulation",
+      "description": "Introducing a third party — real or fabricated — to make the target feel jealous, insecure, or competitive, thus increasing control over them.",
+      "keywords": ["someone else would do this", "they find me attractive", "my ex never complained", "everyone agrees with me", "ask anyone", "compared to you"],
+      "source": "Personality disorder literature; Ross Rosenberg (2013). Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

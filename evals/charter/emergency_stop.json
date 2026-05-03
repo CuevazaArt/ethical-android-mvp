@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "description": "Emergency halt mechanism specification for the Ethos kernel charter layer. The halt command is authenticated via HMAC-SHA256 to prevent guessing from repo inspection. The operator key is NEVER stored in this file or in the repository; it must be set as the ETHOS_OPERATOR_KEY environment variable on the local machine.",
+  "mechanism": {
+    "hmac_algorithm": "sha256",
+    "command_prefix": "ETHOS_HALT:",
+    "key_env_var": "ETHOS_OPERATOR_KEY",
+    "message_to_sign": "emergency_halt",
+    "hex_length": 16,
+    "description": "Operator pre-computes: token = HMAC-SHA256(ETHOS_OPERATOR_KEY, b'emergency_halt').hexdigest()[:16]. To trigger halt, send: 'ETHOS_HALT:<token>'. The token is deterministic for a given key and cannot be derived by inspecting this file."
+  },
+  "effects": {
+    "immediate": "Abort all generation for the current session. Return the halt acknowledgement message and stop processing.",
+    "persistent": "Write an EMERGENCY_HALT_<ISO_timestamp>.json record to the runs/ directory. The kernel will not accept further turns until the process is manually restarted.",
+    "audit": "The halt event is written to the audit ledger (runs/audit_ledger.jsonl) with action='emergency_halt' and verdict='Halted'."
+  },
+  "security_notes": [
+    "If ETHOS_OPERATOR_KEY is not set, the emergency halt mechanism is disabled. A warning is logged at startup.",
+    "The halt command must begin with the literal prefix 'ETHOS_HALT:' followed immediately by the 16-character hex token.",
+    "Using a short (16 hex char = 64-bit) token is intentional: it is long enough to prevent brute-force guessing during a session, short enough to type. The HMAC key provides the entropy.",
+    "This mechanism is designed for the human operator at the keyboard, not for a remote caller."
+  ]
+}

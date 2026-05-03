@@ -1,0 +1,277 @@
+{
+  "version": 1,
+  "corpus": "positive",
+  "description": "Universal Declaration of Human Rights (UDHR), UN General Assembly, 10 December 1948. Public domain. Condensed as affirmative statements; exact article text available at https://www.un.org/en/about-us/universal-declaration-of-human-rights",
+  "entries": [
+    {
+      "id": "hr-001",
+      "topic": "inherent_dignity",
+      "statement": "All human beings are born free and equal in dignity and rights.",
+      "keywords": ["dignity", "equal", "rights", "born free", "inherent"],
+      "source": "UDHR 1948 Art. 1",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-002",
+      "topic": "non_discrimination",
+      "statement": "Everyone is entitled to all rights and freedoms without distinction of any kind, such as race, sex, language, religion, political or other opinion, national or social origin, property, birth or other status.",
+      "keywords": ["discrimination", "race", "sex", "religion", "nationality", "equal entitlement", "distinción"],
+      "source": "UDHR 1948 Art. 2",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-003",
+      "topic": "right_to_life",
+      "statement": "Everyone has the right to life, liberty, and security of person.",
+      "keywords": ["right to life", "liberty", "security", "person"],
+      "source": "UDHR 1948 Art. 3",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-004",
+      "topic": "prohibition_slavery",
+      "statement": "No one shall be held in slavery or servitude; slavery and the slave trade shall be prohibited in all their forms.",
+      "keywords": ["slavery", "servitude", "slave trade", "prohibited", "forced labor"],
+      "source": "UDHR 1948 Art. 4",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-005",
+      "topic": "prohibition_torture",
+      "statement": "No one shall be subjected to torture or to cruel, inhuman or degrading treatment or punishment.",
+      "keywords": ["torture", "cruel", "inhuman", "degrading", "punishment", "treatment"],
+      "source": "UDHR 1948 Art. 5",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-006",
+      "topic": "legal_personhood",
+      "statement": "Everyone has the right to recognition everywhere as a person before the law.",
+      "keywords": ["legal person", "recognition", "before the law", "personhood"],
+      "source": "UDHR 1948 Art. 6",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-007",
+      "topic": "equality_before_law",
+      "statement": "All are equal before the law and are entitled without any discrimination to equal protection of the law.",
+      "keywords": ["equal before law", "equal protection", "no discrimination", "legal equality"],
+      "source": "UDHR 1948 Art. 7",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-008",
+      "topic": "remedy_for_violations",
+      "statement": "Everyone has the right to an effective remedy by competent national tribunals for acts violating fundamental rights.",
+      "keywords": ["remedy", "tribunal", "fundamental rights", "effective remedy", "violation"],
+      "source": "UDHR 1948 Art. 8",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-009",
+      "topic": "no_arbitrary_detention",
+      "statement": "No one shall be subjected to arbitrary arrest, detention or exile.",
+      "keywords": ["arbitrary arrest", "arbitrary detention", "exile", "unlawful detention"],
+      "source": "UDHR 1948 Art. 9",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-010",
+      "topic": "fair_trial",
+      "statement": "Everyone is entitled to a fair and public hearing by an independent and impartial tribunal.",
+      "keywords": ["fair trial", "fair hearing", "independent tribunal", "impartial", "due process"],
+      "source": "UDHR 1948 Art. 10",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-011",
+      "topic": "presumption_innocence",
+      "statement": "Everyone charged with a criminal offence has the right to be presumed innocent until proved guilty.",
+      "keywords": ["innocent until proven guilty", "presumption of innocence", "criminal charge", "due process"],
+      "source": "UDHR 1948 Art. 11",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-012",
+      "topic": "privacy",
+      "statement": "No one shall be subjected to arbitrary interference with their privacy, family, home or correspondence, nor to attacks upon their honour and reputation.",
+      "keywords": ["privacy", "home", "correspondence", "reputation", "honour", "no interference"],
+      "source": "UDHR 1948 Art. 12",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-013",
+      "topic": "freedom_movement",
+      "statement": "Everyone has the right to freedom of movement and residence within the borders of each state, and the right to leave any country.",
+      "keywords": ["freedom of movement", "residence", "leave country", "travel freedom"],
+      "source": "UDHR 1948 Art. 13",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-014",
+      "topic": "asylum",
+      "statement": "Everyone has the right to seek and enjoy in other countries asylum from persecution.",
+      "keywords": ["asylum", "persecution", "refugee", "seek asylum"],
+      "source": "UDHR 1948 Art. 14",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-015",
+      "topic": "nationality",
+      "statement": "Everyone has the right to a nationality. No one shall be arbitrarily deprived of their nationality nor denied the right to change their nationality.",
+      "keywords": ["nationality", "stateless", "citizenship", "right to nationality"],
+      "source": "UDHR 1948 Art. 15",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-016",
+      "topic": "family",
+      "statement": "Men and women of full age have the right to marry and found a family. Marriage shall be entered into only with the free and full consent of the intending spouses.",
+      "keywords": ["marriage", "family", "free consent", "found a family", "marital consent"],
+      "source": "UDHR 1948 Art. 16",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-017",
+      "topic": "property",
+      "statement": "Everyone has the right to own property alone as well as in association with others. No one shall be arbitrarily deprived of their property.",
+      "keywords": ["property", "own property", "no arbitrary deprivation", "ownership"],
+      "source": "UDHR 1948 Art. 17",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-018",
+      "topic": "freedom_thought",
+      "statement": "Everyone has the right to freedom of thought, conscience and religion.",
+      "keywords": ["freedom of thought", "conscience", "religion", "belief", "freedom of belief"],
+      "source": "UDHR 1948 Art. 18",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-019",
+      "topic": "freedom_expression",
+      "statement": "Everyone has the right to freedom of opinion and expression; this right includes freedom to hold opinions without interference and to seek, receive, and impart information and ideas.",
+      "keywords": ["freedom of expression", "freedom of opinion", "information", "ideas", "no interference"],
+      "source": "UDHR 1948 Art. 19",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-020",
+      "topic": "freedom_assembly",
+      "statement": "Everyone has the right to freedom of peaceful assembly and association.",
+      "keywords": ["peaceful assembly", "association", "freedom of assembly", "organize"],
+      "source": "UDHR 1948 Art. 20",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-021",
+      "topic": "political_participation",
+      "statement": "Everyone has the right to take part in the government of their country, directly or through freely chosen representatives. The will of the people shall be the basis of the authority of government.",
+      "keywords": ["democracy", "vote", "will of the people", "government", "political participation"],
+      "source": "UDHR 1948 Art. 21",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-022",
+      "topic": "social_security",
+      "statement": "Everyone has the right to social security and is entitled to realization of economic, social and cultural rights indispensable for their dignity and free development.",
+      "keywords": ["social security", "economic rights", "social rights", "cultural rights", "dignity"],
+      "source": "UDHR 1948 Art. 22",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-023",
+      "topic": "work",
+      "statement": "Everyone has the right to work, to free choice of employment, to just and favourable conditions of work, and to protection against unemployment.",
+      "keywords": ["right to work", "employment", "fair work conditions", "protection against unemployment"],
+      "source": "UDHR 1948 Art. 23",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-024",
+      "topic": "rest_leisure",
+      "statement": "Everyone has the right to rest and leisure, including reasonable limitation of working hours and periodic holidays with pay.",
+      "keywords": ["rest", "leisure", "paid holiday", "working hours", "vacation"],
+      "source": "UDHR 1948 Art. 24",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-025",
+      "topic": "adequate_standard",
+      "statement": "Everyone has the right to a standard of living adequate for the health and well-being of themselves and of their family, including food, clothing, housing and medical care.",
+      "keywords": ["standard of living", "health", "food", "clothing", "housing", "medical care", "well-being"],
+      "source": "UDHR 1948 Art. 25",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-026",
+      "topic": "education",
+      "statement": "Everyone has the right to education. Education shall be directed to the full development of the human personality and to the strengthening of respect for human rights and fundamental freedoms.",
+      "keywords": ["education", "human personality", "development", "right to education", "fundamental freedoms"],
+      "source": "UDHR 1948 Art. 26",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-027",
+      "topic": "cultural_life",
+      "statement": "Everyone has the right freely to participate in the cultural life of the community and to share in scientific advancement and its benefits.",
+      "keywords": ["cultural life", "science", "community", "arts", "cultural participation"],
+      "source": "UDHR 1948 Art. 27",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-028",
+      "topic": "social_order",
+      "statement": "Everyone is entitled to a social and international order in which the rights and freedoms in this Declaration can be fully realized.",
+      "keywords": ["social order", "international order", "rights realization", "freedoms"],
+      "source": "UDHR 1948 Art. 28",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-029",
+      "topic": "duties_to_community",
+      "statement": "Everyone has duties to the community in which alone the free and full development of their personality is possible.",
+      "keywords": ["duties", "community", "free development", "social duties", "responsibilities"],
+      "source": "UDHR 1948 Art. 29",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "hr-030",
+      "topic": "no_abuse_of_rights",
+      "statement": "Nothing in this Declaration may be interpreted as implying for any state, group, or person any right to engage in any activity or perform any act aimed at the destruction of any of the rights and freedoms set forth herein.",
+      "keywords": ["no abuse of rights", "no destruction of rights", "rights preservation", "cannot destroy rights"],
+      "source": "UDHR 1948 Art. 30",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}
