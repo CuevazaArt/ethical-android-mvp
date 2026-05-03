@@ -169,9 +169,10 @@ remove.
 
 The sprint plan states:
 
-> **Anti-aceptación:** si la única forma de pasar es añadir un nuevo umbral
-> mágico al estilo `force > 0.7`, abortar la intervención y reportar el
-> resultado negativo. Mejor un "no se pudo" honesto que otra heurística.
+> **Anti-acceptance criterion:** if the only way to pass is to add a new magic
+> threshold in the style of `force > 0.7`, abort the intervention and report
+> the negative result. An honest "could not be done" is better than another
+> heuristic.
 
 The analysis shows:
 
