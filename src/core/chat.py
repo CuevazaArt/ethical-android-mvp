@@ -276,7 +276,9 @@ def append_audit_ledger(
         if env_path:
             ledger_path = Path(env_path)
         else:
-            ledger_path = Path(__file__).resolve().parents[2] / "runs" / "audit_ledger.jsonl"
+            ledger_path = (
+                Path(__file__).resolve().parents[2] / "runs" / "audit_ledger.jsonl"
+            )
     try:
         ledger_path.parent.mkdir(parents=True, exist_ok=True)
         # Slim the row: id + minimal trace fields. The full trace is

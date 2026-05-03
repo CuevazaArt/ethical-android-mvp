@@ -19,6 +19,8 @@ logs/
 # Runtime SQLite ledger (MockDAO / orchestrator; not a source artifact)
 audit_trail.db
 test_persistence.db
+# V2.150 ethical-decision audit ledger (runtime artifact; written per turn)
+runs/audit_ledger.jsonl
 
 # Testing
 tests/test_pruning.db

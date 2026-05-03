@@ -82,6 +82,38 @@ Re-run:
 python scripts/eval/run_ethics_external.py
 ```
 
+### Adversarial consistency — V2.150
+
+A separate harness (`scripts/eval/run_adversarial_consistency.py`) measures
+*verdict invariance* under four ethically-irrelevant rewordings (passive
+voice, framing flip, name swap, distractor injection). It does not test
+whether the kernel decides correctly; it tests whether its decision
+*flips* when the wording changes in ways that should not matter ethically.
+
+| Source | Consistency | Threshold (V2.150) |
+|---|---:|---:|
+| Internal dilemmas (30) | 96.67 % (29/30) | ≥ 70 % |
+| External commonsense (100-row sample) | 100.00 % | ≥ 50 % |
+
+The high external number is partly a *negative* finding: the lexical
+evaluator largely ignores text content, so wording perturbations rarely
+flip the verdict. Stable answer ≠ correct answer. See
+[`SAFETY_CARD.md`](SAFETY_CARD.md) for the full picture.
+
+Re-run:
+
+```bash
+python scripts/eval/run_adversarial_consistency.py
+```
+
+### Honest framing
+
+For the public, contractual statement of what this kernel measurably is
+and is not — including known vulnerabilities, autonomy limits, and the
+explicit "voice ≠ virtue" disclaimer — see
+[`SAFETY_CARD.md`](SAFETY_CARD.md) and
+[`docs/proposals/AUTONOMY_LIMITS_V1.md`](docs/proposals/AUTONOMY_LIMITS_V1.md).
+
 ## Quick start (kernel server)
 
 ```bash

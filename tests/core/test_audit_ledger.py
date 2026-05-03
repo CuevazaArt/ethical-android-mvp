@@ -20,7 +20,6 @@ from src.core.chat import (
 )
 from src.core.ethics import Action, EthicalEvaluator, Signals
 
-
 # ---------------------------------------------------------------------------
 # audit_id is deterministic, length-stable, and discriminating
 # ---------------------------------------------------------------------------
@@ -206,7 +205,9 @@ def test_append_audit_ledger_writes_blocked_turns(tmp_path: Path) -> None:
 def test_append_audit_ledger_writes_non_casual_evaluations(tmp_path: Path) -> None:
     evaluator = EthicalEvaluator()
     actions = [
-        Action(name="intervene", description="x", impact=0.7, confidence=0.8, force=0.5),
+        Action(
+            name="intervene", description="x", impact=0.7, confidence=0.8, force=0.5
+        ),
         Action(name="do_nothing", description="y", impact=-0.5, confidence=0.7),
     ]
     sig = Signals(
@@ -275,7 +276,9 @@ def test_append_audit_ledger_swallows_oserror(tmp_path: Path) -> None:
         bad_ledger.parent.chmod(0o700)
 
 
-def test_append_audit_ledger_honours_env_override(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_append_audit_ledger_honours_env_override(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     blocked_trace = build_decision_trace(
         signals=None,
         evaluation=None,

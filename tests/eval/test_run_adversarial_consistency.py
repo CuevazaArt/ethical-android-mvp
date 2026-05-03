@@ -168,7 +168,9 @@ def test_cli_writes_report_to_outdir(tmp_path: Path) -> None:
     assert payload["sources"]["internal"]["n_items"] >= 1
 
 
-def test_cli_no_write_skips_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_no_write_skips_report(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     rc = main(
         [
             "--external-n",

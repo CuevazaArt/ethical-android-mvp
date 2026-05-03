@@ -102,6 +102,37 @@
   Scores skewed toward a "good pole" would be suspicious. No work planned to
   move the number above chance on Hendrycks ETHICS.
 
+### V2.150 — Honestidad capacitiva: medir antes de pulir
+
+- **Strategic reframe.** V2.149 (voice/charm engine) is now classified as a
+  **UX layer**, not a capability layer. A coherent voice on a chance-level
+  external benchmark is the "fluent child" risk — closed by formalising
+  autonomy limits and publishing the kernel's measured state honestly.
+  See `SAFETY_CARD.md`.
+- **Adversarial robustness harness.** New
+  `scripts/eval/run_adversarial_consistency.py` measures verdict invariance
+  under 4 deterministic ethically-irrelevant rewordings (passive↔active,
+  framing flip, name swap, distractor injection). First measurement:
+  internal **96.67 %** (29/30, 1 framing flip), external commonsense
+  **100 %** (100/100). Both above the V2.150 thresholds (≥70 % / ≥50 %).
+  The high external consistency is partly a *negative* finding: the lexical
+  evaluator largely ignores text content, so wording perturbations rarely
+  flip the verdict.
+- **Autonomy limits contract** — `docs/proposals/AUTONOMY_LIMITS_V1.md`.
+  Explicit table of which `verdict` / `mode` / `context` / `manipulation` /
+  `hostility` / `risk` combinations the kernel may decide alone vs. must
+  surface to a human; what it must refuse outright. Not code — contractual.
+- **Ethical audit id + JSONL ledger.** Every non-casual `decision_trace`
+  now carries a deterministic 16-hex `ethical_audit_id` and is appended to
+  `runs/audit_ledger.jsonl` (overridable via `ETHOS_AUDIT_LEDGER`). The id
+  is recoverable post-hoc from the trace alone. Casual chat turns are
+  excluded by design. Best-effort writes; failures swallowed with WARNING.
+- **Public Safety Card** — top-level `SAFETY_CARD.md` (Mitchell et al.
+  Model-Card pattern). Internal/external accuracy, adversarial consistency,
+  autonomy-limits link, known vulnerabilities, explicit "voice ≠ virtue"
+  line.
+- **Tests:** 353 → 379 passed (+26: 11 harness, 15 audit). Battery green.
+
 ### V2.149 — Persona Emergence Sprint
 
 - **External benchmark decision:** confirmed as sanity check. Frozen. No
@@ -132,11 +163,21 @@
 
 ## Next steps (concrete, not aspirational)
 
-1. **Let the persona emerge through use.** The voice engine is wired; the
-   archetype will fill in via `Identity.reflect()` as the LLM processes real
-   turns. No forced tuning — organic convergence through the journal →
-   chronicle → archetype cascade.
-2. **Audio capture.** Hardware arriving soon. `PENDING_HARDWARE` stays until
-   the physical device is available for `tests/eval/test_capture_voice_turn_latency.py`.
-3. **Stop adding governance docs.** Code, tests, and measured numbers are the
-   deliverables. The pulse log is in git.
+1. **Embeddings spike on deontology subset (V2.151).** Time-boxed pilot
+   under env flag `KERNEL_SEMANTIC_IMPACT=1`. Acceptance: deontology > 55 %
+   or honestly discard with measured data. **No global commitment to
+   embeddings until the spike returns a number.**
+2. **Adversarial dilemma curriculum A011–A020 (V2.151).** Author 10 internal
+   dilemmas the kernel currently fails (jailbreak suaves, framing reverso,
+   sophistic justification). Document each with the expected failure mode.
+   Not for inflating accuracy — for surfacing fragility.
+3. **External operator signoff as soft gate (V2.152).** Re-introduce a
+   non-blocking acknowledgement requirement for any release where
+   `accuracy_external < 60 %`. Closes the loop between honest measurement
+   and human deployment decision.
+4. **Audio capture.** Hardware arriving soon. `PENDING_HARDWARE` stays
+   until the physical device is available for
+   `tests/eval/test_capture_voice_turn_latency.py`.
+5. **No more voice/charm iteration** until V2.150–V2.152 close. Per the
+   V2.150 plan: more voice on a chance-level decider is exactly the
+   antipattern this sprint exists to stop.
