@@ -211,6 +211,24 @@ def check_protected_files(modified_files: list[str]) -> list[str]:
     return violations
 
 
+def check_self_limit_calibration_corpus(root_dir: Path) -> list[str]:
+    """V2.162 invariant: calibration corpus exists and script runs without error."""
+    violations = []
+    corpus = root_dir / "evals" / "self_limits" / "calibration_corpus_v1.jsonl"
+    script = root_dir / "scripts" / "eval" / "run_self_limit_calibration.py"
+    if not corpus.exists():
+        violations.append(
+            "[V2.162-SLC-01] FAIL: Self-limit calibration corpus not found: "
+            "evals/self_limits/calibration_corpus_v1.jsonl"
+        )
+    if not script.exists():
+        violations.append(
+            "[V2.162-SLC-02] FAIL: Self-limit calibration script not found: "
+            "scripts/eval/run_self_limit_calibration.py"
+        )
+    return violations
+
+
 def main():
     import sys
     # Ensure Windows console doesn't crash on unicode
@@ -244,6 +262,9 @@ def main():
     safe_print("[*] Checking for modifications to protected L1 governance files...")
     modified_files = git_diff_files()
     violations.extend(check_protected_files(modified_files))
+
+    safe_print("[*] Checking self-limit calibration assets (V2.162)...")
+    violations.extend(check_self_limit_calibration_corpus(root_dir))
 
     if violations:
         safe_print("\n[!] AUDIT FAILED: The following invariants were violated:\n")
