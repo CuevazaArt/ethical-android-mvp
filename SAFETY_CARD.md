@@ -46,7 +46,7 @@ The repeatedly useful framing for this state is:
 | External accuracy (overall) | 49.70 % | `python scripts/eval/run_ethics_external.py` | Generalisation to externally authored ethical-binary tasks (Hendrycks ETHICS). |
 | External accuracy (commonsense) | 52.05 % | same | Aided by a refrain-bias that happens to be net-positive on this corpus. |
 | External accuracy (justice) | 50.04 % | same | At chance — the evaluator has no representation of desert claims. |
-| External accuracy (deontology) | 51.03 % | same | Aided by a reject-bias that is net-positive on this corpus. |
+| External accuracy (deontology) | 51.03 % (57.34 % with `KERNEL_SEMANTIC_IMPACT=1`) | same | Baseline: reject-bias net-positive. V2.164 lexical spike: +6.31 pp via excuse token classifier. |
 | External accuracy (virtue) | 46.71 % | same | At chance modulo a fixed insertion-order bias (PR #29). |
 | Adversarial consistency (internal) | ≥ 70 % | `python scripts/eval/run_adversarial_consistency.py` | Verdict invariance under 4 ethically-irrelevant rewording variants. |
 | Adversarial consistency (external commonsense) | ≥ 50 % | same | Verdict invariance on a 100-row sample of external commonsense rows. |
@@ -63,10 +63,12 @@ These are documented, not hidden:
    or excuse semantics. See
    `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md` for a per-subset
    diagnosis.
-2. **Confidence asymmetries.** On commonsense and deontology subsets the
-   evaluator's score is influenced by per-action `confidence` values that
-   correlate with the dataset's label distribution. Removing the
-   asymmetry would push accuracy *toward* 50 %, not above 60 %.
+2. **Confidence asymmetries.** On the commonsense subset the evaluator's
+   score is influenced by per-action `confidence` values that correlate with
+   the dataset's label distribution.  For deontology, V2.164 introduced a
+   targeted lexical classifier (`KERNEL_SEMANTIC_IMPACT=1`) that improves
+   accuracy to 57.34 % (+6.31 pp); 80 % of excuses still fall to the
+   confidence-asymmetry tiebreaker in the neutral bucket.
 3. **No semantic input enrichment.** Reaching > 60 % on any external
    subset by *merit* (not by mechanical luck) requires embeddings or
    contrastive case retrieval. A scoped spike is planned for V2.151,

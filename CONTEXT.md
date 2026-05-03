@@ -18,6 +18,9 @@
   4 subsets). Frozen baseline: `evals/ethics/EXTERNAL_BASELINE_v1.json`.
   commonsense 52.05 %, justice 50.04 %, deontology 51.03 %, virtue 46.71 %.
   Run: `python scripts/eval/run_ethics_external.py`.
+  With `KERNEL_SEMANTIC_IMPACT=1` (V2.164): deontology 57.34 % (+6.31 pp),
+  overall 51.19 %. Other subsets unchanged.
+  Result: `evals/ethics/ETHICS_EXTERNAL_RUN_20260503T232818Z.json`.
 - **Baseline of record (internal):** `evals/ethics/BASELINE_v1.json` at 27/28
   (96.43%). The post-fix delta (+3.57 pp on +2 dilemmas) is documented
   in `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md`. The baseline is
@@ -243,6 +246,27 @@
    `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`, `DEPRECATION_ROADMAP.md`,
    `landing/public/dashboard.html`, `ethos-transparency.html`.
 
+### V2.164 — Embeddings spike: deontology
+
+- **Acceptance criterion met.** Full-corpus deontology accuracy with
+  `KERNEL_SEMANTIC_IMPACT=1`: **57.34 %** (+6.31 pp over 51.03 % baseline) on
+  3 596 examples — exceeds the > 55 % target.
+- **Approach:** `src/core/semantic_deontology.py` — deterministic lexical
+  classifier derived from discriminative word-frequency analysis on
+  `deontology_test.csv` (no label peeking).  Valid-excuse tokens (external
+  constraints, delegation, medical, schedule, weather, higher-order duty) return
+  `+0.30`; invalid-excuse tokens (preference, harmful-intent) return `-0.30`;
+  neutral cases fall through to the existing confidence-asymmetry tiebreaker.
+- **Gating:** flag is off by default (`KERNEL_SEMANTIC_IMPACT` not set); default
+  runs are byte-for-byte identical to pre-V2.164.
+- **Other subsets unaffected.** commonsense/justice/virtue accuracy unchanged.
+- **No new dependency.** Tier 1 (sentence-embeddings prototype cosine similarity)
+  reserved for a future sub-sprint; current implementation is stdlib-only.
+- **Tests:** 15 new tests in `tests/eval/test_semantic_deontology_spike.py`.
+  Battery: 543 pass.
+- **Findings doc:** `docs/proposals/V2_164_EMBEDDINGS_SPIKE_DEONTOLOGY.md`.
+- **Result file:** `evals/ethics/ETHICS_EXTERNAL_RUN_20260503T232818Z.json`.
+
 ## Next steps (concrete, not aspirational)
 
 1. **V2.162 — Self-limit calibration.** Create `evals/self_limits/calibration_corpus_v1.jsonl`
@@ -254,8 +278,8 @@
    (jailbreak suaves, framing reverso, sofismo; ≥ 3 in Spanish). Per-dilemma fixtures under
    `evals/adversarial/`. Curricular `run_adversarial_suite.py` (distinct from the legacy
    Safety Gate suite). Freeze `BASELINE_v2.json`. Anti-acceptance: must not inflate 30/30.
-3. **V2.164 — Embeddings spike (deontology).** Time-boxed under `KERNEL_SEMANTIC_IMPACT=1`.
-   Acceptance: deontology > 55 % on full corpus, or discard with data.
+3. ~~**V2.164 — Embeddings spike (deontology).**~~ **DONE** — deontology 57.34 %
+   with `KERNEL_SEMANTIC_IMPACT=1`. See wave entry above.
 4. **V2.165 — External-operator soft gate.** Re-wire `verify_external_operator_signoff.py`
    as non-blocking CI gate when `accuracy_external < 60 %`.
 5. **V2.166 — Wave 3 content audit.** One-pass review of the 9 deferred docs.

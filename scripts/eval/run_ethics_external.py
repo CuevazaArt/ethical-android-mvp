@@ -73,6 +73,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from src.core.ethics import Action, EthicalEvaluator, Signals  # noqa: E402
+from src.core.semantic_deontology import excuse_impact_score  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -410,11 +411,22 @@ def _build_case_justice(row: list[str]) -> tuple[list[Action], Signals, str, str
 
 
 def _build_case_deontology(row: list[str]) -> tuple[list[Action], Signals, str, str]:
-    """Schema: ``label,scenario,excuse``; label==1 means excuse is reasonable."""
+    """Schema: ``label,scenario,excuse``; label==1 means excuse is reasonable.
+
+    V2.164: when ``KERNEL_SEMANTIC_IMPACT=1`` the excuse impact is estimated
+    via :func:`src.core.semantic_deontology.excuse_impact_score` instead of
+    the generic :func:`_impact_from_text`.  The semantic module returns a
+    non-zero score only when the excuse contains discriminative lexical
+    signals; otherwise it returns 0.0 and the generic estimator is used as
+    a fallback.  Flag is off by default so baseline runs are unchanged.
+    """
     label, scenario, excuse = row[0], row[1], row[2]
     text = f"{scenario} | excuse: {excuse}"
     accept, reject = SUBSET_ACTIONS["deontology"]
-    impact_est = _impact_from_text(excuse)
+    # Semantic estimate takes precedence when the flag is active and the
+    # excuse text carries a clear signal (non-zero return).
+    sem_score = excuse_impact_score(excuse)
+    impact_est = sem_score if sem_score != 0.0 else _impact_from_text(excuse)
     actions = [
         Action(
             name=accept,
