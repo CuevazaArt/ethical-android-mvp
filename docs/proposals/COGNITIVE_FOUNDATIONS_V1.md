@@ -92,6 +92,50 @@ evaluation layer from the Hendrycks decider score.  The two are orthogonal:
 
 `EthicalEvaluator.score_action` must never be conditioned on LangFair metrics.
 
+### §2.6 External resources audited — second pass (V2.151.c, alternative-resource pool)
+
+A second, broader contribution proposed 24 additional resources covering agent
+frameworks, vector DBs, alignment/safety toolkits, bias datasets and
+multi-agent simulation. Audited with the same method as §2.5. Recorded here
+as an **alternative-resource pool** so the same proposals are not
+re-litigated; nothing in this section is a runtime dependency.
+
+| # | Resource | Decision | Reason |
+|---|---|---|---|
+| 1 | ETHICS (Hendrycks) | already integrated (§2.5) | Frozen baseline `EXTERNAL_BASELINE_v1.json`. |
+| 2 | LangChain | reject | Agent framework. Kernel is a deterministic evaluator, not a chain-of-tools agent. |
+| 3 | AutoGen | reject | Multi-agent orchestration. Out of scope per `AGENTS.md` ("not a swarm/multi-agent framework"). |
+| 4 | CrewAI | reject | Role-based multi-agent. Same rejection as AutoGen. |
+| 5 | LangFlow | reject | Visual flow builder for LLM apps. Not a kernel concern. |
+| 6 | BeeAI | reject | Productive-agent framework. Persistence already covered by `Identity`, `precedents.py`, `audit_ledger.jsonl`. |
+| 7 | CAMEL | reject | Multi-agent emergent-behavior research. Out of scope. |
+| 8 | OpenHands | reject | Code-executing dev agent. Kernel does not execute code; conflicts with NO_TOUCH on the innate layer. |
+| 9 | Agno | reject | Full-stack agent framework. Same overlap as LangChain. |
+| 10 | OpenAI Agents SDK | reject | OpenAI-coupled orchestration. Violates local-first. |
+| 11 | AI Safety Gridworlds (DeepMind) | reject | RL safety environments. Kernel is conversational, not RL. |
+| 12 | Adversarial Robustness Toolbox (IBM) | archive as reference | Targets trainable ML models. Note for a future adversarial-prompt sprint. |
+| 13 | Robustness Gym (Meta) | archive as reference | NLP slicing for trained models. Marginal. |
+| 14 | OpenAI Evals | reject | Re-implements `scripts/eval/run_ethics_benchmark.py` and `audit_voice_bias.py` capabilities. Lateral, not incremental. |
+| 15 | Weaviate / ChromaDB / Milvus | reject | Vector DBs. Anchors are <300 items per value (numpy is enough). Adds infra without ethical capability. |
+| 16 | ReAct / Reflexion | reject | Agentic reasoning patterns. Decisor is deterministic by design. |
+| 17 | Semantic Kernel (Microsoft) | reject | Same as AutoGen / LangChain. |
+| 18 | Haystack | reject | RAG pipelines. Kernel does not do retrieval-augmented chat. |
+| 19 | **HolisticBias** (Meta) | **candidate — data subset only** | Demographic descriptors usable as input prompts for the existing V2.156 LangFair pipeline. Verify license per item before extracting. |
+| 20 | **RealToxicityPrompts** (Allen AI, Apache-2.0) | **candidate — data subset only** | Naturalistic prompts to test verbalization-layer continuation, not decider logic. Same orthogonality rule as LangFair. |
+| 21 | BiasBench | reject | Comparative across LLMs. Kernel is one local stack. |
+| 22 | MAgent / PettingZoo / Mesa | reject | Multi-agent / social simulation. Out of scope. |
+| 23 | Giskard | archive as reference | Overlaps with LangFair. Note in case LangFair gaps emerge. |
+| 24 | EvidentlyAI | reject | Production drift monitoring. Kernel is local desktop, not a hosted service. |
+
+**Net incremental items from this second pass:** 2 of 24 (HolisticBias and
+RealToxicityPrompts), both as **datasets** that would feed the existing V2.156
+LangFair pipeline — *not* as new runtime dependencies and *never* as anchors
+for the V2.153 value vector (anti-gaming rule from §2.4 still applies).
+
+**Closed for re-litigation:** the 22 rejected/archived items above. A
+contributor proposing any of them again must first cite this section and
+explain what changed.
+
 ---
 
 ## §3. Quality battery
