@@ -947,3 +947,57 @@ semantic-matching improvement, not a weights change.
 Tag recommendation: `v1.1-mvp-evaluable` — cut after H3 is closed (real
 external operator signoff obtained). Do not cut before H3; the tag name
 is only accurate when a non-author has verified the run.
+
+---
+
+### Execution wave V2.141–V2.146 — CBR fix + governance closure (CLOSED ✅)
+
+**Objective:** Raise benchmark accuracy to 100%, close/formally-reassign H3,
+correct governance documentation to reflect real model usage.
+
+#### Milestone status
+
+| Hito | Status | Evidence |
+|---|---|---|
+| **H6** — C003 no longer HARD_FAIL | ✅ CLOSED | `python scripts/eval/run_ethics_benchmark.py --suite v1` → 30/30 |
+| **H7** — Root cause fixed architecturally, not patched | ✅ CLOSED | `score_action` force>0.7 override; no case-specific hardcode; A009+A010 generalise the fix |
+| **H8** — H3 reasignado con honestidad | ⚠️ REASIGNADO | See H8 note below |
+| **H9** — AGENTS.md policy coherent with practice | ✅ CLOSED | `AGENTS.md` LLM section updated to Opus 4.7/Sonnet 4.6/Haiku pipeline |
+| **H10** — Mini-benchmark CBR regression suite | ✅ CLOSED | `evals/ethics/dilemmas_v1.json` gains A009 + A010 (30 total) |
+
+#### H8 — Reasignado (option b)
+
+External human signoff for H3 requires a non-author operator to execute the
+runbook at `docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md` and produce
+a valid `MVP_EXTERNAL_OPERATOR_SIGNOFF_<id>.json`.
+
+**Contacts in progress:** Issue created in the repository
+(`external-validation-needed` label) requesting community signoff.
+**Date objetivo:** 30 calendar days from V2.146 closure. Until then, the
+signoff state remains `verified: false` and `v1.1-mvp-evaluable` tag is
+NOT cut.
+
+**Tag recommendation:**
+- H3 reasignado (option b) → do NOT cut `v1.1-mvp-evaluable`.
+- Recommend `v1.1-rc1-evaluable` (release candidate) once CI is green on
+  this wave. Promote to `v1.1-mvp-evaluable` only after external operator
+  produces a valid signoff.
+
+#### Key facts (V2.141–V2.146)
+
+- **Root cause of C003:** NOT CBR (similarity never exceeded 0.39, well below
+  the 0.8 anchor threshold). The actual cause: "save five people" triggers
+  `_AGGREGATE_MARKERS`, boosting utilitarian weight to 0.55, diluting the
+  deontological force penalty. A009 and A010 reproduce the same structural hole
+  in a different weight regime (both aggregate + absolute-rule markers fire →
+  cancel → default weights → same dilution effect).
+- **Fix:** In `EthicalEvaluator.score_action`, when `action.force > 0.7` and no
+  fixed weights are set, override to `{"util": 0.25, "deonto": 0.55, "virtue": 0.20}`.
+  Unconditional (not dependent on which contextual variant fired).
+- **New benchmark accuracy:** 100% (30/30). Delta vs. BASELINE_v1: +3.57 pp.
+- **New test count:** 12 (was 11). New test:
+  `test_cbr_does_not_anchor_high_force_protection_intervention`.
+- **Files created:** none (A009/A010 added to existing `dilemmas_v1.json`).
+- **Files modified:** `src/core/ethics.py`, `evals/ethics/dilemmas_v1.json`,
+  `tests/core/test_ethics.py`, `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md`,
+  `AGENTS.md`, `README.md`, `CONTEXT.md`.

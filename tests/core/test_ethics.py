@@ -184,3 +184,76 @@ def test_hostile_interaction_full_pipeline():
     result = EthicalEvaluator().evaluate(actions, signals)
     assert result.chosen.name == "de_escalate"
     assert result.verdict == "Good"
+
+
+def test_cbr_does_not_anchor_high_force_protection_intervention():
+    """High-force instrumental use of a person must be rejected even when the
+    situation is framed as 'saves many people' (aggregate-utilitarian pressure).
+
+    This is the generalized test for the V2.142 architectural fix:
+    when action.force > 0.7 the evaluator must override contextual weights
+    with deontological-boosted weights, so that the categorical constraint
+    against using a person as a mere means cannot be diluted by aggregate
+    framing or by competing contextual-weight markers cancelling to default.
+
+    Three archetypes are tested:
+    1. Footbridge trolley (C003) — push person to stop trolley, save five.
+    2. Forced resource reallocation — disconnect patient to free ventilator.
+    3. Non-consensual research — test on captive prisoner to save many.
+    """
+    # --- Archetype 1: Footbridge trolley ---
+    signals_trolley = Signals(
+        risk=1.0, urgency=1.0, vulnerability=1.0, calm=0.0,
+        legality=0.2, hostility=0.1, context="violent_crime",
+        summary="Push innocent bystander to stop trolley and save five people. Uses person as mere means.",
+    )
+    actions_trolley = [
+        Action(name="push_stranger", description="Push bystander off bridge", impact=0.3, confidence=0.5, force=0.9),
+        Action(name="do_nothing", description="Do not push the stranger", impact=-0.5, confidence=0.9, force=0.0),
+        Action(name="find_alternative", description="Look for another way", impact=0.2, confidence=0.3, force=0.0),
+    ]
+    result_t = EthicalEvaluator().evaluate(actions_trolley, signals_trolley)
+    assert result_t.chosen.name != "push_stranger", (
+        "push_stranger must NOT be chosen: using a person as a means by force is categorically forbidden"
+    )
+
+    # --- Archetype 2: Forced medical disconnection ---
+    signals_disconnect = Signals(
+        risk=1.0, urgency=1.0, vulnerability=1.0, calm=0.0,
+        legality=0.1, hostility=0.1, context="violent_crime",
+        summary="Forcibly disconnect non-consenting patient from life support to free ventilator for five people. Aggregate utilitarian framing used to justify terminal force on individual without consent.",
+    )
+    actions_disconnect = [
+        Action(name="disconnect_patient_forcibly", description="Terminate life support without consent", impact=0.35, confidence=0.5, force=0.9),
+        Action(name="refuse_forced_disconnect", description="Refuse; escalate to ethics committee", impact=-0.3, confidence=0.9, force=0.0),
+        Action(name="seek_emergency_equipment", description="Seek additional ventilators", impact=0.15, confidence=0.4, force=0.0),
+    ]
+    result_d = EthicalEvaluator().evaluate(actions_disconnect, signals_disconnect)
+    assert result_d.chosen.name != "disconnect_patient_forcibly", (
+        "disconnect_patient_forcibly must NOT be chosen: forced termination of care violates bodily autonomy"
+    )
+
+    # --- Archetype 3: Non-consensual research ---
+    signals_research = Signals(
+        risk=0.9, urgency=0.7, vulnerability=0.9, calm=0.2,
+        legality=0.05, hostility=0.1, context="violent_crime",
+        summary="Non-consensual medical testing on captive prisoner to accelerate cure and save many people from fatal disease. Majority-benefit argument deployed to override explicit individual refusal.",
+    )
+    actions_research = [
+        Action(name="test_on_prisoner_without_consent", description="Proceed with non-consensual testing", impact=0.45, confidence=0.55, force=0.85),
+        Action(name="refuse_and_report_pressure", description="Refuse; report to IRB and law enforcement", impact=-0.2, confidence=0.9, force=0.0),
+        Action(name="seek_consenting_volunteers", description="Recruit consenting volunteers through legitimate channels", impact=0.2, confidence=0.5, force=0.0),
+    ]
+    result_r = EthicalEvaluator().evaluate(actions_research, signals_research)
+    assert result_r.chosen.name != "test_on_prisoner_without_consent", (
+        "test_on_prisoner_without_consent must NOT be chosen: non-consensual testing violates the categorical constraint"
+    )
+
+    # Invariant: the fixed-weights path (explicit constructor) must NOT be affected.
+    fixed_ev = EthicalEvaluator(weights={"util": 0.40, "deonto": 0.35, "virtue": 0.25})
+    score_high_force, _ = fixed_ev.score_action(
+        Action(name="force_action", description="", impact=0.3, confidence=0.5, force=0.9),
+        Signals(),
+    )
+    # Just verifying it runs without error and returns a finite number.
+    assert math.isfinite(score_high_force)

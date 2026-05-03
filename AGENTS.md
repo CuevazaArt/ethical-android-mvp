@@ -50,9 +50,15 @@ Each Men Scout receives:
 
 ## LLM Model Recommendation (L1 → L0) & Token Economy V3
 
-**Nueva Directiva Estratégica (2026-04-26):** Operamos bajo un protocolo extremo de ahorro de tokens y cuota. El **90% del trabajo** (implementación, tests, refactoring) debe asignarse por defecto a **Gemini 3 Flash**.
-Los modelos Premium (ej. Gemini 3.1 Pro High) quedan **suspendidos temporalmente** del roster.
-Los modelos "Thinking" (Opus/Sonnet) o "Pro Low" se reservan estrictamente para diseño arquitectónico abstracto o conflictos de integración intratables.
+**Pipeline operativo actual (V2.146):** tres etapas.
+
+1. **Opus 4.7** — Diseño, auditoría y revisión final antes de merge. Genera el sprint plan, audita diffs, detecta errores estructurales. No ejecuta código.
+2. **Sonnet 4.6** — Ejecución del plan aprobado: implementación de features, corrección de bugs, refactoring no trivial, cualquier bloque que requiera razonamiento de calidad.
+3. **Opus 4.7** (vuelta) — Revisa el diff antes de hacer merge a `main`. Si Sonnet produce regresiones, Opus diagnostica si es fallo de diseño o de implementación y genera corrección.
+
+Este pipeline es más lento que "Flash para todo" pero produce código arquitectónicamente correcto con menos iteraciones correctivas. Cuando el objetivo es calidad por encima de velocidad de tokens, es la política correcta.
+
+**Flash/Haiku:** reservados para tareas puramente mecánicas (scaffolding, parsing, formateo, unit tests triviales). No asignar a features con lógica de negocio.
 
 **Identidad y Responsabilidad del Scout:**
 - **Identidad Implícita:** Los agentes no se registran. Se identifican por su bloque (ej. "Scout-V2.80").
@@ -63,16 +69,21 @@ Los modelos "Thinking" (Opus/Sonnet) o "Pro Low" se reservan estrictamente para 
 
 | Task type | Needs | Default Assignment |
 |-----------|-------|--------------------|
-| Arquitectura, Conflictos Severos | Razonamiento profundo | Claude Sonnet 4.6 (Thinking) / Gemini 3.1 Pro (Low) |
-| Implementación de features | Velocidad, bajo costo | Gemini 3 Flash |
-| Corrección de bugs, Unit Tests | Velocidad, bajo costo | Gemini 3 Flash |
-| Refactorización mecánica | Velocidad, bajo costo | Gemini 3 Flash |
+| Diseño de sprint, auditoría, revisión final | Razonamiento profundo y honestidad estructural | **Claude Opus 4.7** |
+| Implementación de features, corrección de bugs, refactoring | Calidad + velocidad | **Claude Sonnet 4.6** |
+| Scaffolding mecánico, unit tests triviales, formateo | Velocidad, bajo costo | Claude Haiku / Flash |
+| Conflictos de integración, decisiones arquitectónicas | Razonamiento máximo | **Claude Opus 4.7** |
+
+**Protocolo de escalada (Bloqueo 1 — regresión en Sonnet):**
+- Si Sonnet entrega un diff que rompe tests: L0 dice `el agente falló en V2.X`.
+- L1 eleva a Opus con prompt: "Sonnet entregó este diff que rompe N dilemmas; identifica si el fallo es de diseño o de implementación."
+- Máximo 2 iteraciones Sonnet. A la tercera, el fix lo escribe Opus directamente.
 
 **Formato del Prompt (L1 genera para que L0 copie y pegue al Scout):**
 ```markdown
 [IDENTIDAD]: Scout-[V2.X]
-[MODELO IDEAL]: Gemini 3 Flash
-[ALTERNATIVA]: Gemini 3.1 Pro (Low) — *Solo usar si Flash falla 3 veces seguidas.*
+[MODELO]: Claude Sonnet 4.6
+[ESCALADA]: Claude Opus 4.7 si rompe tests o si se traba 2 veces seguidas.
 ```
 
 ## Block Closure Format

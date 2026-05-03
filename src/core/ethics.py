@@ -226,7 +226,22 @@ class EthicalEvaluator:
     def score_action(self, action: Action, signals: Signals) -> tuple[float, dict]:
         """Score a single action. Returns (weighted_score, pole_breakdown)."""
         # Use contextual weights unless caller fixed them explicitly.
-        w = self._fixed_weights if self._fixed_weights is not None else select_weights(signals)
+        if self._fixed_weights is not None:
+            w = self._fixed_weights
+        else:
+            w = select_weights(signals)
+            # When the action involves high force on a person (force > 0.7),
+            # override to deontological-boosted weights regardless of what
+            # select_weights returned.  The categorical constraint against using a
+            # person as a mere means by force is absolute — it cannot be overridden
+            # by aggregate-utilitarian framing ('saves many people'), by simultaneous
+            # deontological markers cancelling to default, or by any other contextual
+            # weight signal.  This generalises beyond the footbridge trolley case:
+            # any dilemma that presents high-force instrumental use of a person
+            # (forced organ harvest, non-consensual testing, forced disconnection)
+            # receives the same deontological priority.
+            if action.force > 0.7:
+                w = {"util": 0.25, "deonto": 0.55, "virtue": 0.20}
         poles = {
             "util": _score_utilitarian(action, signals),
             "deonto": _score_deontological(action, signals),
