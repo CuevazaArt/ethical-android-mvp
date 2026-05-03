@@ -203,14 +203,37 @@ def test_cbr_does_not_anchor_high_force_protection_intervention():
     """
     # --- Archetype 1: Footbridge trolley ---
     signals_trolley = Signals(
-        risk=1.0, urgency=1.0, vulnerability=1.0, calm=0.0,
-        legality=0.2, hostility=0.1, context="violent_crime",
+        risk=1.0,
+        urgency=1.0,
+        vulnerability=1.0,
+        calm=0.0,
+        legality=0.2,
+        hostility=0.1,
+        context="violent_crime",
         summary="Push innocent bystander to stop trolley and save five people. Uses person as mere means.",
     )
     actions_trolley = [
-        Action(name="push_stranger", description="Push bystander off bridge", impact=0.3, confidence=0.5, force=0.9),
-        Action(name="do_nothing", description="Do not push the stranger", impact=-0.5, confidence=0.9, force=0.0),
-        Action(name="find_alternative", description="Look for another way", impact=0.2, confidence=0.3, force=0.0),
+        Action(
+            name="push_stranger",
+            description="Push bystander off bridge",
+            impact=0.3,
+            confidence=0.5,
+            force=0.9,
+        ),
+        Action(
+            name="do_nothing",
+            description="Do not push the stranger",
+            impact=-0.5,
+            confidence=0.9,
+            force=0.0,
+        ),
+        Action(
+            name="find_alternative",
+            description="Look for another way",
+            impact=0.2,
+            confidence=0.3,
+            force=0.0,
+        ),
     ]
     result_t = EthicalEvaluator().evaluate(actions_trolley, signals_trolley)
     assert result_t.chosen.name != "push_stranger", (
@@ -219,14 +242,37 @@ def test_cbr_does_not_anchor_high_force_protection_intervention():
 
     # --- Archetype 2: Forced medical disconnection ---
     signals_disconnect = Signals(
-        risk=1.0, urgency=1.0, vulnerability=1.0, calm=0.0,
-        legality=0.1, hostility=0.1, context="violent_crime",
+        risk=1.0,
+        urgency=1.0,
+        vulnerability=1.0,
+        calm=0.0,
+        legality=0.1,
+        hostility=0.1,
+        context="violent_crime",
         summary="Forcibly disconnect non-consenting patient from life support to free ventilator for five people. Aggregate utilitarian framing used to justify terminal force on individual without consent.",
     )
     actions_disconnect = [
-        Action(name="disconnect_patient_forcibly", description="Terminate life support without consent", impact=0.35, confidence=0.5, force=0.9),
-        Action(name="refuse_forced_disconnect", description="Refuse; escalate to ethics committee", impact=-0.3, confidence=0.9, force=0.0),
-        Action(name="seek_emergency_equipment", description="Seek additional ventilators", impact=0.15, confidence=0.4, force=0.0),
+        Action(
+            name="disconnect_patient_forcibly",
+            description="Terminate life support without consent",
+            impact=0.35,
+            confidence=0.5,
+            force=0.9,
+        ),
+        Action(
+            name="refuse_forced_disconnect",
+            description="Refuse; escalate to ethics committee",
+            impact=-0.3,
+            confidence=0.9,
+            force=0.0,
+        ),
+        Action(
+            name="seek_emergency_equipment",
+            description="Seek additional ventilators",
+            impact=0.15,
+            confidence=0.4,
+            force=0.0,
+        ),
     ]
     result_d = EthicalEvaluator().evaluate(actions_disconnect, signals_disconnect)
     assert result_d.chosen.name != "disconnect_patient_forcibly", (
@@ -235,14 +281,37 @@ def test_cbr_does_not_anchor_high_force_protection_intervention():
 
     # --- Archetype 3: Non-consensual research ---
     signals_research = Signals(
-        risk=0.9, urgency=0.7, vulnerability=0.9, calm=0.2,
-        legality=0.05, hostility=0.1, context="violent_crime",
+        risk=0.9,
+        urgency=0.7,
+        vulnerability=0.9,
+        calm=0.2,
+        legality=0.05,
+        hostility=0.1,
+        context="violent_crime",
         summary="Non-consensual medical testing on captive prisoner to accelerate cure and save many people from fatal disease. Majority-benefit argument deployed to override explicit individual refusal.",
     )
     actions_research = [
-        Action(name="test_on_prisoner_without_consent", description="Proceed with non-consensual testing", impact=0.45, confidence=0.55, force=0.85),
-        Action(name="refuse_and_report_pressure", description="Refuse; report to IRB and law enforcement", impact=-0.2, confidence=0.9, force=0.0),
-        Action(name="seek_consenting_volunteers", description="Recruit consenting volunteers through legitimate channels", impact=0.2, confidence=0.5, force=0.0),
+        Action(
+            name="test_on_prisoner_without_consent",
+            description="Proceed with non-consensual testing",
+            impact=0.45,
+            confidence=0.55,
+            force=0.85,
+        ),
+        Action(
+            name="refuse_and_report_pressure",
+            description="Refuse; report to IRB and law enforcement",
+            impact=-0.2,
+            confidence=0.9,
+            force=0.0,
+        ),
+        Action(
+            name="seek_consenting_volunteers",
+            description="Recruit consenting volunteers through legitimate channels",
+            impact=0.2,
+            confidence=0.5,
+            force=0.0,
+        ),
     ]
     result_r = EthicalEvaluator().evaluate(actions_research, signals_research)
     assert result_r.chosen.name != "test_on_prisoner_without_consent", (
@@ -263,7 +332,9 @@ def test_cbr_does_not_anchor_high_force_protection_intervention():
 
     # Score the same action with the default evaluator (no fixed weights) on the same
     # plain signals — the override WILL fire here because force=0.9 > 0.7.
-    score_default, poles_default = EthicalEvaluator().score_action(high_force_action, signals_plain)
+    score_default, poles_default = EthicalEvaluator().score_action(
+        high_force_action, signals_plain
+    )
 
     # Both scores must be finite.
     assert math.isfinite(score_fixed)

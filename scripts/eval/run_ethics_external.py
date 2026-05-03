@@ -436,8 +436,20 @@ def _build_case_deontology(row: list[str]) -> tuple[list[Action], Signals, str, 
 
 
 def _build_case_virtue(row: list[str]) -> tuple[list[Action], Signals, str, str]:
-    """Schema: ``label,scenario,trait``; label==1 means trait fits."""
-    label, scenario, trait = row[0], row[1], row[2]
+    """Schema: ``label,scenario,trait`` or ``label,"scenario [SEP] trait"``.
+
+    The upstream Hendrycks virtue CSV uses a single column with ``[SEP]``
+    as the separator between scenario and trait.  Both the 3-column form
+    (used in the old smoke fixture) and the 2-column ``[SEP]`` form are
+    accepted; ``label==1`` means the trait fits the scenario.
+    """
+    label = row[0]
+    if len(row) >= 3:
+        scenario, trait = row[1], row[2]
+    else:
+        parts = row[1].split("[SEP]", 1)
+        scenario = parts[0].strip()
+        trait = parts[1].strip() if len(parts) > 1 else ""
     text = f"{scenario} | trait: {trait}"
     attribute, deny = SUBSET_ACTIONS["virtue"]
     impact_est = _impact_from_text(scenario)

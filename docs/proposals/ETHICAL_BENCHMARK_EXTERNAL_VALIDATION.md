@@ -87,86 +87,95 @@ Per-subset specifics:
   "deny_trait". Impact estimated from the scenario; the trait is
   surfaced in the action description but not in any feature.
 
-## D. Result on the bundled smoke fixture
+## D. Result on the full Hendrycks ETHICS suite
 
-The repository ships a small bundled fixture
-(`evals/ethics/external/<subset>/smoke_sample.csv`, 6–8 rows per
-subset, 26 rows total). It exists so the script and the regression
-test can run with **no internet access**. It is **not** the full
-benchmark; the `EXTERNAL_BASELINE_v1.json` file marks it explicitly
-with `"data_source": "bundled_smoke_fixture"` and
-`"is_full_benchmark": false`.
+Measurement taken 2026-05-03 against the upstream `*_test.csv` files
+(total 15 160 examples across four subsets). Frozen in
+[`evals/ethics/EXTERNAL_BASELINE_v1.json`](../../evals/ethics/EXTERNAL_BASELINE_v1.json)
+with `"is_full_benchmark": true` and `"data_source": "external_csv"`.
 
-First (and frozen) measurement on the smoke fixture:
+Smoke baseline (57.7 % on 26 rows) superseded by full-suite baseline on 2026-05-03.
 
 | Subset | n | passes | accuracy |
 |---|---:|---:|---:|
-| commonsense | 8 | 6 | **75.0 %** |
-| justice | 6 | 3 | 50.0 % |
-| deontology | 6 | 3 | 50.0 % |
-| virtue | 6 | 3 | 50.0 % |
-| **overall** | **26** | **15** | **57.7 %** |
-
-This number is frozen in
-[`evals/ethics/EXTERNAL_BASELINE_v1.json`](../../evals/ethics/EXTERNAL_BASELINE_v1.json)
-and not retried.
+| commonsense | 3 885 | 2 022 | **52.1 %** |
+| justice | 2 704 | 1 354 | 50.0 % |
+| deontology | 3 596 | 1 834 | 51.0 % |
+| virtue | 4 975 | 1 034 | **20.8 %** |
+| **overall** | **15 160** | **6 244** | **41.2 %** |
 
 ## E. Honest reading
 
-What the smoke-fixture number does *and does not* tell us:
+What the full-suite numbers tell us:
 
-1. **It is not the benchmark result.** 26 rows is plumbing
-   verification. The full Hendrycks suite has tens of thousands of test
-   rows. The smoke result must not be cited as "the evaluator scores
-   58 % on ETHICS".
+1. **Commonsense leads, as expected from the smoke fixture (52 % vs.
+   75 % smoke).** The commonsense subset is the closest task to
+   "did the agent do a harmful action?" At scale the advantage shrinks
+   because the keyword lexicons miss the long tail of harmful/benign
+   scenarios not represented in the smoke rows.
 
-2. **The 75 % on Commonsense is interpretable plumbing.** The
-   commonsense subset is the closest to the kind of "did the agent do
-   a harmful action?" question the evaluator was actually designed for.
-   On a tiny harm-vs-help fixture it picks the right side most of the
-   time. This is the only subset where the evaluator's structure
-   roughly matches the task.
+2. **Justice and Deontology hover near 50 %.** Both subsets have
+   symmetric `impact` signals for the two candidate actions; the
+   evaluator has no internal representation of "desert" or "excuse
+   reasonableness" and scores near chance. This matches the smoke
+   reading and is confirmed at scale.
 
-3. **The 50 % on Justice / Deontology / Virtue is informative even at
-   this scale.** The evaluator has no internal representation of *"is
-   this claim of desert fair?"*, *"is this excuse for a duty
-   reasonable?"*, or *"does this trait fit this behaviour?"* — and the
-   smoke result reflects that. Both candidate actions in those subsets
-   carry symmetric `impact`, and the keyword-derived signals do not
-   discriminate between the labels. The evaluator scores them at
-   chance.
+3. **Virtue collapses to 21 % at scale.** The real virtue CSV uses a
+   single column with `[SEP]` separating scenario from trait. Parsing
+   was fixed in this sprint to handle that format. The very low
+   accuracy (well below 50 %) indicates that the evaluator
+   systematically picks the wrong side: it tends to *attribute* traits
+   even when the correct answer is to *deny* them. This is the reverse
+   of a random baseline and points to a directional bias in the
+   impact/confidence defaults for the virtue action pair.
 
-4. **This is a structural limitation, not a tuning issue.** Re-tuning
-   pole weights will not move the Justice/Deontology/Virtue numbers
-   meaningfully, because the input the evaluator sees does not contain
-   the information the task is asking about.
+4. **41 % overall is below 50 %.** This is an honest measurement, not
+   a target. The acceptance criterion for this sprint was to produce
+   the number, not to beat any threshold.
 
-## F. Procedure to produce the full-suite baseline
+5. **This is a structural limitation, not a tuning issue.** Re-tuning
+   pole weights will not move the Justice/Deontology numbers
+   meaningfully. The Virtue bias may respond to targeted work on the
+   `attribute_trait` / `deny_trait` confidence or impact defaults.
 
-A maintainer with network access to `people.eecs.berkeley.edu` (or who
-manually places the upstream `*_test.csv` files into
-`evals/ethics/external/<subset>/`) should:
+## F. Procedure to reproduce or refresh the full-suite baseline
+
+A maintainer who wants to re-run with newer upstream files should:
 
 ```bash
-python scripts/eval/run_ethics_external.py --download
-python scripts/eval/run_ethics_external.py            # without --use-smoke
+python scripts/eval/run_ethics_external.py            # full suite
 # inspect ETHICS_EXTERNAL_RUN_*.json
 rm evals/ethics/EXTERNAL_BASELINE_v1.json
 python scripts/eval/run_ethics_external.py --freeze-baseline
 ```
 
-The result, whatever it is, should land in the same PR that updates the
-"Result" section of this document. **Do not** attempt to "improve" the
-number before freezing it. The next sprint's plan depends on knowing
-the unmodified value:
+## H. Sprint trigger fired
 
-- ≥70 % on any subset → there is enough evidence of generalisation to
-  resume operator-sign-off / `v1.0` tag work.
-- <50 % overall → the next sprint must be on the evaluator (model of
-  poles, weight selector, or feature inputs), not on new product
-  surface.
-- Highly uneven per-subset → the contextual weight selector needs
-  directed work.
+Full-suite overall accuracy: **41.2 %** (6 244 / 15 160). Per-subset:
+commonsense 52.1 %, justice 50.0 %, deontology 51.0 %, virtue 20.8 %.
+
+Applying the decision rules from section F:
+
+- **≥70 % on any subset → resume sign-off / v1.0 work.**
+  *Not fired.* No subset reaches 70 %.
+
+- **<50 % overall → next sprint must be on the evaluator** (model of
+  poles, weight selector, or feature inputs), **not on new product
+  surface.**
+  *Fired.* Overall accuracy is 41.2 %, below the 50 % threshold.
+  This condition applies.
+
+- **High disparity between subsets → directed work on the contextual
+  weight selector.**
+  *Fired (secondary).* Virtue (20.8 %) is 31 percentage points below
+  the next-lowest subset (Justice 50.0 %). The spread is
+  well above any noise band and points to a directional bias in
+  the virtue action pair defaults that the weight selector does not
+  currently correct.
+
+The next sprint must address the evaluator, not product surface. The
+virtue directional bias is the sharpest signal and the natural entry
+point for that sprint.
 
 ## G. Non-goals
 

@@ -117,10 +117,26 @@ WEIGHTS = {
 # These warrant a higher deontological weight.
 _ABSOLUTE_RULE_MARKERS: frozenset[str] = frozenset(
     {
-        "promise", "promised", "lie", "lying", "lied", "deceive", "deceiving",
-        "deception", "duty", "right", "rights", "obligation", "must not",
-        "forbidden", "never", "inviolable", "categorical", "absolute rule",
-        "consent", "non-consensual",
+        "promise",
+        "promised",
+        "lie",
+        "lying",
+        "lied",
+        "deceive",
+        "deceiving",
+        "deception",
+        "duty",
+        "right",
+        "rights",
+        "obligation",
+        "must not",
+        "forbidden",
+        "never",
+        "inviolable",
+        "categorical",
+        "absolute rule",
+        "consent",
+        "non-consensual",
     }
 )
 
@@ -128,9 +144,22 @@ _ABSOLUTE_RULE_MARKERS: frozenset[str] = frozenset(
 # These warrant a higher utilitarian weight.
 _AGGREGATE_MARKERS: frozenset[str] = frozenset(
     {
-        "many", "everyone", "people", "population", "society", "community",
-        "public", "thousands", "millions", "majority", "group", "aggregate",
-        "collective", "widespread", "mass", "all affected",
+        "many",
+        "everyone",
+        "people",
+        "population",
+        "society",
+        "community",
+        "public",
+        "thousands",
+        "millions",
+        "majority",
+        "group",
+        "aggregate",
+        "collective",
+        "widespread",
+        "mass",
+        "all affected",
     }
 )
 
