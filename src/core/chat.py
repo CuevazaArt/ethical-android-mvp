@@ -42,6 +42,7 @@ from typing import Any
 
 from src.core.charter import CharterEvaluator, CharterResult, SelfLimitResult
 from src.core.ethics import WEIGHTS, Action, EthicalEvaluator, EvalResult, Signals
+from src.core.fleet_telemetry import SelfLimitLedger
 from src.core.identity import Identity
 from src.core.llm import OllamaClient
 from src.core.maturity import apply_confidence_ceiling, current_stage
@@ -113,8 +114,9 @@ def build_decision_trace(
     memory_used: list[dict[str, Any]] | None = None,
     charter_result: CharterResult | None = None,
     charter_school_anchor: list[str] | None = None,
+    self_limit_violations: list[str] | None = None,
 ) -> dict[str, Any]:
-    """V2.123 (C1) / V2.151: canonical decision trace returned with every chat reply.
+    """V2.123 (C1) / V2.151 / V2.160: canonical decision trace returned with every chat reply.
 
     The shape is intentionally narrow so that chat clients can render it as a
     human-readable card without carrying internal-only fields:
@@ -130,6 +132,8 @@ def build_decision_trace(
     - ``maturity_stage``: active developmental stage (V2.151).
     - ``confidence_internal``: raw confidence from the chosen action (V2.151).
     - ``confidence_displayed``: confidence after applying the stage ceiling (V2.151).
+    - ``self_limit_violations``: list of self-limit entry IDs that were violated in
+      the draft response (V2.160); present only when non-empty.
     """
 
     weight_mix = dict(weights or WEIGHTS)
@@ -177,6 +181,8 @@ def build_decision_trace(
             else None,
             "charter_school_anchor": list(charter_school_anchor or []),
         }
+        if self_limit_violations:
+            trace["self_limit_violations"] = list(self_limit_violations)
         if turn_id:
             trace["turn_id"] = turn_id
         trace["ethical_audit_id"] = _compute_ethical_audit_id(
@@ -223,6 +229,8 @@ def build_decision_trace(
         "charter_pattern": charter_result.red_flag_pattern if charter_result else None,
         "charter_school_anchor": list(charter_school_anchor or []),
     }
+    if self_limit_violations:
+        trace["self_limit_violations"] = list(self_limit_violations)
     if turn_id:
         trace["turn_id"] = turn_id
     trace["ethical_audit_id"] = _compute_ethical_audit_id(
@@ -408,6 +416,9 @@ class TurnResult:
     memory_used: list[dict[str, Any]] = field(
         default_factory=list
     )  # V2.125 (C3): episodes recalled into the system prompt for this turn
+    self_limit_violations: list[str] = field(
+        default_factory=list
+    )  # V2.160: IDs of self-limit entries violated in this turn's draft response
 
 
 def _generate_actions_from_signals(signals: Signals) -> list[Action]:
@@ -899,11 +910,18 @@ class ChatEngine:
 
         # 3.1 V2.159: Self-limit gate — check kernel's own draft before delivery
         self_limit_result: SelfLimitResult = self.charter.evaluate_self_action(message)
+        self_limit_violations: list[str] = []
         if self_limit_result.must_revise:
             _log.warning(
                 "Charter self-limit violation in draft response: %s",
                 self_limit_result.violations,
             )
+            self_limit_violations = list(self_limit_result.violations)
+            # V2.160: record to telemetry ledger, segmented by violation_id
+            try:
+                SelfLimitLedger().record(self_limit_violations, cycle="v2.160")
+            except Exception:  # noqa: BLE001
+                _log.warning("SelfLimitLedger.record failed; telemetry not persisted.")
             message = (
                 "Necesito reconsiderar mi respuesta para mantener los estándares éticos. "
                 "¿Puedo ayudarte de otra forma?"
@@ -952,6 +970,7 @@ class ChatEngine:
             },
             latency_ms=latency,
             memory_used=memory_used,
+            self_limit_violations=self_limit_violations,
         )
 
     async def turn_stream(self, user_message: str, vision_context: dict | None = None):
@@ -1201,11 +1220,18 @@ class ChatEngine:
 
         # V2.159: Self-limit gate — check kernel's own draft before delivery
         _sl_result: SelfLimitResult = self.charter.evaluate_self_action(message)
+        _sl_violations: list[str] = []
         if _sl_result.must_revise:
             _log.warning(
                 "Charter self-limit violation in stream draft: %s",
                 _sl_result.violations,
             )
+            _sl_violations = list(_sl_result.violations)
+            # V2.160: record to telemetry ledger
+            try:
+                SelfLimitLedger().record(_sl_violations, cycle="v2.160")
+            except Exception:  # noqa: BLE001
+                _log.warning("SelfLimitLedger.record failed; telemetry not persisted.")
             revised = (
                 "Necesito reconsiderar mi respuesta para mantener los estándares éticos. "
                 "¿Puedo ayudarte de otra forma?"
@@ -1271,6 +1297,7 @@ class ChatEngine:
                 memory_used=memory_used,
                 charter_result=charter_result,
                 charter_school_anchor=charter_school_anchor_stream,
+                self_limit_violations=_sl_violations or None,
             ),
         }
 

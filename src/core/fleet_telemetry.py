@@ -255,3 +255,93 @@ class FleetLedger:
                 f"    Wave {wave}: {info['count']} instances, {info['tokens_out']:,} tok_out"
             )
         print(f"{'=' * 60}\n")
+
+
+# ── Self-Limit Telemetry Ledger ──────────────────────────────────
+
+
+SELF_LIMIT_LOG_FILE = FLEET_LOG_DIR / "self_limit_telemetry.jsonl"
+
+
+class SelfLimitLedger:
+    """Per-turn telemetry for ``CharterEvaluator.evaluate_self_action`` gate.
+
+    Each time the kernel's own draft response triggers a self-limit violation
+    (``SelfLimitResult.must_revise=True``), one entry per ``violation_id`` is
+    appended to ``data/fleet_logs/self_limit_telemetry.jsonl``.
+
+    Usage::
+
+        from src.core.fleet_telemetry import SelfLimitLedger
+
+        ledger = SelfLimitLedger()
+        ledger.record(["sl-em-001", "sl-em-003"], cycle="v2.160", turn_id="t-123")
+
+        summary = ledger.summary()
+        # {"self_limit_revisions_total": 2, "by_violation_id": {"sl-em-001": 1, "sl-em-003": 1}}
+    """
+
+    def __init__(self, path: Path = SELF_LIMIT_LOG_FILE) -> None:
+        self._path = path
+
+    def record(
+        self,
+        violations: list[str],
+        *,
+        cycle: str = "",
+        turn_id: str = "",
+    ) -> None:
+        """Append one telemetry entry per violation ID.
+
+        Args:
+            violations: List of ``SelfLimitResult.violations`` IDs that fired.
+            cycle: Kernel sprint/cycle identifier (e.g. ``"v2.160"``).
+            turn_id: Optional turn identifier for correlation.
+        """
+        if not violations:
+            return
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        ts = time.time()
+        with self._path.open("a", encoding="utf-8") as fh:
+            for vid in violations:
+                entry: dict[str, Any] = {
+                    "ts": ts,
+                    "violation_id": vid,
+                    "cycle": cycle,
+                    "turn_id": turn_id,
+                }
+                fh.write(json.dumps(entry) + "\n")
+        _log.info(
+            "[FLEET/SELF_LIMIT] recorded %d violation(s): %s",
+            len(violations),
+            violations,
+        )
+
+    def summary(self) -> dict[str, Any]:
+        """Return aggregate counts.
+
+        Returns:
+            Dict with keys:
+            - ``self_limit_revisions_total``: total violation events recorded.
+            - ``by_violation_id``: mapping of violation ID → count.
+        """
+        if not self._path.exists():
+            return {"self_limit_revisions_total": 0, "by_violation_id": {}}
+
+        by_id: dict[str, int] = {}
+        total = 0
+        with self._path.open(encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                    vid = entry.get("violation_id", "")
+                    if vid:
+                        by_id[vid] = by_id.get(vid, 0) + 1
+                        total += 1
+                except json.JSONDecodeError:
+                    _log.warning("[FLEET/SELF_LIMIT] Skipping corrupt line.")
+
+        return {"self_limit_revisions_total": total, "by_violation_id": by_id}

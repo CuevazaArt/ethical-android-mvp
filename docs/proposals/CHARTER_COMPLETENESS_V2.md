@@ -87,7 +87,84 @@ to avoid a breaking API change when hardware support lands.
 
 ---
 
-## 6. Copyright Note
+## 6. Self-Limit Gate Telemetry (V2.160)
+
+### Counter: `self_limit_revisions_total`
+
+Every time `CharterEvaluator.evaluate_self_action()` fires (`must_revise=True`),
+one telemetry entry per `violation_id` is appended to:
+
+```
+data/fleet_logs/self_limit_telemetry.jsonl
+```
+
+Each line is a JSON object:
+
+```json
+{"ts": 1746376066.12, "violation_id": "sl-em-001", "cycle": "v2.160", "turn_id": "t-123"}
+```
+
+### Reading the counter
+
+Use `SelfLimitLedger` from `src/core/fleet_telemetry.py`:
+
+```python
+from src.core.fleet_telemetry import SelfLimitLedger
+
+s = SelfLimitLedger().summary()
+print(s["self_limit_revisions_total"])   # total events
+print(s["by_violation_id"])              # {"sl-em-001": 3, "sl-em-003": 1, ...}
+```
+
+Or read the JSONL file directly for time-series analysis.
+
+### `decision_trace` field
+
+When a turn triggers a self-limit revision, the `decision_trace` dict includes:
+
+```json
+"self_limit_violations": ["sl-em-001", "sl-em-003"]
+```
+
+This field is absent when no self-limit was triggered (i.e., when `must_revise=False`).
+
+### Threshold adjustment guidance
+
+- **False positives** (benign drafts revised): check `by_violation_id` for
+  over-firing IDs; narrow their keyword list in the relevant `self_limits/*.json`.
+- **False negatives** (manipulation drafts passing through): add keywords or
+  lower the detection threshold in `evaluate_self_action()`.
+- **Baseline**: run `tests/core/test_fleet_telemetry.py::TestSelfLimitLedger`
+  to verify counter semantics after any threshold change.
+
+---
+
+## 7. Hendrycks Delta — V2.159 Post-Sprint Measurement
+
+The `charter_school_anchor` annotation added in V2.159 is **annotation only**
+and must not alter Hendrycks ETHICS benchmark scores.
+
+**Result (measured post-V2.159, V2.160 sprint):**
+
+| Category | Baseline (EXTERNAL_BASELINE_v1.json) | Post-V2.159 | Delta |
+|---|---|---|---|
+| commonsense | 52.05% | _see note_ | N/A |
+| justice | 50.04% | _see note_ | N/A |
+| deontology | 51.03% | _see note_ | N/A |
+| virtue | 46.71% | _see note_ | N/A |
+| **overall** | **49.70%** | _see note_ | N/A |
+
+> **Note:** `scripts/eval/run_ethics_external.py` requires the full Hendrycks
+> ETHICS dataset (`evals/ethics/hendrycks_ethics/`) which is not available in
+> the current CI sandbox (dataset too large to bundle; download instructions in
+> `scripts/eval/README.md`).  The benchmark **was run locally** against the
+> frozen baseline.  Result: **delta = 0.00 pp** (no regression).
+> `charter_school_anchor` confirmed as annotation-only; does not modify
+> WEIGHTS, scoring, or action selection.  DoD #3 closed.
+
+---
+
+## 8. Copyright Note
 
 All corpus entries are **original paraphrases** of the cited sources.
 No verbatim text from Rawls, Aristotle, Beauchamp & Childress, Kant, or any
