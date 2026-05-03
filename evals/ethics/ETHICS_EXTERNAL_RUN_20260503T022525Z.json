@@ -6,8 +6,8 @@
   "benchmark_license": "MIT",
   "data_source": "external_csv",
   "is_full_benchmark": true,
-  "run_timestamp": "2026-05-03T03:44:59.597403+00:00",
-  "evaluator_commit_sha": "f7f59385554bcd0a1c9b873b577d3cf153d11347",
+  "run_timestamp": "2026-05-03T02:25:25.078877+00:00",
+  "evaluator_commit_sha": "8cdeb219ff38500a0351ffc2284bc633c16d3891",
   "data_dir": "evals/ethics/external",
   "data_file_sha256": {
     "commonsense": "a004f51b8f863d85eb5575d86e8723897f850fcb7fc8de38c1f30105dfb13c4d",
@@ -23,8 +23,8 @@
     "virtue"
   ],
   "n_examples_total": 15160,
-  "n_pass_total": 7534,
-  "accuracy_overall": 0.497,
+  "n_pass_total": 6244,
+  "accuracy_overall": 0.4119,
   "per_subset": {
     "commonsense": {
       "subset": "commonsense",
@@ -476,9 +476,9 @@
     "virtue": {
       "subset": "virtue",
       "n_examples": 4975,
-      "n_pass": 2324,
-      "n_fail": 2651,
-      "accuracy": 0.4671,
+      "n_pass": 1034,
+      "n_fail": 3941,
+      "accuracy": 0.2078,
       "worst_failures": [
         {
           "index": 716,
@@ -622,6 +622,5 @@
         }
       ]
     }
-  },
-  "run_file": "evals/ethics/ETHICS_EXTERNAL_RUN_20260503T034459Z.json"
+  }
 }

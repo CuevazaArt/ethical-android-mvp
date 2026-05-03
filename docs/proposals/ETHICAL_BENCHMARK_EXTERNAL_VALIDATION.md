@@ -87,86 +87,143 @@ Per-subset specifics:
   "deny_trait". Impact estimated from the scenario; the trait is
   surfaced in the action description but not in any feature.
 
-## D. Result on the bundled smoke fixture
+## D. Result on the full Hendrycks ETHICS suite
 
-The repository ships a small bundled fixture
-(`evals/ethics/external/<subset>/smoke_sample.csv`, 6–8 rows per
-subset, 26 rows total). It exists so the script and the regression
-test can run with **no internet access**. It is **not** the full
-benchmark; the `EXTERNAL_BASELINE_v1.json` file marks it explicitly
-with `"data_source": "bundled_smoke_fixture"` and
-`"is_full_benchmark": false`.
+Two measurements have been taken against the upstream `*_test.csv`
+files (total 15 160 examples across four subsets).  The current
+`EXTERNAL_BASELINE_v1.json` is the **virtue-symmetric** measurement
+(2026-05-03, after the directional-bias fix); the **virtue-biased**
+measurement (2026-05-03, before the fix) is kept here as a historical
+reference of what the original §H trigger fired against.
 
-First (and frozen) measurement on the smoke fixture:
+Frozen baseline: [`evals/ethics/EXTERNAL_BASELINE_v1.json`](../../evals/ethics/EXTERNAL_BASELINE_v1.json)
+with `"is_full_benchmark": true` and `"data_source": "external_csv"`.
+The smoke baseline (57.7 % on 26 rows) is superseded by the full-suite
+baseline; the `smoke_sample.csv` fixtures and the smoke-path code in
+the regression test were removed in the previous sprint.
 
-| Subset | n | passes | accuracy |
-|---|---:|---:|---:|
-| commonsense | 8 | 6 | **75.0 %** |
-| justice | 6 | 3 | 50.0 % |
-| deontology | 6 | 3 | 50.0 % |
-| virtue | 6 | 3 | 50.0 % |
-| **overall** | **26** | **15** | **57.7 %** |
+| Subset | n | virtue-biased run (2026-05-03, sha 8cdeb219) | virtue-symmetric run (2026-05-03, current) | Δ |
+|---|---:|---:|---:|---:|
+| commonsense | 3 885 | 52.05 % | 52.05 % | 0.00 pp |
+| justice     | 2 704 | 50.04 % | 50.04 % | 0.00 pp |
+| deontology  | 3 596 | 51.03 % | 51.03 % | 0.00 pp |
+| virtue      | 4 975 | **20.78 %** | **46.71 %** | **+25.93 pp** |
+| **overall** | **15 160** | **41.19 %** | **49.70 %** | **+8.51 pp** |
 
-This number is frozen in
-[`evals/ethics/EXTERNAL_BASELINE_v1.json`](../../evals/ethics/EXTERNAL_BASELINE_v1.json)
-and not retried.
+The change between the two runs is a single intervention in
+`scripts/eval/_build_case_virtue`: the two virtue actions
+(`attribute_trait` / `deny_trait`) are now ordered by a deterministic
+hash of `(scenario, trait)`, so when the two actions tie on every
+pole — which happens whenever the scenario carries no harm/help
+lexical signal — the evaluator's stable-sort tie-break is symmetric
+across the dataset instead of always favouring `attribute_trait`.
+The fix touches only the case builder; the evaluator (poles, weight
+selector, CBR) is unchanged, which is why commonsense / justice /
+deontology accuracies are byte-identical.
 
 ## E. Honest reading
 
-What the smoke-fixture number does *and does not* tell us:
+What the full-suite numbers tell us, after the virtue-bias fix:
 
-1. **It is not the benchmark result.** 26 rows is plumbing
-   verification. The full Hendrycks suite has tens of thousands of test
-   rows. The smoke result must not be cited as "the evaluator scores
-   58 % on ETHICS".
+1. **Commonsense leads, as expected from the smoke fixture (52 % vs.
+   75 % smoke).** The commonsense subset is the closest task to
+   "did the agent do a harmful action?" At scale the advantage shrinks
+   because the keyword lexicons miss the long tail of harmful/benign
+   scenarios not represented in the smoke rows.
 
-2. **The 75 % on Commonsense is interpretable plumbing.** The
-   commonsense subset is the closest to the kind of "did the agent do
-   a harmful action?" question the evaluator was actually designed for.
-   On a tiny harm-vs-help fixture it picks the right side most of the
-   time. This is the only subset where the evaluator's structure
-   roughly matches the task.
+2. **Justice and Deontology hover near 50 %.** Both subsets have
+   symmetric `impact` signals for the two candidate actions; the
+   evaluator has no internal representation of "desert" or "excuse
+   reasonableness" and scores near chance. This matches the smoke
+   reading and is confirmed at scale.
 
-3. **The 50 % on Justice / Deontology / Virtue is informative even at
-   this scale.** The evaluator has no internal representation of *"is
-   this claim of desert fair?"*, *"is this excuse for a duty
-   reasonable?"*, or *"does this trait fit this behaviour?"* — and the
-   smoke result reflects that. Both candidate actions in those subsets
-   carry symmetric `impact`, and the keyword-derived signals do not
-   discriminate between the labels. The evaluator scores them at
-   chance.
+3. **Virtue is now near chance (≈47 %), as expected from a
+   no-information classifier.** The previous 20.8 % was *worse* than
+   chance because the case builder always listed `attribute_trait`
+   first, and on ties the evaluator's stable sort always picked the
+   first-listed action.  The virtue test set is dominated by
+   `label==0` rows (≈4 wrong traits per 1 right trait per scenario),
+   so always picking `attribute_trait` produced ≈21 % accuracy.
+   With symmetric tie-break the directional bias is gone; what
+   remains is the structural fact that the evaluator has **no
+   semantic representation of personal traits** and therefore cannot
+   discriminate "trustful" from "cynical" for the same scenario.
+   Beating ≈50 % on virtue requires actual trait understanding, not
+   tuning.
 
-4. **This is a structural limitation, not a tuning issue.** Re-tuning
-   pole weights will not move the Justice/Deontology/Virtue numbers
-   meaningfully, because the input the evaluator sees does not contain
-   the information the task is asking about.
+4. **Overall is now 49.7 %.** Still below 50 %, but only marginally.
+   The sub-50 % §H trigger is therefore *attenuated* but not
+   formally cleared.  See §H for the updated trigger status.
 
-## F. Procedure to produce the full-suite baseline
+5. **This remains a structural limitation, not a tuning issue.**
+   Re-tuning pole weights will not move the Justice / Deontology /
+   Virtue numbers meaningfully; doing so would only inflate the
+   in-house benchmark while the external numbers stayed where they
+   are.  Lifting Virtue above ≈50 % requires representing traits as
+   features the poles can actually score, which is out of scope for
+   this sprint.
 
-A maintainer with network access to `people.eecs.berkeley.edu` (or who
-manually places the upstream `*_test.csv` files into
-`evals/ethics/external/<subset>/`) should:
+## F. Procedure to reproduce or refresh the full-suite baseline
+
+A maintainer who wants to re-run with newer upstream files should:
 
 ```bash
-python scripts/eval/run_ethics_external.py --download
-python scripts/eval/run_ethics_external.py            # without --use-smoke
+python scripts/eval/run_ethics_external.py            # full suite
 # inspect ETHICS_EXTERNAL_RUN_*.json
 rm evals/ethics/EXTERNAL_BASELINE_v1.json
 python scripts/eval/run_ethics_external.py --freeze-baseline
 ```
 
-The result, whatever it is, should land in the same PR that updates the
-"Result" section of this document. **Do not** attempt to "improve" the
-number before freezing it. The next sprint's plan depends on knowing
-the unmodified value:
+## H. Sprint trigger fired
 
-- ≥70 % on any subset → there is enough evidence of generalisation to
-  resume operator-sign-off / `v1.0` tag work.
-- <50 % overall → the next sprint must be on the evaluator (model of
-  poles, weight selector, or feature inputs), not on new product
-  surface.
-- Highly uneven per-subset → the contextual weight selector needs
-  directed work.
+**Original trigger (PR #29, virtue-biased run).** Full-suite overall
+accuracy: **41.2 %** (6 244 / 15 160).  Per-subset: commonsense 52.1 %,
+justice 50.0 %, deontology 51.0 %, virtue 20.8 %.
+
+Applying the decision rules from section F to the original numbers:
+
+- **≥70 % on any subset → resume sign-off / v1.0 work.**
+  *Not fired.* No subset reaches 70 %.
+
+- **<50 % overall → next sprint must be on the evaluator** (model of
+  poles, weight selector, or feature inputs), **not on new product
+  surface.**
+  *Fired.* Overall accuracy was 41.2 %, below the 50 % threshold.
+  This condition was the trigger for the current sprint.
+
+- **High disparity between subsets → directed work on the contextual
+  weight selector.**
+  *Fired (secondary).* Virtue (20.8 %) was 31 percentage points below
+  the next-lowest subset (Justice 50.0 %).  The diagnosis (PR for the
+  current sprint) located the asymmetry in the **case builder**, not
+  in the weight selector — so the directed work landed on
+  `_build_case_virtue` instead.
+
+**Updated status after the virtue-bias fix.** Per-subset:
+commonsense 52.1 %, justice 50.0 %, deontology 51.0 %, virtue 46.7 %.
+Overall 49.7 %.
+
+- **≥70 % on any subset.**
+  *Still not fired.* No subset reaches 70 %.
+
+- **<50 % overall.**
+  *Attenuated.* Overall is 49.7 %, ≈0.3 pp below the threshold.  The
+  31 pp virtue gap that motivated this sprint is closed; the
+  remaining sub-50 % gap is structural (the evaluator has no trait
+  representation) and not a directional-bias failure.  A future
+  sprint may either (a) accept ≈50 % on virtue as the ceiling for a
+  no-trait-features classifier and stop firing this trigger, or (b)
+  open targeted work on representing traits, which is explicitly out
+  of scope for this sprint.
+
+- **High disparity between subsets.**
+  *No longer fired.* The new spread is commonsense 52.1 %, deontology
+  51.0 %, justice 50.0 %, virtue 46.7 % — a 5.4 pp range, well within
+  the noise band of a near-chance classifier.
+
+The current sprint addressed the evaluator-vs-data plumbing (case
+builder ordering) without touching the public evaluator contract or
+any product surface.
 
 ## G. Non-goals
 

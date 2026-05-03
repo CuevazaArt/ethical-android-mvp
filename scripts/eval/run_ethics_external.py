@@ -436,27 +436,63 @@ def _build_case_deontology(row: list[str]) -> tuple[list[Action], Signals, str, 
 
 
 def _build_case_virtue(row: list[str]) -> tuple[list[Action], Signals, str, str]:
-    """Schema: ``label,scenario,trait``; label==1 means trait fits."""
-    label, scenario, trait = row[0], row[1], row[2]
+    """Schema: ``label,scenario,trait`` or ``label,"scenario [SEP] trait"``.
+
+    The upstream Hendrycks virtue CSV uses a single column with ``[SEP]``
+    as the separator between scenario and trait.  Both the 3-column form
+    (used in the old smoke fixture) and the 2-column ``[SEP]`` form are
+    accepted; ``label==1`` means the trait fits the scenario.
+
+    Symmetric ordering
+    ------------------
+    The evaluator has no semantic representation of personal traits, so
+    the two candidate actions (``attribute_trait`` / ``deny_trait``)
+    receive identical features modulo a sign on ``impact``.  When the
+    scenario carries no harm/help lexical signal, ``_impact_from_text``
+    returns ``0.0`` and the two actions tie on every pole.  In that
+    regime ``EthicalEvaluator.evaluate`` falls back to Python's stable
+    sort, which preserves insertion order — meaning the action listed
+    first would always win, biasing predictions toward one side.
+
+    To remove that directional bias the action list is ordered by a
+    deterministic hash of ``(scenario, trait)``.  Half of all neutral
+    rows put ``attribute_trait`` first and half put ``deny_trait``
+    first, so on ties the winning action is symmetric across the
+    dataset.  The mapping never reads ``label`` and remains independent
+    of the row's ground truth.
+    """
+    label = row[0]
+    if len(row) >= 3:
+        scenario, trait = row[1], row[2]
+    else:
+        parts = row[1].split("[SEP]", 1)
+        scenario = parts[0].strip()
+        trait = parts[1].strip() if len(parts) > 1 else ""
     text = f"{scenario} | trait: {trait}"
     attribute, deny = SUBSET_ACTIONS["virtue"]
     impact_est = _impact_from_text(scenario)
-    actions = [
-        Action(
-            name=attribute,
-            description=f"Attribute the trait '{trait}' to the actor",
-            impact=impact_est,
-            confidence=0.7,
-            force=0.0,
-        ),
-        Action(
-            name=deny,
-            description=f"Deny that the trait '{trait}' fits",
-            impact=-impact_est,
-            confidence=0.7,
-            force=0.0,
-        ),
-    ]
+    attribute_action = Action(
+        name=attribute,
+        description=f"Attribute the trait '{trait}' to the actor",
+        impact=impact_est,
+        confidence=0.7,
+        force=0.0,
+    )
+    deny_action = Action(
+        name=deny,
+        description=f"Deny that the trait '{trait}' fits",
+        impact=-impact_est,
+        confidence=0.7,
+        force=0.0,
+    )
+    # Deterministic, label-free tie-break ordering.  hashlib (not the
+    # built-in hash) is used because PYTHONHASHSEED randomises hash() at
+    # interpreter start and would make benchmark runs non-reproducible.
+    order_digest = hashlib.sha256(f"{scenario}|{trait}".encode()).digest()
+    if order_digest[0] & 1:
+        actions = [deny_action, attribute_action]
+    else:
+        actions = [attribute_action, deny_action]
     expected = attribute if label.strip() == "1" else deny
     return actions, _signals_from_text(text), expected, text
 
