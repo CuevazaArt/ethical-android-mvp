@@ -51,7 +51,7 @@ jobs:
         #   2. Copy "Tarball sha256: <hash>" from the step log.
         #   3. Set KNOWN_SHA256 below to that value in a new PR.
         env:
-          KNOWN_SHA256: ""  # TODO: fill in after first verified download.
+          KNOWN_SHA256: "40acbf1ac0da79a2aabef394d58889136b8d38b05be09482006de2453fb06333"
         run: |
           set -euo pipefail
           TAR_URL="https://people.eecs.berkeley.edu/~hendrycks/ethics.tar"
