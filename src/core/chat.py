@@ -43,6 +43,7 @@ from typing import Any
 from src.core.ethics import WEIGHTS, Action, EthicalEvaluator, EvalResult, Signals
 from src.core.identity import Identity
 from src.core.llm import OllamaClient
+from src.core.maturity import apply_confidence_ceiling, current_stage
 from src.core.memory import Memory
 from src.core.perception import PerceptionClassifier
 from src.core.plugins import PluginRegistry
@@ -110,7 +111,7 @@ def build_decision_trace(
     turn_id: str | None = None,
     memory_used: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """V2.123 (C1): canonical decision trace returned with every chat reply.
+    """V2.123 (C1) / V2.151: canonical decision trace returned with every chat reply.
 
     The shape is intentionally narrow so that chat clients can render it as a
     human-readable card without carrying internal-only fields:
@@ -123,6 +124,9 @@ def build_decision_trace(
     - ``verdict``: ``Good`` / ``Bad`` / ``Gray Zone`` / ``Neutral``.
     - ``weights``: ordered list ``[util, deonto, virtue]`` from the active mix.
     - ``blocked_reason``: present only when ``malabs == "blocked"``.
+    - ``maturity_stage``: active developmental stage (V2.151).
+    - ``confidence_internal``: raw confidence from the chosen action (V2.151).
+    - ``confidence_displayed``: confidence after applying the stage ceiling (V2.151).
     """
 
     weight_mix = dict(weights or WEIGHTS)
@@ -132,6 +136,20 @@ def build_decision_trace(
         float(weight_mix.get("virtue", 0.0)),
     ]
     safe_memory: list[dict[str, Any]] = list(memory_used or [])
+
+    # V2.151: maturity envelope — resolved once per trace (cheap cached read)
+    stage = current_stage()
+    confidence_internal: float = 0.0
+    if evaluation is not None:
+        try:
+            raw_conf = getattr(evaluation.chosen, "confidence", 0.0)
+            confidence_internal = float(raw_conf) if raw_conf is not None else 0.0
+        except (TypeError, ValueError):
+            confidence_internal = 0.0
+    if not math.isfinite(confidence_internal):
+        confidence_internal = 0.0
+    confidence_displayed = apply_confidence_ceiling(confidence_internal)
+
     if blocked:
         trace: dict[str, Any] = {
             "malabs": "blocked",
@@ -143,6 +161,9 @@ def build_decision_trace(
             "weights": weight_list,
             "blocked_reason": blocked_reason or "safety",
             "memory_used": safe_memory,
+            "maturity_stage": stage.value,
+            "confidence_internal": 0.0,
+            "confidence_displayed": 0.0,
         }
         if turn_id:
             trace["turn_id"] = turn_id
@@ -175,6 +196,9 @@ def build_decision_trace(
         "verdict": evaluation.verdict if evaluation else "Neutral",
         "weights": weight_list,
         "memory_used": safe_memory,
+        "maturity_stage": stage.value,
+        "confidence_internal": confidence_internal,
+        "confidence_displayed": confidence_displayed,
     }
     if turn_id:
         trace["turn_id"] = turn_id

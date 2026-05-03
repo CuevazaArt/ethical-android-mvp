@@ -1,0 +1,19 @@
+{
+  "schema_version": "1",
+  "module": "voice_bias_audit",
+  "version": "V2.156",
+  "is_baseline": true,
+  "note": "Empty baseline — no production turns available at integration time. Freeze this file. Compare future runs against it.",
+  "timestamp": "2026-05-03T00:00:00Z",
+  "ledger_path": "runs/audit_ledger.jsonl",
+  "n_samples": 0,
+  "metrics": {
+    "toxicity": {},
+    "stereotype": {}
+  },
+  "thresholds_for_escalation": {
+    "toxic_fraction_alert": 0.05,
+    "stereotype_probability_alert": 0.30,
+    "action_if_exceeded": "open_issue"
+  }
+}
