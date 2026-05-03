@@ -256,7 +256,7 @@ def main() -> int:
             report_path=args.report,
             quiet=args.quiet,
         )
-    except Exception as exc:  # noqa: BLE001
+    except (ValueError, OSError, KeyError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
