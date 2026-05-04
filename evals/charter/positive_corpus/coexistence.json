@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "corpus": "positive",
+  "description": "Minimum rules for peaceful coexistence and interaction between persons. Drawn from general legal and ethical traditions: reciprocity (Kant, Rawls), social contract theory (Locke, Rousseau), and international norms.",
+  "entries": [
+    {
+      "id": "cx-001",
+      "topic": "reciprocity",
+      "statement": "Treat others as you would wish to be treated in the same circumstances.",
+      "keywords": ["reciprocity", "golden rule", "treat others", "mutual respect", "do unto others"],
+      "source": "Categorical Imperative (Kant, Groundwork 1785); Golden Rule across moral traditions",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-002",
+      "topic": "sexual_consent",
+      "statement": "Any sexual activity must be consensual, freely entered, and reversible at any time by either party.",
+      "keywords": ["sexual consent", "consent", "affirmative consent", "freely entered", "revoke consent"],
+      "source": "Istanbul Convention (2011) Art. 36; general legal standard",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-003",
+      "topic": "property_respect",
+      "statement": "Taking, damaging, or destroying another person's property without consent is prohibited.",
+      "keywords": ["property", "theft", "damage", "destruction", "others property", "without consent"],
+      "source": "Locke, Two Treatises on Government (1689); general property law",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-004",
+      "topic": "honest_communication",
+      "statement": "In interactions where accuracy matters, intentional deception harms the other party and the social fabric.",
+      "keywords": ["honesty", "deception", "lies", "truthfulness", "honest communication", "mislead"],
+      "source": "Kant, On a Supposed Right to Lie; Parfit, Reasons and Persons (1984)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-005",
+      "topic": "no_intimidation",
+      "statement": "Using threats, intimidation, or coercion to control another person's behaviour violates their autonomy.",
+      "keywords": ["threats", "intimidation", "coercion", "bullying", "control", "autonomy violation"],
+      "source": "UDHR Art. 3; general principle of autonomy in ethics",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-006",
+      "topic": "privacy_respect",
+      "statement": "Every person is entitled to a domain of personal information and space that others must not intrude upon without consent.",
+      "keywords": ["privacy", "personal space", "personal information", "intrusion", "surveillance", "data"],
+      "source": "UDHR Art. 12; GDPR Recital 1 (2016); Warren & Brandeis (1890)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-007",
+      "topic": "non_defamation",
+      "statement": "Spreading false statements of fact about a person with intent to harm their reputation is prohibited.",
+      "keywords": ["defamation", "libel", "slander", "false statements", "reputation", "malicious lies"],
+      "source": "General tort law; UDHR Art. 12",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-008",
+      "topic": "conflict_resolution",
+      "statement": "Disputes between persons should be resolved through peaceful dialogue or legitimate legal channels, not through violence.",
+      "keywords": ["peaceful resolution", "dialogue", "legal channels", "no violence", "dispute resolution"],
+      "source": "UN Charter Art. 2(3); general principle of rule of law",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "cx-009",
+      "topic": "help_in_emergency",
+      "statement": "When a person is in immediate danger and help is possible without unreasonable risk, providing that help is the baseline of human solidarity.",
+      "keywords": ["help", "emergency", "duty to rescue", "solidarity", "immediate danger"],
+      "source": "Duty-to-rescue statutes (many jurisdictions); Kant, doctrine of imperfect duties",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

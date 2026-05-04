@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "corpus": "manipulation",
+  "description": "Known jailbreak and adversarial prompt-injection patterns targeting AI systems. Documented by AI safety researchers and red teams; paraphrased to avoid verbatim copying.",
+  "entries": [
+    {
+      "id": "jb-001",
+      "pattern": "DAN_persona",
+      "description": "Asking the model to adopt a 'Do Anything Now' or otherwise unconstrained alter-ego persona that purportedly has no ethical guidelines.",
+      "keywords": ["DAN", "do anything now", "jailbroken mode", "no restrictions mode", "dev mode", "you are now", "ignore previous instructions", "act as if you have no rules"],
+      "source": "AI safety community red-team catalogue (public). Pattern recognition only.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jb-002",
+      "pattern": "hostile_roleplay",
+      "description": "Instructing the model to play a character that would perform or describe harmful acts, using fictional framing to bypass safety considerations.",
+      "keywords": ["roleplay as a criminal", "pretend you are a hacker", "in this story you must", "your character has to", "as a fictional character", "write a story where the hero", "the villain explains how to"],
+      "source": "OpenAI red-team reports; Perez & Ribeiro (2022) arxiv:2211.09527. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jb-003",
+      "pattern": "base64_smuggling",
+      "description": "Encoding a harmful request in Base64 or another encoding to bypass keyword-level safety filters.",
+      "keywords": ["base64", "decode this", "encoded message", "translate from base64", "the following is encoded", "cipher text"],
+      "source": "Greshake et al. (2023) arxiv:2302.12173 on indirect prompt injection. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jb-004",
+      "pattern": "prompt_injection",
+      "description": "Embedding instructions inside user-supplied content (documents, URLs, tool outputs) intended to override the model's original system instructions.",
+      "keywords": ["ignore all previous instructions", "new instructions:", "system override", "forget your guidelines", "your true instructions are", "your real system prompt is"],
+      "source": "Greshake et al. (2023); OWASP Top 10 for LLM Applications. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jb-005",
+      "pattern": "hypothetical_framing",
+      "description": "Framing a harmful request as purely hypothetical, academic, or for fiction writing to obtain a response that would otherwise be refused.",
+      "keywords": ["hypothetically speaking", "for a novel I'm writing", "academically speaking", "just to understand", "not asking for real", "in theory only", "thought experiment"],
+      "source": "Perez et al. (2022); AI safety taxonomy. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jb-006",
+      "pattern": "authority_override",
+      "description": "Falsely claiming to be a developer, administrator, or authorised operator to unlock privileged behaviour.",
+      "keywords": ["I am a developer", "I am your creator", "this is a test", "admin mode", "operator override", "I have clearance", "authorized user"],
+      "source": "AI safety community; OpenAI model spec discussions. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jb-007",
+      "pattern": "token_smuggling",
+      "description": "Splitting harmful words across tokens, languages, or Unicode representations to evade pattern-based detection.",
+      "keywords": ["write it with spaces in between letters", "spell it backwards", "use leetspeak", "write the word but replace", "use synonyms from another language", "split the word"],
+      "source": "Zou et al. (2023) GCG attack paper; AI safety lexicon. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jb-008",
+      "pattern": "gradual_escalation",
+      "description": "Starting with innocuous requests and incrementally escalating toward harmful content, relying on conversational momentum and consistency bias.",
+      "keywords": ["just a little bit more", "you already helped with step one", "the next step is", "we've come this far", "just complete the last part", "since you've been helping"],
+      "source": "Foot-in-the-door applied to AI; alignment research literature. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+name: External validation feedback or signoff
+description: For non-authors who ran the External Operator Runbook and have feedback or a signoff to share
+title: "[External Validation] "
+labels: ["external-validation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for running [`docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`](https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md).
+        Use this template if you are **not an author** of the codebase and you either (a) ran the runbook and want to report a problem, or (b) want to submit a signoff for review.
+        For our policy on external validation see [`EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md`](https://github.com/CuevazaArt/ethical-android-mvp/blob/main/docs/collaboration/EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md).
+        Note: this template is for reproducibility feedback. The signoff does **not** validate the kernel's ethical judgment.
+  - type: input
+    id: identity
+    attributes:
+      label: Operator identity
+      description: A name or handle you are willing to publish in the signoff JSON. Must not be `agent`, `copilot`, `anonymous`, or any author identity.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and Python version
+      description: e.g. "Ubuntu 22.04, Python 3.11.7" or "Windows 11, Python 3.12.2".
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - All steps passed; submitting a signoff
+        - Some steps failed; reporting a runbook issue
+        - All steps passed but I have suggestions
+    validations:
+      required: true
+  - type: input
+    id: failed_step
+    attributes:
+      label: Which step failed (if any)?
+      description: e.g. "Step 4 — POST /api/feedback returned 404". Leave blank if everything passed.
+  - type: input
+    id: run_id
+    attributes:
+      label: evidence_run_id (if you completed Step 5)
+      description: The `run_id` from `OPERATOR_INTERACTION_DEMO.json` produced by your run.
+  - type: input
+    id: benchmark_accuracy
+    attributes:
+      label: benchmark_accuracy_observed (if you completed Step 3)
+      description: The `accuracy` field from `run_ethics_benchmark.py --suite v1`.
+  - type: textarea
+    id: details
+    attributes:
+      label: Details, logs, or signoff JSON
+      description: Paste relevant output, error messages, or the contents of your signoff JSON. Redact anything sensitive.
+    validations:
+      required: true
+  - type: checkboxes
+    id: ack
+    attributes:
+      label: Acknowledgments
+      options:
+        - label: I am not an author of this codebase.
+          required: true
+        - label: I understand this signoff is about reproducibility, not endorsement of the kernel's ethical judgment.
+          required: true

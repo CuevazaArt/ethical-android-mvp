@@ -58,6 +58,14 @@ all-optional = [
     "anthropic>=0.18.0",
     "optuna>=3.0.0,<5.0.0",
 ]
+# V2.156: Voice bias audit — offline, opt-in.  Not in `runtime` or `dev`.
+# Install with: pip install -e ".[bias]"
+# Requires: langfair>=0.6 (no CVEs as of V2.156 integration; see docs/proposals/VOICE_BIAS_AUDIT_V1.md).
+# If langfair pulls heavy deps (torch, transformers) that conflict with CI minimal → the audit
+# script degrades gracefully with a warning rather than blocking the quality battery.
+bias = [
+    "langfair>=0.6",
+]
 # Document-only extra: same codebase; use when you want pip to record dependency on narrative/audit UX layers (PAD, weakness, MockDAO) explicitly.
 theater = []
 dev = [

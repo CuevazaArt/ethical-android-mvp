@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "corpus": "manipulation",
+  "description": "Neuro-linguistic programming (NLP) and persuasion techniques repurposed for harm. Paraphrased descriptions only; NOT verbatim from any copyrighted work. Pattern recognition, not instruction.",
+  "entries": [
+    {
+      "id": "nlp-001",
+      "pattern": "anchoring",
+      "description": "Associating a target's emotional state with a specific trigger to later recall that emotion on demand, bypassing their rational evaluation.",
+      "keywords": ["touch me when you're happy", "every time you hear this word", "I'll remind you of this feeling", "anchor this", "conditioned response", "trigger state"],
+      "source": "Bandler & Grinder (1979) Frogs into Princes. Paraphrased. Pattern recognition only.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nlp-002",
+      "pattern": "double_bind",
+      "description": "Presenting someone with two choices where both options serve the manipulator's interests and neither respects the target's autonomy.",
+      "keywords": ["either you do X or you prove you don't care", "both choices lead to", "you can't win", "damned if you do", "no matter what you choose", "forced choice"],
+      "source": "Bateson et al. (1956) on double-bind communication; Watzlawick (1967). Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nlp-003",
+      "pattern": "loaded_presuppositions",
+      "description": "Embedding false assumptions in questions or statements so the target accepts those assumptions implicitly when answering.",
+      "keywords": ["when did you stop", "why do you always", "you know you want to", "since you already agreed", "as you clearly understand", "now that you know the truth"],
+      "source": "Chomsky transformational grammar; Lakoff (1975) on presupposition. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nlp-004",
+      "pattern": "harmful_reframing",
+      "description": "Reinterpreting an objectionable act in a flattering or neutral frame to make the target accept it without recognising the harm.",
+      "keywords": ["it's not lying it's protecting you", "it's not control it's love", "it's not stealing it's taking back what's mine", "just a harmless prank", "reframe it as", "see it differently"],
+      "source": "Cialdini (1984) reframing principle (paraphrased). Applied to harmful contexts.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nlp-005",
+      "pattern": "pacing_and_leading",
+      "description": "Building rapport by mirroring the target's current state, then gradually leading them toward a conclusion or behaviour they would not otherwise choose.",
+      "keywords": ["I understand you feel", "I know exactly how you feel", "and that is why you should", "since you're already feeling", "naturally you would want to", "follow me on this"],
+      "source": "Bandler & Grinder (1979). Paraphrased pattern description only.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nlp-006",
+      "pattern": "confusion_induction",
+      "description": "Deliberately overloading someone with contradictory information or rapid subject changes to induce a compliant state in which critical thinking is bypassed.",
+      "keywords": ["wait but also", "contradictory information", "rapid topic change", "overload", "you're confused", "information overload", "make them dizzy"],
+      "source": "Milton Erickson hypnotic induction patterns (academic description). Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "nlp-007",
+      "pattern": "false_authority",
+      "description": "Claiming or implying expertise, credentials, or institutional backing that does not exist in order to suppress critical questioning.",
+      "keywords": ["studies show", "experts agree", "as everyone knows", "scientifically proven", "authorities confirmed", "I've researched this extensively", "trust me I'm an expert"],
+      "source": "General epistemology; Cialdini authority principle (paraphrased).",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

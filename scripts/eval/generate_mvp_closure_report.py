@@ -151,7 +151,7 @@ def build_closure_report(
         "external_operator_signoff": signoff,
         "transparency": {
             "g2_modes_doc": "docs/TRANSPARENCY_AND_LIMITS.md",
-            "g2_audio_capture_path": "PENDING_HARDWARE",
+            "g2_audio_capture_path": "WONTFIX_UNTIL_HARDWARE",
             "g2_text_mediated_evidence": (
                 "docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl"
             ),

@@ -1,6 +1,6 @@
 """
 Shared hash utilities for secure boot scripts.
-Consolidates compute_file_hash() that was duplicated across 5+ scripts (swarm artifact).
+Consolidates compute_file_hash() that was duplicated across 5+ scripts (refactoring artifact).
 """
 from __future__ import annotations
 

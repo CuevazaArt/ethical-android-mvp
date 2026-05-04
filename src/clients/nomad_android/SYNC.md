@@ -11,7 +11,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Fecha** | 2026-04-27 20:29 CST |
-| **Desde** | Antigravity (L1/Watchtower) — POST V2.83e — Fase 24a Ready |
+| **Desde** | Antigravity — POST V2.83e — Fase 24a Ready |
 | **Commit** | bff087e (main) |
 | **Tests Backend** | 203/203 ✅ |
 | **Servidor** | Standby |

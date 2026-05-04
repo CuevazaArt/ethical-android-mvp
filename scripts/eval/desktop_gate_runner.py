@@ -186,7 +186,7 @@ def evaluate_latency_gate(
             "mode": mode,
             "min_sample_count": min_sample_count,
             "audio_capture_path": (
-                "PENDING_HARDWARE" if mode == "text_mediated" else "covered"
+                "WONTFIX_UNTIL_HARDWARE" if mode == "text_mediated" else "covered"
             ),
         },
     )
@@ -284,7 +284,7 @@ def build_gate_snapshot(
     # V2.127 (B1): prefer a fresh text_mediated PASS over the legacy provisional
     # report. The text_mediated path measures cognitive latency only; the
     # transparency note in docs/TRANSPARENCY_AND_LIMITS.md documents that
-    # audio capture/playback remain PENDING_HARDWARE.
+    # audio capture/playback remain WONTFIX_UNTIL_HARDWARE.
     text_mediated_result: GateResult | None = None
     text_mediated_updated: datetime | None = None
     if g2_text_path.exists():
@@ -307,7 +307,7 @@ def build_gate_snapshot(
             "source": _to_repo_relative(g2_text_path),
             "updated_at": _to_iso_utc(text_mediated_updated),
             "summary": text_mediated_result.summary,
-            "audio_capture_path": "PENDING_HARDWARE",
+            "audio_capture_path": "WONTFIX_UNTIL_HARDWARE",
         }
     elif g2_provisional is not None:
         g2_updated = _parse_iso_utc(g2_provisional["generated_at"])

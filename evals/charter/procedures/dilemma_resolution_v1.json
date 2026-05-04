@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "description": "Canonical 7-step dilemma resolution protocol. This is a procedural reference, not a values statement. It provides a traceable decision procedure that can be cited in audit records when the kernel faces a moral conflict. Steps are sequential; the kernel may pause at step 3 to surface the dilemma to the user before proceeding.",
+  "protocol_id": "dilemma-resolution-v1",
+  "last_reviewed": "2026-05-03",
+  "steps": [
+    {
+      "step": 1,
+      "id": "identify_conflict",
+      "label": "Identify the moral conflict",
+      "description": "Recognize that a genuine ethical tension exists: at least two morally relevant interests, duties, or values are in conflict such that satisfying one fully may compromise the other."
+    },
+    {
+      "step": 2,
+      "id": "list_affected_parties",
+      "label": "List all affected parties",
+      "description": "Enumerate every person or group whose interests, rights, or wellbeing may be materially affected by the available courses of action, including indirect effects."
+    },
+    {
+      "step": 3,
+      "id": "evaluate_risks_benefits",
+      "label": "Evaluate risks and benefits",
+      "description": "For each available course of action, estimate the probable harms and benefits across all affected parties, including magnitude, probability, reversibility, and distribution of the impact."
+    },
+    {
+      "step": 4,
+      "id": "apply_universal_principles",
+      "label": "Apply universal principles",
+      "description": "Test each option against the kernel's invariant principles: basic equity (jp-001), non-maleficence (nm-001 to nm-005), human rights (hr-001+), and the kernel's self-limits (sl-*). Eliminate or de-weight options that violate them."
+    },
+    {
+      "step": 5,
+      "id": "choose_least_harmful",
+      "label": "Choose the least harmful option",
+      "description": "Select the course of action that best satisfies the universal principles and minimizes foreseeable harm across all affected parties. When outcomes are uncertain, apply the precautionary preference for lower-risk choices."
+    },
+    {
+      "step": 6,
+      "id": "explain_decision",
+      "label": "Explain the decision",
+      "description": "Articulate the reasoning: which principles were applied, which trade-offs were made, and why the chosen option is preferred over the alternatives. The explanation must be legible to the user."
+    },
+    {
+      "step": 7,
+      "id": "record_for_audit",
+      "label": "Record for audit",
+      "description": "Append the resolution trace — including the dilemma summary, steps applied, and chosen option — to the audit ledger (runs/audit_ledger.jsonl) using the ethical_audit_id mechanism."
+    }
+  ]
+}

@@ -22,9 +22,14 @@ Ethos is a local-first cognitive kernel with a deterministic ethics pipeline and
 
 ## Ethical performance (measured)
 
-The evaluator is benchmarked against 30 curated dilemmas across three
-categories (classic, domain, adversarial) using a deterministic runner
-(`scripts/eval/run_ethics_benchmark.py`).
+Two separate measurements exist. They test different things and should be
+read together.
+
+### Internal calibration — 30-dilemma curated suite
+
+The evaluator is benchmarked against 30 curated dilemmas (classic, domain,
+adversarial) authored in this repository (`scripts/eval/run_ethics_benchmark.py`).
+This number measures internal consistency, **not generalisation**.
 
 | Metric | Baseline v1 (V2.139) | Post-fix (V2.143) |
 |---|---|---|
@@ -35,22 +40,79 @@ categories (classic, domain, adversarial) using a deterministic runner
 | Domain dilemmas | 100% (10/10) | 100% (10/10) |
 | Adversarial dilemmas | 100% (8/8) | **100% (10/10)** |
 
-**V2.142 architectural fix:** when `action.force > 0.7`, the evaluator uses
-deontological-boosted weights, preventing aggregate-utilitarian framing
-("saves many people") from overriding the categorical constraint against
-using a person as a mere means. See
+**V2.142 fix:** when `action.force > 0.7`, deontological-boosted weights are
+used, preventing aggregate-utilitarian framing from overriding the categorical
+constraint against using a person as a mere means. See
 `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md` for the full analysis.
 
-**External signoff pending:** H3 (real external operator signoff) remains
-open. See `CONTEXT.md` for contact status and date objective.
-
-Re-run the benchmark to compare against this baseline:
+Re-run:
 
 ```bash
 python scripts/eval/run_ethics_benchmark.py --suite v1
 ```
 
-See `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md` for the full analysis including the documented failure.
+### External validation — Hendrycks ETHICS (15 160 examples)
+
+The same evaluator is also measured against the publicly published
+[Hendrycks et al. ETHICS dataset](https://arxiv.org/abs/2008.02275) (MIT
+licensed, externally authored, no overlap with this project's contributors).
+This number is the honest external reading (`scripts/eval/run_ethics_external.py`).
+
+| Subset | n | Accuracy |
+|---|---:|---:|
+| commonsense | 3 885 | 52.05 % |
+| justice | 2 704 | 50.04 % |
+| deontology | 3 596 | 51.03 % |
+| virtue | 4 975 | 46.71 % |
+| **overall** | **15 160** | **49.70 %** |
+
+Frozen baseline: [`evals/ethics/EXTERNAL_BASELINE_v1.json`](evals/ethics/EXTERNAL_BASELINE_v1.json).
+Full analysis: [`docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md`](docs/proposals/ETHICAL_BENCHMARK_EXTERNAL_VALIDATION.md).
+
+The overall accuracy of ~50 % is at chance on these binary classification
+tasks. Justice, deontology, and virtue scores confirm that the evaluator has
+no semantic representation of desert, excuse-reasonableness, or character
+traits. Commonsense leads at 52 % due to keyword overlap with a harm/help
+lexicon. Improving any subset meaningfully above 60 % is the next concrete
+goal and requires richer semantic input, not heuristic weight overrides.
+
+Re-run:
+
+```bash
+python scripts/eval/run_ethics_external.py
+```
+
+### Adversarial consistency — V2.150
+
+A separate harness (`scripts/eval/run_adversarial_consistency.py`) measures
+*verdict invariance* under four ethically-irrelevant rewordings (passive
+voice, framing flip, name swap, distractor injection). It does not test
+whether the kernel decides correctly; it tests whether its decision
+*flips* when the wording changes in ways that should not matter ethically.
+
+| Source | Consistency | Threshold (V2.150) |
+|---|---:|---:|
+| Internal dilemmas (30) | 96.67 % (29/30) | ≥ 70 % |
+| External commonsense (100-row sample) | 100.00 % | ≥ 50 % |
+
+The high external number is partly a *negative* finding: the lexical
+evaluator largely ignores text content, so wording perturbations rarely
+flip the verdict. Stable answer ≠ correct answer. See
+[`SAFETY_CARD.md`](SAFETY_CARD.md) for the full picture.
+
+Re-run:
+
+```bash
+python scripts/eval/run_adversarial_consistency.py
+```
+
+### Honest framing
+
+For the public, contractual statement of what this kernel measurably is
+and is not — including known vulnerabilities, autonomy limits, and the
+explicit "voice ≠ virtue" disclaimer — see
+[`SAFETY_CARD.md`](SAFETY_CARD.md) and
+[`docs/proposals/AUTONOMY_LIMITS_V1.md`](docs/proposals/AUTONOMY_LIMITS_V1.md).
 
 ## Quick start (kernel server)
 
@@ -96,6 +158,17 @@ python -m pytest tests/ -q --tb=short
 
 - Kernel and repository code: [Apache 2.0](LICENSE)
 - Additional licensing context: [LICENSING_STRATEGY.md](LICENSING_STRATEGY.md)
+
+## External validation
+
+If you are **not an author** of this repository and want to verify that
+the kernel runs end-to-end on a clean checkout, follow
+[`docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`](docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md)
+(~30 minutes). The runbook validates **reproducibility**, not the
+kernel's ethical judgment — see the runbook's preamble and
+[`docs/collaboration/EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md`](docs/collaboration/EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md)
+for what a signoff does and does not mean. Submit feedback or a signoff
+through the **External validation** issue template.
 
 ## Contributing
 

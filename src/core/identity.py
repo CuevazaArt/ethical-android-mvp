@@ -55,6 +55,7 @@ class Identity:
         self._journal: list[str] = []
         self._chronicle: list[str] = []  # V2.61: Distilled thematic history
         self._archetype: str = ""  # V2.63: Core identity archetype
+        self._voice_signature: str = ""  # V2.149: Persona emergence tracker
         self._load()
 
     # ── Persistence ──────────────────────────────────────────────────────────
@@ -79,12 +80,17 @@ class Identity:
                         self._archetype = (
                             archetype if isinstance(archetype, str) else ""
                         )
+                        voice_sig = data.get("voice_signature", "")
+                        self._voice_signature = (
+                            voice_sig if isinstance(voice_sig, str) else ""
+                        )
         except (json.JSONDecodeError, OSError, TypeError, ValueError):
             _log.warning("Identity profile load failed, using defaults.", exc_info=True)
             self._profile = {}
             self._journal = []
             self._chronicle = []
             self._archetype = ""
+            self._voice_signature = ""
 
     @staticmethod
     def _coerce_str_list(value: object) -> list[str]:
@@ -101,6 +107,7 @@ class Identity:
                 "journal": self._journal,
                 "chronicle": self._chronicle,
                 "archetype": self._archetype,
+                "voice_signature": self._voice_signature,
             }
             json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -338,12 +345,32 @@ class Identity:
         """Return the raw profile for API/dashboard use."""
         return dict(self._profile)
 
+    # ── Voice signature (V2.149) ──────────────────────────────────────────────
+
+    def set_voice_signature(self, sig: str) -> None:
+        """
+        Persist the current turn's voice signature (StyleDescriptor hash).
+        Called by ChatEngine after each turn so emergence can be tracked.
+        """
+        if not isinstance(sig, str):
+            return
+        self._voice_signature = sig
+        # Lightweight persist: only update the signature field, avoid full rewrite
+        # unless a profile already exists (keep I/O minimal on every turn).
+        self._save()
+
+    @property
+    def voice_signature(self) -> str:
+        """Current persisted voice signature (empty string if not yet set)."""
+        return self._voice_signature
+
     # ── Convenience ──────────────────────────────────────────────────────────
 
     def reset(self) -> None:
-        """Wipe the identity profile, journal, and chronicle (does NOT wipe memory)."""
+        """Wipe the identity profile, journal, chronicle and voice signature (does NOT wipe memory)."""
         self._profile = {}
         self._journal = []
         self._chronicle = []
         self._archetype = ""
+        self._voice_signature = ""
         self._save()

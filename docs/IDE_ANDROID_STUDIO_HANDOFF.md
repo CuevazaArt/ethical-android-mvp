@@ -13,12 +13,12 @@ Para mantener un único estado de la verdad (Ley #7) y evitar desarticulaciones 
 
 ### ¿Dónde debes trabajar?
 A partir de este momento, todo el desarrollo de Android se realiza **directamente en la rama `main`**.
-Si requieres aislar una prueba muy riesgosa, tienes autorización de L0 para crear una rama local `feature/nomad-core`, pero la integración final siempre se hará mediante *micro-commits* a `main` orquestados por el Watchtower (L1 en Antigravity).
+Si requieres aislar una prueba muy riesgosa, puedes crear una rama local `feature/nomad-core`, pero la integración final siempre se hará mediante *micro-commits* a `main`.
 
 ## 2. Metodología de Trabajo (Token Economy V3)
 
 1. **Restricción de Contexto:** No leas todo el repositorio. Estás restringido al subdirectorio `src/clients/nomad_android/`.
-2. **Prohibido Rendirse:** Eres un Men Scout. No entregas código a medias. No dejas comentarios `// TODO`. Entregas código que compila.
+2. **Prohibido Rendirse:** No entregas código a medias. No dejas comentarios `// TODO`. Entregas código que compila.
 3. **Cero Magia Negra:** La comunicación con el Kernel Python se hará vía **WebSocket** y el descubrimiento vía **mDNS (NSD)**. No intentes implementar WebRTC o libp2p hasta que se te ordene.
 4. **Contratos Estrictos:** Trabaja exclusivamente contra los JSON Schemas y contratos que L1 diseñe. Si el contrato dice que el campo es `battery_level`, no lo llames `batteryLevel` en el payload JSON.
 

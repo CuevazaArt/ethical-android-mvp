@@ -47,7 +47,7 @@ jobs:
           
           # 3. Commit and Push
           cd wiki-repo
-          git config user.name "Antigravity (Swarm Sync)"
+          git config user.name "Antigravity (Fleet Sync)"
           git config user.email "antigravity@ethos-kernel.local"
           
           git add .

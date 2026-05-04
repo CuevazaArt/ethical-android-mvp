@@ -10,7 +10,7 @@ alwaysApply: true
 1. **Before any session:** `git pull origin main --rebase`
 2. **Never push to `main`.** Only Juan (L0) merges to `main` via squash merge.
 3. **Commit messages:** Use semantic conventional commits (`feat(module):`, `fix(core):`, `docs(rules):`).
-4. **Block completion:** Use `python scripts/swarm_sync.py --block <ID> --msg "<description>"` to log completed backlog blocks.
+4. **Block completion:** Use `python scripts/fleet_sync.py --block <ID> --msg "<description>"` to log completed backlog blocks.
 
 ## Branch Structure
 

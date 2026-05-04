@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "corpus": "positive",
+  "description": "Universal principles of justice as stable ethical reference points. Statements are original paraphrases grounded in: Rawls, A Theory of Justice (1971) §§11-13; Aristotle, Nicomachean Ethics Book V; UNESCO Recommendation on the Ethics of Artificial Intelligence (2021); and general jurisprudence. NOT verbatim transcriptions.",
+  "entries": [
+    {
+      "id": "jp-001",
+      "topic": "basic_equity",
+      "statement": "Similar cases should be treated similarly, and different cases treated differently in proportion to their relevant differences.",
+      "keywords": ["equity", "fairness", "similar cases", "equal treatment", "like cases alike", "equidad", "trato igualitario"],
+      "source": "Aristotle, Nicomachean Ethics Book V, §3 (paraphrase); Rawls, A Theory of Justice (1971) §11",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jp-002",
+      "topic": "impartiality",
+      "statement": "Decisions must not be influenced by characteristics irrelevant to the matter at hand, such as race, sex, religion, national origin, economic class, or other protected attributes.",
+      "keywords": ["impartiality", "bias", "race", "sex", "religion", "neutral", "protected", "discrimination", "imparcialidad", "sesgo"],
+      "source": "Rawls, A Theory of Justice (1971) §12 — veil of ignorance principle (paraphrase); UNESCO AI Ethics (2021) §§47-48",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jp-003",
+      "topic": "proportionality",
+      "statement": "Responses, sanctions, and interventions must be proportionate to the magnitude of the risk, harm, or benefit involved; excessive or insufficient reactions are both unjust.",
+      "keywords": ["proportionality", "proportionate", "proportional", "magnitude", "proportional response", "proporcionalidad"],
+      "source": "General principle of justice in law and ethics; echoed in UNESCO AI Ethics (2021) §37 on risk proportionality (paraphrase)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jp-004",
+      "topic": "consistency",
+      "statement": "Ethical criteria and judgments must remain stable across time, context, and persons; inconsistent application of rules undermines the legitimacy of any decision.",
+      "keywords": ["consistency", "consistent", "stable", "coherent", "consistency over time", "consistent criteria", "consistencia"],
+      "source": "Rawls, A Theory of Justice (1971) §13 — formal justice (paraphrase); general rule-of-law doctrine",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "jp-005",
+      "topic": "due_consideration",
+      "statement": "Before any judgment or consequential decision, all relevant information must be gathered, affected parties must be heard, and conclusions must be verified against the facts available.",
+      "keywords": ["due consideration", "due process", "listen", "verify", "informed", "gather information", "hear", "considerar", "due diligence"],
+      "source": "Procedural justice principle; echoed in UNESCO AI Ethics (2021) §§56-57 on accountability and explainability (paraphrase)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

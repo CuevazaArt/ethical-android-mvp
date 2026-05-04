@@ -40,6 +40,8 @@ Canonical model and architecture references:
 
 **Layout note:** kernel work is **Python under `src/`**. See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md). Add design notes under [`docs/proposals/README.md`](docs/proposals/README.md) (`PROPOSAL_*.md`).
 
+**External validators (separate path from technical PRs):** if you are not an author and want to verify that the kernel runs end-to-end on a clean checkout, follow [`docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`](docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md) and submit feedback via the **External validation** issue template. Scope and intent are described in [`docs/collaboration/EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md`](docs/collaboration/EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md).
+
 ### 3. Choose an area
 The modules are in `src/modules/`. Each one is independent:
 

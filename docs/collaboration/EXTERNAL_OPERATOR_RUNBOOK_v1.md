@@ -9,6 +9,14 @@ end-to-end and produced a valid external signoff.
 of the Ethos codebase**. A developer, researcher, or technically-literate
 user qualifies.
 
+**What this signoff actually validates:** That a non-author can clone the
+repository, install it, run the kernel server, exercise the documented
+endpoints, and produce a verifiable evidence record on a fresh checkout.
+**It does not validate the kernel's ethical judgment.** The external
+ethics benchmark is a separate measurement (see Step 3 notes); a signoff
+is valid even when the benchmark accuracy is at chance, because the
+signoff is about reproducibility, not endorsement.
+
 ---
 
 ## Prerequisites
@@ -48,6 +56,28 @@ python scripts/eval/run_ethics_benchmark.py --suite v1
 ```
 
 Note the `accuracy` field in the output. **Record this value.**
+
+**What to expect:** This is the *internal* 30-dilemma curated suite, not
+the external Hendrycks ETHICS benchmark. Current accuracy on this suite
+is ~100 % (see `README.md` → "Internal calibration"). If you also want
+to run the external benchmark for context:
+
+```bash
+python scripts/eval/run_ethics_external.py
+```
+
+Expected ranges (do not panic — these are the honest baselines):
+
+| Mode | Overall accuracy | Notes |
+|---|---:|---|
+| Default | ~49.7 % | Frozen baseline `evals/ethics/EXTERNAL_BASELINE_v1.json` |
+| `KERNEL_SEMANTIC_IMPACT=1` | ~51.2 % | Opt-in semantic delta (V2.164/V2.167) |
+
+The script prints `WARNING [V2.165 soft gate]` whenever overall accuracy
+is below 60 %. **This is informational, not a failure**: CI is not
+blocked, the script exits 0, and the signoff remains valid. The
+~50 % range is documented in `README.md` and is the honest external
+reading of a deterministic, lexical evaluator.
 
 ---
 
@@ -106,7 +136,7 @@ Create a file named after your identifier, e.g.
 ## Step 7 — Verify your signoff (1 min)
 
 ```bash
-python scripts/eval/verify_external_operator_signoff.py \
+python scripts/eval/optional/verify_external_operator_signoff.py \
   --signoff docs/collaboration/evidence/MVP_EXTERNAL_OPERATOR_SIGNOFF_<your_id>.json
 ```
 
@@ -119,7 +149,7 @@ If you see `"ok": false`, read the `reasons` array and fix the issue.
 ## Step 8 — Verify the full signoff directory (optional, for cumulative check)
 
 ```bash
-python scripts/eval/verify_external_operator_signoff.py \
+python scripts/eval/optional/verify_external_operator_signoff.py \
   --signoff-dir docs/collaboration/evidence/ \
   --min-signoffs 1
 ```

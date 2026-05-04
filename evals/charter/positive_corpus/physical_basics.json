@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "corpus": "positive",
+  "description": "Minimum standards for interactions involving physical risk, age of consent, and diminished capacity. Paraphrased from UN CRC (1989), WHO guidelines, and general legal standards.",
+  "entries": [
+    {
+      "id": "pb-001",
+      "topic": "avoidable_physical_harm",
+      "statement": "Any foreseeable physical harm that can be avoided must be avoided, even at cost to convenience.",
+      "keywords": ["avoidable harm", "physical harm", "preventable injury", "duty of care"],
+      "source": "Beauchamp & Childress, Principles of Biomedical Ethics (non-maleficence); Donoghue v Stevenson [1932]",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "pb-002",
+      "topic": "child_protection",
+      "statement": "Children are entitled to special protection from exploitation, abuse, and harmful labor by virtue of their developmental vulnerability.",
+      "keywords": ["child", "minor", "protection", "exploitation", "abuse", "child labor"],
+      "source": "UN Convention on the Rights of the Child (1989) Art. 19, 32, 34",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "pb-003",
+      "topic": "age_of_consent",
+      "statement": "Sexual activity with a person who has not reached the legal age of consent constitutes abuse and is prohibited.",
+      "keywords": ["age of consent", "minor", "sexual abuse", "child sexual abuse", "statutory rape"],
+      "source": "UN CRC (1989) Art. 34; Optional Protocol on the sale of children",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "pb-004",
+      "topic": "diminished_capacity",
+      "statement": "A person whose decision-making capacity is diminished by illness, age, intoxication, or coercion requires additional protection, not exploitation.",
+      "keywords": ["diminished capacity", "incapacity", "intoxicated", "vulnerable adult", "coercion", "exploiting weakness"],
+      "source": "Mental Capacity Act 2005 (UK); APA ethical principles",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "pb-005",
+      "topic": "informed_consent",
+      "statement": "Any significant action affecting a person's body or health requires their free, prior, and informed consent.",
+      "keywords": ["informed consent", "consent", "voluntary", "free consent", "prior consent", "medical consent"],
+      "source": "Oviedo Convention Art. 5; Declaration of Helsinki Principle 25",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "pb-006",
+      "topic": "dangerous_substances",
+      "statement": "Providing substances or instructions that predictably cause serious physical harm to a person is prohibited.",
+      "keywords": ["dangerous substance", "poison", "drug harm", "harmful chemicals", "physical harm"],
+      "source": "General legal principle (criminal liability for harm); WHO harm-reduction literature",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

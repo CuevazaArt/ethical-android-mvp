@@ -46,7 +46,7 @@
 
 ## 3. Readjusted roadmap (priorities)
 
-The previous roadmap still prioritized features (metaplan, generative LLM, swarm). **Adjusted** as follows:
+The previous roadmap still prioritized features (metaplan, generative LLM, fleet peer stub). **Adjusted** as follows:
 
 | Priority | Focus | Goal |
 |----------|--------|------|
@@ -54,7 +54,7 @@ The previous roadmap still prioritized features (metaplan, generative LLM, swarm
 | **P1 (DONE)** | **Nomadic Autonomy (V13.1)** | **Status: Stabilized.** Proactive intents (MotivationEngine), BGR→RGB vision fix, and native mobile TTS (Ouroboros). |
 | **P2 (DONE)** | **Somatic Jitter & Hardening** | **Status: Stabilized.** Agility EMA smoothing, Self-Audit coherence cycles, and numerical safety (Anti-NaN). |
 | **P3** | **Recursive Narrative Memory (Phase 13)** | **New Priority.** Chronic distillation of episodic memory into recursive high-level summaries for long-term identity stability. |
-| **P4** | Swarm & P2P Justice Scaling | Resuming after Memory consolidation; Swarm logic validated locally. |
+| **P4** | Fleet & P2P Justice Scaling | Resuming after Memory consolidation; fleet logic validated locally. |
 
 **Next task executed as the P2 gap closure:** Implementation of the Nomadic Field Readiness (Voice & Vision) and high-frequency somatic smoothing.
 

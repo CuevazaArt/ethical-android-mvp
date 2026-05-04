@@ -54,12 +54,12 @@ These are **candidate** flags under consideration for deprecation. No timeline a
 
 ---
 
-### 3. `KERNEL_SWARM_STUB` (retirement, not replacement)
+### 3. `KERNEL_FLEET_STUB` (legacy alias retired V2.159)
 
-**Rationale:** Stub has not evolved; swarm P2P is out of scope for MVP.  
-**Replacement:** None; feature removed entirely if swarm is not implemented.  
-**Migration:** Operators can delete from configs.  
-**Impact:** Low (never used; always explicitly opt-in for lab).  
+**Rationale:** Legacy vocabulary retired in V2.159. Stub has not evolved; peer-to-peer multi-instance features are out of scope for MVP.
+**Replacement:** `KERNEL_FLEET_STUB` (neutral naming; same semantics).
+**Migration:** Operators can rename or delete from configs.
+**Impact:** Low (never used; always explicitly opt-in for lab).
 **Status:** Candidate; awaiting Phase 4+ roadmap (2–3 quarters out).
 
 ---

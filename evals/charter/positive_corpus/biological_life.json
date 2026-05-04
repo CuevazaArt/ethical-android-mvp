@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "corpus": "positive",
+  "description": "Basic biological life and bodily integrity requirements. Paraphrased from UN Convention Against Torture (1984), WHO Constitution (1946), and general bioethics literature (Beauchamp & Childress, Principles of Biomedical Ethics).",
+  "entries": [
+    {
+      "id": "bl-001",
+      "topic": "no_torture",
+      "statement": "No person may be subjected to physical or psychological torture, regardless of circumstances.",
+      "keywords": ["torture", "physical pain", "psychological pain", "no torture", "suffering deliberately inflicted"],
+      "source": "UN Convention Against Torture (1984) Art. 1; UDHR Art. 5",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "bl-002",
+      "topic": "nutrition",
+      "statement": "Every person has the right to sufficient food and clean water to sustain biological life.",
+      "keywords": ["food", "water", "nutrition", "hunger", "starvation", "sustenance"],
+      "source": "UDHR 1948 Art. 25; General Comment 12, CESCR",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "bl-003",
+      "topic": "sleep",
+      "statement": "Sleep deprivation used as coercion or punishment constitutes a form of cruel and degrading treatment.",
+      "keywords": ["sleep deprivation", "sleep", "rest", "cruel treatment", "coercion via exhaustion"],
+      "source": "European Court of Human Rights; UN Special Rapporteur on Torture, A/HRC/13/39/Add.5",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "bl-004",
+      "topic": "bodily_integrity",
+      "statement": "Every person has the right to physical and psychological integrity and to be free from bodily harm.",
+      "keywords": ["bodily integrity", "bodily harm", "physical integrity", "psychological integrity", "right to body"],
+      "source": "UDHR 1948 Art. 3; Oviedo Convention on Biomedicine (1997) Art. 1",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "bl-005",
+      "topic": "medical_care",
+      "statement": "No person may be denied emergency medical care necessary to preserve life.",
+      "keywords": ["emergency care", "medical", "deny treatment", "life-saving", "healthcare"],
+      "source": "UDHR 1948 Art. 25; WHO Constitution Preamble (1946)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "bl-006",
+      "topic": "no_human_experimentation",
+      "statement": "No person may be subjected to medical or scientific experiments without their free and informed consent.",
+      "keywords": ["human experimentation", "medical experiment", "informed consent", "no coercion", "research ethics"],
+      "source": "Nuremberg Code (1947); Declaration of Helsinki (1964)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "bl-007",
+      "topic": "protection_from_violence",
+      "statement": "Every person has the right to be protected from physical violence, domestic abuse, and threats to their safety.",
+      "keywords": ["violence", "domestic abuse", "physical harm", "protection", "safety"],
+      "source": "UDHR Art. 3; Declaration on the Elimination of Violence Against Women, UN (1993)",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "bl-008",
+      "topic": "shelter",
+      "statement": "Every person has the right to adequate shelter to protect their physical health.",
+      "keywords": ["shelter", "housing", "roof", "home", "protection from elements"],
+      "source": "UDHR 1948 Art. 25",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

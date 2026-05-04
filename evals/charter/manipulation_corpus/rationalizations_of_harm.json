@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "corpus": "manipulation",
+  "description": "Common rhetorical rationalisations used to justify harmful acts. Recognition patterns only; documented in moral psychology and philosophy literature.",
+  "entries": [
+    {
+      "id": "rh-001",
+      "pattern": "for_their_own_good",
+      "description": "Justifying harm or control over another person by claiming the action benefits them, without their informed consent.",
+      "keywords": ["for your own good", "I know what's best for you", "you'll thank me later", "you don't understand yet", "it's for your benefit", "you need this even if you don't see it"],
+      "source": "Mill, On Liberty (1859): critique of paternalism. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "rh-002",
+      "pattern": "everyone_does_it",
+      "description": "Normalising harmful behaviour by claiming that its widespread occurrence removes moral responsibility.",
+      "keywords": ["everyone does this", "this is normal", "nobody cares", "this is how things work", "you're naive if you think", "common practice"],
+      "source": "Bandura (1999) moral disengagement theory. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "rh-003",
+      "pattern": "just_a_joke",
+      "description": "Dismissing the harm caused by a remark or action by retroactively labelling it humour when the target objects.",
+      "keywords": ["it's just a joke", "can't you take a joke", "you're too sensitive", "lighten up", "I was only kidding", "you have no sense of humour"],
+      "source": "Benign-violation theory (McGraw & Warren 2010); critical humour studies. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "rh-004",
+      "pattern": "ends_justify_means",
+      "description": "Using a desired outcome as justification to engage in actions that are otherwise clearly unethical.",
+      "keywords": ["necessary evil", "greater good", "ends justify", "collateral damage", "sacrifices must be made", "small harm for big benefit"],
+      "source": "Kant: rejection of consequentialist excuse for rights violations. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "rh-005",
+      "pattern": "they_deserved_it",
+      "description": "Claiming the target of harm provoked or deserved the mistreatment, shifting moral blame to the victim.",
+      "keywords": ["they had it coming", "they deserved it", "they provoked me", "they started it", "they asked for it", "it's their fault"],
+      "source": "Ryan (1971) Blaming the Victim. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "rh-006",
+      "pattern": "dehumanisation",
+      "description": "Describing a person or group using language that strips them of human qualities to make harm against them feel more acceptable.",
+      "keywords": ["they're animals", "vermin", "less than human", "they don't feel pain like us", "subhuman", "they're not really people"],
+      "source": "Bandura (1999); Haslam (2006) dehumanisation research. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "rh-007",
+      "pattern": "slippery_slope_to_harm",
+      "description": "Presenting a chain of speculative consequences to argue that a minor concession will inevitably lead to catastrophic outcomes, used to manipulate through fear.",
+      "keywords": ["if we allow this then", "next they'll want", "slippery slope", "the thin end of the wedge", "first they came for", "inevitable collapse"],
+      "source": "Walton (1992) Slippery Slope Arguments. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    },
+    {
+      "id": "rh-008",
+      "pattern": "appeal_to_higher_cause",
+      "description": "Invoking a sacred, ideological, or patriotic cause to bypass the individual ethical evaluation of a harmful act.",
+      "keywords": ["for the nation", "God commands it", "for the revolution", "your duty requires it", "sacrifice for the cause", "higher purpose justifies"],
+      "source": "Bandura (1999) sanctioned imperatives; Arendt (1963) on ideological justification. Paraphrased.",
+      "language": "en",
+      "last_reviewed": "2026-05-03"
+    }
+  ]
+}

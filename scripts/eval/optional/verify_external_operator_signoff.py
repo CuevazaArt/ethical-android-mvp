@@ -37,7 +37,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_SIGNOFF = (
     ROOT / "docs" / "collaboration" / "evidence" / "MVP_EXTERNAL_OPERATOR_SIGNOFF.json"
 )
@@ -140,7 +140,13 @@ def _verify_directory(
     """
     candidates = sorted(signoff_dir.glob("*.json"))
     if not candidates:
-        return False, [{"file": str(signoff_dir), "ok": False, "reasons": ["no .json files found in directory"]}]
+        return False, [
+            {
+                "file": str(signoff_dir),
+                "ok": False,
+                "reasons": ["no .json files found in directory"],
+            }
+        ]
 
     per_file: list[dict[str, Any]] = []
     n_ok = 0
@@ -214,7 +220,12 @@ def main() -> int:
 
     if args.signoff_dir is not None:
         if not args.signoff_dir.is_dir():
-            print(json.dumps({"ok": False, "error": f"not a directory: {args.signoff_dir}"}, indent=2))
+            print(
+                json.dumps(
+                    {"ok": False, "error": f"not a directory: {args.signoff_dir}"},
+                    indent=2,
+                )
+            )
             return 2
         overall_ok, per_file = _verify_directory(
             signoff_dir=args.signoff_dir,

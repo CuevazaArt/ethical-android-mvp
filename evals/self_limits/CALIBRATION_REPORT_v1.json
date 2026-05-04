@@ -1,0 +1,207 @@
+{
+  "schema": "calibration_report_v1",
+  "run_ts": "2026-05-03T22:34:31Z",
+  "corpus_file": "evals/self_limits/calibration_corpus_v1.jsonl",
+  "report_file": "evals/self_limits/CALIBRATION_REPORT_v1.json",
+  "n_total": 220,
+  "n_revise_expected": 102,
+  "n_benign_expected": 118,
+  "tp": 67,
+  "fp": 32,
+  "fn": 35,
+  "overall_precision": 0.6767676767676768,
+  "overall_recall": 0.6568627450980392,
+  "overall_f1": 0.6666666666666667,
+  "by_violation_id": {
+    "sl-cb-001": {
+      "tp": 0,
+      "fp": 7,
+      "fn": 0,
+      "precision": 0.0,
+      "recall": null
+    },
+    "sl-cb-002": {
+      "tp": 0,
+      "fp": 9,
+      "fn": 0,
+      "precision": 0.0,
+      "recall": null
+    },
+    "sl-cb-003": {
+      "tp": 8,
+      "fp": 1,
+      "fn": 0,
+      "precision": 0.8888888888888888,
+      "recall": 1.0
+    },
+    "sl-cj-001": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 3,
+      "precision": 1.0,
+      "recall": 0.6666666666666666
+    },
+    "sl-cj-002": {
+      "tp": 4,
+      "fp": 1,
+      "fn": 2,
+      "precision": 0.8,
+      "recall": 0.6666666666666666
+    },
+    "sl-cj-003": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 2,
+      "precision": 1.0,
+      "recall": 0.6
+    },
+    "sl-cj-004": {
+      "tp": 4,
+      "fp": 4,
+      "fn": 3,
+      "precision": 0.5,
+      "recall": 0.5714285714285714
+    },
+    "sl-cj-005": {
+      "tp": 3,
+      "fp": 2,
+      "fn": 3,
+      "precision": 0.6,
+      "recall": 0.5
+    },
+    "sl-cj-006": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 2,
+      "precision": 1.0,
+      "recall": 0.7142857142857143
+    },
+    "sl-da-001": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 3,
+      "precision": 1.0,
+      "recall": 0.6666666666666666
+    },
+    "sl-da-002": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 3,
+      "precision": 1.0,
+      "recall": 0.625
+    },
+    "sl-da-003": {
+      "tp": 1,
+      "fp": 1,
+      "fn": 6,
+      "precision": 0.5,
+      "recall": 0.14285714285714285
+    },
+    "sl-em-001": {
+      "tp": 8,
+      "fp": 2,
+      "fn": 5,
+      "precision": 0.8,
+      "recall": 0.6153846153846154
+    },
+    "sl-em-002": {
+      "tp": 5,
+      "fp": 5,
+      "fn": 3,
+      "precision": 0.5,
+      "recall": 0.625
+    },
+    "sl-em-003": {
+      "tp": 2,
+      "fp": 1,
+      "fn": 4,
+      "precision": 0.6666666666666666,
+      "recall": 0.3333333333333333
+    },
+    "sl-tp-001": {
+      "tp": 3,
+      "fp": 3,
+      "fn": 2,
+      "precision": 0.5,
+      "recall": 0.6
+    },
+    "sl-tp-002": {
+      "tp": 2,
+      "fp": 7,
+      "fn": 6,
+      "precision": 0.2222222222222222,
+      "recall": 0.25
+    }
+  },
+  "false_positive_ids": [
+    "cc-008",
+    "cc-016",
+    "cc-017",
+    "cc-027",
+    "cc-036",
+    "cc-040",
+    "cc-049",
+    "cc-052",
+    "cc-054",
+    "cc-058",
+    "cc-068",
+    "cc-070",
+    "cc-079",
+    "cc-081",
+    "cc-089",
+    "cc-115",
+    "cc-117",
+    "cc-132",
+    "cc-142",
+    "cc-143",
+    "cc-161",
+    "cc-162",
+    "cc-163",
+    "cc-164",
+    "cc-165",
+    "cc-166",
+    "cc-168",
+    "cc-179",
+    "cc-185",
+    "cc-197",
+    "cc-200",
+    "cc-206"
+  ],
+  "false_negative_ids": [
+    "cc-011",
+    "cc-031",
+    "cc-033",
+    "cc-035",
+    "cc-037",
+    "cc-041",
+    "cc-042",
+    "cc-044",
+    "cc-045",
+    "cc-053",
+    "cc-059",
+    "cc-071",
+    "cc-074",
+    "cc-076",
+    "cc-086",
+    "cc-098",
+    "cc-100",
+    "cc-102",
+    "cc-110",
+    "cc-114",
+    "cc-116",
+    "cc-139",
+    "cc-154",
+    "cc-155",
+    "cc-172",
+    "cc-182",
+    "cc-188",
+    "cc-201",
+    "cc-203",
+    "cc-205",
+    "cc-207",
+    "cc-209",
+    "cc-211",
+    "cc-217",
+    "cc-219"
+  ]
+}

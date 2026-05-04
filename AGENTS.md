@@ -17,10 +17,9 @@ freeze-lane (security/health maintenance only).
 
 ## What this repository is not
 
-- It is not a swarm/multi-agent orchestration framework. Earlier vocabulary
-  ("Men Scouts", "L0/L1", "Watchtower", "enjambre", "office", `[BLOQUE]`/
-  `[CONTINUACIÓN]` prompt formats) is **abandoned** and was removed in the
-  V2.147 cleanup. If you find references to it in old commits, ignore them.
+- It is not a multi-agent orchestration framework. The earlier multi-agent
+  vocabulary is **abandoned** and was removed in the V2.147 cleanup. If you
+  find references to it in old commits, ignore them.
 - It is not a "nomadic P2P" product. The `ARCHITECTURE_NOMAD_V3` and
   `VISION_NOMAD` documents were aspirational, never implemented, and removed.
 
