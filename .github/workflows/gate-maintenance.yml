@@ -78,6 +78,7 @@ jobs:
 
       - name: Open PR with refreshed evidence
         if: steps.changes.outputs.changed == 'true'
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(gates): scheduled G3/G4 evidence refresh"
