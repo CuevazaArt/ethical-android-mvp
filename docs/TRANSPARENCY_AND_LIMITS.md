@@ -40,7 +40,7 @@ before treating G2 as evidence of full audio readiness.
 | Mode | What it measures | What it does NOT cover | Required artifact |
 |------|------------------|------------------------|-------------------|
 | **`live`** | Full voice turn including microphone capture, speech-to-text, cognition, text-to-speech, and playback on the target desktop hardware. | — (this is the canonical evidence) | `docs/collaboration/evidence/VOICE_TURN_LATENCY_SAMPLES.jsonl` (N≥1, p95<2500ms) |
-| **`text_mediated`** | Cognitive turn only: parsing the utterance through the kernel pipeline (`POST /api/voice_turn`) and generating a reply. **No audio is captured or rendered.** | Microphone capture, speech-to-text, text-to-speech, speaker playback, and end-user perceived audio latency. | `docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl` (N≥20, p95<2500ms). The snapshot reports `audio_capture_path: PENDING_HARDWARE`. |
+| **`text_mediated`** | Cognitive turn only: parsing the utterance through the kernel pipeline (`POST /api/voice_turn`) and generating a reply. **No audio is captured or rendered.** | Microphone capture, speech-to-text, text-to-speech, speaker playback, and end-user perceived audio latency. | `docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl` (N≥20, p95<2500ms). The snapshot reports `audio_capture_path: WONTFIX_UNTIL_HARDWARE` (no target date — see CONTEXT.md open debt §3). |
 
 The `text_mediated` mode exists so the gate can progress on machines without
 microphones or audio drivers (the working environment for this repository at

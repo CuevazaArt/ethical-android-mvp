@@ -381,3 +381,9 @@
    Decision on `sentence-transformers` dependency deferred.
 8. **Audio capture (`WONTFIX_UNTIL_HARDWARE`).** Reclassified from
    `PENDING_HARDWARE`. No sprint until hardware arrives — no target date.
+9. **V2.168 experiment tracking.** Open a GitHub issue titled
+   `[V2.168 experiment] First non-author external validation — 90-day tracking`
+   with label `experiment` (due ~August 2026). Body: link
+   `docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`, success criterion
+   (1 execution by non-author with verifier green), failure criterion (90 days
+   without traction → close experiment honestly). Assign to repo owner.

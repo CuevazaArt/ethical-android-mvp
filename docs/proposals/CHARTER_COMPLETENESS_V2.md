@@ -75,7 +75,7 @@ Supported Hendrycks categories: `deontology`, `justice`, `virtue`,
 
 ---
 
-## 5. Modality Extension Point (PENDING_HARDWARE)
+## 5. Modality Extension Point (WONTFIX_UNTIL_HARDWARE)
 
 `CharterEvaluator.evaluate()` now accepts `modality: str = "text"`.
 When the Sony A5100/A6000 camera and microphone arrive, the voice and vision
