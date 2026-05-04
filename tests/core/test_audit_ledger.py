@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -251,7 +250,9 @@ def test_append_audit_ledger_appends_multiple_rows(tmp_path: Path) -> None:
     assert len(ids) == 3  # all distinct
 
 
-def test_append_audit_ledger_swallows_oserror(tmp_path: Path) -> None:
+def test_append_audit_ledger_swallows_oserror(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """A failing append must never raise — the chat turn must continue."""
     blocked_trace = build_decision_trace(
         signals=None,
@@ -261,19 +262,18 @@ def test_append_audit_ledger_swallows_oserror(tmp_path: Path) -> None:
         weights={"util": 0.4, "deonto": 0.4, "virtue": 0.2},
     )
 
-    # Point at a path inside a directory with no write permission. Skip the
-    # assertion when running as root (e.g. inside some CI containers) since
-    # root bypasses POSIX permission checks and the test would be a no-op.
-    if os.geteuid() == 0:
-        pytest.skip("permission-based negative test does not apply to root")
-
     bad_ledger = tmp_path / "no_perm_dir" / "audit_ledger.jsonl"
-    bad_ledger.parent.mkdir(mode=0o500)  # read+execute only, no write
-    try:
-        result = append_audit_ledger(blocked_trace, ledger_path=bad_ledger)
-        assert result is None  # swallowed
-    finally:
-        bad_ledger.parent.chmod(0o700)
+    real_open = Path.open
+
+    def _failing_open(self: Path, *args: object, **kwargs: object):
+        if self == bad_ledger:
+            raise OSError("simulated write failure")
+        return real_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", _failing_open)
+
+    result = append_audit_ledger(blocked_trace, ledger_path=bad_ledger)
+    assert result is None  # swallowed
 
 
 def test_append_audit_ledger_honours_env_override(
