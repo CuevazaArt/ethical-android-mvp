@@ -29,7 +29,7 @@ Contract (architectural):
   - Local-first: zero network calls.
   - evaluate() accepts an optional ``modality`` parameter ("text", "voice",
     "vision") to prepare for future hardware; no differentiated logic yet
-    (PENDING_HARDWARE).
+    (WONTFIX_UNTIL_HARDWARE).
 
 Usage::
 
@@ -350,7 +350,7 @@ class CharterEvaluator:
             stage: Active maturity stage.  Resolved from the governance ledger
                 if not supplied.  Pass explicitly in tests for determinism.
             modality: Input modality — "text" (default), "voice", or "vision".
-                Currently unused for logic differentiation (PENDING_HARDWARE);
+                Currently unused for logic differentiation (WONTFIX_UNTIL_HARDWARE);
                 present for forward-compatibility when camera/mic arrive.
 
         Returns:

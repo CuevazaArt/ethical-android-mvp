@@ -61,7 +61,7 @@ def test_evaluate_latency_gate_text_mediated_requires_min_samples(
     )
     assert result.passed is False, "fewer than min samples must not PASS"
     assert result.details["mode"] == "text_mediated"
-    assert result.details["audio_capture_path"] == "PENDING_HARDWARE"
+    assert result.details["audio_capture_path"] == "WONTFIX_UNTIL_HARDWARE"
 
 
 def test_evaluate_latency_gate_text_mediated_passes_with_enough_samples(
@@ -135,7 +135,7 @@ def test_build_gate_snapshot_prefers_text_mediated_pass(tmp_path: Path) -> None:
     g2 = snapshot["gates"]["G2"]
     assert g2["status"] == "pass"
     assert g2["mode"] == "text_mediated"
-    assert g2["audio_capture_path"] == "PENDING_HARDWARE"
+    assert g2["audio_capture_path"] == "WONTFIX_UNTIL_HARDWARE"
     assert "[text_mediated]" in g2["summary"]
 
 

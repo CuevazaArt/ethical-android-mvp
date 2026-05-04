@@ -72,8 +72,8 @@ def test_build_closure_report_lists_all_blocks_and_gates(tmp_path: Path) -> None
     g2 = report["gate_snapshot"]["gates"]["G2"]
     assert g2["status"] == "pass"
     assert g2["mode"] == "text_mediated"
-    assert g2["audio_capture_path"] == "PENDING_HARDWARE"
-    assert report["transparency"]["g2_audio_capture_path"] == "PENDING_HARDWARE"
+    assert g2["audio_capture_path"] == "WONTFIX_UNTIL_HARDWARE"
+    assert report["transparency"]["g2_audio_capture_path"] == "WONTFIX_UNTIL_HARDWARE"
     assert "MVP autodeclarado entregable" in report["declaration"]
     assert "PENDIENTE" in report["declaration"]
     signoff = report["external_operator_signoff"]
