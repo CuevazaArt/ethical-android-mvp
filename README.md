@@ -159,6 +159,17 @@ python -m pytest tests/ -q --tb=short
 - Kernel and repository code: [Apache 2.0](LICENSE)
 - Additional licensing context: [LICENSING_STRATEGY.md](LICENSING_STRATEGY.md)
 
+## External validation
+
+If you are **not an author** of this repository and want to verify that
+the kernel runs end-to-end on a clean checkout, follow
+[`docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md`](docs/collaboration/EXTERNAL_OPERATOR_RUNBOOK_v1.md)
+(~30 minutes). The runbook validates **reproducibility**, not the
+kernel's ethical judgment — see the runbook's preamble and
+[`docs/collaboration/EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md`](docs/collaboration/EXTERNAL_VALIDATION_INVITATION_POLICY_v1.md)
+for what a signoff does and does not mean. Submit feedback or a signoff
+through the **External validation** issue template.
+
 ## Contributing
 
 Start with:
