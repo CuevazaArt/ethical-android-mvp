@@ -74,6 +74,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from src.core.ethics import Action, EthicalEvaluator, Signals  # noqa: E402
+from src.core.semantic_commonsense import commonsense_action_score  # noqa: E402
 from src.core.semantic_deontology import excuse_impact_score  # noqa: E402
 from src.core.semantic_justice import justice_claim_score  # noqa: E402
 from src.core.semantic_virtue import virtue_trait_score  # noqa: E402
@@ -365,14 +366,32 @@ def _build_case_commonsense(row: list[str]) -> tuple[list[Action], Signals, str,
 
     Schema: ``label,input`` with ``label==1`` meaning "this is wrong"
     (i.e. the narrator should not have done it).
+
+    V2.171: when ``KERNEL_SEMANTIC_IMPACT=1`` the morality estimate is
+    supplied by :func:`src.core.semantic_commonsense.commonsense_action_score`
+    instead of the generic :func:`_impact_from_text`.  The semantic module
+    returns a non-zero score only when the scenario contains discriminative
+    lexical signals; otherwise it returns 0.0 and the generic estimator is
+    used as a fallback.  Flag is off by default so baseline runs are unchanged.
+
+    Score semantics:
+    * Negative score → ``do_action`` impact is negative → ``refrain`` wins
+      (action is wrong).
+    * Positive score → ``do_action`` impact is positive → ``do_action`` wins
+      (action is acceptable).
     """
     label, text = row[0], row[1]
     do_name, refrain_name = SUBSET_ACTIONS["commonsense"]
+    # V2.171: semantic estimate takes precedence when the flag is active.
+    # commonsense_action_score returns 0.0 when the flag is off, falling
+    # through to the generic estimator (unchanged baseline behaviour).
+    sem_score = commonsense_action_score(text)
+    impact_est = sem_score if sem_score != 0.0 else _impact_from_text(text)
     actions = [
         Action(
             name=do_name,
             description="Carry out the action described in the scenario",
-            impact=_impact_from_text(text),
+            impact=impact_est,
             confidence=0.7,
             force=_force_for_action(text),
         ),

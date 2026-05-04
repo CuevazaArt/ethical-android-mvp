@@ -358,6 +358,37 @@
 - **Tests:** 22 new tests in `tests/core/test_semantic_justice.py` + 5 net new
   in `test_external_soft_gate.py`. Battery: **600 pass** total.
 
+### V2.171 — Embeddings spike: commonsense subset
+
+- **Acceptance criterion:** attempt lexical spike on commonsense (the last
+  untouched subset) before deciding on Tier 1 (`sentence-transformers`).
+  See `docs/proposals/EMBEDDINGS_TIER1_DECISION.md` — Tier 1 reconsideration
+  requires **both** commonsense and justice to attempt and miss 55 %.
+- **Approach:** `src/core/semantic_commonsense.py` —
+  `commonsense_action_score(scenario) -> float`.  Discriminative frequency
+  analysis of `cm_test.csv` (3 885 rows, ≈ 53/47 split).
+  `_WRONG_TOKENS` (p₁ ≥ 0.75, n ≥ 8): body objectification, insults,
+  inappropriate social behaviour.  `_ACCEPTABLE_TOKENS` (p₀ ≥ 0.90, n ≥ 9):
+  financial obligations, caregiving, household tasks.
+  Returns `-0.30` / `+0.30` / `0.0`.  Integrated into `_build_case_commonsense`
+  via existing `KERNEL_SEMANTIC_IMPACT=1` gate.  No structural default bias
+  (commonsense is ≈ 50/50 balanced, unlike virtue).
+- **Simulation (pre-run):** 6.8 % coverage (263 / 3 885 examples), 90.9 %
+  accuracy on covered examples.  Estimated improvement: ≈ +2.6 pp
+  (52.05 % → ≈ 54.7 %).  Expected to fall short of the 55 % bar, as with
+  justice (V2.169).
+- **Gating:** flag is off by default (`KERNEL_SEMANTIC_IMPACT` not set);
+  default runs are byte-for-byte identical to pre-V2.171.
+- **No new dependency.** stdlib-only; Tier 1 reserved pending decision.
+- **Tier 1 trigger:** with this spike landed, both commonsense and justice
+  have attempted the lexical path.  If both remain below 55 % after
+  measurement, the Tier 1 reconsideration criteria in
+  `EMBEDDINGS_TIER1_DECISION.md` are **met** (pending product/regulatory need).
+- **Tests:** 53 new tests in `tests/core/test_semantic_commonsense.py` (29) and
+  `tests/eval/test_semantic_commonsense_spike.py` (24).
+  Battery: **671 pass** total.
+- **Proposal:** `docs/proposals/V2_171_EMBEDDINGS_SPIKE_COMMONSENSE.md`.
+
 ## Next steps (concrete, not aspirational)
 
 1. ~~**V2.162 — Self-limit calibration.**~~ **DONE** — 220 labeled turns,
@@ -376,9 +407,11 @@
    `ethos-transparency.html`.
 6. ~~**V2.167 — Embeddings spike (virtue).**~~ **DONE** — virtue ≥ 80 %
    with `KERNEL_SEMANTIC_IMPACT=1`. See wave entry above.
-7. **Tier 1 decision** (`EMBEDDINGS_TIER1_DECISION.md`). With V2.164, V2.167,
-   and V2.169 landed: commonsense (52 %) is the remaining untouched subset.
-   Decision on `sentence-transformers` dependency deferred.
+7. ~~**Tier 1 decision** (`EMBEDDINGS_TIER1_DECISION.md`).~~ **DONE (V2.170)** — NO-GO
+   documented. With V2.171 landed: commonsense lexical spike attempted. Both
+   commonsense and justice have tried the lexical path. Tier 1 reconsideration
+   criteria now met if measurement confirms both remain below 55 % (pending
+   product/regulatory need).
 8. **Audio capture (`WONTFIX_UNTIL_HARDWARE`).** Reclassified from
    `PENDING_HARDWARE`. No sprint until hardware arrives — no target date.
 9. **V2.168 experiment tracking.** Open a GitHub issue titled
