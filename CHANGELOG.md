@@ -4,6 +4,19 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-05-04] Model dev wave V2.166 + V2.171 — Wave 3 content audit + commonsense measurement
+
+### Added
+- **`evals/ethics/ETHICS_EXTERNAL_RUN_20260504T064335Z.json`:** Full-corpus run with `KERNEL_SEMANTIC_IMPACT=1` including V2.171 commonsense spike. Overall **63.19 %** (15 160 examples). Per-subset: commonsense 54.16 %, justice 52.63 %, deontology 57.34 %, virtue 80.20 %.
+
+### Removed
+- **`docs/proposals/PROTOCOL_NOMAD_FIELD_TEST.md`:** Dead nomad hardware field-test protocol. Written 100% in Spanish (language policy violation), references non-existent scripts (`scripts/nomad/start_lan_bridge.py`) and deleted modules (`CategoricalMultimodalTrust`, `CharmEngine`). Architecture was abandoned in V2.147.
+- **`docs/proposals/STRATEGY_AND_ROADMAP.md`:** Dead strategy doc describing the abandoned V13 tri-lobe architecture (L0-L5 lobes, MotivationEngine, HAL/Ouroboros, fleet P2P, nomadic identity). Contradicts current product state documented in `AGENTS.md` and `CONTEXT.md`.
+
+### Changed
+- **`CONTEXT.md`:** Updated external benchmark numbers to include V2.171 commonsense spike (54.16 %, +2.11 pp; **missed** ≥55 % bar). Overall with flag: 63.19 % (+13.49 pp vs frozen baseline). Tier 1 reconsideration criteria **confirmed met**. V2.166 Wave 3 audit marked DONE. V2.168 experiment tracking issue opened (#37).
+- **`docs/TRANSPARENCY_AND_LIMITS.md`:** Removed dead link to deleted `STRATEGY_AND_ROADMAP.md`.
+
 ## [2026-05-02] Model dev wave V2.128 — MVP closure report and final pulse
 
 ### Added

@@ -16,7 +16,7 @@ Ethos Kernel is a **research / reference implementation** of a layered ethical d
 | **Kernel / Bayes** | Pruning, gray zone, hypothesis weights | Tunable; see [`THEORY_AND_IMPLEMENTATION.md`](proposals/THEORY_AND_IMPLEMENTATION.md). |
 | **Judicial escalation** (opt-in) | Advisory strikes, dossier registration | **Does not** replace human legal process; mock court is a **demo**. |
 
-Details: [KERNEL_ENV_POLICY.md](proposals/KERNEL_ENV_POLICY.md), [OPERATOR_QUICK_REF.md](proposals/OPERATOR_QUICK_REF.md), [THEORY_AND_IMPLEMENTATION.md](proposals/THEORY_AND_IMPLEMENTATION.md), [STRATEGY_AND_ROADMAP.md](proposals/STRATEGY_AND_ROADMAP.md).
+Details: [KERNEL_ENV_POLICY.md](proposals/KERNEL_ENV_POLICY.md), [OPERATOR_QUICK_REF.md](proposals/OPERATOR_QUICK_REF.md), [THEORY_AND_IMPLEMENTATION.md](proposals/THEORY_AND_IMPLEMENTATION.md).
 
 ## Appeals and redress
 

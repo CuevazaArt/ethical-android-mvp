@@ -18,11 +18,14 @@
   4 subsets). Frozen baseline: `evals/ethics/EXTERNAL_BASELINE_v1.json`.
   commonsense 52.05 %, justice 50.04 %, deontology 51.03 %, virtue 46.71 %.
   Run: `python scripts/eval/run_ethics_external.py`.
-  With `KERNEL_SEMANTIC_IMPACT=1` (V2.164 + V2.167 + V2.169):
-  commonsense 52.05 %, justice 52.63 % (+2.59 pp, **missed** ≥55 % spike
-  acceptance criterion), deontology 57.34 % (+6.31 pp), virtue 80.20 %
-  (+33.49 pp), overall **62.65 %** (+12.95 pp vs frozen baseline).
-  Result: `evals/ethics/ETHICS_EXTERNAL_RUN_20260504T031141Z.json`.
+  With `KERNEL_SEMANTIC_IMPACT=1` (V2.164 + V2.167 + V2.169 + V2.171):
+  commonsense **54.16 %** (+2.11 pp, **missed** ≥55 % spike acceptance criterion),
+  justice 52.63 % (+2.59 pp, **missed** ≥55 %), deontology 57.34 % (+6.31 pp),
+  virtue 80.20 % (+33.49 pp), overall **63.19 %** (+13.49 pp vs frozen baseline).
+  Both commonsense and justice have now attempted and missed the lexical 55 % bar
+  — **Tier 1 (sentence-transformers) reconsideration criteria formally met**
+  (pending product/regulatory need). See `docs/proposals/EMBEDDINGS_TIER1_DECISION.md`.
+  Result: `evals/ethics/ETHICS_EXTERNAL_RUN_20260504T064335Z.json`.
 - **Baseline of record (internal):** `evals/ethics/BASELINE_v1.json` at 27/28
   (96.43%). The post-fix delta (+3.57 pp on +2 dilemmas) is documented
   in `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md`. The baseline is
@@ -41,16 +44,14 @@
    "reasignado" phantom debt.
 2. **External benchmark.** Honest first measurement: 49.70 % overall on
    Hendrycks ETHICS (15 160 examples), without the semantic flag.
-   With `KERNEL_SEMANTIC_IMPACT=1` (V2.164 deontology + V2.167 virtue +
-   V2.169 justice spikes): overall **62.65 %**. Per-subset under flag:
-   commonsense 52.05 %, justice 52.63 %, deontology 57.34 %, virtue 80.20 %.
-   The V2.169 justice spike improved the subset by +2.59 pp but **missed
-   its own ≥55 % acceptance criterion** — the discriminative lexicon only
-   covers ~25 % of justice rows; the remaining 75 % fall through to the
-   broken `_impact_from_text`. See `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`
-   for the full per-subset diagnosis. The soft gate now distinguishes:
-   INFO for the documented 45–55 % expected range, WARNING for unexpected
-   deviations.
+   With `KERNEL_SEMANTIC_IMPACT=1` (V2.164 + V2.167 + V2.169 + V2.171):
+   overall **63.19 %**. Per-subset: commonsense 54.16 % (+2.11 pp, **missed** ≥55 %),
+   justice 52.63 % (+2.59 pp, **missed** ≥55 %), deontology 57.34 % (+6.31 pp),
+   virtue 80.20 % (+33.49 pp). Both commonsense (V2.171) and justice (V2.169) have
+   attempted and missed the lexical 55 % bar. Tier 1 reconsideration criteria
+   **formally met** — reconsider only under product/regulatory pressure.
+   See `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md` and
+   `docs/proposals/EMBEDDINGS_TIER1_DECISION.md`.
 3. **Audio capture pipeline:** `WONTFIX_UNTIL_HARDWARE` (reclassified from
    `PENDING_HARDWARE` in V2.169). Voice turn metrics are paper, not measured.
 
@@ -219,7 +220,9 @@
   `STRATEGY_AND_ROADMAP.md`, `THEORY_AND_IMPLEMENTATION.md`, `KERNEL_ENV_POLICY.md`,
   `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`, `DEPRECATION_ROADMAP.md`,
   `landing/public/dashboard.html`, `ethos-transparency.html` — content audit
-  deferred to V2.166.
+  deferred to V2.166. **DONE (V2.166):** `PROTOCOL_NOMAD_FIELD_TEST.md` and
+  `STRATEGY_AND_ROADMAP.md` deleted (dead nomad/V13 docs); remaining 7 audited
+  and confirmed current.
 
 ### V2.160 — SelfLimitLedger + decision_trace violations
 
@@ -246,10 +249,9 @@
    as sanity check per V2.148 decision. Not a target to improve.
 2. **Audio capture pipeline: `WONTFIX_UNTIL_HARDWARE`** (reclassified in V2.169). Sony A5100/A6000. Voice turn metrics
    are paper, not measured.
-3. **Wave 3 content audit** (9 docs deferred from V2.159): `COGNITIVE_FOUNDATIONS_V1.md`,
-   `STRATEGY_AND_ROADMAP.md`, `THEORY_AND_IMPLEMENTATION.md`, `KERNEL_ENV_POLICY.md`,
-   `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`, `DEPRECATION_ROADMAP.md`,
-   `landing/public/dashboard.html`, `ethos-transparency.html`.
+3. ~~**Wave 3 content audit.**~~ **DONE (V2.166).** `PROTOCOL_NOMAD_FIELD_TEST.md`
+   and `STRATEGY_AND_ROADMAP.md` deleted. Remaining 7 docs audited and confirmed
+   current (no stale vocabulary; all reference active modules).
 
 ### V2.162 — Self-limit calibration
 
@@ -399,19 +401,15 @@
    with `KERNEL_SEMANTIC_IMPACT=1`. See wave entry above.
 4. ~~**V2.165 — External-operator soft gate.**~~ **DONE** — non-blocking 60 %
    WARNING in `run_ethics_external.py`. See wave entry above.
-5. **V2.166 — Wave 3 content audit.** One-pass review of the 9 deferred docs
-   from V2.159: `COGNITIVE_FOUNDATIONS_V1.md`, `STRATEGY_AND_ROADMAP.md`,
-   `THEORY_AND_IMPLEMENTATION.md`, `KERNEL_ENV_POLICY.md`,
-   `OPERATOR_QUICK_REF.md`, `PROTOCOL_NOMAD_FIELD_TEST.md`,
-   `DEPRECATION_ROADMAP.md`, `landing/public/dashboard.html`,
-   `ethos-transparency.html`.
+5. ~~**V2.166 — Wave 3 content audit.**~~ **DONE** — `PROTOCOL_NOMAD_FIELD_TEST.md`
+   and `STRATEGY_AND_ROADMAP.md` deleted (dead nomad/V13 docs; non-existent scripts,
+   language policy violations). Remaining 7 docs audited and confirmed current.
 6. ~~**V2.167 — Embeddings spike (virtue).**~~ **DONE** — virtue ≥ 80 %
    with `KERNEL_SEMANTIC_IMPACT=1`. See wave entry above.
 7. ~~**Tier 1 decision** (`EMBEDDINGS_TIER1_DECISION.md`).~~ **DONE (V2.170)** — NO-GO
-   documented. With V2.171 landed: commonsense lexical spike attempted. Both
-   commonsense and justice have tried the lexical path. Tier 1 reconsideration
-   criteria now met if measurement confirms both remain below 55 % (pending
-   product/regulatory need).
+   documented. ~~V2.171 measurement pending.~~ **MEASURED** — commonsense 54.16 %
+   (3 885 examples), justice 52.63 %. Both below 55 %. Tier 1 reconsideration
+   criteria **confirmed met** (pending product/regulatory need). No sprint planned.
 8. **Audio capture (`WONTFIX_UNTIL_HARDWARE`).** Reclassified from
    `PENDING_HARDWARE`. No sprint until hardware arrives — no target date.
 9. **V2.168 experiment tracking.** Open a GitHub issue titled
