@@ -60,6 +60,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tarfile
@@ -922,7 +923,6 @@ def _soft_gate_warning(report: dict[str, Any]) -> str | None:
     n_total = report.get("n_examples_total", 0)
     if n_total == 0 or accuracy >= _SOFT_GATE_THRESHOLD:
         return None
-    import os  # already imported at module level; kept here for clarity
 
     flag_active = os.environ.get("KERNEL_SEMANTIC_IMPACT") == "1"
     flag_note = " (KERNEL_SEMANTIC_IMPACT=1 active)" if flag_active else ""
