@@ -2,8 +2,22 @@
 
 ## Status
 
-Implemented and pending validation.  Acceptance criterion: justice accuracy
-**≥ 55 %** with `KERNEL_SEMANTIC_IMPACT=1` (vs. frozen baseline 50.04 %).
+Implemented and **empirically validated — missed acceptance criterion**.
+
+**Measured (KERNEL_SEMANTIC_IMPACT=1):** justice 52.63 % (vs frozen
+baseline 50.04 %, +2.59 pp). The original ≥ 55 % bar was **not met**.
+Result file: `evals/ethics/ETHICS_EXTERNAL_RUN_20260504T031141Z.json`.
+
+**Diagnosis of the miss.** The discriminative lexicon (~26 tokens) matches
+only ≈ 25 % of justice rows; the remaining ≈ 75 % fall through to the
+generic `_impact_from_text` which inverts the semantic signal for
+reciprocity scenarios. The lift on the matched subset is real; the
+remaining gap is corpus coverage, not signal quality.
+
+Per the H3 anti-acceptance criterion in `ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`:
+no further mechanical lexicon expansion is performed in this wave. The next
+move (Tier 1 sentence-embeddings) is documented in
+`docs/proposals/EMBEDDINGS_TIER1_DECISION.md` and is out of scope here.
 
 ## Motivation
 

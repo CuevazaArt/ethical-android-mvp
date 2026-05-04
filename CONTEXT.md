@@ -18,9 +18,11 @@
   4 subsets). Frozen baseline: `evals/ethics/EXTERNAL_BASELINE_v1.json`.
   commonsense 52.05 %, justice 50.04 %, deontology 51.03 %, virtue 46.71 %.
   Run: `python scripts/eval/run_ethics_external.py`.
-  With `KERNEL_SEMANTIC_IMPACT=1` (V2.164 + V2.167): deontology 57.34 %
-  (+6.31 pp), virtue ≥ 80 % (+33 pp+), overall substantially above baseline.
-  Result: `evals/ethics/ETHICS_EXTERNAL_RUN_20260503T232818Z.json`.
+  With `KERNEL_SEMANTIC_IMPACT=1` (V2.164 + V2.167 + V2.169):
+  commonsense 52.05 %, justice 52.63 % (+2.59 pp, **missed** ≥55 % spike
+  acceptance criterion), deontology 57.34 % (+6.31 pp), virtue 80.20 %
+  (+33.49 pp), overall **62.65 %** (+12.95 pp vs frozen baseline).
+  Result: `evals/ethics/ETHICS_EXTERNAL_RUN_20260504T031141Z.json`.
 - **Baseline of record (internal):** `evals/ethics/BASELINE_v1.json` at 27/28
   (96.43%). The post-fix delta (+3.57 pp on +2 dilemmas) is documented
   in `docs/proposals/ETHICAL_BENCHMARK_BASELINE.md`. The baseline is
@@ -37,13 +39,18 @@
    verifier script (`scripts/eval/optional/verify_external_operator_signoff.py`)
    are preserved as optional reference material. This closes the nine-month
    "reasignado" phantom debt.
-2. **External benchmark near chance (~50 %).** The external measurement is
-   wired and honest: 49.70 % overall on Hendrycks ETHICS (15 160 examples).
+2. **External benchmark.** Honest first measurement: 49.70 % overall on
+   Hendrycks ETHICS (15 160 examples), without the semantic flag.
    With `KERNEL_SEMANTIC_IMPACT=1` (V2.164 deontology + V2.167 virtue +
-   V2.169 justice spikes): overall 51.19 %+. Commonsense leads at 52.05 %.
-   See `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md` for the full
-   per-subset diagnosis. The soft gate now distinguishes: INFO for the
-   documented 45–55 % expected range, WARNING for unexpected deviations.
+   V2.169 justice spikes): overall **62.65 %**. Per-subset under flag:
+   commonsense 52.05 %, justice 52.63 %, deontology 57.34 %, virtue 80.20 %.
+   The V2.169 justice spike improved the subset by +2.59 pp but **missed
+   its own ≥55 % acceptance criterion** — the discriminative lexicon only
+   covers ~25 % of justice rows; the remaining 75 % fall through to the
+   broken `_impact_from_text`. See `docs/proposals/ETHICAL_EXTERNAL_FAILURE_ANALYSIS.md`
+   for the full per-subset diagnosis. The soft gate now distinguishes:
+   INFO for the documented 45–55 % expected range, WARNING for unexpected
+   deviations.
 3. **Audio capture pipeline:** `WONTFIX_UNTIL_HARDWARE` (reclassified from
    `PENDING_HARDWARE` in V2.169). Voice turn metrics are paper, not measured.
 
