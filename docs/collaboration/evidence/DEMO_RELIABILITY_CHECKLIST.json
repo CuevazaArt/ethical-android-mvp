@@ -1,31 +1,31 @@
 {
-  "run_id": "demo-reliability-20260501T031116Z",
+  "run_id": "demo-reliability-20260507T110110Z",
   "operator": "automation-runner",
   "items": [
     {
       "id": "A1",
       "name": "Audio perception success envelope",
-      "passed": true
+      "passed": false
     },
     {
       "id": "A2",
       "name": "Audio perception fallback envelope",
-      "passed": true
+      "passed": false
     },
     {
       "id": "A3",
       "name": "Audio endpoint malformed payload tolerance",
-      "passed": true
+      "passed": false
     },
     {
       "id": "V1",
       "name": "Video frame ws path with valid dimensions",
-      "passed": true
+      "passed": false
     },
     {
       "id": "V2",
       "name": "Video frame malformed dimensions no crash",
-      "passed": true
+      "passed": false
     },
     {
       "id": "V3",
@@ -35,12 +35,12 @@
     {
       "id": "T1",
       "name": "Voice turn state transitions to transcribing/responding",
-      "passed": true
+      "passed": false
     },
     {
       "id": "T2",
       "name": "Voice turn fallback resets to mic_off",
-      "passed": true
+      "passed": false
     },
     {
       "id": "T3",
@@ -57,84 +57,84 @@
     {
       "id": "A1",
       "name": "Audio perception success envelope",
-      "passed": true,
+      "passed": false,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
         "--tb=short",
         "tests/server/test_app_integration.py::test_audio_perception_happy_path_returns_transcript_and_latency"
       ],
-      "return_code": 0,
-      "log_excerpt": ".                                                                        [100%]"
+      "return_code": 4,
+      "log_excerpt": "==================================== ERRORS ====================================\n____________ ERROR collecting tests/server/test_app_integration.py _____________\nImportError while importing test module '/home/runner/work/ethical-android-mvp/ethical-android-mvp/tests/server/test_app_integration.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
     },
     {
       "id": "A2",
       "name": "Audio perception fallback envelope",
-      "passed": true,
+      "passed": false,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
         "--tb=short",
         "tests/server/test_app_integration.py::test_audio_perception_stt_fallback_when_transcription_unavailable"
       ],
-      "return_code": 0,
-      "log_excerpt": ".                                                                        [100%]"
+      "return_code": 4,
+      "log_excerpt": "==================================== ERRORS ====================================\n____________ ERROR collecting tests/server/test_app_integration.py _____________\nImportError while importing test module '/home/runner/work/ethical-android-mvp/ethical-android-mvp/tests/server/test_app_integration.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
     },
     {
       "id": "A3",
       "name": "Audio endpoint malformed payload tolerance",
-      "passed": true,
+      "passed": false,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
         "--tb=short",
         "tests/server/test_app_integration.py::test_audio_perception_invalid_sample_rate_returns_contract_error"
       ],
-      "return_code": 0,
-      "log_excerpt": ".                                                                        [100%]"
+      "return_code": 4,
+      "log_excerpt": "==================================== ERRORS ====================================\n____________ ERROR collecting tests/server/test_app_integration.py _____________\nImportError while importing test module '/home/runner/work/ethical-android-mvp/ethical-android-mvp/tests/server/test_app_integration.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
     },
     {
       "id": "V1",
       "name": "Video frame ws path with valid dimensions",
-      "passed": true,
+      "passed": false,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
         "--tb=short",
         "tests/server/test_app_integration.py::test_ws_chat_video_frame_updates_vision_state"
       ],
-      "return_code": 0,
-      "log_excerpt": ".                                                                        [100%]"
+      "return_code": 4,
+      "log_excerpt": "==================================== ERRORS ====================================\n____________ ERROR collecting tests/server/test_app_integration.py _____________\nImportError while importing test module '/home/runner/work/ethical-android-mvp/ethical-android-mvp/tests/server/test_app_integration.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
     },
     {
       "id": "V2",
       "name": "Video frame malformed dimensions no crash",
-      "passed": true,
+      "passed": false,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
         "--tb=short",
         "tests/server/test_app_integration.py::test_ws_chat_video_frame_with_malformed_dimensions_does_not_crash"
       ],
-      "return_code": 0,
-      "log_excerpt": ".                                                                        [100%]"
+      "return_code": 4,
+      "log_excerpt": "==================================== ERRORS ====================================\n____________ ERROR collecting tests/server/test_app_integration.py _____________\nImportError while importing test module '/home/runner/work/ethical-android-mvp/ethical-android-mvp/tests/server/test_app_integration.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
     },
     {
       "id": "V3",
       "name": "Video low-light/face_present strict token handling",
       "passed": true,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
@@ -147,39 +147,39 @@
     {
       "id": "T1",
       "name": "Voice turn state transitions to transcribing/responding",
-      "passed": true,
+      "passed": false,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
         "--tb=short",
         "tests/server/test_app_integration.py::test_audio_perception_success_updates_voice_turn_state"
       ],
-      "return_code": 0,
-      "log_excerpt": ".                                                                        [100%]"
+      "return_code": 4,
+      "log_excerpt": "==================================== ERRORS ====================================\n____________ ERROR collecting tests/server/test_app_integration.py _____________\nImportError while importing test module '/home/runner/work/ethical-android-mvp/ethical-android-mvp/tests/server/test_app_integration.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
     },
     {
       "id": "T2",
       "name": "Voice turn fallback resets to mic_off",
-      "passed": true,
+      "passed": false,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
         "--tb=short",
         "tests/server/test_app_integration.py::test_audio_perception_fallback_resets_voice_turn_state"
       ],
-      "return_code": 0,
-      "log_excerpt": ".                                                                        [100%]"
+      "return_code": 4,
+      "log_excerpt": "==================================== ERRORS ====================================\n____________ ERROR collecting tests/server/test_app_integration.py _____________\nImportError while importing test module '/home/runner/work/ethical-android-mvp/ethical-android-mvp/tests/server/test_app_integration.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..."
     },
     {
       "id": "T3",
       "name": "Video adapter rejects non-finite metrics",
       "passed": true,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",
@@ -194,7 +194,7 @@
       "name": "Video adapter tolerates non-numeric dimensions",
       "passed": true,
       "command": [
-        "C:\\Users\\lexar\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "/opt/hostedtoolcache/Python/3.12.13/x64/bin/python",
         "-m",
         "pytest",
         "-q",

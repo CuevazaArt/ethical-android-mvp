@@ -1,7 +1,7 @@
 {
   "schema": "mvp_closure_report",
   "version": "1.1",
-  "generated_at": "2026-05-02T21:08:16.346186Z",
+  "generated_at": "2026-05-07T11:01:10.419519Z",
   "wave": {
     "first_block": "V2.119",
     "last_block": "V2.128",
@@ -64,14 +64,14 @@
     ]
   },
   "gate_snapshot": {
-    "generated_at": "2026-05-02T21:08:16.346186Z",
+    "generated_at": "2026-05-07T11:01:10.419519Z",
     "gates": {
       "G1": {
-        "status": "pass",
+        "status": "in_progress",
         "source": "docs/collaboration/evidence/DESKTOP_STABILITY_LEDGER.jsonl",
-        "updated_at": "2026-05-02T16:09:00Z",
-        "summary": "14/14 day(s) covered, failures=0",
-        "stale": false
+        "updated_at": "2026-05-03T09:00:00Z",
+        "summary": "10/14 day(s) covered, failures=0",
+        "stale": true
       },
       "G2": {
         "status": "pass",
@@ -79,21 +79,21 @@
         "source": "docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl",
         "updated_at": "2026-05-02T20:33:03.298706Z",
         "summary": "[text_mediated] p95=1.97ms target<2500.00ms",
-        "audio_capture_path": "PENDING_HARDWARE",
+        "audio_capture_path": "WONTFIX_UNTIL_HARDWARE",
         "stale": false
       },
       "G3": {
         "status": "in_progress",
         "source": "docs/collaboration/evidence/G3_CONTRACT_NO_DRIFT_HISTORY.jsonl",
-        "updated_at": "2026-05-02T16:09:00.603500Z",
-        "summary": "2/28 day(s) recorded for 2026-05, failed=0",
+        "updated_at": "2026-05-07T11:01:01.007550Z",
+        "summary": "3/28 day(s) recorded for 2026-05, failed=0",
         "stale": false
       },
       "G4": {
-        "status": "pass",
+        "status": "fail",
         "source": "docs/collaboration/evidence/DEMO_RELIABILITY_CHECKLIST.json",
-        "updated_at": "2026-05-01T03:11:16Z",
-        "summary": "passed 10/10 items (required>=10)",
+        "updated_at": "2026-05-07T11:01:10Z",
+        "summary": "passed 3/10 items (required>=10)",
         "stale": false
       },
       "G5": {
@@ -184,7 +184,7 @@
   },
   "transparency": {
     "g2_modes_doc": "docs/TRANSPARENCY_AND_LIMITS.md",
-    "g2_audio_capture_path": "PENDING_HARDWARE",
+    "g2_audio_capture_path": "WONTFIX_UNTIL_HARDWARE",
     "g2_text_mediated_evidence": "docs/collaboration/evidence/G2_LIVE_TEXT_MEDIATED_SAMPLES.jsonl"
   },
   "definition_of_done": {
