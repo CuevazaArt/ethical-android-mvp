@@ -4,6 +4,23 @@ All notable changes to this project are summarized here. For narrative context a
 
 **Note:** Older sections below may still **link** to paths that were later removed (for example `experiments/million_sim/`, `docs/multimedia/`, root `dashboard.html`, `landing/`). Those links are **historical**; recover files from git history or backup branches if you need them.
 
+## [2026-08-05] Security hardening — committed TLS key removal, dependency patches, CI unbreak
+
+### Security
+- **`.certs/cert.pem` / `.certs/key.pem`:** Removed from the git index. The self-signed localhost TLS private key had been committed to the public repository before `.certs/` was gitignored. Operators must regenerate local certs with `scripts/generate_local_certs.py`; the committed keypair should be treated as compromised. The files remain in git history — rotate rather than reuse.
+- **`requirements.txt` / `pyproject.toml`:** `cryptography` raised to `>=50.0.0,<51.0.0`. The previous `<47.0.0` cap blocked the fixes for PYSEC-2026-3552/3553/3554 and GHSA-537c-gmf6-5ccf.
+- **`requirements-dev.txt`:** `streamlit` bumped `1.32.0 → 1.54.0` (patches PYSEC-2024-153, PYSEC-2026-212, PYSEC-2026-2285) and pulls a patched `pillow`/`protobuf` transitive set.
+
+### Fixed
+- **`.github/workflows/ci.yml` / `gate-maintenance.yml`:** Pinned `opencv-python-headless<5` (4 install sites). opencv 5.x forces `numpy>=2`, silently overriding the repo's `numpy<2.1` pin; the resulting numpy 2.5.1 stubs (PEP 695 syntax) broke Mypy under `python_version = "3.11"` and conflicted with streamlit. This was the root cause of the daily scheduled CI failures on `main` (quality 3.11/3.12, windows-smoke, desktop-gate-report install drift). Python 3.13 passed only because it skips the opencv install.
+
+### Changed
+- **`.github/workflows/ci.yml`:** Removed the daily `schedule` cron. The project entered maintenance freeze (deprecated); CI now runs only on pushes, PRs, and manual dispatch. The `gate-maintenance` and `wiki_sync` workflows were disabled at the repository level for the same reason.
+
+### Known remaining (not addressed here)
+- `desktop-gate-report` still fails on stale G1 evidence (`DESKTOP_STABILITY_LEDGER.jsonl` last entry 2026-05-03; gate requires ≤14 days). Needs an L0 decision: automate the refresh honestly or retire the gate.
+- 4 failing widget tests in `src/clients/flutter_desktop_shell` (real regressions, e.g. "Thumbs-up posts feedback envelope").
+
 ## [2026-05-04] Model dev wave V2.166 + V2.171 — Wave 3 content audit + commonsense measurement
 
 ### Added

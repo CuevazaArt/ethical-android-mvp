@@ -16,8 +16,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "15 14 * * *" # Daily cadence for gate freshness audit (UTC)
+  # Daily schedule removed 2026-08-05: project is in maintenance freeze
+  # (deprecated); CI now runs only on pushes, PRs, and manual dispatch.
 
 permissions:
   contents: read
@@ -100,7 +100,9 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
           pip install edge-tts
           if [ "${{ matrix.python-version }}" != "3.13" ]; then
-            pip install opencv-python-headless
+            # <5 keeps numpy inside the repo's <2.1 pin (opencv 5.x forces numpy>=2,
+            # which breaks mypy stubs and conflicts with streamlit).
+            pip install "opencv-python-headless<5"
           fi
           pip freeze
 
@@ -175,7 +177,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
-          pip install opencv-python-headless
+          pip install "opencv-python-headless<5"
 
       - name: L1 collaboration invariants
         run: python scripts/eval/verify_collaboration_invariants.py
@@ -202,7 +204,6 @@ jobs:
       needs.detect-changes.outputs.python_changed == 'true'
       || github.event_name == 'pull_request'
       || github.event_name == 'workflow_dispatch'
-      || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -217,7 +218,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
           pip install edge-tts
-          pip install opencv-python-headless
+          pip install "opencv-python-headless<5"
 
       - name: Desktop MVP status contract smoke
         run: python -m pytest tests/server/test_app_integration.py::test_desktop_mvp_status_contract_smoke -q --tb=short
