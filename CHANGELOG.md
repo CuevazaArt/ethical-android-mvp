@@ -14,6 +14,9 @@ All notable changes to this project are summarized here. For narrative context a
 ### Fixed
 - **`.github/workflows/ci.yml` / `gate-maintenance.yml`:** Pinned `opencv-python-headless<5` (4 install sites). opencv 5.x forces `numpy>=2`, silently overriding the repo's `numpy<2.1` pin; the resulting numpy 2.5.1 stubs (PEP 695 syntax) broke Mypy under `python_version = "3.11"` and conflicted with streamlit. This was the root cause of the daily scheduled CI failures on `main` (quality 3.11/3.12, windows-smoke, desktop-gate-report install drift). Python 3.13 passed only because it skips the opencv install.
 
+### Changed
+- **`.github/workflows/ci.yml`:** Removed the daily `schedule` cron. The project entered maintenance freeze (deprecated); CI now runs only on pushes, PRs, and manual dispatch. The `gate-maintenance` and `wiki_sync` workflows were disabled at the repository level for the same reason.
+
 ### Known remaining (not addressed here)
 - `desktop-gate-report` still fails on stale G1 evidence (`DESKTOP_STABILITY_LEDGER.jsonl` last entry 2026-05-03; gate requires ≤14 days). Needs an L0 decision: automate the refresh honestly or retire the gate.
 - 4 failing widget tests in `src/clients/flutter_desktop_shell` (real regressions, e.g. "Thumbs-up posts feedback envelope").

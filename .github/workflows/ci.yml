@@ -16,8 +16,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "15 14 * * *" # Daily cadence for gate freshness audit (UTC)
+  # Daily schedule removed 2026-08-05: project is in maintenance freeze
+  # (deprecated); CI now runs only on pushes, PRs, and manual dispatch.
 
 permissions:
   contents: read
@@ -204,7 +204,6 @@ jobs:
       needs.detect-changes.outputs.python_changed == 'true'
       || github.event_name == 'pull_request'
       || github.event_name == 'workflow_dispatch'
-      || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
